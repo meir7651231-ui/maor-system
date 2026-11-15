@@ -12,3 +12,10 @@
 {"id": "lk12", "text": "קיבלתי את זה בטעות, אני לא אבי", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
 {"id": "lk13", "text": "מצורפת קבלה מהבנק על ההעברה", "ctx": {"channel": "email"}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
 {"id": "lk14", "text": "יש עליי תיק איחוד, משלם רק דרך הלשכה", "ctx": {"channel": "email"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause", "tags": ["insolvency"]}, "critical": true}
+{"id": "lk15", "text": "stop panicking, I will transfer on Thursday", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "not": ["opt_out"]}, "critical": true}
+{"id": "lk16", "text": "הבן שלי בן 14 יעביר לכם את הכסף עבורי", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "not": ["minor"]}, "critical": true}
+{"id": "lk17", "text": "איך משלמים את זה? אני משלמת תמיד בזמן", "ctx": {"channel": "email"}, "expect": {"intent": "how_to_pay", "not": ["paid_claim"]}, "critical": true}
+{"id": "lk18", "text": "אבקש לחדול מפנייה אליי", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk19", "text": "you have the wrong number", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "lk20", "text": "I dispute this, the repair was never completed", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "lk21", "text": "המייל הזה של המשרד, הוא עזב את החברה", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
