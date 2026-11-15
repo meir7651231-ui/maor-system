@@ -60,6 +60,8 @@ jobs:
         run: bash scripts/smoke_server.sh
       - name: בדיקות חוזה מול mock כשרתי HTTP (חשבונית ירוקה · 019 · InforU) — נכשל על FAIL
         run: bash scripts/contract_checks_http.sh
+      - name: שומר-עץ — גם evals, demo.sh --check, smoke וחוזים לא השאירו קבצים בפרויקט (QA, הפעלה 217)
+        run: python3 -I scripts/tree_guard.py check "$RUNNER_TEMP/tree-before.txt"
 
   # שער 5 · SQLCipher (ADR שלב 2, מאחורי DB_ENCRYPTION=sqlcipher). ג'וב נפרד: ה-test למעלה רץ בלי המודול
   # (ההתקנה וברירת המחדל לא משתנות; בדיקות SQLCipher מדלגות שם בנקיות) — כאן הן רצות באמת על 3.11/3.13.

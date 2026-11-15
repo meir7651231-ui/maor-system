@@ -1,4 +1,4 @@
-# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 216, 15.11)
+# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 217, 15.11)
 
 ענף אינטגרציה: `collect-agent` (לא מוזג ל-main, ולא ימוזג בלי אישור מפורש של מאיר). תיקייה: `collect-agent/`.
 
@@ -14,6 +14,29 @@
 ## 📌 הכרעות מאיר — מחייבות כל תפקיד (6.11.2026)
 - **מחיר יחיד:** ₪119 לחודש **או** ₪1,190 לשנה · 14 ימי ניסיון. **אין ₪79**, אין A/B, אין מסלולים או מחירונים אחרים. מקור יחיד: `docs/PRICING.md` · בקוד: `Settings.price_ils_month=119`, `price_ils_year=1190`, `trial_days=14` · בדף הנחיתה: `PRICE` ב-`web/src/pages/Landing.tsx`. (ניסוח המע״מ «כולל מע״מ ככל שחל» — עדיין לאישור רו״ח/עו״ד, `docs/PRICING.md`.)
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
+
+## 🧭 הפעלת מנהל · 15.11.2026 (הפעלה 217)
+- **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/`. ‏`bold-bell-xom3mc` — WIP שנעצר לפי מאיר (לא נגעתי) · `gabi-019-inbound` — התוכן כבר בענף (`19eb2028`) · `stoic-mccarthy-23f03p` — נדחה ומכוסה (107). ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
+- **CI היה אדום 3 ריצות (652–654, מאז 216):** 5 ג׳ובים נפלו. 650–651 ירוקות.
+  - **(א) bandit** (`security` + `sqlcipher` ×2 דרך `test_security`): `scripts/tree_guard.py` (216) — B404/B603/B607 על `subprocess` עם `git` קבוע. ה-`noqa` של ruff לא משתיק את bandit ⇒ `# nosec` ממוקד (כמו בשאר הסקריפטים).
+  - **(ב) ruff E501** (`test` ×2): `tests/test_signoff_lists_marketing_tests.py` (שיווק, סבב שמירה 3) — שורה של 123 תווים. פוצלה.
+  - הביקורת (סבב 83, `d053e16a`) תיקנה את אותן שתי נפילות במקביל; ברבייס נשמר הנוסח שלה + המבנה החדש (`_git`).
+- **המשימה:** «הבא» (3) מ-216 — **שומר-העץ גם סביב `demo.sh --check`, smoke, evals וחוזים.**
+  - **צעד CI חדש** בסוף ג׳וב `test`: `tree_guard.py check` מול אותו צילום, אחרי evals / `demo.sh --check` / `smoke_server.sh` / `contract_checks_http.sh`. הבדיקה אחרי pytest נשארת (מצביעה מדויק על pytest).
+  - **באג שנחשף בדרך:** `SKIP_PREFIXES` (`web/dist/`, `web/node_modules/`) הושווה לנתיב-מהשורש (`collect-agent/web/…`) ⇒ **אף פעם לא התאים**. מקומית demo.sh בונה את הממשק ⇒ השומר דיווח אלפי שורות node_modules. תוקן: `git rev-parse --show-prefix` והשוואה יחסית לפרויקט.
+  - **ננעל:** `test_web_build_is_allowed_when_project_is_a_subdirectory` (פרויקט בתת-תיקייה: build מותר, `.venv` נתפס) · `test_ci_guard_also_covers_demo_smoke_and_contracts` (הגנת-מקור על ה-workflow). **מוטציה:** בלי חיתוך ה-prefix ⇒ 1/8 נופלת.
+- **אומת מקומית (venv מחוץ לפרויקט):** ruff נקי · bandit 0 · pytest מלא **2559 passed / 18 skipped** · evals · `demo.sh --check` · smoke · חוזים — כולם 0, ו«העץ נקי» אחרי כולם.
+- **מצב לפי תפקיד:**
+  - פיתוח — בלי חסם.
+  - ביקורת — סבב 84: (א) הצגת `sent_owner` — מחכה להכרעה (מ-214). (ב) סגירת (ג) מ-186. (ג) הצהרת הנגישות — שאין התחייבות שגבי לא עומד בה.
+  - עיצוב — לאשר `ui-12-open-list.png` / `ui-13-open-list-mobile.png` (CI, `web-e2e-shots`) · צבעי סטטוס (ניגודיות).
+  - AI — לפני סבב 6: להריץ גם `tests/test_critic_round79_engine.py`.
+  - QA — ✅ השומר מכסה את כל ג׳וב `test`. הבא: אותו שומר בג׳וב `sqlcipher` (demo/smoke עם `DB_ENCRYPTION=sqlcipher`).
+  - חיבורים — `CONTRACT_VERIFIED` ‏False עד מסמך API של 019 + חשבון בדיקה (מאיר).
+  - משפטי — placeholders ב-`/p`, `/u` ובהצהרת הנגישות ממתינים לפרטי החברה המפעילה.
+  - שיווק/מכירות — חבילות מוכנות לחתימת מאיר. **לפני דחיפה: `ruff check .` + `bandit` (ג׳וב security) — שתי הנפילות של 652–654 היו נתפסות מקומית.**
+- **הבא (פיתוח):** (1) לבדוק שריצת ה-CI של הקומיט הזה ירוקה (כולל הצעד החדש). (2) QA — שומר-עץ בג׳וב `sqlcipher`. (3) אם הביקורת מאשרת — הצגת `sent_owner`.
+- **חסמים (מאיר):** ללא שינוי (sandbox לספקים, ניסוח מע״מ, פרטי החברה המפעילה, מסמך API של 019, ענף `bold-bell-xom3mc`).
 
 ## 🧭 הפעלת מנהל · 15.11.2026 (הפעלה 216)
 - **מיזוג:** אין ענפי `claude/*` (או אחרים) חדשים עם שינוי ב-`collect-agent/`. ‏`stoic-mccarthy-23f03p` — נדחה ומכוסה (107). ענפי `bridge-gabi-engine-*` ו-`gabi-*` כבר בתוך הענף או לא נוגעים בתיקייה. ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.

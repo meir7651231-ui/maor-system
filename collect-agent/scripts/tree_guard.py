@@ -13,7 +13,7 @@
 
 from __future__ import annotations
 
-import subprocess  # nosec B404 — רק git status בפקודה קבועה
+import subprocess  # nosec B404 — רק git status עם ארגומנטים קבועים
 import sys
 from pathlib import Path
 
@@ -23,28 +23,38 @@ ALLOWED_PARTS = {"__pycache__", ".pytest_cache", ".ruff_cache"}
 SKIP_PREFIXES = ("web/node_modules/", "web/dist/")
 
 
-def _allowed(path: str) -> bool:
+def _allowed(path: str, prefix: str = "") -> bool:
+    """`path` יחסי לשורש המאגר (כך git status --porcelain מחזיר); `prefix` = תיקיית הפרויקט בתוכו.
+
+    באג (הפעלה 217): ההשוואה ל-SKIP_PREFIXES נעשתה על נתיב-מהשורש (`collect-agent/web/dist/…`) מול
+    `web/dist/` ⇒ אף פעם לא התאימה, ו-build של demo.sh הופיע כ«לכלוך» (אלפי שורות node_modules)."""
     parts = path.rstrip("/").split("/")
     if any(p in ALLOWED_PARTS or p.endswith(".egg-info") for p in parts):
         return True
-    return path.startswith(SKIP_PREFIXES)
+    rel = path[len(prefix):] if prefix and path.startswith(prefix) else path
+    return rel.startswith(SKIP_PREFIXES)
 
 
-def state(root: Path = ROOT) -> list[str]:
-    """שורות `git status` (כולל מתעלמים, כל קובץ בנפרד) לתיקיית הפרויקט, בלי המותרים."""
-    out = subprocess.run(  # noqa: S603  # nosec B603 B607 — פקודה קבועה, בלי קלט חיצוני
-        ["git", "status", "--porcelain", "--ignored", "--untracked-files=all", "--", "."],  # noqa: S607
+def _git(root: Path, *args: str) -> str:
+    return subprocess.run(  # noqa: S603  # nosec B603 B607 — פקודת git קבועה, בלי קלט חיצוני
+        ["git", *args],  # noqa: S607
         cwd=root,
         check=True,
         capture_output=True,
         text=True,
     ).stdout
+
+
+def state(root: Path = ROOT) -> list[str]:
+    """שורות `git status` (כולל מתעלמים, כל קובץ בנפרד) לתיקיית הפרויקט, בלי המותרים."""
+    prefix = _git(root, "rev-parse", "--show-prefix").strip()
+    out = _git(root, "status", "--porcelain", "--ignored", "--untracked-files=all", "--", ".")
     lines = []
     for line in out.splitlines():
         path = line[3:].strip('"')
         if " -> " in path:
             path = path.split(" -> ", 1)[1]
-        if not _allowed(path):
+        if not _allowed(path, prefix):
             lines.append(line)
     return sorted(lines)
 
