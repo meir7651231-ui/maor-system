@@ -32,3 +32,68 @@ def test_cleanup_trapped_on_exit_and_signals_and_kills_servers():
     body = _cleanup_body()
     assert 'kill "$GI"' in body and 'kill "$SMS"' in body
     assert "$(mktemp" not in SRC.split("trap cleanup", 1)[0]                # אין mktemp לפני ה-trap
+
+
+# ── הפעלה 229 (ביקורת מ-227 ה׳): kill ⇒ wait עם תקרה ⇒ rm ─────────────────────────────────────────────
+import os  # noqa: E402
+import shutil  # noqa: E402
+import subprocess  # noqa: E402
+import time  # noqa: E402
+
+import pytest  # noqa: E402
+
+BASH = shutil.which("bash")
+
+
+def _cleanup_fn() -> str:
+    m = re.search(r"^cleanup\(\) \{\n.*?^\}\n", SRC, flags=re.S | re.M)
+    assert m
+    return m.group(0)
+
+
+def test_cleanup_order_kill_then_wait_then_tail_and_rm():
+    """kill בלי wait: שרת שעוד נסגר כותב ללוג אחרי ה-rm (יתום ב-TMPDIR) ומחזיק את הפורט לריצה הבאה."""
+    body = _cleanup_body()
+    kill = body.index('kill "$GI"')
+    k9 = body.index("kill -9")
+    wait = body.index('wait "$p"')
+    tail = body.index("tail -n 30")
+    rm = body.index("rm -f")
+    assert kill < k9 < wait < tail < rm
+
+
+def _run_cleanup(tmp_path, server: str) -> tuple[float, int, Path]:
+    log = tmp_path / "gi.log"
+    log.write_text("x")
+    pidfile = tmp_path / "pid"
+    script = (
+        _cleanup_fn()
+        + f'GI_LOG="{log}"; SMS_LOG=""; SMS=""\n'
+        + f"{server} &\n"
+        + f'GI=$!; echo $GI > "{pidfile}"; sleep 0.3\n'
+        + "(exit 0); cleanup\n"
+    )
+    t0 = time.monotonic()
+    proc = subprocess.run(  # noqa: S603  # nosec B603
+        [BASH, "-c", script], env={"PATH": "/usr/bin:/bin"}, timeout=20, capture_output=True,
+    )
+    assert proc.returncode == 0, proc.stderr
+    return time.monotonic() - t0, int(pidfile.read_text()), log
+
+
+@pytest.mark.skipif(BASH is None, reason="אין bash")
+def test_cleanup_does_not_hang_on_server_ignoring_sigterm(tmp_path):
+    took, pid, log = _run_cleanup(tmp_path, "bash -c 'trap \"\" TERM; while :; do sleep 0.1; done'")
+    assert took < 10, f"cleanup נתקע {took:.1f}s מול שרת שמתעלם מ-SIGTERM"
+    with pytest.raises(ProcessLookupError):
+        os.kill(pid, 0)
+    assert not log.exists()
+
+
+@pytest.mark.skipif(BASH is None, reason="אין bash")
+def test_cleanup_fast_when_server_exits_on_sigterm(tmp_path):
+    took, pid, log = _run_cleanup(tmp_path, "sleep 30")
+    assert took < 2.5
+    with pytest.raises(ProcessLookupError):
+        os.kill(pid, 0)
+    assert not log.exists()

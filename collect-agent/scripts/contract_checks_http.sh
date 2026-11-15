@@ -13,6 +13,17 @@ cleanup() {
   local rc=$?
   [[ -n "$GI" ]] && kill "$GI" 2>/dev/null || true
   [[ -n "$SMS" ]] && kill "$SMS" 2>/dev/null || true
+  # הפעלה 229 (ביקורת מ-227 ה׳): kill בלי wait ⇒ שרת שעוד נסגר כתב ללוג *אחרי* ה-rm (קובץ יתום ב-TMPDIR), והסקריפט
+  # יצא כשהשרת עוד מחזיק את הפורט (הריצה הבאה נפלה על «כתובת תפוסה»). כמו demo.sh (227): עד ~5 שניות לסגירה
+  # מסודרת ⇒ kill -9 ⇒ wait — לפני ה-tail וה-rm. שרת שמתעלם מ-SIGTERM לא תוקע את ה-cleanup.
+  local p
+  for p in "$GI" "$SMS"; do
+    if [[ -n "$p" ]]; then
+      for _ in $(seq 1 50); do kill -0 "$p" 2>/dev/null || break; sleep 0.1; done
+      kill -9 "$p" 2>/dev/null || true
+      wait "$p" 2>/dev/null || true
+    fi
+  done
   if [[ $rc -ne 0 ]]; then
     echo "--- לוג gi_mock ---"; tail -n 30 "${GI_LOG:-/dev/null}" 2>/dev/null || true
     echo "--- לוג sms019_mock ---"; tail -n 30 "${SMS_LOG:-/dev/null}" 2>/dev/null || true
