@@ -31,7 +31,14 @@ try {
   const ctx = await b.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 2 });
   const p = await ctx.newPage();
   p.on('pageerror', e => errors.push(String(e)));
-  const snap = async (n, pg = p) => { const f = `${String(n).padStart(2, '0')}-${SCENES[n - 1].key}.png`; await pg.screenshot({ path: OUT + f }); shots.push(f); };
+  // כל פריים נבדק מול ההכרעות לפני הצילום: טקסט אסור על המסך ⇒ עוצרים (לא מצלמים סרטון שסותר את המוצר)
+  const FORBIDDEN = [/whatsapp/i, /וואטסאפ/, /העוזר לגביית/, /×\s*\d/, /חוזר מוקדם/, /מובטח|מבטיח/, /לפני מע״מ/];
+  const snap = async (n, pg = p) => {
+    const text = await pg.evaluate(() => document.body.innerText);
+    const hit = FORBIDDEN.find(r => r.test(text));
+    if (hit) throw new Error(`פריים ${n} (${SCENES[n - 1].key}): טקסט אסור ${hit}`);
+    const f = `${String(n).padStart(2, '0')}-${SCENES[n - 1].key}.png`; await pg.screenshot({ path: OUT + f }); shots.push(f);
+  };
 
   // 1 · הוק: כותרת דף הנחיתה
   await p.goto(base + '/app/'); await p.getByTestId('hero-title').waitFor(); await p.waitForTimeout(400);

@@ -39,3 +39,18 @@ def test_when_article_numbers_match_code():
     assert policy.WINDOWS[5] is None and "לא בשבת" in t
     hours = int(policy.MIN_GAP.total_seconds() // 3600)
     assert hours == 72 and "72 שעות" in t
+
+
+PLAN = SEO / "04-offer-payment-plan.md"
+
+
+def test_payment_plan_article_numbers_match_code():
+    """מאמר הפריסה: טווח התשלומים והמינימום לתשלום = app/plans.py ואפשרויות עמוד החייב."""
+    from app import plans
+    t = PLAN.read_text(encoding="utf-8")
+    assert plans.MAX_INSTALLMENTS == 6 and "2 עד 6 תשלומים" in t
+    assert plans.MIN_INSTALLMENT_AGOROT == 100_00 and "₪100 לתשלום" in t
+    total, parts = 100_01, plans.propose(100_01 * 3, __import__("datetime").date(2026, 11, 8), 3)
+    assert sum(p.amount_agorot for p in parts) == total * 3 and parts[0].amount_agorot >= parts[1].amount_agorot
+    assert "השארית" in t and "לתשלום הראשון" in t
+    assert "בלי ריבית" in t
