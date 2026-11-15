@@ -476,7 +476,11 @@ class CollectService:
                 "due,customer_id,status,payment_url,synced_at,source,credit_agorot) "
                 "VALUES(?,?,?,?,?,?,?,?, 'open', ?, ?, ?, ?) "
                 "ON CONFLICT(external_id) DO UPDATE SET amount_agorot=excluded.amount_agorot, "
-                "due=excluded.due, status='open', synced_at=excluded.synced_at, "
+                "due=excluded.due, synced_at=excluded.synced_at, "
+                # שער רשימת הפתוחות: «שולם» שסימן בעל העסק (ביט/העברה) לא נפתח מחדש בסנכרון,
+                # גם אם המסמך עדיין פתוח בחשבונית ירוקה
+                "status=CASE WHEN invoices.owner_paid_at IS NOT NULL THEN invoices.status "
+                "ELSE 'open' END, "
                 "source=excluded.source, credit_agorot=excluded.credit_agorot, "
                 # סכום השתנה (תשלום חלקי) ⇒ טופס התשלום השמור נבנה על הסכום הישן ⇒ לא בשימוש
                 "payment_url=CASE WHEN invoices.amount_agorot<>excluded.amount_agorot "
@@ -899,6 +903,40 @@ class CollectService:
                                                       "ends": t.get("ends")})
 
     # ---------- planning ----------
+    # ---------- שער «אישור רשימת הפתוחות» ----------
+    def open_list(self) -> dict:
+        """החשבוניות הפתוחות שממתינות לאישור בעל העסק לפני תזכורת ראשונה."""
+        rows = self.db.q("SELECT i.id, i.number, i.amount_agorot, i.currency, i.due, i.source, "
+                         "i.open_reviewed_at, c.name customer FROM invoices i JOIN customers c "
+                         "ON c.id=i.customer_id WHERE i.status='open' ORDER BY i.due, i.id")
+        items = [dict(r) for r in rows]
+        return {"enabled": self.s.open_review,
+                "pending": [x for x in items if not x["open_reviewed_at"]],
+                "confirmed": [x for x in items if x["open_reviewed_at"]]}
+
+    def confirm_open_list(self, still_open: list[int], paid: list[int],
+                          actor: str = "owner") -> dict:
+        """בעל העסק מסמן: still_open ⇒ מותר לתזכר · paid ⇒ שולם מחוץ למערכת (ביט/העברה), נסגר כאן
+        ולא יתוזכר. כל חשבונית פתוחה ממתינה עד שמסומנת. חשבונית בשני הצדדים ⇒ שגיאה."""
+        if set(still_open) & set(paid):
+            raise ValueError("אותה חשבונית סומנה גם «פתוחה» וגם «שולמה»")
+        now = _iso(self.clock())
+        done = {"confirmed": [], "paid": []}
+        for iid in still_open + paid:
+            inv = self._invoice(iid)
+            if inv is None or inv["status"] != "open":
+                raise ValueError(f"חשבונית {iid} לא קיימת או לא פתוחה")
+        for iid in still_open:
+            self.db.x("UPDATE invoices SET open_reviewed_at=? WHERE id=?", (now, iid))
+            done["confirmed"].append(iid)
+        for iid in paid:
+            self.db.x("UPDATE invoices SET status='closed', open_reviewed_at=?, owner_paid_at=? "
+                      "WHERE id=?", (now, now, iid))
+            self._cancel_invoice(iid, "owner_marked_paid")
+            done["paid"].append(iid)
+        self.audit(actor, "open_list_confirmed", done)
+        return {**done, **self.open_list()}
+
     def plan(self) -> list[int]:
         now = self.clock()
         t = self.trial()
@@ -1028,6 +1066,8 @@ class CollectService:
                            "ORDER BY due, id", (cid,)):
             if r["id"] in rejected:
                 continue  # בעל העסק דחה ⇒ אין תזכורות נוספות לחשבונית הזו
+            if self.s.open_review and not r["open_reviewed_at"]:
+                continue  # שער «אישור רשימת הפתוחות»: עוד לא אושרה ⇒ אין תזכורת
             if invoice_too_old(r, now.date()):
                 self._notify_too_old(r, cust)   # ר-7: אין שום אוטומציה, רק התראה אחת
                 continue
