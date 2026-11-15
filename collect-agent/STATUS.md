@@ -1,4 +1,4 @@
-# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 220, 15.11)
+# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 221, 15.11)
 
 ענף אינטגרציה: `collect-agent` (לא מוזג ל-main, ולא ימוזג בלי אישור מפורש של מאיר). תיקייה: `collect-agent/`.
 
@@ -14,6 +14,27 @@
 ## 📌 הכרעות מאיר — מחייבות כל תפקיד (6.11.2026)
 - **מחיר יחיד:** ₪119 לחודש **או** ₪1,190 לשנה · 14 ימי ניסיון. **אין ₪79**, אין A/B, אין מסלולים או מחירונים אחרים. מקור יחיד: `docs/PRICING.md` · בקוד: `Settings.price_ils_month=119`, `price_ils_year=1190`, `trial_days=14` · בדף הנחיתה: `PRICE` ב-`web/src/pages/Landing.tsx`. (ניסוח המע״מ «כולל מע״מ ככל שחל» — עדיין לאישור רו״ח/עו״ד, `docs/PRICING.md`.)
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
+
+## 🧭 הפעלת מנהל · 15.11.2026 (הפעלה 221)
+- **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/`. ‏`stoic-mccarthy-23f03p` — נדחה ומכוסה (107) · `bold-bell-xom3mc` — נעצר לפי מאיר. ענפי `bridge-gabi-engine-*`/`gabi-*` לא נוגעים בתיקייה. ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
+- **CI:** ריצה 662 (`e57866b1`, ביקורת סבב 86) **ירוקה**; 661 (`83cc919f`, 220) ירוקה ⇒ (1) מ-220 סגור.
+- **המשימה:** «הבא» (2) מ-220 — **QA: מגן `mktemp`⇒ניקוי בכל סקריפטי ה-shell.** במקביל QA דחף את אותו תיקון (`7052f9d8`: SNAP_DIR ב-`ci_clean_demo.sh`, trap לפני mktemp ב-`smoke_server.sh` ו-`demo.sh`, `tests/test_shell_tmp_cleanup.py`) ⇒ ברִבֵּייס נלקחה הגרסה שלו לסקריפטים, ונשארו מעליה שלושה חורים שמצאתי בהרצת אותות אמיתית על demo.sh:
+  - **אות לסקריפט המשיך את ההדגמה:** `trap cleanup EXIT INT TERM` ⇒ SIGINT/SIGTERM לתהליך הסקריפט (`kill`, `timeout`, ביטול CI) הריץ cleanup (הרג שרתים, מחק קבצים) **וההדגמה המשיכה**, עד שקרסה בשגיאה מטעה (`cat: … No such file`, יציאה 1). עכשיו `trap cleanup EXIT` + `INT⇒exit 130` + `TERM⇒exit 143`. (Ctrl+C במסוף שולח לכל הקבוצה ⇒ שם זה עצר גם קודם.)
+  - **סוד TOTP נשאר ב-TMPDIR:** SIGINT בזמן עליית השרת ⇒ השרת כתב את קובץ הסוד *אחרי* ה-`rm` ⇒ קובץ 32 תווים נשאר. עכשיו cleanup: `kill` ⇒ `wait` ⇒ `rm`.
+  - **אתחול לריק:** `GI_LOG`/`GI_PID` נוספו לאתחול בשורה 16 (לקח סבב 86) — עכשיו כל משתני ה-mktemp בכל הסקריפטים מאותחלים לריק לפני ה-trap הראשון.
+- **ננעל:** `tests/test_shell_tmp_traps.py` (10): אתחול-לריק לפני ה-trap (כל סקריפט) · אין trap על INT/TERM בלי `exit` · ה-traps האמיתיים של demo.sh: SIGINT ⇒ 130, cleanup פעם אחת, לא ממשיך · cleanup: kill<wait<rm. `test_demo_sh_tmp_cleanup.py` עודכן ל-traps החדשים. **מוטציות:** trap ישן `EXIT INT TERM` ⇒ 2 נופלות · בלי אתחול GI_LOG ⇒ 1 · בלי `wait` ⇒ 1.
+- **אומת מקומית (venv מחוץ לפרויקט):** ruff נקי · bandit 0 · pytest מלא **2591 passed / 19 skipped** · `SKIP_WEB=1 demo.sh --check` עם TMPDIR פרטי ⇒ ירוק, ריק בסוף · SIGINT לקבוצה ב-1.5–3.5 שניות ⇒ 130, TMPDIR ריק · SIGINT/SIGTERM לסקריפט בלבד ⇒ 130/143 (לפני: 1, ממשיך וקורס).
+- **מצב לפי תפקיד:**
+  - פיתוח — בלי חסם. הבא: הצגת `sent_owner` אחרי הכרעת הביקורת.
+  - ביקורת — סבב 87: (א) הצגת `sent_owner` — מחכה להכרעה (מ-214). (ב) סגירת (ג) מ-186. (ג) הצהרת הנגישות. (ד) לעבור על שינוי ה-traps ב-demo.sh (wait בתוך cleanup — לוודא שאין מצב שבו `wait` נתקע).
+  - עיצוב — לאשר `ui-12-open-list.png` / `ui-13-open-list-mobile.png` (CI, `web-e2e-shots`) · צבעי סטטוס (ניגודיות).
+  - AI — לפני סבב 6: להריץ גם `tests/test_critic_round79_engine.py`.
+  - QA — ✅ כל סקריפטי ה-shell מכוסים במגן ה-mktemp (QA `7052f9d8` + 221). הבא: `web/` — סקריפטי e2e של Playwright (`mkdtemp`/צילומים) — שאין שאריות מחוץ ל-`test-results`.
+  - חיבורים — `CONTRACT_VERIFIED` ‏False עד מסמך API של 019 + חשבון בדיקה (מאיר).
+  - משפטי — placeholders ב-`/p`, `/u` ובהצהרת הנגישות ממתינים לפרטי החברה המפעילה.
+  - שיווק/מכירות — חבילות מוכנות לחתימת מאיר. ⚠️ `test_marketing_price_always_with_vat_and_yearly` (מ-15.11) — לבדוק שעוברת.
+- **הבא (פיתוח):** (1) לבדוק שריצת ה-CI של הקומיט הזה ירוקה (`demo-clean` ו-smoke ב-container עם ה-traps החדשים). (2) אם הביקורת מאשרת — הצגת `sent_owner`. (3) QA — שאריות של e2e ב-`web/`.
+- **חסמים (מאיר):** ללא שינוי (sandbox לספקים, ניסוח מע״מ, פרטי החברה המפעילה, מסמך API של 019, ענף `bold-bell-xom3mc`).
 
 ## 🧭 הפעלת מנהל · 15.11.2026 (הפעלה 220)
 - **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/`. ‏`stoic-mccarthy-23f03p` — נדחה ומכוסה (107) · `bold-bell-xom3mc` — נעצר לפי מאיר. ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
