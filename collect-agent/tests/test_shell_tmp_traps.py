@@ -7,6 +7,7 @@
    TERM⇒exit 143, וה-EXIT מנקה פעם אחת.
 3. Ctrl+C בזמן עליית השרת: השרת כתב את קובץ סוד ה-TOTP *אחרי* ה-rm ⇒ הסוד נשאר ב-TMPDIR. cleanup: kill⇒wait⇒rm.
 """
+import os
 import re
 import shutil
 import signal
@@ -87,3 +88,109 @@ def test_demo_cleanup_waits_for_servers_before_removing_secret():
     wait = body.find('wait "$p"')
     rm = body.find("rm -f")
     assert -1 < kill < wait < rm, "cleanup: חייב לחכות לשרתים (wait) בין ה-kill למחיקת הקבצים"
+
+
+def _demo_cleanup_fn() -> str:
+    text = (ROOT / "demo.sh").read_text(encoding="utf-8")
+    return re.search(r"^cleanup\(\) \{\n.*?\n\}\n", text, re.S | re.M).group(0)
+
+
+@pytest.mark.skipif(BASH is None, reason="אין bash")
+def test_demo_cleanup_does_not_hang_on_server_ignoring_sigterm(tmp_path):
+    """ביקורת סבב 87 (ד׳), הפעלה 227: `wait` בלי תקרה נתקע לנצח כששרת מתעלם מ-SIGTERM (graceful shutdown
+    תקוע) ⇒ Ctrl+C/ביטול CI תקע את ההדגמה. ה-cleanup האמיתי של demo.sh, מול שרת שבולע TERM: חייב לסיים
+    תוך ~5 שניות, להרוג את השרת (kill -9) ולמחוק את הקבצים."""
+    secret = tmp_path / "secret.txt"
+    secret.write_text("x")
+    pidfile = tmp_path / "pid"
+    script = (
+        _demo_cleanup_fn()
+        + 'PID="" GI_PID="" LOG="" GI_LOG="" BK="" WP="" EN=""\n'
+        + f'OWN_SECRET="{secret}"\n'
+        # «שרת» שמתעלם מ-SIGTERM
+        + "bash -c 'trap \"\" TERM; while :; do sleep 0.1; done' &\n"
+        + f'PID=$!; echo $PID > "{pidfile}"; sleep 0.3\n'
+        + "cleanup\n"
+    )
+    t0 = time.monotonic()
+    proc = subprocess.run(  # noqa: S603  # nosec B603
+        [BASH, "-c", script], env={"PATH": "/usr/bin:/bin"}, timeout=20,
+    )
+    took = time.monotonic() - t0
+    assert proc.returncode == 0
+    assert took < 10, f"cleanup נתקע {took:.1f}s מול שרת שמתעלם מ-SIGTERM"
+    pid = int(pidfile.read_text())
+    with pytest.raises(ProcessLookupError):
+        os.kill(pid, 0)
+    assert not secret.exists(), "הסוד לא נמחק"
+
+
+@pytest.mark.skipif(BASH is None, reason="אין bash")
+def test_demo_cleanup_fast_when_server_exits_on_sigterm(tmp_path):
+    """המסלול הרגיל: שרת שיוצא על SIGTERM ⇒ cleanup לא מחכה את כל התקרה (לא מאט כל ריצה ב-5 שניות)."""
+    script = (
+        _demo_cleanup_fn()
+        + 'PID="" GI_PID="" LOG="" GI_LOG="" OWN_SECRET="" BK="" WP="" EN=""\n'
+        + "sleep 30 & PID=$!\n"
+        + "cleanup\n"
+    )
+    t0 = time.monotonic()
+    subprocess.run([BASH, "-c", script], env={"PATH": "/usr/bin:/bin"}, timeout=20, check=True)  # noqa: S603  # nosec B603
+    assert time.monotonic() - t0 < 2.5
+
+
+def test_demo_interactive_server_runs_in_background_with_wait():
+    """הפעלה 227: במצב האינטראקטיבי uvicorn רץ בחזית ⇒ bash דוחה את ה-trap עד שהפקודה מסתיימת ⇒ SIGTERM לסקריפט
+    (kill/timeout/«עצור» ב-IDE) לא עשה כלום, ואחרי SIGKILL נשארו uvicorn + ה-mock יתומים על הפורטים (נמצא בפועל:
+    הריצה הבאה דיברה עם השרת הישן ⇒ 401). חייב: ברקע, PID=$!, ואז `wait "$PID"` (נקטע ע״י אות)."""
+    text = (ROOT / "demo.sh").read_text(encoding="utf-8")
+    branch = re.search(r'if \[\[ "\$\{1:-\}" != "--check" \]\]; then\n(.*?)\nfi\n', text, re.S).group(1)
+    uv = [ln for ln in branch.splitlines() if "uvicorn" in ln and not ln.lstrip().startswith("#")]
+    assert uv and all(ln.rstrip().endswith("&") for ln in uv), "uvicorn במצב האינטראקטיבי חייב לרוץ ברקע"
+    assert "PID=$!" in branch and 'wait "$PID"' in branch
+
+
+def _free_port() -> int:
+    import socket
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+@pytest.mark.skipif(BASH is None or shutil.which("curl") is None, reason="אין bash/curl")
+def test_demo_interactive_sigterm_stops_servers(tmp_path):
+    """ההדגמה האמיתית במצב אינטראקטיבי: SIGTERM לסקריפט ⇒ יוצא 143 ולא נשאר אף שרת על הפורטים."""
+    import sys
+    curl = shutil.which("curl")
+
+    def http_ok(p: int, path: str = "/") -> bool:  # curl בתת-תהליך: ה-conftest חוסם sockets בתוך pytest
+        return subprocess.run(  # noqa: S603  # nosec B603
+            [curl, "-s", "-o", "/dev/null", "-m", "1", f"http://127.0.0.1:{p}{path}"], check=False,
+        ).returncode == 0
+    port, gi_port = _free_port(), _free_port()
+    env = {**os.environ, "PORT": str(port), "GI_PORT": str(gi_port),
+           "PATH": f"{Path(sys.executable).parent}:{os.environ.get('PATH', '')}"}
+    proc = subprocess.Popen(  # noqa: S603  # nosec B603
+        [BASH, str(ROOT / "demo.sh")], cwd=ROOT, env=env,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    )
+    try:
+        for _ in range(240):
+            if http_ok(port, "/health"):
+                break
+            if proc.poll() is not None:
+                pytest.fail(f"demo.sh יצא לפני שהשרת עלה (rc={proc.returncode})")
+            time.sleep(0.25)
+        else:
+            pytest.fail("השרת לא עלה")
+        proc.send_signal(signal.SIGTERM)
+        rc = proc.wait(timeout=20)
+        assert rc == 143, rc
+        time.sleep(0.5)
+        assert not http_ok(port), "שרת גבי נשאר חי אחרי SIGTERM לסקריפט"
+        assert not http_ok(gi_port), "ה-mock של חשבונית ירוקה נשאר חי אחרי SIGTERM לסקריפט"
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+        subprocess.run(["pkill", "-f", f"--port {port}"], check=False)  # noqa: S603,S607  # nosec
+        subprocess.run(["pkill", "-f", f"--port {gi_port}"], check=False)  # noqa: S603,S607  # nosec

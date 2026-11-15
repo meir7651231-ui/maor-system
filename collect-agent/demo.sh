@@ -82,7 +82,15 @@ cleanup() {
   kill "${PID:-}" "${GI_PID:-}" 2>/dev/null || true
   # הפעלה 221: מחכים שהשרתים ימותו לפני המחיקה — Ctrl+C בזמן עליית השרת: השרת כתב את קובץ סוד ה-TOTP
   # *אחרי* ה-rm ⇒ הסוד נשאר ב-TMPDIR (נמצא בריצת SIGINT אמיתית).
-  for p in "${PID:-}" "${GI_PID:-}"; do if [ -n "$p" ]; then wait "$p" 2>/dev/null || true; fi; done
+  # הפעלה 227 (ביקורת סבב 87 ד׳): `wait` בלי תקרה נתקע לנצח כשהשרת מתעלם מ-SIGTERM (graceful shutdown תקוע,
+  # handler שבולע את האות) ⇒ Ctrl+C/ביטול CI תקע את ההדגמה. עכשיו: עד ~5 שניות לסגירה מסודרת ⇒ kill -9 ⇒ wait.
+  for p in "${PID:-}" "${GI_PID:-}"; do
+    if [ -n "$p" ]; then
+      for _ in $(seq 1 50); do kill -0 "$p" 2>/dev/null || break; sleep 0.1; done
+      kill -9 "$p" 2>/dev/null || true
+      wait "$p" 2>/dev/null || true
+    fi
+  done
   rm -f "${LOG:-}" "${GI_LOG:-}" "${OWN_SECRET:-}"
   rm -rf "${BK:-}" "${WP:-}" "${EN:-}"
 }
@@ -104,8 +112,13 @@ if [[ "${1:-}" != "--check" ]]; then
   echo "▶ דשבורד: http://127.0.0.1:${PORT}/ui  ·  /landing מפנה ל-/app/"
   echo "🔑 קוד גישה לדשבורד (מודבק פעם אחת בחלון שיקפוץ): ${OWNER_API_TOKEN}"
   echo "▶ חשבונית ירוקה (mock): ${GREENINVOICE_MOCK_URL}"
-  DEMO=1 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" --log-level warning
-  exit $?
+  # הפעלה 227: uvicorn רץ ברקע + `wait` (ולא בחזית). בחזית, bash דוחה את ה-trap עד שהפקודה מסתיימת ⇒ SIGTERM לסקריפט
+  # (kill/timeout/כפתור «עצור» ב-IDE) לא עשה כלום, ואחרי SIGKILL נשארו uvicorn + ה-mock יתומים על 8000/8001
+  # (הריצה הבאה דיברה עם השרת הישן ⇒ 401). `wait` נקטע ע״י האות ⇒ exit 143 ⇒ cleanup הורג את שניהם.
+  DEMO=1 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" --log-level warning &
+  PID=$!
+  rc=0; wait "$PID" || rc=$?
+  exit "$rc"
 fi
 
 LOG="$(mktemp)"
