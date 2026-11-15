@@ -11,6 +11,9 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 PORT="${PORT:-8000}"
+# critic סבב 86: מה ש-cleanup הורג/מוחק מתחיל ריק — משתנה בשם הזה שירש מהסביבה (BK=~/backups) לא יימחק
+# בכשל באמצע או ב-Ctrl+C. קובץ הסוד נמחק רק אם demo.sh יצר אותו (OWN_SECRET), לא DEMO_USER_SECRET_FILE של המשתמש.
+PID='' LOG='' BK='' WP='' EN='' OWN_SECRET=''
 # הפעלה 191: תלויות. היה `pip install` עיוור — במכונה שבה `pip` שייך לפייתון אחר (pip=3.13, python3=3.11)
 # ההתקנה נחתה במפרש הלא נכון וההדגמה נפלה ב-«Connection refused» בלי הסבר; וגם עם `python3 -m pip`
 # חבילת מערכת (cryptography של debian) חוסמת שדרוג. לכן: אם לפייתון של המערכת חסר משהו ⇒ `.venv` מקומי
@@ -20,6 +23,11 @@ DEPS='import fastapi, httpx, uvicorn, cryptography, pydantic'
 # נוצר מ-3.9 וה-pip נפל בשגיאת נעילה לא מובנת. לכן: בודקים גרסה, בוחרים מפרש 3.11+ מ-PATH
 # (python3.13/3.12/3.11 של brew), ו-.venv שנוצר ממפרש ישן נבנה מחדש. תואם bash 3.2 (ראו test_demo_sh_portable).
 PY_OK='import sys; sys.exit(sys.version_info < (3, 11))'
+# הפעלה 215 (QA, מ-213): .venv שהמפרש שלו מת (symlink למפרש שנמחק — פייתון זמני, brew שהוסר) ⇒ `-x` שקרי,
+# ו-`python3 -m venv` על התיקייה הישנה השאיר קישור מת. בונים מחדש.
+if [[ -d .venv ]] && [[ ! -x .venv/bin/python3 ]]; then
+  echo "▶ .venv שבור (המפרש שלו לא קיים) — יוצר מחדש"; rm -rf .venv
+fi
 if [[ -x .venv/bin/python3 ]] && ! .venv/bin/python3 -c "$PY_OK" 2>/dev/null; then
   echo "▶ .venv נוצר מפייתון ישן מ-3.11 — יוצר מחדש"; rm -rf .venv
 fi
@@ -68,12 +76,18 @@ wait_up() {  # URL PID שם LOG [-f = רק 2xx]
 GI_PORT="${GI_PORT:-$((PORT + 1))}"
 export GI_WEBHOOK_KEY="${GI_WEBHOOK_KEY:-$(python3 -c 'import secrets;print(secrets.token_urlsafe(24))')}"
 export GREENINVOICE_ENV=mock GREENINVOICE_MOCK_URL="http://127.0.0.1:${GI_PORT}/api/v1"
+# התיקיות הזמניות של בדיקות הגיבוי/מחיקה/הצפנה (sqlite עם נתוני דמו) נמחקות גם בכשל באמצע — לא רק במסלול ההצלחה.
+# ה-trap נרשם לפני ה-mktemp הראשון (QA, BACKLOG): גם כשל בין היצירה לרישום לא משאיר קובץ.
+cleanup() {
+  kill "${PID:-}" "${GI_PID:-}" 2>/dev/null || true
+  rm -f "${LOG:-}" "${GI_LOG:-}" "${OWN_SECRET:-}"
+  rm -rf "${BK:-}" "${WP:-}" "${EN:-}"
+}
+trap cleanup EXIT INT TERM
 GI_LOG="$(mktemp)"
 python3 -m app.gi_mock --port "$GI_PORT" --seed demo \
   --webhook "http://127.0.0.1:${PORT}/webhooks/greeninvoice?k=${GI_WEBHOOK_KEY}" >"$GI_LOG" 2>&1 &
 GI_PID=$!
-cleanup() { kill "${PID:-}" "$GI_PID" 2>/dev/null || true; rm -f "${LOG:-}" "$GI_LOG" "${DEMO_USER_SECRET_FILE:-}"; }
-trap cleanup EXIT INT TERM
 wait_up "http://127.0.0.1:${GI_PORT}/api/v1/users/me" "$GI_PID" "שרת ה-mock של חשבונית ירוקה" "$GI_LOG"
 cat "$GI_LOG"
 
@@ -89,7 +103,8 @@ fi
 
 LOG="$(mktemp)"
 # עובד דמו + סוד TOTP בקובץ זמני ⇒ בודקים כניסה אמיתית (מייל+סיסמה+קוד) מקצה לקצה
-export DEMO_USER_EMAIL="dana@example.co.il" DEMO_USER_PASSWORD="demo-pass-12345" DEMO_USER_SECRET_FILE="$(mktemp)"
+OWN_SECRET="$(mktemp)"
+export DEMO_USER_EMAIL="dana@example.co.il" DEMO_USER_PASSWORD="demo-pass-12345" DEMO_USER_SECRET_FILE="$OWN_SECRET"
 DEMO=1 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" --log-level warning >"$LOG" 2>&1 &
 PID=$!
 wait_up "http://127.0.0.1:${PORT}/health" "$PID" "שרת גבי" "$LOG" -f

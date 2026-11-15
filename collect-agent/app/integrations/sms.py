@@ -186,9 +186,12 @@ class Sms019(SmsAdapter):
 
 SMS_PROVIDERS = {"019": Sms019, "inforu": InforUSms}
 
+# מצבי DLR של SMPP 3.4 (תקן; DELIVRD/EXPIRED/DELETED/UNDELIV/ACCEPTD/UNKNOWN/REJECTD/ENROUTE) +
+# מילים נפוצות. שימוש 019 בתקן לא מאומת. UNKNOWN נשאר unknown ⇒ בלי פעולה.
 _DLR_DELIVERED = {"delivered", "delivrd", "success"}
 _DLR_FAILED = {"failed", "undeliv", "undelivered", "rejected", "rejectd", "expired", "blocked",
-               "error"}
+               "error", "deleted"}
+_DLR_PENDING = {"pending", "sent", "enroute", "accepted", "acceptd"}
 
 
 def parse_019_dlr(fields: dict[str, str]) -> tuple[str, str]:
@@ -205,7 +208,7 @@ def parse_019_dlr(fields: dict[str, str]) -> tuple[str, str]:
         st = "delivered"
     elif raw in _DLR_FAILED:
         st = "failed"
-    elif raw in ("pending", "sent", "enroute", "accepted"):
+    elif raw in _DLR_PENDING:
         st = "pending"
     else:
         st = "unknown"

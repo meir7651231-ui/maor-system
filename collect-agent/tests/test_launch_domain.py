@@ -101,7 +101,13 @@ def test_package_ready_for_signature_only_meir_walls_left():
 def test_readiness_catches_team_side_problem(tmp_path):
     """מוטציה: דומיין placeholder זר בפוסט ⇒ «לא מוכן» (זו בעיה של הצוות, לא של מאיר)."""
     root = _copy_tree(tmp_path)
-    for g in check.GENERATORS:          # המחוללים נבדקים מול הקוד האמיתי — מעתיקים גם אותם
+    # המחוללים נבדקים מול הקוד האמיתי — מעתיקים אותם ואת מה שהם קוראים (מקורות המשפטי + הרנדרר שלו)
+    extra = ["legal/TERMS.md", "legal/PRIVACY.md", "scripts/legal_bundle.py", "marketing/terms.html",
+             "marketing/privacy.html", "web/public/terms.html", "web/public/privacy.html",
+             "marketing/video/compose/assets/captions.json", "marketing/video/compose/endcard.mjs",
+             "marketing/video/transcript.html", "web/public/video/transcript.html",
+             "marketing/video/scenes.json", "marketing/video/script.md"]
+    for g in [*check.GENERATORS, *extra]:
         (root / g).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(ROOT / g, root / g)
     p = root / "marketing/posts.md"

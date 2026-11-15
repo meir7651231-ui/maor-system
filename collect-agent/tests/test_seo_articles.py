@@ -1,5 +1,6 @@
 """מאמרי ה-SEO (marketing/seo): בלי מילים אסורות, קריאה לפעולה דרך placeholder של הדומיין היחיד,
 ומאמר «מתי לשלוח» — כל מספר בו הוא הכלל שהקוד אוכף (שינוי בקוד ⇒ המאמר נופל עד שמתעדכן)."""
+import re
 from pathlib import Path
 
 import pytest
@@ -39,3 +40,64 @@ def test_when_article_numbers_match_code():
     assert policy.WINDOWS[5] is None and "לא בשבת" in t
     hours = int(policy.MIN_GAP.total_seconds() // 3600)
     assert hours == 72 and "72 שעות" in t
+
+
+PLAN = SEO / "04-offer-payment-plan.md"
+
+
+def test_payment_plan_article_numbers_match_code():
+    """מאמר הפריסה: טווח התשלומים והמינימום לתשלום = app/plans.py ואפשרויות עמוד החייב."""
+    from app import plans
+    t = PLAN.read_text(encoding="utf-8")
+    assert plans.MAX_INSTALLMENTS == 6 and "2 עד 6 תשלומים" in t
+    assert plans.MIN_INSTALLMENT_AGOROT == 100_00 and "₪100 לתשלום" in t
+    total, parts = 100_01, plans.propose(100_01 * 3, __import__("datetime").date(2026, 11, 8), 3)
+    assert sum(p.amount_agorot for p in parts) == total * 3 and parts[0].amount_agorot >= parts[1].amount_agorot
+    assert "השארית" in t and "לתשלום הראשון" in t
+    assert "בלי ריבית" in t
+
+
+PAID = SEO / "05-client-says-paid.md"
+
+
+@pytest.mark.parametrize("text,partial", [("שילמתי אתמול בביט", False),
+                                          ("כבר העברתי לכם", False),
+                                          ("שילמתי חלק, 500 ש״ח, את השאר בשבוע הבא", True)])
+def test_paid_claim_article_matches_engine(text, partial):
+    """מה שהמאמר אומר על גבי = מה שמנוע השיחה עושה על «שילמתי»: עוצר, טיוטה לאישור, מבקש אסמכתא,
+    ומזהה תשלום חלקי."""
+    from datetime import date
+
+    from app import conversation as c
+    t = PAID.read_text(encoding="utf-8")
+    ctx = c.Context(today=date(2026, 11, 8), business="סטודיו נועה", customer_name="דני כהן",
+                    invoices=(c.OpenInvoice("1043", 180000),), payment_link="https://pay.example/x")
+    d = c.respond(text, ctx)
+    assert d.intent == c.Intent.PAID_CLAIM
+    assert d.stop == c.Stop.PAUSE and "גבי עוצר את התזכורות" in t
+    assert d.auto_send is False and "שום תשובה לא יוצאת בלי אישורך" in t
+    assert d.reply and "אסמכתא" in d.reply and "אסמכתא" in t
+    assert ("partial" in d.tags) == partial and "תשלום חלקי" in t
+
+
+MISTAKES = SEO / "06-reminder-mistakes.md"
+_EX = re.compile(r"[❌✅] `([^`]+)` <!-- (bad:(\w+)|good) -->")
+
+
+def _rules():
+    from app import compliance
+    return compliance.Rules(business="סטודיו נועה", payment_link="https://pay.example/x", allow_debt_word=False)
+
+
+def test_mistakes_article_bad_examples_are_blocked_by_the_real_filter():
+    """כל «❌» במאמר נחסם במסנן הניסוח של גבי בדיוק בקטגוריה שהמאמר טוען; כל «✅» עובר."""
+    from app import compliance
+    ex = _EX.findall(MISTAKES.read_text(encoding="utf-8"))
+    bad = [(t, cat) for t, kind, cat in ex if kind.startswith("bad")]
+    good = [t for t, kind, _ in ex if kind == "good"]
+    assert len(bad) == 5 and len(good) == 5
+    for text, cat in bad:
+        v = compliance.violations(text, _rules())
+        assert cat in v, (text, v)
+    for text in good:
+        assert compliance.violations(text, _rules()) == [], text

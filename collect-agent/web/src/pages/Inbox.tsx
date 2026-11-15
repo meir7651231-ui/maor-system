@@ -10,6 +10,10 @@ import { ALREADY_DRAFT, ALREADY_DRAFT_CLOSED, alreadyDone, type Already } from '
 const INTENT: Record<string, string> = {
   how_to_pay: 'שאל/ה איך משלמים', paid_claim: 'טוען/ת ששילם/ה', plan_request: 'מבקש/ת פריסה', opt_out: 'ביקש/ה הסרה',
   dispute: 'מחלוקת', copy_request: 'מבקש/ת העתק חשבונית', thanks: 'תודה', unknown: 'לא ברור',
+  promise: 'הבטיח/ה לשלם', cant_pay: 'כתב/ה שאין אפשרות לשלם כרגע', legal: 'הוזכר עניין משפטי',
+  distress: 'נראה/ית במצוקה', callback: 'מבקש/ת שתחזרו', wrong_person: 'כתב/ה שזה לא המספר הנכון',
+  abusive: 'תגובה פוגענית', minor: 'ייתכן שמדובר בקטין/ה', who_is_this: 'שואל/ת מי פונה',
+  plan_accept: 'הסכים/ה להצעת הפריסה', plan_reject: 'דחה/תה את הצעת הפריסה',
 };
 const ESC: Record<string, [string, string]> = {
   urgent: ['דחוף', 'bg-red-50 text-red-700 ring-red-200'], normal: ['לטיפולך', 'bg-amber-50 text-amber-700 ring-amber-200'], none: ['שגרתי', 'bg-ink-100 text-ink-700 ring-ink-200'],
@@ -22,6 +26,8 @@ const VIOLATION: Record<string, string> = {
   credit: 'איום בדירוג אשראי', third_party: 'פנייה לצד שלישי', shaming: 'ביוש', fees: 'הוצאות גבייה', threat: 'איום',
   judgmental: 'ניסוח שיפוטי', pressure: 'לחץ', debt_word: 'המילה "חוב"', foreign_link: 'קישור לא מאושר',
   no_business_first: 'ההודעה חייבת להתחיל בשם העסק', sms_too_long: 'ה-SMS ארוך מדי',
+  brand_bank: 'שם של בנק (נראה כמו הודעה מטעם הבנק)', brand_payapp: 'שם של אפליקציית תשלום (ביט/פייבוקס)',
+  brand_authority: 'שם של רשות (רשות המסים, משטרה, בית דין)',
 };
 export const explainViolation = (msg: string) =>
   msg.replace(/\b[a-z_]{4,}\b/g, code => VIOLATION[code] ? `${VIOLATION[code]}` : code);

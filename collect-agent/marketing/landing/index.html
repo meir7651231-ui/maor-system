@@ -84,7 +84,7 @@ footer{background:var(--navy);color:#94A3B8;font-size:14px;padding:28px 0}footer
 <section class="hero"><div class="wrap">
   <div>
     <h1>הכסף שלך חוזר.<br><span>בלי שתצטרך לרדוף.</span></h1>
-    <p class="lead">גבי מתחבר לחשבונית ירוקה, מוצא חשבוניות שלא שולמו ומכין ללקוחות שלך תזכורות תשלום מנומסות ב-SMS ובמייל, עם קישור לעמוד התשלום של העסק. אתה מאשר כל הודעה, והיא יוצאת בשם העסק שלך.</p>
+    <p class="lead">גבי מתחבר למערכת החשבוניות שלך (חשבונית ירוקה, iCount או רווחית), מוצא חשבוניות שלא שולמו ומכין ללקוחות שלך תזכורות תשלום מנומסות ב-SMS ובמייל, עם קישור לעמוד התשלום של העסק. אתה מאשר כל הודעה, והיא יוצאת בשם העסק שלך.</p>
     <div class="cta"><a class="btn primary" href="#price">התחילו 14 ימי ניסיון</a><a class="btn ghost" href="#how">איך זה עובד</a></div>
     <p class="trust">₪119 לחודש · 14 ימי ניסיון בלי כרטיס אשראי · בלי אחוז מהגבייה</p>
   </div>
@@ -108,7 +108,7 @@ footer{background:var(--navy);color:#94A3B8;font-size:14px;padding:28px 0}footer
 <section id="how" class="block alt"><div class="wrap">
   <h2 class="center">איך זה עובד</h2>
   <div class="grid">
-    <div class="card"><div class="num">1</div><h3>מחברים פעם אחת</h3><p>מדביקים מפתח API מחשבונית ירוקה. גבי רק קורא חשבוניות פתוחות, לא יוצר ולא משנה מסמכים.</p></div>
+    <div class="card"><div class="num">1</div><h3>מחברים פעם אחת</h3><p>מדביקים מפתח API ממערכת החשבוניות. גבי רק קורא חשבוניות פתוחות, לא יוצר ולא משנה מסמכים.</p></div>
     <div class="card"><div class="num">2</div><h3>כל בוקר: רשימה מוכנה</h3><p>כל תזכורת כבר כתובה, עם שם הלקוח, הסכום, מספר החשבונית וקישור לתשלום.</p></div>
     <div class="card"><div class="num">3</div><h3>מאשרים, וגבי ממשיך</h3><p>ההודעה יוצאת בשעה סבירה. כשהחשבונית נסגרת, התזכורות נעצרות לבד.</p></div>
   </div>
@@ -173,12 +173,23 @@ footer{background:var(--navy);color:#94A3B8;font-size:14px;padding:28px 0}footer
   <div id="wait-msg" role="status" aria-live="polite"></div>
 </div></section>
 
+<section id="verticals" class="block alt"><div class="wrap">
+  <h2 class="center">גבי לפי סוג העסק</h2>
+  <div class="grid">
+    <a class="card" href="for/barbers.html" style="text-decoration:none;color:inherit"><h3>💈 מספרות</h3><p>לקוחות קבועים, יתרות אחרי אירועים</p></a>
+    <a class="card" href="for/garages.html" style="text-decoration:none;color:inherit"><h3>🔧 מוסכים</h3><p>רכב ששוחרר על אמון, ציים בשוטף+</p></a>
+    <a class="card" href="for/clinics.html" style="text-decoration:none;color:inherit"><h3>🩺 קליניקות</h3><p>תזכורת על החשבונית, בלי מילה על הטיפול</p></a>
+    <a class="card" href="for/accountants-clients.html" style="text-decoration:none;color:inherit"><h3>📊 לקוחות של רו״ח</h3><p>הרבה חשבוניות, אין מי שיעקוב</p></a>
+  </div>
+  <p class="center" style="margin-top:18px"><a href="../library/index.html">ספריית נוסחים לתזכורת תשלום (חינם)</a></p>
+</div></section>
+
 <section id="faq" class="block"><div class="wrap" style="max-width:780px">
   <h2 class="center">שאלות נפוצות</h2>
-  <details><summary>צריך חשבון בחשבונית ירוקה (morning)?</summary><p>כן. גבי מתחבר דרך מפתח API שאתה יוצר בחשבון שלך. אם אין גישה ל-API, אפשר לייבא קובץ CSV.</p></details>
+  <details><summary>עם אילו מערכות חשבוניות גבי עובד?</summary><p>חשבונית ירוקה (morning), iCount ורווחית; EZcount בבדיקה מול הספק. בכולן גבי מתחבר דרך מפתח API שאתה יוצר בחשבון שלך. אין API? אפשר לייבא קובץ CSV.</p></details>
   <details><summary>גבי יכול לשנות משהו בחשבונות שלי?</summary><p>לא. גבי רק קורא חשבוניות פתוחות. הוא לא יוצר, לא עורך ולא מוחק מסמכים.</p></details>
   <details><summary>בשם מי יוצאת ההודעה?</summary><p>בשם העסק שלך. הלקוח רואה את שם העסק.</p></details>
-  <details><summary>מה אם הלקוח כבר שילם?</summary><p>כשהחשבונית נסגרת בחשבונית ירוקה, התזכורות נעצרות. אם הלקוח כותב «שילמתי», גבי עוצר ושואל אותך.</p></details>
+  <details><summary>מה אם הלקוח כבר שילם?</summary><p>כשהחשבונית נסגרת במערכת החשבוניות שלך, התזכורות נעצרות. אם הלקוח כותב «שילמתי», גבי עוצר ושואל אותך.</p></details>
   <details><summary>כמה תזכורות לקוח יקבל?</summary><p>לכל היותר 3 לכל חשבונית. אחר כך גבי עוצר ומעדכן אותך, וההחלטה מה לעשות אצלך.</p></details>
   <details><summary>זה מכתב התראה משפטי?</summary><p>לא. אלה תזכורות עובדתיות על החשבוניות שלך. אם שוקלים הליך משפטי, כדאי להתייעץ עם עו״ד.</p></details>
   <details><summary>כמה זה עולה?</summary><p>₪119 לחודש או ₪1,190 לשנה, כולל מע״מ ככל שחל. 14 ימי ניסיון בלי כרטיס אשראי. אין מסלולים אחרים.</p></details>
@@ -187,7 +198,7 @@ footer{background:var(--navy);color:#94A3B8;font-size:14px;padding:28px 0}footer
 
 <footer><div class="wrap">
   <span>© 2026 גבי – תזכורות תשלום · [שם החברה בע״מ · ח.פ. ___ · כתובת: ימולאו לפני השקה]</span>
-  <span>תנאי שימוש · מדיניות פרטיות · הצהרת נגישות (טיוטה – לבדיקת עו״ד)</span>
+  <span><a href="../terms.html" style="color:inherit">תנאי שימוש</a> · <a href="../privacy.html" style="color:inherit">מדיניות פרטיות</a> · <a href="../accessibility.html" style="color:inherit">הצהרת נגישות</a> (טיוטה – לבדיקת עו״ד)</span>
   <span>חשבונית ירוקה ו-morning הם סימנים מסחריים של בעליהם. גבי הוא מוצר עצמאי ואינו קשור אליהם.</span>
 </div></footer>
 

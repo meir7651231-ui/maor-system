@@ -46,14 +46,28 @@ jobs:
           pip install --no-deps -e .
       - name: ruff (כולל כללי אבטחה S)
         run: ruff check .
+      - name: צילום העץ לפני pytest (שומר-עץ, כולל קבצים מתעלמים)
+        run: python3 -I scripts/tree_guard.py snapshot "$RUNNER_TEMP/tree-before.txt"
       - name: pytest (יחידה + אבטחה + E2E + סימולציית 60 יום)
         run: python -m pytest -q
+      - name: שומר-עץ — הבדיקות לא השאירו קבצים בפרויקט (.venv/sqlite/demo-output…)
+        run: python3 -I scripts/tree_guard.py check "$RUNNER_TEMP/tree-before.txt"
       - name: evals של מנוע השיחה (315 מקרים, נכשל על הפרת מעקה)
         run: python -m evals.harness
       - name: הדגמה מקצה לקצה (שרת + נתוני דמו + דשבורד, dry-run)
         run: ./demo.sh --check
       - name: smoke — מעקות השרת (טוקן, 401, docs, webhook 019, DB 0600, אין דליפה ללוג)
         run: bash scripts/smoke_server.sh
+      - name: בדיקות חוזה מול mock כשרתי HTTP (חשבונית ירוקה · 019 · InforU) — נכשל על FAIL
+        run: bash scripts/contract_checks_http.sh
+      - name: יום ראשון של ה-sandbox — כל ענפי ההחלטה מול mock (גבייה סוכן; ששילם לא מקבל תזכורת)
+        run: |
+          python3 -I scripts/sandbox_day1_paid_check.py --mock paid
+          python3 -I scripts/sandbox_day1_paid_check.py --mock clean
+          ! python3 -I scripts/sandbox_day1_paid_check.py --mock unlinked
+          ! python3 -I scripts/sandbox_day1_paid_check.py --mock no-status
+      - name: שומר-עץ — גם evals, demo.sh --check, smoke וחוזים לא השאירו קבצים בפרויקט (QA, הפעלה 217)
+        run: python3 -I scripts/tree_guard.py check "$RUNNER_TEMP/tree-before.txt"
 
   # שער 5 · SQLCipher (ADR שלב 2, מאחורי DB_ENCRYPTION=sqlcipher). ג'וב נפרד: ה-test למעלה רץ בלי המודול
   # (ההתקנה וברירת המחדל לא משתנות; בדיקות SQLCipher מדלגות שם בנקיות) — כאן הן רצות באמת על 3.11/3.13.
@@ -80,14 +94,20 @@ jobs:
           pip install --require-hashes -r requirements-dev.lock -r requirements-sqlcipher.lock
           pip install --no-deps -e .
           python -c "import sqlcipher3; print(sqlcipher3.connect(':memory:').execute('PRAGMA cipher_version').fetchone())"
+      - name: צילום העץ לפני הבדיקות (שומר-עץ, כולל קבצים מתעלמים — QA הפעלה 218)
+        run: python3 -I scripts/tree_guard.py snapshot "$RUNNER_TEMP/tree-before.txt"
       - name: בדיקות SQLCipher אמיתיות (המודול מותקן ⇒ אין skip)
         run: python -m pytest -q -rs tests/test_db_encryption.py tests/test_backup.py tests/test_wipe.py tests/test_bench_dashboard.py tests/test_dashboard_sent_channels.py tests/test_messages_history_indexes.py tests/test_reminders_batched.py
       - name: pytest מלא (הדגל כבוי — התקנת המודול לבדה לא משנה התנהגות)
         run: python -m pytest -q
+      - name: שומר-עץ — pytest עם המודול לא השאיר קבצים בפרויקט
+        run: python3 -I scripts/tree_guard.py check "$RUNNER_TEMP/tree-before.txt"
       - name: הדגמה מקצה לקצה עם DB_ENCRYPTION=sqlcipher
         run: DB_ENCRYPTION=sqlcipher ./demo.sh --check
       - name: smoke עם DB_ENCRYPTION=sqlcipher (בלי מפתח לא עולה; קובץ השרת מוצפן). מפתח חד-פעמי
         run: DB_ENCRYPTION=sqlcipher COLLECT_MASTER_KEYS="$(python -m app.secretbox)" bash scripts/smoke_server.sh
+      - name: שומר-עץ — demo/smoke המוצפנים לא השאירו קבצים (DB מוצפן, מפתח, demo-output) בפרויקט
+        run: python3 -I scripts/tree_guard.py check "$RUNNER_TEMP/tree-before.txt"
 
   # הממשק המעוצב (web/): typecheck+build, בדיקות יחידה, e2e מוק (בלי שרת) ו-e2e חי מול שרת DEMO=1 אמיתי (dry-run).
   # ה-e2e החי אוכף: 409/401 רק צפויים ומאומתים, סגירת טיוטת plan_request מול השרת, בלי גלילה רוחבית בדסקטופ/מובייל.
@@ -130,14 +150,20 @@ jobs:
         run: echo "E2E_LOG_DIR=$RUNNER_TEMP/shots" >> "$GITHUB_ENV"
       - name: e2e מוק — 6 מסכים, דסקטופ+מובייל, 0 בקשות חיצוניות
         run: mkdir -p "$RUNNER_TEMP/shots" && TZ=Asia/Jerusalem node e2e/shots.mjs "$RUNNER_TEMP/shots"
+      - name: נגישות (ת״י 5568 / WCAG 2.1 AA) — 7 דפי שיווק + 3 עמודי לקוח (/p /pay /u, DEMO=1), axe-core מקומי, נכשל על serious/critical
+        run: node e2e/a11y.mjs
       - name: e2e חי מול שרת DEMO=1 (dry-run)
         run: TZ=UTC node e2e/live.mjs "$RUNNER_TEMP/shots"
       - name: e2e התראות לבעל העסק (סוף ניסיון) מול DEMO=1
         run: TZ=UTC node e2e/notices.mjs
       - name: e2e ערכת בטא — יום ראשון לכל ענף (מספרה/מוסך/קליניקה/רו״ח) מול gi_mock
         run: TZ=UTC node e2e/beta.mjs
+      - name: e2e תסריט ההדגמה של מכירות (sales/demo-script.md, 6 שלבים) מול DEMO=1
+        run: TZ=UTC node e2e/sales-demo.mjs
       - name: e2e הדשבורד הפשוט (/ui) — אישור סכום חריג מול DEMO=1
         run: TZ=UTC node e2e/ui.mjs "$RUNNER_TEMP/shots"
+      - name: e2e הדשבורד הפשוט (/ui) — אישור רשימת הפתוחות (CSV ⇒ כרטיס ⇒ «כבר שולם»/«עדיין פתוח» ⇒ השרת) מול DEMO=1
+        run: TZ=UTC node e2e/ui-openlist.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
         run: TZ=UTC node e2e/rebuild.mjs "$RUNNER_TEMP/shots"
       - name: e2e CSP — 7 עמודי HTML (/p, /p-404, /ui, /app, /pay, /connect/orbit) בלי הפרות, וסקריפט מוזרק נחסם
@@ -158,7 +184,7 @@ jobs:
           retention-days: 7
 
   # הפעלה 192 — ההדגמה במכונה נקייה: container של הפצה, פייתון של המערכת, בלי setup-python (שמסתיר את
-  # באג 191: pip של פייתון אחר + cryptography של debian ⇒ demo.sh נפל). ‏ci_clean_demo.sh מוודא שהמכונה
+  # באג 191: pip של פייתון אחר + cryptography של debian ⇒ demo.sh נפל). ci_clean_demo.sh מוודא שהמכונה
   # נקייה, ש-demo.sh יצר .venv ועבר, ושריצה שנייה עוברת מה-.venv הקיים. SKIP_WEB=1 (הממשק נבדק בג'וב web).
   demo-clean:
     runs-on: ubuntu-latest

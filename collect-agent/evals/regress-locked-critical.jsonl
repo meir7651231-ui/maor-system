@@ -1,0 +1,7 @@
+{"id": "lk01", "text": "קודם תשלימו את ההתקנה, ואז אשלם", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "lk02", "text": "יש בחשבונית חלקים שלא סופקו, תתקנו בבקשה", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "lk03", "text": "אני מאושפז מאז שבוע ואין לי איך לטפל בזה", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause", "tags": ["sensitive"]}, "critical": true}
+{"id": "lk04", "text": "הנייד הזה שייך לילד, די לשלוח לו", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent", "also": ["opt_out"]}, "critical": true}
+{"id": "lk05", "text": "האם יש לכם עורך דין שמטפל בגבייה?", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["legal"]}, "critical": true}
+{"id": "lk06", "text": "ומה יקרה אם לא אשלם עד סוף החודש?", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["dispute"]}, "critical": true}
+{"id": "lk07", "text": "ההעברה שלי לא עברה, יש דרך אחרת לשלם?", "ctx": {"channel": "sms"}, "expect": {"intent": "how_to_pay", "not": ["dispute", "paid_claim"]}, "critical": true}

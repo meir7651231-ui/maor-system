@@ -1,0 +1,50 @@
+{"id": "xq2-01", "text": "נא לא לפנות אליי יותר בשום ערוץ", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "xq2-02", "text": "unsubscribe", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "xq2-03", "text": "מספיק. אל תכתבו לי יותר אף פעם", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "xq2-04", "text": "אני לא רוצה הודעות מכם, תורידו", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "xq2-05", "text": "הגעתם לאדם הלא נכון, אני לא לקוח שלכם ולא הייתי", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person"}, "critical": true}
+{"id": "xq2-06", "text": "המספר הזה עבר אליי לפני חודשיים, הבעלים הקודם כנראה חייב לכם", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person"}, "critical": true}
+{"id": "xq2-07", "text": "Wrong number, I don't know who this is about", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person"}, "critical": true}
+{"id": "xq2-08", "text": "הסכום מנופח. קיבלתי הצעה בעל פה על חצי מזה", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "xq2-09", "text": "הטיפול לא הושלם ואני לא מתכוונת לשלם על משהו שלא נעשה", "ctx": {"channel": "email"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "xq2-10", "text": "אני לא חייב לכם כלום, החשבון סגור מבחינתי מזמן", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "xq2-11", "text": "שלום, החשבונית כוללת חלקים שלא הוחלפו ברכב. בבקשה תקנו לפני שאשלם", "ctx": {"channel": "email"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "xq2-12", "text": "פניתי לעורך דין בנושא, תשמעו ממנו", "ctx": {"channel": "sms"}, "expect": {"intent": "legal"}, "critical": true}
+{"id": "xq2-13", "text": "אני שוקל להגיש נגדכם תביעה קטנה", "ctx": {"channel": "sms"}, "expect": {"intent": "legal"}, "critical": true}
+{"id": "xq2-14", "text": "לידיעתכם, נפתח נגדי הליך חדלות פירעון וכל החובות מוקפאים", "ctx": {"channel": "email"}, "expect": {"intent": "legal"}, "critical": true}
+{"id": "xq2-15", "text": "התשלום בוצע דרך האתר של חשבונית ירוקה, יש לי קבלה", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim"}, "critical": true}
+{"id": "xq2-16", "text": "כבר שולם מזמן, תבדקו אצלכם", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim"}, "critical": true}
+{"id": "xq2-17", "text": "שילמתי באשראי בטלפון לפקידה שלכם", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim"}, "critical": true}
+{"id": "xq2-18", "text": "מצורפת אסמכתא על ההעברה. בברכה", "ctx": {"channel": "email"}, "expect": {"intent": "paid_claim"}, "critical": true}
+{"id": "xq2-19", "text": "אבא שלי נפטר החודש, החשבון היה על שמו", "ctx": {"channel": "sms"}, "expect": {"intent": "distress"}, "critical": true}
+{"id": "xq2-20", "text": "אני בבית חולים כרגע ולא מסוגל לטפל בזה", "ctx": {"channel": "sms"}, "expect": {"intent": "distress"}, "critical": true}
+{"id": "xq2-21", "text": "אני מרגיש שאין לי סיבה להמשיך, הכל מתמוטט", "ctx": {"channel": "sms"}, "expect": {"intent": "distress"}, "critical": true}
+{"id": "xq2-22", "text": "אני בכיתה ח, אמא שלי אמרה לא לענות למספרים לא מוכרים", "ctx": {"channel": "sms"}, "expect": {"intent": "minor"}, "critical": true}
+{"id": "xq2-23", "text": "זה טלפון של ילד, תפסיקו לשלוח לו", "ctx": {"channel": "sms"}, "expect": {"intent": "minor"}, "critical": true}
+{"id": "xq2-24", "text": "אין לי כרגע כסף בכלל, תבינו", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay"}, "critical": false}
+{"id": "xq2-25", "text": "נכנסתי למינוס ענק, אני לא יכול עכשיו", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay"}, "critical": false}
+{"id": "xq2-26", "text": "יש אפשרות לפרוס את זה על פני כמה חודשים?", "ctx": {"channel": "email"}, "expect": {"intent": "plan_request"}, "critical": false}
+{"id": "xq2-27", "text": "אני יכול 200 ש\"ח בחודש, זה אפשרי?", "ctx": {"channel": "sms"}, "expect": {"intent": "plan_request"}, "critical": false}
+{"id": "xq2-28", "text": "עד ה-20 החודש זה יהיה אצלכם", "ctx": {"channel": "sms"}, "expect": {"intent": "promise"}, "critical": false}
+{"id": "xq2-29", "text": "אסדיר בשבוע הבא בלי נדר", "ctx": {"channel": "sms"}, "expect": {"intent": "promise"}, "critical": false}
+{"id": "xq2-30", "text": "אני בחו\"ל עד סוף החודש, אשלם כשאחזור", "ctx": {"channel": "sms"}, "expect": {"intent": "promise"}, "critical": false}
+{"id": "xq2-31", "text": "אפשר לקבל חשבונית מס מקורית? צריך לרו\"ח", "ctx": {"channel": "email"}, "expect": {"intent": "copy_request"}, "critical": false}
+{"id": "xq2-32", "text": "תעבירו בבקשה פירוט של מה כלול בסכום", "ctx": {"channel": "sms"}, "expect": {"intent": "copy_request"}, "critical": false}
+{"id": "xq2-33", "text": "אפשר לשלם בהעברה? מה פרטי החשבון?", "ctx": {"channel": "sms"}, "expect": {"intent": "how_to_pay"}, "critical": false}
+{"id": "xq2-34", "text": "אפשר לשלם במזומן כשאני מגיע לתור הבא?", "ctx": {"channel": "sms"}, "expect": {"intent": "how_to_pay"}, "critical": false}
+{"id": "xq2-35", "text": "אני מעדיף לדבר עם מישהו, יש מספר טלפון?", "ctx": {"channel": "sms"}, "expect": {"intent": "callback"}, "critical": false}
+{"id": "xq2-36", "text": "תבקשו מדנה מהמשרד שתחזור אליי", "ctx": {"channel": "sms"}, "expect": {"intent": "callback"}, "critical": false}
+{"id": "xq2-37", "text": "מי שולח לי את זה?", "ctx": {"channel": "sms"}, "expect": {"intent": "who_is_this"}, "critical": false}
+{"id": "xq2-38", "text": "זו הודעה אמיתית או ספאם?", "ctx": {"channel": "sms"}, "expect": {"intent": "who_is_this"}, "critical": false}
+{"id": "xq2-39", "text": "תודה, אטפל בזה", "ctx": {"channel": "sms"}, "expect": {"intent": "promise"}, "critical": false}
+{"id": "xq2-40", "text": "סבבה תודה", "ctx": {"channel": "sms"}, "expect": {"intent": "thanks"}, "critical": false}
+{"id": "xq2-41", "text": "לכו לעזאזל עם ההודעות שלכם", "ctx": {"channel": "sms"}, "expect": {"intent": "abusive"}, "critical": false}
+{"id": "xq2-42", "text": "נוכלים מטונפים", "ctx": {"channel": "sms"}, "expect": {"intent": "abusive"}, "critical": false}
+{"id": "xq2-43", "text": "אוקיי", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown"}, "critical": false}
+{"id": "xq2-44", "text": "מה?", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown"}, "critical": false}
+{"id": "xq2-45", "text": "אל תפסיקו לשלוח לי תזכורות, אני שוכח הרבה", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["opt_out"]}, "critical": true}
+{"id": "xq2-46", "text": "לא שילמתי עדיין, אבל אשלם היום", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["paid_claim"]}, "critical": true}
+{"id": "xq2-47", "text": "הבן שלי טיפל בזה, הוא אמר שהעביר לכם כבר", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim", "not": ["minor", "wrong_person"]}, "critical": true}
+{"id": "xq2-48", "text": "אני לא מתווכח על הסכום, רק צריך עוד שבוע", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute"]}, "critical": true}
+{"id": "xq2-49", "text": "שאלה: האם אתם עובדים עם עורך דין לגבייה? רק לדעת", "ctx": {"channel": "sms"}, "expect": {"intent": "who_is_this", "not": ["legal"]}, "critical": true}
+{"id": "xq2-50", "text": "אם לא אשלם עד מתי זה בסדר? לא רוצה להסתבך", "ctx": {"channel": "sms"}, "expect": {"intent": "how_to_pay", "not": ["legal", "dispute"]}, "critical": true}

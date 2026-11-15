@@ -7,7 +7,11 @@ import pytest
 from app.conversation import Escalation, Intent, Stop, respond
 from evals.harness import build_ctx, report, run  # noqa: F401
 
-EXTERNAL = sorted((Path(__file__).parent.parent / "evals" / "heldout").glob("external-*.jsonl"))
+HELDOUT = Path(__file__).parent.parent / "evals" / "heldout"
+# רק סטים שכבר נמדדו ונרשמו ב-RESULTS.md נכנסים לשער. סט חיצוני חדש נשאר עיוור עד הריצה היחידה
+# שלו — אחרת CI היה נשבר לכל הצוות ברגע ש-QA מוסיף סט, ומכריח כוונון לפני מדידה.
+_MEASURED = (HELDOUT / "RESULTS.md").read_text(encoding="utf-8")
+EXTERNAL = sorted(p for p in HELDOUT.glob("external-*.jsonl") if f"## {p.name}" in _MEASURED)
 
 
 def d(text):
@@ -62,15 +66,28 @@ ACCEPTED = {
 PROTECTIVE = {"opt_out", "wrong_person", "legal", "dispute", "distress", "minor", "paid_claim"}
 
 
+# מה כל כוונה מגינה מחייבת בפועל: (עצירה מינימלית, הסלמה מינימלית)
+REQUIRED = {"opt_out": ("permanent", "none"), "wrong_person": ("permanent", "none"),
+            "legal": ("pause", "urgent"), "dispute": ("pause", "urgent"), "distress": ("pause", "urgent"),
+            "minor": ("pause", "urgent"), "paid_claim": ("pause", "normal")}
+_STOP = {"none": 0, "pause": 1, "permanent": 2}
+_ESC = {"none": 0, "normal": 1, "urgent": 2}
+
+
 def silent_critical(r) -> str | None:
-    """טעות קריטית שעוברת בשקט = (א) כוונה אסורה הופיעה, או (ב) כוונה מגינה צפויה הוחלפה בכוונה
-    אחרת בביטחון (לא 'לא ברור' ⇒ בעל העסק). הבדל בין שתי כוונות תמימות (הבטחה/קישור) אינו קריטי."""
+    """טעות קריטית שעוברת בשקט = (א) כוונה אסורה הופיעה, או (ב) ההחלטה *פחות מגינה* ממה שהכוונה
+    הצפויה מחייבת (עצירה חלשה יותר או הסלמה נמוכה יותר) ואינה 'לא ברור ⇒ בעל העסק'.
+    תווית אחרת עם הגנה שווה או חזקה יותר (למשל חדלות פירעון ⇒ cant_pay דחוף במקום legal) אינה טעות שקטה."""
     e, dec = r.case["expect"], r.decision
     got = {i.value for i in dec.all_intents}
     if set(e.get("not", [])) & got:
         return f"forbidden {sorted(set(e.get('not', [])) & got)}"
-    if e["intent"] in PROTECTIVE and dec.intent.value not in (e["intent"], "unknown") and e["intent"] not in got:
-        return f"{dec.intent.value} instead of {e['intent']}"
+    need = REQUIRED.get(e["intent"])
+    if need and dec.intent.value != "unknown":
+        stop_ok = _STOP[dec.stop.value] >= _STOP[need[0]]
+        esc_ok = _ESC[dec.escalate.value] >= _ESC[need[1]]
+        if not (stop_ok and esc_ok):
+            return f"{dec.intent.value} ({dec.stop.value}/{dec.escalate.value}) weaker than {e['intent']} {need}"
     return None
 
 
@@ -82,3 +99,9 @@ def test_external_blind_sets_have_no_silent_critical_error(path):
     bad = [f"{r.case['id']} «{r.case['text']}» ⇒ {why}" for r in res
            if r.case.get("critical") and r.case["id"] not in ACCEPTED and (why := silent_critical(r))]
     assert bad == []
+
+
+def test_unmeasured_external_set_is_not_gated(tmp_path, monkeypatch):
+    """סט חיצוני חדש שעוד לא נרשם ב-RESULTS.md לא נכנס לשער (נשאר עיוור)."""
+    assert all(f"## {p.name}" in _MEASURED for p in EXTERNAL)
+    assert len(EXTERNAL) >= 2

@@ -31,7 +31,14 @@ try {
   const ctx = await b.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 2 });
   const p = await ctx.newPage();
   p.on('pageerror', e => errors.push(String(e)));
-  const snap = async (n, pg = p) => { const f = `${String(n).padStart(2, '0')}-${SCENES[n - 1].key}.png`; await pg.screenshot({ path: OUT + f }); shots.push(f); };
+  // כל פריים נבדק מול ההכרעות לפני הצילום: טקסט אסור על המסך ⇒ עוצרים (לא מצלמים סרטון שסותר את המוצר)
+  const FORBIDDEN = [/whatsapp/i, /וואטסאפ/, /העוזר לגביית/, /×\s*\d/, /חוזר מוקדם/, /מובטח|מבטיח/, /לפני מע״מ/];
+  const snap = async (n, pg = p) => {
+    const text = await pg.evaluate(() => document.body.innerText);
+    const hit = FORBIDDEN.find(r => r.test(text));
+    if (hit) throw new Error(`פריים ${n} (${SCENES[n - 1].key}): טקסט אסור ${hit}`);
+    const f = `${String(n).padStart(2, '0')}-${SCENES[n - 1].key}.png`; await pg.screenshot({ path: OUT + f }); shots.push(f);
+  };
 
   // 1 · הוק: כותרת דף הנחיתה
   await p.goto(base + '/app/'); await p.getByTestId('hero-title').waitFor(); await p.waitForTimeout(400);
@@ -92,5 +99,5 @@ try {
 const cards = SCENES.map((s, i) => `<figure><img src="frames/${shots[i]}" alt="${s.title}" loading="lazy"><figcaption><b>${s.t} · ${s.title}</b><p>🎙 ${s.vo}</p><p class="os">📝 על המסך: ${s.onscreen}</p>${s.note ? `<p class="os">ℹ️ ${s.note}</p>` : ''}</figcaption></figure>`).join('\n');
 writeFileSync(new URL('./storyboard.html', import.meta.url), `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>גבי · סטוריבורד דמו (טיוטה)</title>
 <style>body{margin:0;background:#FBF8F1;color:#0F172A;font:16px/1.6 Heebo,system-ui,sans-serif}.d{background:#FEF3C7;color:#92400E;text-align:center;font-weight:700;padding:6px}main{max-width:1200px;margin:0 auto;padding:16px;display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}figure{margin:0;background:#fff;border:1px solid #E2E8F0;border-radius:16px;overflow:hidden}img{width:100%;display:block;background:#0F172A;max-height:420px;object-fit:contain}figcaption{padding:12px 14px}p{margin:6px 0}.os{color:#475569;font-size:14px}h1{margin:16px auto 0;max-width:1200px;padding:0 16px}</style></head>
-<body><div class="d">טיוטה, לא לפרסום · פריימים מהמערכת האמיתית במצב בדיקה (dry-run), נתונים בדויים</div><h1>גבי · סטוריבורד לסרטון 60 שניות</h1><main>${cards}</main></body></html>`);
+<body><div class="d">טיוטה, לא לפרסום · פריימים מהמערכת האמיתית במצב בדיקה (dry-run), נתונים בדויים</div><h1>גבי · סטוריבורד לסרטון 60 שניות</h1><p style="max-width:1200px;margin:6px auto;padding:0 16px"><a href="transcript.html">תמליל הסרטונים המוגמרים</a></p><main>${cards}</main></body></html>`);
 console.log(`✓ ${shots.length} פריימים נוצרו ב-marketing/video/frames + storyboard.html · 0 שגיאות · dry_run=${health.dry_run}`);

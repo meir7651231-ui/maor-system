@@ -390,6 +390,23 @@ try {
   if (out) await fullShot(p, `${out}/live-07-settings.png`);
   console.log('  ✓ הגדרות חיות: שמירה בשרת, 422 מאומת, CSV עם שגיאת שורה');
 
+  // 7א) critic סבב 79: שער «אישור רשימת הפתוחות» — חשבונית ה-CSV ממתינה; בעל העסק מאשר אותה בכרטיס בדשבורד.
+  // בלי האישור /plan לא בונה עליה תזכורת (השער היה חוסם בשקט — אין משטח אחר).
+  await p.goto(base + '/app/#/dashboard');
+  const olItem = p.getByTestId('open-item-9001');
+  await olItem.waitFor();
+  ok((await api('/open-list')).pending.some(x => x.number === '9001'), 'חשבונית ה-CSV לא ממתינה לאישור');
+  ok((await api('/dashboard')).totals.open_unreviewed >= 1, '/dashboard לא מספר את הממתינות');
+  await noHScroll(p, 'רשימת הפתוחות');
+  if (out) await fullShot(p, `${out}/live-07a-open-list.png`);
+  await olItem.getByRole('button', { name: 'עדיין פתוח' }).click();
+  await p.getByTestId('open-list-confirm').click();
+  await olItem.waitFor({ state: 'detached' });
+  ok((await api('/open-list')).confirmed.some(x => x.number === '9001'), 'האישור בכרטיס לא הגיע לשרת');
+  console.log('  ✓ רשימת הפתוחות: חשבונית CSV אושרה בכרטיס בדשבורד');
+  await p.goto(base + '/app/#/settings');   // חזרה למסך הקודם ⇒ המעבר לדשבורד בשלב הבא טוען נתונים טריים
+  await p.getByTestId('settings-save').waitFor();
+
   // 7ב) תזכורת לחשבונית CSV: אי אפשר לאשר בלי «הסכום עדיין פתוח"; עם הסימון — השרת מקבל confirm_open
   ok((await (await fetch(base + '/plan', { method: 'POST' })).json()).created.length >= 1, 'לא נוצרה תזכורת לחשבונית ה-CSV');
   await p.goto(base + '/app/#/dashboard');
@@ -665,6 +682,10 @@ print(json.dumps([landing_page(b), landing_page(dict(b, pay_shared=True)), landi
     + '9003,לקוח מאוחד CSV (דמו),050-0000124,300,2026-10-01\n9004,לקוח מאוחד CSV (דמו),050-0000124,500.50,2026-10-03\n';
   const imp140 = await (await fetch(base + '/settings/source/csv', { method: 'POST', body: csv140, headers: { 'Content-Type': 'text/csv; charset=utf-8' } })).json();
   ok(imp140.imported >= 2 && !imp140.rejected.length, 'ייבוא ה-CSV של התזכורת המאוחדת: ' + JSON.stringify(imp140));
+  // critic סבב 79: שער רשימת הפתוחות — אישור בעל העסק (מסלול הממשק נבדק בשלב 7א)
+  const pend140 = (await api('/open-list')).pending.filter(x => ['9003', '9004'].includes(x.number)).map(x => x.id);
+  ok((await fetch(base + '/open-list/confirm', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ still_open: pend140, paid: [] }) })).ok, 'אישור רשימת הפתוחות ל-9003/9004 נכשל');
   await fetch(base + '/plan', { method: 'POST' });
   const dash140 = await api('/dashboard');
   const inv140 = ['9003', '9004'].map(n => dash140.invoices.find(r => r.number === n));

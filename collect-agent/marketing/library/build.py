@@ -47,7 +47,7 @@ def check_variant(v: dict) -> list[str]:
     """אותם כללים שהשירות אוכף לפני שליחה (service.py: compliance.violations על כל SMS)."""
     bad = compliance.violations(v["sms"], compliance.Rules(
         business=BIZ, payment_link=SHORT, max_sms_chars=templates.SMS_HARD_MAX,
-        allow_debt_word=v["key"] not in ("friendly", "second")))
+        allow_debt_word=templates.debt_word_allowed(v["key"])))
     if compliance.sms_segments(v["sms"]) > 2:
         bad.append(f"sms_segments>{2}")
     return bad
@@ -97,12 +97,13 @@ pre.tpl{{white-space:pre-wrap;background:var(--soft);border-radius:12px;padding:
 </div></section>
 <section class="block alt"><div class="wrap center">
   <h2>רוצה שזה יקרה לבד?</h2>
-  <p>גבי מתחבר לחשבונית ירוקה ומכין את התזכורות האלה כל בוקר. אתה מאשר כל הודעה. ₪119 לחודש או ₪1,190 לשנה, כולל מע״מ ככל שחל. 14 ימי ניסיון בלי כרטיס אשראי.</p>
+  <p>גבי מתחבר למערכת החשבוניות שלך (חשבונית ירוקה, iCount או רווחית) ומכין את התזכורות האלה כל בוקר. אתה מאשר כל הודעה. ₪119 לחודש או ₪1,190 לשנה, כולל מע״מ ככל שחל. 14 ימי ניסיון בלי כרטיס אשראי.</p>
   <a class="btn primary" href="../landing/index.html#price">לפרטים</a>
 </div></section>
 </main>
 <footer><div class="wrap"><span>© 2026 גבי – תזכורות תשלום · [שם החברה בע״מ · ח.פ. ___ · כתובת: ימולאו לפני השקה]</span>
-<span>מידע כללי, לא ייעוץ משפטי.</span></div></footer>
+<span>מידע כללי, לא ייעוץ משפטי.</span>
+<span><a href="../terms.html" style="color:inherit">תנאי שימוש</a> · <a href="../privacy.html" style="color:inherit">מדיניות פרטיות</a> · <a href="../accessibility.html" style="color:inherit">הצהרת נגישות</a> (טיוטה – לבדיקת עו״ד)</span></div></footer>
 <script>
 // העתקה ללוח בלבד (מקומי). אין שליחה ואין שמירה.
 document.querySelectorAll('button.copy').forEach(function (b) {{

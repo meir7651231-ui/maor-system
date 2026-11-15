@@ -155,7 +155,8 @@ def test_every_owner_endpoint_requires_token(raw_api, method, path, hdr):
 # + webhook מייל (מפתח משלו, 403 בלי) ועמודי החייב מקישור ה-SMS (/p, /pay — קוד אקראי לכל חשבונית,
 # בלי נתוני בעל העסק; 404 על קוד לא קיים).
 PUBLIC_ROUTES = {"/health", "/auth/login", "/auth/logout",
-                  "/", "/ui", "/landing", "/u/{token}", "/webhooks/sms/019", "/webhooks/greeninvoice",
+                  "/", "/ui", "/landing", "/u/{token}", "/u/{token}/done", "/webhooks/sms/019",
+                 "/webhooks/greeninvoice",
                  "/webhooks/email", "/p/{code}", "/p/{code}/pay", "/p/{code}/{action}", "/p/{code}/done",
                  "/pay/{code}", "/pay/{code}/go", "/api/pay/{code}", "/api/pay/{code}/{action}",
                  # webhook ממקור חשבוניות נבחר (iCount): סוד ב-URL (SOURCE_WEBHOOK_KEY, 403 בלי), טריגר בלבד

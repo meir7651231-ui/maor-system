@@ -11,7 +11,7 @@
   --color-ink-900: #0F172A;
   --color-ink-800: #1E293B;
   --color-ink-700: #334155;
-  --color-ink-500: #64748B;
+  --color-ink-500: #5F6F85; /* היה #64748B — 4.49:1 על רקע השמנת (#FBF8F1) ⇒ נכשל AA; עכשיו 4.83 (גבי שיווק, 15.11) */
   --color-ink-400: #94A3B8;
   --color-ink-200: #E2E8F0;
   --color-ink-100: #F1F5F9;

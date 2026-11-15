@@ -752,8 +752,8 @@ class CollectService:
             # ר-1 (team/legal.md): מסנן הניסוח חוסם — לא מזהיר
             bad = compliance.violations(sms, compliance.Rules(
                 business=self.s.business_name, payment_link=short,
-                max_sms_chars=templates.SMS_HARD_MAX, allow_debt_word=step.key not in (
-                    "friendly", "second")))
+                max_sms_chars=templates.SMS_HARD_MAX,
+                allow_debt_word=templates.debt_word_allowed(step.key)))
             if bad:
                 return [], "compliance"
             msgs.append(Message("sms", phone, sms))
@@ -765,7 +765,7 @@ class CollectService:
             # ר-1 גם על המייל (מבקר סבב 3 🟠): שם לקוח מ-CSV עם «תביעה»/קישור זר נחסם
             bad = compliance.violations(subj + "\n" + text, compliance.Rules(
                 business="", payment_link=link, unsubscribe_url=unsub, channel="email",
-                own_name=self.s.business_name, allow_debt_word=step.key not in ("friendly", "second")))
+                own_name=self.s.business_name, allow_debt_word=templates.debt_word_allowed(step.key)))
             if bad:
                 return [], "compliance"
             msgs.append(Message("email", cust["email"], text, subject=subj, html=html,
@@ -941,6 +941,22 @@ class CollectService:
             done["paid"].append(iid)
         self.audit(actor, "open_list_confirmed", done)
         return {**done, **self.open_list()}
+
+    def mark_paid_outside(self, iid: int, actor: str = "owner") -> dict:
+        """BACKLOG גבייה סוכן #3: «שולם מחוץ למערכת» (ביט/העברה/מזומן) מכל חשבונית פתוחה בדשבורד.
+        סוגר כאן, מבטל תזכורות פעילות (גם מאושרות), לא נפתח מחדש בסנכרון, ומתועד ב-audit."""
+        inv = self._invoice(iid)
+        if inv is None:
+            raise KeyError(iid)
+        if inv["status"] != "open":
+            raise ValueError("החשבונית כבר לא פתוחה")
+        now = _iso(self.clock())
+        self.db.x("UPDATE invoices SET status='closed', open_reviewed_at=COALESCE(open_reviewed_at,?), "
+                  "owner_paid_at=? WHERE id=?", (now, now, iid))
+        self._cancel_invoice(iid, "owner_marked_paid")
+        self.audit(actor, "invoice_marked_paid", {"invoice": iid, "number": inv["number"],
+                                                  "amount_agorot": inv["amount_agorot"]})
+        return dict(self._invoice(iid))
 
     def plan(self) -> list[int]:
         now = self.clock()
@@ -1982,6 +1998,14 @@ class CollectService:
     def has_unsub_token(self, token: str) -> bool:
         return self._unsub_customer(token) is not None
 
+    def unsub_opted_out(self, token: str) -> bool | None:
+        """None = טוקן לא קיים. אחרת: האם הלקוח של הטוקן מוסר כרגע (עמוד התוצאה של PRG ב-/u)."""
+        c = self._unsub_customer(token)
+        if not c:
+            return None
+        row = self.db.one("SELECT opted_out FROM customers WHERE id=?", (c["id"],))
+        return bool(row and row["opted_out"])
+
     def unsubscribe(self, token: str) -> bool:
         c = self._unsub_customer(token)
         if not c:
@@ -2274,7 +2298,12 @@ class CollectService:
                 "owner_inbox": self.db.one("SELECT COUNT(*) n FROM messages WHERE "
                                            "needs_owner=1")["n"],
                 # review חור 7: חשבוניות CSV פתוחות שלא הופיעו בייבוא האחרון (אולי שולמו)
-                "csv_unverified": self._csv_unverified(), **rich},
+                "csv_unverified": self._csv_unverified(),
+                # critic סבב 79: חשבוניות פתוחות שממתינות לאישור בעל העסק (שער רשימת הפתוחות) — בלי זה
+                # בעל העסק לא יודע שגבי לא יתזכר עליהן
+                "open_unreviewed": (self.db.one("SELECT COUNT(*) n FROM invoices WHERE status='open' "
+                                                "AND open_reviewed_at IS NULL")["n"]
+                                    if self.s.open_review else 0), **rich},
             "invoices": rows}
 
     def _collection_series(self, today: date, closed) -> list[dict]:

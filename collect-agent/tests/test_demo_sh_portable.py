@@ -121,3 +121,14 @@ def test_picks_newer_interpreter_for_venv(tmp_path):
     out = subprocess.run([str(vpy), "-c", probe], capture_output=True, text=True,  # noqa: S603
                          env={**os.environ}).stdout.strip()
     assert out == "True"
+
+
+@pytest.mark.skipif(not BASH, reason="אין bash")
+def test_venv_with_dead_interpreter_is_rebuilt(tmp_path):
+    # הפעלה 215 (QA, מ-213): .venv/bin/python3 = קישור למפרש שנמחק ⇒ נבנה מחדש, לא נשאר שבור
+    work, env = _sandbox(tmp_path)
+    (work / ".venv/bin").mkdir(parents=True)
+    (work / ".venv/bin/python3").symlink_to(tmp_path / "gone" / "python3")
+    r = _run(work, env)
+    assert "שבור" in r.stdout, r.stdout
+    assert not os.path.lexists(work / ".venv/bin/python3"), "הקישור המת נשאר"

@@ -27,7 +27,7 @@ export function Logo({ dark = false, size = 36 }: { dark?: boolean; size?: numbe
       <LogoMark size={size} dark={dark} />
       <span className="leading-none">
         <span className={`block font-display font-extrabold text-2xl ${dark ? 'text-white' : 'text-ink-900'}`}>{NAME}</span>
-        <span className={`block text-[11px] font-medium mt-0.5 ${dark ? 'text-ink-400' : 'text-ink-500'}`}>{SLOGAN}</span>
+        <span className={`block text-[11px] font-medium mt-0.5 ${dark ? 'text-ink-400' : 'text-ink-700'}`}>{SLOGAN}</span>
       </span>
     </span>
   );

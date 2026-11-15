@@ -141,7 +141,7 @@ export function Settings() {
               {!live ? 'מוק'
                 : f.source_system !== orig.source_system ? 'יתעדכן אחרי שמירה'
                 : server?.source.api_connected ? <span className="text-brand-700 font-bold">מחובר (סביבת בדיקה)</span> : 'לא מחובר'}
-              <div className="text-xs text-ink-500 mt-1">חיבור מפתח מהמסך — <b>בקרוב</b>. בשלב הבטא המפתח לא נקלט כאן ולא נשמר (כל עסק יחבר מפתח משלו בגרסה הבאה).</div>
+              <div className="text-xs text-ink-500 mt-1">חיבור מפתח מהמסך <b>עדיין לא זמין</b>. בשלב הבטא המפתח לא נקלט כאן ולא נשמר (כל עסק יחבר מפתח משלו בגרסה הבאה).</div>
               {f.source_system === 'ezcount' && (
                 <div className="text-xs text-amber-900 mt-1" data-testid="source-unverified">⚠️ ממשק הקריאה של EZcount עדיין בבדיקה מול הספק. עד שיאומת, אפשר לייבא גם קובץ CSV.</div>
               )}

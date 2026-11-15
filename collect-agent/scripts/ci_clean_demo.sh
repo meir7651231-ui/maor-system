@@ -6,7 +6,8 @@
 #   bash scripts/ci_clean_demo.sh            (בתוך container כ-root; מקומית: docker run … debian:bookworm)
 #
 # שלבים: (1) חבילות מערכת בלבד; (2) מוודאים שהמכונה באמת «נקייה» — לפייתון של המערכת חסר fastapi;
-# (3) ./demo.sh --check ⇒ חייב ליצור .venv ולעבור; (4) ריצה שנייה ⇒ חייבת לעבור מה-.venv הקיים בלי ליצור מחדש.
+# (3) ./demo.sh --check ⇒ חייב ליצור .venv ולעבור; (4) ריצה שנייה ⇒ חייבת לעבור מה-.venv הקיים בלי ליצור מחדש,
+# ובלי להוסיף אף קובץ — לא בפרויקט ולא ב-TMPDIR (הפעלה 219: שומר-העץ במצב fs, אין git ב-container).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export DEBIAN_FRONTEND=noninteractive SKIP_WEB=1
@@ -25,9 +26,18 @@ echo "▶ ריצה 1: מכונה נקייה"
 ./demo.sh --check
 [[ -x .venv/bin/python3 ]] || { echo "❌ demo.sh עבר בלי ליצור .venv — מסלול ההתקנה לא נבדק" >&2; exit 1; }
 STAMP="$(stat -c %Y .venv/bin/python3)"
+TMP_ROOT="${TMPDIR:-/tmp}"
+SNAP_DIR=""
+trap '[ -n "$SNAP_DIR" ] && rm -rf "$SNAP_DIR"' EXIT   # גם בכשל באמצע, לא רק בסוף (QA, BACKLOG)
+SNAP_DIR="$(mktemp -d)"
+python3 -I scripts/tree_guard.py fs-snapshot "$SNAP_DIR/project.txt"
+python3 -I scripts/tree_guard.py fs-snapshot "$SNAP_DIR/tmp.txt" "$TMP_ROOT"
 echo "▶ ריצה 2: .venv קיים"
 OUT="$(./demo.sh --check 2>&1)" || { echo "$OUT"; exit 1; }
 echo "$OUT" | tail -n 3
 if echo "$OUT" | grep -q "יוצר סביבה מקומית"; then echo "❌ ריצה 2 יצרה .venv מחדש" >&2; exit 1; fi
 [[ "$(stat -c %Y .venv/bin/python3)" == "$STAMP" ]] || { echo "❌ .venv הוחלף בריצה 2" >&2; exit 1; }
+python3 -I scripts/tree_guard.py fs-check "$SNAP_DIR/project.txt" || { echo "❌ ריצה 2 הוסיפה קבצים לפרויקט" >&2; exit 1; }
+python3 -I scripts/tree_guard.py fs-check "$SNAP_DIR/tmp.txt" "$TMP_ROOT" || { echo "❌ ריצה 2 השאירה קבצים ב-$TMP_ROOT" >&2; exit 1; }
+rm -rf "$SNAP_DIR"
 echo "✅ ההדגמה עוברת במכונה נקייה (פעמיים)"

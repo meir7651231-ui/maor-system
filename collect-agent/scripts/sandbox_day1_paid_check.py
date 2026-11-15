@@ -43,10 +43,12 @@ SANDBOX = "https://sandbox.d.greeninvoice.co.il/api/v1"
 
 
 def _raw(gi: GreenInvoiceClient, types, statuses) -> list[dict]:
+    """המסמכים כפי שהשרת מחזיר (לבדיקת שדות). תרחיש mock «no-status» מסתיר את השדה."""
     out, page = [], 1
     while page <= 50:
         body = gi.search_documents(page=page, page_size=50, statuses=statuses, types=types)
-        out += list(body.get("items", []))
+        out += [{k: v for k, v in d.items() if not (d.get("_hide_status") and k == "status")}
+                for d in body.get("items", [])]
         if page >= int(body.get("pages") or 1):
             break
         page += 1
@@ -90,10 +92,43 @@ def run(gi: GreenInvoiceClient, target: str) -> dict:
     }
 
 
+def _receipt(mock, *, linked: bool = True) -> dict:
+    d = {"type": 400, "status": 1, "amount": mock.docs["demo1"]["amount"], "currency": "ILS",
+         "client": dict(mock.docs["demo1"]["client"])}
+    if linked:
+        d["linkedDocumentIds"] = ["demo1"]
+    return mock.route("POST", "/_mock/documents", {}, d)[1]
+
+
+def _sc_paid(mock):           # שולם, הופקה קבלה מקושרת, החשבונית לא נסגרה ⇒ נתפס, יציאה 0
+    _receipt(mock)
+
+
+def _sc_clean(mock):          # אין קבלות ⇒ 0 חשודות, יציאה 0
+    pass
+
+
+def _sc_unlinked(mock):       # קבלה בלי שדה קישור ⇒ «לא להשיק», יציאה 1
+    rc = _receipt(mock, linked=False)
+    mock.docs[rc["id"]].pop("linkedDocumentIds", None)
+
+
+def _sc_no_status(mock):      # למסמכים הפתוחים אין status ⇒ «לא להשיק», יציאה 1
+    for d in mock.docs.values():
+        if d.get("type") in (300, 305):
+            d["_hide_status"] = True
+
+
+SCENARIOS = {"paid": _sc_paid, "clean": _sc_clean, "unlinked": _sc_unlinked,
+             "no-status": _sc_no_status}
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--sandbox", action="store_true", help="ה-sandbox האמיתי (מפתחות מהסביבה)")
     ap.add_argument("--json", default="", help="כתיבת דוח JSON לקובץ")
+    ap.add_argument("--mock", default="paid", choices=sorted(SCENARIOS),
+                    help="תרחיש ה-mock (בלי --sandbox): כל ענפי ההחלטה מוכחים ב-CI")
     a = ap.parse_args(argv)
     transport = None
     if a.sandbox:
@@ -110,13 +145,9 @@ def main(argv: list[str] | None = None) -> int:
         api_id, secret = DEMO_ID, DEMO_SECRET
         mock = GreenInvoiceMock(api_id=api_id, api_secret=secret, docs=demo_docs(),
                                 deliver=lambda url, payload: None)
-        # תרחיש היום הראשון: לקוח שילם, הופקה קבלה מקושרת, אבל החשבונית לא נסגרה
-        mock.route("POST", "/_mock/documents", {},
-                   {"type": 400, "status": 1, "amount": mock.docs["demo1"]["amount"],
-                    "currency": "ILS", "client": dict(mock.docs["demo1"]["client"]),
-                    "linkedDocumentIds": ["demo1"]})
+        SCENARIOS[a.mock](mock)
         transport = httpx.MockTransport(mock.handler)
-        target = "gi_mock בתוך התהליך"
+        target = f"gi_mock בתוך התהליך ({a.mock})"
     gi = GreenInvoiceClient(SANDBOX, api_id, secret, transport=transport)
     rep = run(gi, target)
     for k in ("target", "open_invoices", "receipts_seen", "suspected_paid", "suspected_paid_pct",

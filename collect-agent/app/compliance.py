@@ -18,23 +18,26 @@ from dataclasses import dataclass
 
 LEGAL_BLACKLIST: tuple[tuple[str, str], ...] = (
     ("enforcement", r"הוצאה לפועל|הוצל\"?פ"),
-    ("lawyer", r"עו[\"״']ד|עוה[\"״']ד|עורכ\w* ה?דין|משרד עורכי"),   # "עוד" ≠ עו"ד
-    ("court", r"תביע|בית ה?משפט|הליכים משפטיים|צעדים משפטיים|הליך משפטי"),
+    ("lawyer", r"עו[\"״']ד|עוה[\"״']ד|עור[כך]\w*[\s\-]+ה?דין|משרד עורכי|פרקליט"),   # "עוד" ≠ עו"ד
+    ("court", r"תביע|לתבוע|נתבע(?![\w])|בית ה?משפט|(?<![\w])[לבמו]?בית ה?דין|הליכים משפטיים|צעדים משפטיים|"
+              r"הליך משפטי"),
     ("warning_letter", r"התראה לפני נקיטת|מכתב דרישה"),
-    ("seizure", r"עיקול"),
+    ("seizure", r"עיקול|(?<![\w])[נלתי]?עקל(?![\w])"),
     ("police", r"משטרה"),
     ("credit", r"רשימה שחורה|BDI|דירוג אשראי|נתוני אשראי"),
-    ("third_party", r"מעסיק|מקום העבודה|ה?משפחה שלך|לבני המשפחה"),
+    ("third_party", r"מעסיק|מעביד|מקום העבודה|ה?משפחה שלך|לבני המשפחה|משפחת(?:ך|כם|כן)(?![\w])"),
     ("shaming", r"נפרסם|פרסום (?:שמ|ה?חוב)"),
-    ("fees", r"ריבית|דמי פיגורים|דמי טיפול|קנס"),
+    ("fees", r"ריבי(?:ת|ות)|דמי ה?פיגור|דמי טיפול|קנס"),
     ("threat", r"אחרת ני?אלץ|נאלץ ל|לא תהיה (?:לנו )?ברירה"),
     ("judgmental", r"(?<![\w])חייב(?:ת|ים)?(?![\w])|בפיגור|התעלמת|לא שילמת"),
     ("pressure", r"!!|דחוף|מיידי|מייד(?![\w])|ללא דיחוי|\b[A-Z]{4,}\b"),
 )
-DEBT_WORD = ("debt_word", r"(?<![\w])(?:ה|ו|ב|ל)?חוב(?:ות)?(?![\w])")
+# כינויי קניין (חובך/חובכם/חובו/חובותיך) — "חובה" (=חובה, mandatory) לא נחסמת
+DEBT_WORD = ("debt_word", r"(?<![\w])(?:ה|ו|ב|ל)?חוב(?:ות(?:י\w*)?|כם|כן|ך|ו|נו)?(?![\w])")
 MARKETING_BLACKLIST: tuple[tuple[str, str], ...] = (
-    ("marketing", r"מבצע|קופון|הצטרפו|הירשמו|הרשמו|נשלח באמצעות|מוצר חדש|שירות חדש|(?<![\w])חדש(?![\w])"),
-    ("discount", r"הנחה|מחילה|נוותר|לוותר על|נמחק את|פטור מ"),
+    ("marketing", r"מבצע|קופון|הצטרפ\w*|הירשמו|הרשמו|נשלח באמצעות|מוצר חדש|שירות חדש|"
+                  r"(?<![\w])חדש(?:ים|ות)?(?![\w])"),
+    ("discount", r"הנחה|הנחות|מחילה|נוותר|לוותר על|נמחק את|פטור מ"),
 )
 # critic 3.6.5 (הכרעת מאיר 7.11.2026): שמות בנקים, אפליקציות תשלום ורשויות חסומים בניסוח — הודעת
 # גבייה שמזכירה "בנק לאומי"/"ביט"/"רשות המסים" נראית כהודעה מטעמם (התחזות/פישינג).
@@ -50,10 +53,10 @@ MARKETING_BLACKLIST: tuple[tuple[str, str], ...] = (
 _HEB_BANKS = (r"ה?פועלים|לאומי|דיסקונט|מזרחי|טפחות|ה?בינלאומי|מרכנתיל|ירושלים|יהב|מסד|אוצר החייל|"
               r"פאג[\"״']?י|פועלי אגודת ישראל|ה?דואר|פפר|ישראל|וואן\s?זירו")
 INSTITUTION: tuple[tuple[str, str], ...] = (
-    ("brand_bank", r"(?<![\w])[מלבו]?ה?בנק\s+(?:" + _HEB_BANKS + r")(?![\w])"
+    ("brand_bank", r"(?<![\w])[מלבו]?ה?בנק[\s\-]+(?:" + _HEB_BANKS + r")(?![\w])"
                    r"|מזרחי[\s\-]+טפחות|אוצר החייל|פאג[\"״']י(?![\w])|פועלי אגודת ישראל|מרכנתיל"
                    r"|ה?בינלאומי הראשון|וואן\s?זירו|פפר\s+(?:בנק|פיי)"
-                   r"|(?i:\b(?:bank\s+(?:hapoalim|leumi|discount|mizrahi|tefahot|jerusalem|yahav|massad|"
+                   r"|(?i:\b(?:bank[\s\-]+(?:hapoalim|leumi|discount|mizrahi|tefahot|jerusalem|yahav|massad|"
                    r"otsar|otzar|pagi|pepper|of\s+israel|of\s+jerusalem)|hapoalim|leumi|mizrahi[\s\-]?tefahot|"
                    r"discount\s+bank|mercantile\s+bank|first\s+international\s+bank|"
                    r"one\s?zero(?:\s+bank)?|pepper\s+bank)\b)"),
@@ -62,7 +65,7 @@ INSTITUTION: tuple[tuple[str, str], ...] = (
 )
 PAYMENT_APPS: tuple[tuple[str, str], ...] = (
     # "ביט" כמילה (גם "בביט"/"לביט"/"וביט"), לא "ביטוח"/"מביט"/"הביט"
-    ("brand_payapp", r"(?<![\w])[בלו]?ביט(?![\w])|פיי\s?בוקס|(?i:\bpay\s?box\b|\bbit\b|\bpepper\b)"),
+    ("brand_payapp", r"(?<![\w])[בלו]?ביט(?![\w])|פיי[\s\-]?בוקס|(?i:\bpay[\s\-]?box\b|\bbit\b|\bpepper\b)"),
 )
 BRANDS = INSTITUTION + PAYMENT_APPS
 # שם שולח (Sender ID, לטיני עד 11 תווים): "BankLeumi"/"PayBox" = התחזות. ללא גבולות מילה (אין רווחים)
@@ -103,6 +106,15 @@ def sms_segments(text: str) -> int:
     return 1 if n <= 70 else -(-n // SMS_SEGMENT)
 
 
+# אותיות סופיות (גבי שיווק 15.11): דפוס שנכתב «דחוף»/«קופון»/«עורך» לא תפס «דחופה»/«קופונים»/«עורכי»
+# ולהפך. מנרמלים סופיות גם בטקסט וגם בדפוס ובודקים בנוסף לבדיקה המקורית — רק מחמיר, לא מקל.
+_FINALS = str.maketrans("ךםןףץ", "כמנפצ")
+
+
+def _hit(pat: str, t: str) -> bool:
+    return bool(re.search(pat, t) or re.search(pat.translate(_FINALS), t.translate(_FINALS)))
+
+
 def violations(text: str, r: Rules) -> list[str]:
     out: list[str] = []
     # הרשימות השחורות נבדקות על הטקסט בלי הקישורים: קוד אקראי בקישור ("…/p/XKQZWbt") אינו
@@ -110,19 +122,19 @@ def violations(text: str, r: Rules) -> list[str]:
     # הקישורים עצמם נבדקים בנפרד מול רשימת המותרים.
     prose = _URL.sub(" ", text)
     for name, pat in LEGAL_BLACKLIST:
-        if re.search(pat, prose):
+        if _hit(pat, prose):
             out.append(name)
     own = r.own_name or r.business
     branded = prose.replace(own, " ") if own else prose
     for name, pat in BRANDS:
         if re.search(pat, branded):
             out.append(name)
-    if not r.allow_debt_word and re.search(DEBT_WORD[1], prose):
+    if not r.allow_debt_word and _hit(DEBT_WORD[1], prose):
         out.append(DEBT_WORD[0])
     for name, pat in MARKETING_BLACKLIST:
         if name == "discount" and r.allow_discount:
             continue
-        if re.search(pat, prose):
+        if _hit(pat, prose):
             out.append(name)
     allowed = {u.rstrip(".,)") for u in (r.payment_link, r.unsubscribe_url) if u}
     for m in _URL.finditer(text):

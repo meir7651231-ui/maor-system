@@ -38,8 +38,29 @@ try {
       await waitHealthy(base, srv);
       ok((await (await fetch(base + '/health')).json()).dry_run === true, 'השרת לא ב-dry-run');
       const sync = await (await fetch(base + '/sync', { method: 'POST', headers: H })).json();
+      // critic סבב 79: יום ראשון = קודם בעל העסק מאשר את רשימת הפתוחות (שער OPEN_REVIEW, דלוק כברירת מחדל).
+      // לפני האישור: אין תזכורת, והדשבורד מראה כמה ממתינות. האישור עצמו — בכרטיס בממשק.
+      ok((await (await fetch(base + '/plan', { method: 'POST', headers: H })).json()).created.length === 0, `${v}: תזכורת נבנתה לפני אישור רשימת הפתוחות`);
+      const d0 = await (await fetch(base + '/dashboard', { headers: H })).json();
+      ok(d0.totals.open_unreviewed === sync.open, `${v}: הדשבורד מראה ${d0.totals.open_unreviewed} ממתינות לאישור מתוך ${sync.open}`);
+      {
+        const m = await b.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: out ? 2 : 1 });
+        await m.goto(`${base}/app/#/dashboard?token=${TOKEN}`);
+        await m.getByTestId('open-list').waitFor();
+        ok(await m.evaluate(() => document.documentElement.scrollWidth - innerWidth) <= 0, `${v}/mobile: גלילה רוחבית בכרטיס רשימת הפתוחות`);
+        if (out && v === 'barber') await m.getByTestId('open-list').screenshot({ path: `${out}/gabi-open-list-mobile.png` });
+        await m.close();
+        const p = await b.newPage({ viewport: { width: 1366, height: 900 } });
+        await p.goto(`${base}/app/#/dashboard?token=${TOKEN}`);
+        await p.getByTestId('open-list').waitFor();
+        await p.getByRole('button', { name: 'הכול עדיין פתוח' }).click();
+        await p.getByTestId('open-list-confirm').click();
+        await p.getByTestId('open-list').waitFor({ state: 'detached' });
+        await p.close();
+      }
       await fetch(base + '/plan', { method: 'POST', headers: H });
       const d = await (await fetch(base + '/dashboard', { headers: H })).json();
+      ok(d.totals.open_unreviewed === 0, `${v}: אחרי «הכול עדיין פתוח» נשארו ${d.totals.open_unreviewed} ממתינות`);
       const outbox = (await (await fetch(base + '/outbox', { headers: H })).json()).messages.length;
       ok(sync.open === d.totals.open_invoices && sync.open > 0, `${v}: סנכרון ${JSON.stringify(sync)} מול דשבורד ${d.totals.open_invoices}`);
       ok(outbox === 0, `${v}: יצאו ${outbox} הודעות לפני אישור`);
