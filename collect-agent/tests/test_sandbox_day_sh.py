@@ -70,7 +70,11 @@ def test_works_where_only_python3_exists(tmp_path):
             if re.fullmatch(r"python[\d.]*(-config)?", p.name) or (binx / p.name).exists():
                 continue
             (binx / p.name).symlink_to(p)
-    (binx / "python3").symlink_to(sys.executable)
+    # עטיפה ולא symlink (הפעלה 221): symlink למפרש של venv מחוץ לתיקיית ה-venv מאבד את site-packages
+    # (pyvenv.cfg נמצא לפי מיקום הקישור) ⇒ ModuleNotFoundError מקומית, ירוק רק ב-CI עם פייתון גלובלי.
+    wrapper = binx / "python3"
+    wrapper.write_text(f'#!/bin/sh\nexec "{sys.executable}" "$@"\n', encoding="utf-8")
+    wrapper.chmod(0o755)
     env = {k: v for k, v in os.environ.items() if k not in ("GREENINVOICE_API_ID", "GREENINVOICE_API_SECRET")}
     env["PATH"] = str(binx)
     r = subprocess.run([BASH, str(SH)], cwd=ROOT, env=env, capture_output=True,  # noqa: S603  # nosec B603
