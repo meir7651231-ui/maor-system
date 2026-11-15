@@ -66,3 +66,11 @@ def test_refuses_non_sandbox_url():
     import pytest
     with pytest.raises(SystemExit):
         _mod().Probe("https://api.greeninvoice.co.il/api/v1", "a", "b")
+
+
+def test_receipts_link_check_is_in_the_script():
+    """critic סבב 77: גבי בודקת רק זיכויים (330). קבלה (400/405) שלא סגרה את החשבונית או לא מקושרת אליה ⇒
+    תזכורת למי ששילם. ההתנהגות האמיתית לא ידועה ⇒ הבדיקה חייבת להיות בסקריפט החוזה, כדי שיום ה-sandbox יענה עליה."""
+    from pathlib import Path
+    src = (Path(__file__).resolve().parent.parent / "scripts/gi_contract_check.py").read_text(encoding="utf-8")
+    assert '@check("receipts_link"' in src and "[400, 405]" in src

@@ -299,6 +299,31 @@ def run(p: Probe, target: str) -> Report:
         need(c.get("name"), f"אין name (שדות: {sorted(c)})")
         return "name קיים"
 
+    @check("receipts_link", "קבלות (400/405): איך מקושרות לחשבונית, והאם קבלה מקושרת סוגרת אותה "
+           "(critic סבב 77: גבי בודקת רק זיכויים 330 — קבלה לא-מקושרת ⇒ תזכורת למי ששילם)")
+    def _():
+        r = p.post("/documents/search", {"page": 1, "pageSize": 50, "type": [400, 405]})
+        need(r.status_code == 200, f"HTTP {r.status_code}")
+        items = r.json().get("items", [])
+        if not items:
+            return "SKIP", "אין קבלות בחשבון — ליצור ב-sandbox: חשבונית + קבלה מקושרת + קבלה לא-מקושרת לאותו לקוח"
+        link_keys = sorted({k for d in items for k in d if "link" in k.lower() or "reference" in k.lower()})
+        linked_open = []
+        for d in items:
+            for ld in (d.get("linkedDocuments") or d.get("linkedDocumentIds") or []):
+                lid = ld.get("id") if isinstance(ld, dict) else ld
+                g = p.get(f"/documents/{lid}")
+                if g.status_code == 200 and int(g.json().get("status", 0) or 0) == STATUS_OPEN:
+                    linked_open.append(str(lid))
+        unlinked = [d.get("number") for d in items
+                    if not (d.get("linkedDocuments") or d.get("linkedDocumentIds"))]
+        notes = [f"שדות קישור: {link_keys or 'אין'}"]
+        if linked_open:
+            notes.append(f"חשבוניות **פתוחות** עם קבלה מקושרת: {linked_open[:5]} ⇒ גבי תזכיר למי ששילם")
+        if unlinked:
+            notes.append(f"קבלות בלי קישור: {unlinked[:5]} ⇒ אין דרך לדעת על איזו חשבונית שולם")
+        return ("GAP" if (linked_open or unlinked or not link_keys) else "PASS"), " · ".join(notes)
+
     # ── כתיבה: לא בשלב הזה ────────────────────────────────────────────────
     for cid, why in WRITE_SKIPS.items():
         rep.checks.append(Check(cid, why.split(" — ")[0], "SKIP", why))
