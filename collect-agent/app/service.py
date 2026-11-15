@@ -617,12 +617,20 @@ class CollectService:
                       (self.CREDIT_REVIEW, cust["id"]))
         for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cust["id"],)):
             self._cancel_invoice(inv["id"], self.CREDIT_REVIEW)
+        # critic סבב 92: חשבונית שיש עליה קבלה ⇒ חוזרת ל«ממתינה לאישור» ברשימת הפתוחות. «חידוש» של הלקוח לבדו
+        # (לחיצה אחת) לא מספיק כדי לתזכר מי שכנראה שילם — צריך «עדיין פתוח» או «כבר שולם» מפורש על החשבונית.
+        for ext, why in docs.items():
+            if why.startswith("receipt"):
+                self.db.x("UPDATE invoices SET open_reviewed_at=NULL WHERE external_id=? AND customer_id=? "
+                          "AND status='open'", (ext, cust["id"]))
         label = SOURCE_SYSTEMS[self.s.source_system].label
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                   "message_id,created_at) VALUES(?,'system','owner',?,?,1,?,?)",
                   (cust["id"], (f"ל{cust['name'] or 'לקוח'} יש קבלה על חשבונית שעדיין רשומה כפתוחה "
                    "— ייתכן שהלקוח כבר שילם. כדי לא להזכיר למי ששילם, התזכורות ללקוח הזה "
-                   f"נעצרו. בדקו ב{label} (סגרו את החשבונית אם שולמה) ואז חדשו את התזכורות."
+                   f"נעצרו. בדקו ב{label} (סגרו את החשבונית אם שולמה) ואז חדשו את התזכורות"
+                   + (" וסמנו את החשבונית ברשימת הפתוחות («עדיין פתוח» או «כבר שולם»)."
+                      if self.s.open_review else ".")
                    if any(w.startswith("receipt") for w in docs.values()) else
                    f"ל{cust['name'] or 'לקוח'} יש זיכוי או המרת מסמך שלא הצלחנו "
                    "לשייך בוודאות לחשבונית. כדי לא לדרוש סכום שגוי, התזכורות ללקוח הזה "
