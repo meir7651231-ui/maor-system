@@ -111,3 +111,18 @@ def test_ci_guard_also_covers_demo_smoke_and_contracts() -> None:
     for step in ("./demo.sh --check", "bash scripts/smoke_server.sh", "bash scripts/contract_checks_http.sh",
                  "python -m evals.harness"):
         assert i_snap < test_job.index(step) < last_check, step
+
+
+def test_ci_guard_also_covers_sqlcipher_job() -> None:
+    """הפעלה 218: ג׳וב `sqlcipher` מריץ pytest, demo.sh ו-smoke עם DB מוצפן ומפתח חד-פעמי — בלי שומר-עץ.
+    קובץ DB מוצפן או מפתח שנשאר בפרויקט לא היה נתפס. צילום לפני הבדיקות, בדיקה אחרי pytest ובסוף."""
+    wf = (Path(__file__).resolve().parents[2] / ".github" / "workflows" / "collect-agent.yml").read_text()
+    job = wf.split("\n  sqlcipher:")[1].split("\n  web:")[0]
+    i_snap = job.index("tree_guard.py snapshot")
+    i_first_test = job.index("python -m pytest -q")
+    assert i_snap < i_first_test
+    i_full = job.index("python -m pytest -q\n")
+    assert i_full < job.index("tree_guard.py check", i_full) < job.index("./demo.sh --check")
+    last_check = job.rindex("tree_guard.py check")
+    for step in ("DB_ENCRYPTION=sqlcipher ./demo.sh --check", "bash scripts/smoke_server.sh"):
+        assert i_snap < job.index(step) < last_check, step
