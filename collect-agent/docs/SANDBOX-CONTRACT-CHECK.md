@@ -4,7 +4,7 @@
 
 ## לפני (מאיר)
 1. נרשמים ל-sandbox של morning ויוצרים מפתח API (id + secret).
-2. ב-sandbox יוצרים 2–3 חשבוניות פתוחות (סוג 305 או 300) ללקוחות בדיקה עם טלפון ומייל. עדיף שאחת מהן תהיה עם תשלום חלקי.
+2. ב-sandbox יוצרים 2–3 חשבוניות פתוחות (סוג 305 או 300) ללקוחות בדיקה עם טלפון ומייל, רושמים תשלום חלקי על אחת, ומוציאים זיכוי (330) על אחרת.
 
 ## הרצה (פקודה אחת)
 ```bash
@@ -41,4 +41,4 @@ python3 -I scripts/gi_contract_check.py                                     # mo
 python3 -m app.gi_mock --port 8791 --seed demo &                             # או שרת HTTP אמיתי
 python3 -I scripts/gi_contract_check.py --mock-url http://127.0.0.1:8791/api/v1
 ```
-תוצאה נוכחית: **16 PASS · 1 GAP · 0 FAIL · 3 SKIP** בשני היעדים. ה-GAP: בדמו אין `linkedDocumentIds`, ולכן זיכויים לא נבדקים. נבדקים שוב ב-sandbox. בנוסף, `tests/test_contract_check_script.py` מוודא שאין בקשות כתיבה, שאין סודות בפלט, שאין בקשות בלי מפתחות, וש-production נדחה.
+תוצאה נוכחית (mock בתוך התהליך, עם זיכוי מקושר, תשלום חלקי וקבלה מקושרת): **19 PASS · 0 GAP · 0 FAIL · 3 SKIP**. ב-sandbox צריך שיהיו זיכוי אחד ותשלום חלקי אחד, אחרת `doc_links` ידולג ו-`doc_fields` יסמן GAP. בנוסף, `tests/test_contract_check_script.py` מוודא שאין בקשות כתיבה, שאין סודות בפלט, שאין בקשות בלי מפתחות, וש-production נדחה.

@@ -26,8 +26,10 @@ def test_runs_against_mock_without_failures(tmp_path, capsys):
     rep = json.loads(out.read_text("utf-8"))
     st = {c["id"]: c["status"] for c in rep["checks"]}
     assert "FAIL" not in st.values(), st
+    assert "GAP" not in st.values(), st                 # מול ה-mock המלא: אין פערים פתוחים
     for must in ("token_ok", "token_no_grant", "auth_required", "search_shape", "search_paging",
-                 "doc_get", "doc_get_404", "iter_open", "clients_search", "client_get"):
+                 "doc_get", "doc_get_404", "iter_open", "clients_search", "client_get",
+                 "doc_links", "doc_fields"):
         assert st[must] == "PASS", (must, st[must])
     assert {st[k] for k in ("payments_form", "clients_crud", "webhook")} == {"SKIP"}
     text = capsys.readouterr().out + out.read_text("utf-8")
@@ -74,3 +76,17 @@ def test_receipts_link_check_is_in_the_script():
     from pathlib import Path
     src = (Path(__file__).resolve().parent.parent / "scripts/gi_contract_check.py").read_text(encoding="utf-8")
     assert '@check("receipts_link"' in src and "[400, 405]" in src
+
+
+def test_doc_links_flags_wrong_field_name():
+    """זיכוי שהקישור שלו בשם אחר (לא linkedDocumentIds/linkedDocuments) ⇒ GAP, לא PASS שקט."""
+    m = _mod()
+    from app.demo_data import DEMO_ID, DEMO_SECRET, demo_docs
+    from app.gi_mock import GreenInvoiceMock
+    mock = GreenInvoiceMock(api_id=DEMO_ID, api_secret=DEMO_SECRET, docs=demo_docs(),
+                            deliver=lambda u, p: None)
+    mock.route("POST", "/_mock/documents", {}, {"type": 330, "amount": "50.00",
+                                                "relatedIds": ["demo1"]})
+    rep = m.run(m.Probe(m.SANDBOX, DEMO_ID, DEMO_SECRET, httpx.MockTransport(mock.handler)), "t")
+    c = next(c for c in rep.checks if c.id == "doc_links")
+    assert c.status == "GAP" and "שם השדה שונה" in c.detail
