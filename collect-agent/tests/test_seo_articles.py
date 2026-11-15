@@ -1,5 +1,6 @@
 """מאמרי ה-SEO (marketing/seo): בלי מילים אסורות, קריאה לפעולה דרך placeholder של הדומיין היחיד,
 ומאמר «מתי לשלוח» — כל מספר בו הוא הכלל שהקוד אוכף (שינוי בקוד ⇒ המאמר נופל עד שמתעדכן)."""
+import re
 from pathlib import Path
 
 import pytest
@@ -77,3 +78,26 @@ def test_paid_claim_article_matches_engine(text, partial):
     assert d.auto_send is False and "שום תשובה לא יוצאת בלי אישורך" in t
     assert d.reply and "אסמכתא" in d.reply and "אסמכתא" in t
     assert ("partial" in d.tags) == partial and "תשלום חלקי" in t
+
+
+MISTAKES = SEO / "06-reminder-mistakes.md"
+_EX = re.compile(r"[❌✅] `([^`]+)` <!-- (bad:(\w+)|good) -->")
+
+
+def _rules():
+    from app import compliance
+    return compliance.Rules(business="סטודיו נועה", payment_link="https://pay.example/x", allow_debt_word=False)
+
+
+def test_mistakes_article_bad_examples_are_blocked_by_the_real_filter():
+    """כל «❌» במאמר נחסם במסנן הניסוח של גבי בדיוק בקטגוריה שהמאמר טוען; כל «✅» עובר."""
+    from app import compliance
+    ex = _EX.findall(MISTAKES.read_text(encoding="utf-8"))
+    bad = [(t, cat) for t, kind, cat in ex if kind.startswith("bad")]
+    good = [t for t, kind, _ in ex if kind == "good"]
+    assert len(bad) == 5 and len(good) == 5
+    for text, cat in bad:
+        v = compliance.violations(text, _rules())
+        assert cat in v, (text, v)
+    for text in good:
+        assert compliance.violations(text, _rules()) == [], text
