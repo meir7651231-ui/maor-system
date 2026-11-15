@@ -96,6 +96,39 @@ const A = [
    </div>`],
 ];
 
+// ── מודעות לפי ורטיקל (team/beta-kit.md §3) — בועת SMS עם התזכורת של אותו עסק ──
+const VERT = [
+  ['barber', 'מספרות', 'מספרת אבי', 'רון', '318', '240', 'Xk4mP2q', 'התספורת שולמה? גבי יזכיר בעדינות.'],
+  ['garage', 'מוסכים', 'מוסך השכונה', 'דנה', '1207', '1,860', 'Hq7vT3n', 'הרכב יצא. התשלום? גבי מזכיר.'],
+  ['clinic', 'קליניקות', 'קליניקת גל', 'מיכל', '45', '1,050', 'Rf2kW9d', 'מטפלים באנשים. גבי מטפל בתזכורות.'],
+  ['b2b', 'עסקים שעובדים עם רו״ח', 'סטודיו נועה', 'יוסי', '2031', '8,400', 'Lm6bN8s', 'חשבונית פתוחה? תזכורת מסודרת, בשמך.'],
+];
+const link = code => domain ? `${domain}/p/${code}` : 'קישור לתשלום';
+const bubble = (biz, who, inv, sum, code, fs) => `<div style="background:#F4F1EA;color:#0F172A;border-radius:${fs * 1.4}px ${fs * 1.4}px ${fs * 0.35}px ${fs * 1.4}px;padding:${fs * 1.1}px ${fs * 1.3}px;font-family:H,sans-serif;font-size:${fs}px;line-height:1.5;box-shadow:0 30px 70px #0008;text-align:right">
+  <div style="font-family:R;font-weight:800;font-size:${fs * 0.8}px;opacity:.55;margin-bottom:${fs * 0.4}px">SMS · ${biz}</div>
+  ${biz}: שלום ${who}, חשבונית ${inv} ע"ס ${sum} ₪ טרם סומנה כשולמה. לתשלום: <span style="color:#059669;text-decoration:underline">${link(code)}</span> להפסקה: בקישור</div>`;
+for (const [key, aud, biz, who, inv, sum, code, head] of VERT) {
+  A.push([`vert-${key}-1x1`, 1080, 1080, `
+   <div style="display:flex;flex-direction:column;height:100%;padding:90px 90px 80px">
+     <div style="display:flex;justify-content:space-between;align-items:center">
+       <div class="brand" style="font-size:48px">${logo.replace('<svg', '<svg width="72" height="72"')}גבי</div>
+       <div class="fine" style="font-size:28px;opacity:.75">ל${aud}</div></div>
+     <div style="font-weight:800;font-size:70px;line-height:1.12;margin-top:56px">${head.replace(/([.?]) (.+)$/, '$1<br><span class="g">$2</span>')}</div>
+     <div style="margin-top:56px;margin-right:60px">${bubble(biz, who, inv, sum, code, 34)}</div>
+     <div style="margin-top:auto;display:flex;align-items:center;gap:28px"><span class="cta" style="font-size:36px;padding:20px 42px">${cta}</span><span class="fine" style="font-size:22px">${price}</span></div>
+   </div>`]);
+  A.push([`vert-${key}-9x16`, 1080, 1920, `
+   <div style="display:flex;flex-direction:column;height:100%;padding:230px 80px 300px;text-align:center;align-items:center">
+     <div class="brand" style="font-size:64px">${logo.replace('<svg', '<svg width="96" height="96"')}גבי</div>
+     <div class="fine" style="font-size:36px;margin-top:20px;opacity:.75">תזכורות תשלום ל${aud}</div>
+     <div style="font-weight:800;font-size:104px;line-height:1.1;margin-top:auto">${head.replace(/([.?]) (.+)$/, '$1<br><span class="g">$2</span>')}</div>
+     <div style="margin-top:auto;width:100%">${bubble(biz, who, inv, sum, code, 48)}</div>
+     <div class="sub" style="font-size:40px;margin-top:auto">אתה מאשר כל הודעה. גבי שולח בשמך.</div>
+     <div style="margin-top:56px"><span class="cta" style="font-size:46px;padding:28px 58px">${cta}</span></div>
+     <div class="fine" style="font-size:30px;margin-top:26px">${price}</div>
+   </div>`]);
+}
+
 const b = await chromium.launch();
 const manifest = [];
 for (const [name, W, H, html] of A) {
