@@ -14,7 +14,8 @@ const CTA = ['ad-square-1x1', 'ad-feed-1200x628', 'ad-portrait-4x5', 'ad-story-9
 const pngSize = f => { const b = readFileSync(f); return [b.readUInt32BE(16), b.readUInt32BE(20)]; };
 const render = (out, env = {}) => { execFileSync('node', [join(HERE, 'render.mjs'), out], { env: { ...process.env, ...env }, stdio: 'pipe' }); return JSON.parse(readFileSync(join(out, 'manifest.json'), 'utf8')); };
 
-const real = JSON.parse(readFileSync(join(HERE, 'launch.json'), 'utf8'));
+const real0 = JSON.parse(readFileSync(join(HERE, '../launch/launch.json'), 'utf8'));
+const real = { domain: (real0.placeholder === true || /(^|\.)example$/i.test(real0.domain || '')) ? null : real0.domain };
 const out1 = join(HERE, 'out'); const m1 = render(out1);
 ok(m1.assets.length === Object.keys(SIZES).length, `${Object.keys(SIZES).length} נכסים נוצרו`);
 for (const a of m1.assets) {
@@ -31,9 +32,13 @@ writeFileSync(lj, JSON.stringify({ domain: 'test-domain.co.il' }));
 const m2 = render(join(tmp, 'out'), { GABI_LAUNCH_JSON: lj });
 for (const n of CTA) ok(m2.assets.find(a => a.name === n).text.includes('test-domain.co.il'), `דומיין-בדיקה מופיע ב-${n}`);
 for (const v of VERTS) ok(m2.assets.find(a => a.name === `vert-${v}-1x1`).text.includes('test-domain.co.il/p/'), `קישור-תשלום בבועת ה-SMS עם הדומיין (${v})`);
-writeFileSync(lj, JSON.stringify({ domain: 'gabi.example' }));
+writeFileSync(lj, JSON.stringify({ domain: 'gabi.example', placeholder: true }));
+const m3 = render(join(tmp, 'out3'), { GABI_LAUNCH_JSON: lj });
+ok(m3.domain === null && m3.assets.every(a => !/example/i.test(a.text)), 'launch.json placeholder (gabi.example) ⇒ נכסים בלי כתובת');
+writeFileSync(lj, JSON.stringify({ domain: 'other.example.net', placeholder: false }));
 let threw = false; try { render(join(tmp, 'out2'), { GABI_LAUNCH_JSON: lj }); } catch { threw = true; }
-ok(threw, 'launch.json עם gabi.example ⇒ הרינדור נכשל');
+ok(threw, 'דומיין «example» שאינו מסומן placeholder ⇒ הרינדור נכשל');
+ok(/119 לחודש, כולל מע״מ ככל שחל/.test(m1.assets[0].text) || m1.assets.some(a => a.text.includes('כולל מע״מ ככל שחל')), 'המחיר מופיע עם «כולל מע״מ ככל שחל» (הכרעת מאיר 6.11)');
 for (const f of readdirSync(HERE).filter(f => /\.(mjs|json|py|html)$/.test(f) && f !== 'check.mjs'))
   ok(!/gabi\.example/.test(readFileSync(join(HERE, f), 'utf8').replace(/example\/i/g, '')), `מקור ${f}: אין gabi.example`);
 console.log(fail ? `\n${fail} כשלים` : '\nהכול עבר'); process.exit(fail ? 1 : 0);

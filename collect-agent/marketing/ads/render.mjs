@@ -1,5 +1,5 @@
 // נכסי השקה חזותיים של גבי: תמונות ממוזערות לסרטון + מודעות סטטיות.
-// הכתובת נלקחת רק מ-launch.json (domain). null ⇒ בלי כתובת בכלל (אף פעם לא כתובת-placeholder).
+// הכתובת נלקחת רק מ-marketing/launch/launch.json (domain). null ⇒ בלי כתובת בכלל (אף פעם לא כתובת-placeholder).
 // הרצה: node render.mjs [out-dir]   (ברירת מחדל: ./out)
 import { createRequire } from 'node:module';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -12,8 +12,10 @@ const { chromium } = require('playwright');
 const OUT = process.argv[2] || join(HERE, 'out');
 mkdirSync(OUT, { recursive: true });
 
-export const launch = JSON.parse(readFileSync(process.env.GABI_LAUNCH_JSON || join(HERE, 'launch.json'), 'utf8'));
-const domain = launch.domain && String(launch.domain).trim();
+// מקור יחיד לדומיין = marketing/launch/launch.json (של גבי שיווק). placeholder ⇒ בלי כתובת בנכסים.
+export const launch = JSON.parse(readFileSync(process.env.GABI_LAUNCH_JSON || join(HERE, '../launch/launch.json'), 'utf8'));
+const isPh = launch.placeholder === true || /(^|\.)example$/i.test(String(launch.domain || ''));
+const domain = isPh ? null : (launch.domain && String(launch.domain).trim()) || null;
 if (domain && /example/i.test(domain)) throw new Error('launch.json: domain נראה כמו placeholder');
 
 const font = f => 'data:font/woff2;base64,' + readFileSync(`${WEB}node_modules/@fontsource/${f}`).toString('base64');

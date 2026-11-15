@@ -32,3 +32,12 @@ for fmt, name in (('h', 'gabi-demo-16x9'), ('v', 'gabi-reel-9x16')):
             ff.stdin.write(fr.tobytes()); o += 1
         ff.stdin.close(); ff.wait(); assert ff.returncode == 0 and o == N, (out, o, N)
         print(json.dumps(dict(out=out, frames=N, fps=fps, **stats)))
+
+# סימון לשער-ההשקה של גבי שיווק (check_launch --release): הסרטונים רונדרו לדומיין האמיתי
+import pathlib
+LJ = pathlib.Path(__file__).resolve().parents[2] / 'launch' / 'launch.json'
+cfg = json.loads(LJ.read_text(encoding='utf-8'))
+if not cfg.get('placeholder') and not str(cfg.get('domain', '')).endswith('example'):
+    cfg['videos_rendered_for'] = cfg['domain']
+    LJ.write_text(json.dumps(cfg, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    print('videos_rendered_for =', cfg['domain'])
