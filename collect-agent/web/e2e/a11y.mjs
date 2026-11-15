@@ -13,6 +13,7 @@ const pages = [
   ['דף נחיתה סטטי', 'file://' + MK + 'landing/index.html'],
   ...['barbers', 'garages', 'clinics', 'accountants-clients'].map(s => [`דף ענף ${s}`, `file://${MK}landing/for/${s}.html`]),
   ['ספריית נוסחים', 'file://' + MK + 'library/index.html'],
+  ['שאלות נפוצות', 'file://' + MK + 'faq/index.html'],
   ['הצהרת נגישות', 'file://' + MK + 'accessibility.html'],
   ['הצהרת נגישות (מוגשת מ-/app/)', 'http://localhost:4339/accessibility.html'],
   ['תנאי שימוש', 'file://' + MK + 'terms.html'],
