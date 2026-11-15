@@ -21,6 +21,11 @@ fi
 STAGED=$(git diff --cached --name-only)
 [ -z "$STAGED" ] && exit 0
 
+# ═══ גבי (collect-agent/) — שומר placeholders של המפעיל, גם בקומיט תיעוד (QA, הפעלה 228) ═══
+if echo "$STAGED" | grep -q '^collect-agent/'; then
+  python3 -I collect-agent/scripts/placeholder_guard.py || exit 1
+fi
+
 # ═══ שער מדורג ═══
 CODE_TOUCHED=$(echo "$STAGED" | grep -vE '^(knowledge/|.*\.md$)' | head -1 || true)
 if [ -z "$CODE_TOUCHED" ]; then
