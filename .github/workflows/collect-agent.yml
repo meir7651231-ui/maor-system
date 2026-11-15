@@ -152,6 +152,8 @@ jobs:
         run: TZ=UTC node e2e/notices.mjs
       - name: e2e ערכת בטא — יום ראשון לכל ענף (מספרה/מוסך/קליניקה/רו״ח) מול gi_mock
         run: TZ=UTC node e2e/beta.mjs
+      - name: e2e תסריט ההדגמה של מכירות (sales/demo-script.md, 6 שלבים) מול DEMO=1
+        run: TZ=UTC node e2e/sales-demo.mjs
       - name: e2e הדשבורד הפשוט (/ui) — אישור סכום חריג מול DEMO=1
         run: TZ=UTC node e2e/ui.mjs "$RUNNER_TEMP/shots"
       - name: e2e הדשבורד הפשוט (/ui) — אישור רשימת הפתוחות (CSV ⇒ כרטיס ⇒ «כבר שולם»/«עדיין פתוח» ⇒ השרת) מול DEMO=1
