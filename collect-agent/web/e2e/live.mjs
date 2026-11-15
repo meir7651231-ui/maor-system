@@ -399,6 +399,14 @@ try {
   ok((await api('/dashboard')).totals.open_unreviewed >= 1, '/dashboard לא מספר את הממתינות');
   await noHScroll(p, 'רשימת הפתוחות');
   if (out) await fullShot(p, `${out}/live-07a-open-list.png`);
+  // גבייה עיצוב (BACKLOG): אותו כרטיס במובייל 390px — בלי גלילה רוחבית, כל כפתור ≥40px, הכפתורים לא חורגים מהכרטיס
+  await p.setViewportSize({ width: 390, height: 844 });
+  await olItem.scrollIntoViewIfNeeded();
+  await noHScroll(p, 'רשימת הפתוחות במובייל');
+  const olBtns = await p.getByTestId('open-list').locator('button').evaluateAll(bs => bs.map(b => { const r = b.getBoundingClientRect(); return { t: b.textContent.trim(), h: r.height, l: r.left, r: r.right }; }));
+  ok(olBtns.length >= 4 && olBtns.every(x => x.h >= 40 && x.l >= 0 && x.r <= 390), 'מובייל: כפתור ברשימת הפתוחות קטן מ-40px או חורג: ' + JSON.stringify(olBtns));
+  if (out) await p.getByTestId('open-list').screenshot({ path: `${out}/live-07b-open-list-mobile.png` });
+  await p.setViewportSize({ width: 1280, height: 900 });
   await olItem.getByRole('button', { name: 'עדיין פתוח' }).click();
   await p.getByTestId('open-list-confirm').click();
   await olItem.waitFor({ state: 'detached' });
