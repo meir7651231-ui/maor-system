@@ -2274,7 +2274,12 @@ class CollectService:
                 "owner_inbox": self.db.one("SELECT COUNT(*) n FROM messages WHERE "
                                            "needs_owner=1")["n"],
                 # review חור 7: חשבוניות CSV פתוחות שלא הופיעו בייבוא האחרון (אולי שולמו)
-                "csv_unverified": self._csv_unverified(), **rich},
+                "csv_unverified": self._csv_unverified(),
+                # critic סבב 79: חשבוניות פתוחות שממתינות לאישור בעל העסק (שער רשימת הפתוחות) — בלי זה
+                # בעל העסק לא יודע שגבי לא יתזכר עליהן
+                "open_unreviewed": (self.db.one("SELECT COUNT(*) n FROM invoices WHERE status='open' "
+                                                "AND open_reviewed_at IS NULL")["n"]
+                                    if self.s.open_review else 0), **rich},
             "invoices": rows}
 
     def _collection_series(self, today: date, closed) -> list[dict]:

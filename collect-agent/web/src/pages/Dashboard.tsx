@@ -7,6 +7,7 @@ import { STEP_LABEL, nextStep } from '../lib/message.ts';
 import { demoCollectedByMonth } from '../data/demo.ts';
 import { Button, Card, LateBadge, inputCls } from '../components/ui.tsx';
 import { MessagePreview } from '../components/MessagePreview.tsx';
+import { OpenListCard } from '../components/OpenListCard.tsx';
 import type { Invoice } from '../lib/domain.ts';
 import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, REAPPROVE_LABEL } from '../api.ts';
 import { ALREADY_PLAN, alreadyDone, failPrefix, type Already } from '../lib/failure.ts';
@@ -59,6 +60,7 @@ export function Dashboard() {
           <a href="#/settings" className="font-bold underline whitespace-nowrap">ייבוא קובץ מעודכן ←</a>
         </div>
       )}
+      {live && <OpenListCard count={totals?.open_unreviewed ?? 0} />}
       <section aria-label="מדדי גבייה" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" data-testid="kpis">
         <Kpi hero label="נגבה" value={fmtIls(collected)} sub={sub(live ? `${totals?.closed_invoices ?? 0} חשבוניות שולמו` : 'יוני–נובמבר', 'collected_agorot')} tone="good" />
         <Kpi hero label="שיעור החזר" value={`${recovery}%`} sub={oc?.length ? 'מסך החוב ב-₪' : 'מסך החוב'} tone="good" meter={recovery} />

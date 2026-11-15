@@ -105,7 +105,8 @@ export interface Dashboard {
     other_currency?: OtherCurrency[];
     collected_agorot?: number; recovery_rate_pct?: number; avg_days_overdue?: number; at_risk_agorot?: number;
     reminders_sent?: number; customers_messaged?: number; reply_rate_pct?: number;
-    /** חשבוניות CSV פתוחות שלא הופיעו בייבוא האחרון — אולי כבר שולמו */ csv_unverified?: number };
+    /** חשבוניות CSV פתוחות שלא הופיעו בייבוא האחרון — אולי כבר שולמו */ csv_unverified?: number;
+    /** critic סבב 79: חשבוניות פתוחות שממתינות לאישור בעל העסק (שער רשימת הפתוחות). חסר בשרת ישן. */ open_unreviewed?: number };
   series?: WeekPoint[];
   invoices: DashRow[];
 }
@@ -135,7 +136,15 @@ export interface Draft {
 export interface InboundResult { intent: string; escalate?: boolean; escalation?: string; auto_reply?: string | null; draft_id?: number | null; owner_summary?: string; owner_actions?: string[] }
 export interface OutMsg { id: string; channel: 'sms' | 'email'; to: string; body: string }
 
+/** critic סבב 79: שער «אישור רשימת הפתוחות» — בלי אישור אין תזכורת. */
+export interface OpenItem { id: number; number: string; customer: string; amount_agorot: number; currency: string; due: string | null; source: string }
+export interface OpenList { enabled: boolean; pending: OpenItem[]; confirmed: OpenItem[] }
+
 export const api = {
+  openList: () => j<OpenList>('/open-list'),
+  /** stillOpen ⇒ מותר לתזכר · paid ⇒ שולם מחוץ למערכת: נסגר כאן ולא יתוזכר */
+  confirmOpenList: (stillOpen: number[], paid: number[]) =>
+    j<OpenList>('/open-list/confirm', { method: 'POST', body: JSON.stringify({ still_open: stillOpen, paid }) }),
   me: () => j<Me>('/auth/me'),
   dashboard: () => j<Dashboard>('/dashboard'),
   // invoice_id = העוגן של תזכורת מאוחדת; invoice_ids = כל החשבוניות שבהודעה
