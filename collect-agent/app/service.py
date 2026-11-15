@@ -1982,6 +1982,14 @@ class CollectService:
     def has_unsub_token(self, token: str) -> bool:
         return self._unsub_customer(token) is not None
 
+    def unsub_opted_out(self, token: str) -> bool | None:
+        """None = טוקן לא קיים. אחרת: האם הלקוח של הטוקן מוסר כרגע (עמוד התוצאה של PRG ב-/u)."""
+        c = self._unsub_customer(token)
+        if not c:
+            return None
+        row = self.db.one("SELECT opted_out FROM customers WHERE id=?", (c["id"],))
+        return bool(row and row["opted_out"])
+
     def unsubscribe(self, token: str) -> bool:
         c = self._unsub_customer(token)
         if not c:

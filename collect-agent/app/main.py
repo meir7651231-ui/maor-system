@@ -675,12 +675,29 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         if not svc.unsubscribe(token):
             raise HTTPException(404, "לא נמצא")
         if "text/html" in request.headers.get("accept", ""):
-            from . import legal
-            biz = html_escape(svc.s.business_name)
-            return _unsub_page(f"<h1 style='font-size:20px'>הוסרתם</h1><p>לא יישלחו אליכם עוד "
-                               f"תזכורות אוטומטיות מטעם {biz}. בעל העסק ייצור קשר במידת הצורך.</p>"
-                               + legal.draft_footer())
+            # הפעלה 213 (PRG, כמו /p ב-209): עמוד ישיר מ-POST ⇒ רענון/«חזרה» בדפדפן מציג «לשלוח שוב
+            # את הטופס?» ושולח POST נוסף (audit opt_out כפול). 303 ⇒ GET על עמוד תוצאה שלא משנה כלום.
+            # לקוח RFC 8058 (List-Unsubscribe-Post, בלי Accept של HTML) ממשיך לקבל JSON 200 כמו קודם.
+            from urllib.parse import quote
+            return RedirectResponse(f"/u/{quote(token, safe='')}/done", status_code=303)
         return {"unsubscribed": True}
+
+    @app.get("/u/{token}/done", response_class=HTMLResponse)
+    def unsubscribe_done(token: str):
+        """עמוד התוצאה של PRG. GET בלבד ⇒ לא מסיר (סורקי-קישורים). טוקן לא קיים ⇒ 404.
+        «הוסרתם» מוצג רק אם הלקוח באמת מוסר; אחרת (קישור מפוברק, או «חידוש» אחרי ההסרה) ⇒ חזרה
+        לעמוד ההסרה, כדי שלא נציג «הוסרתם» כשהתזכורות פעילות."""
+        state = svc.unsub_opted_out(token)
+        if state is None:
+            return _unsub_page(_UNSUB_INVALID, 404)
+        if not state:
+            from urllib.parse import quote
+            return RedirectResponse(f"/u/{quote(token, safe='')}", status_code=303)
+        from . import legal
+        biz = html_escape(svc.s.business_name)
+        return _unsub_page(f"<h1 style='font-size:20px'>הוסרתם</h1><p>לא יישלחו אליכם עוד "
+                           f"תזכורות אוטומטיות מטעם {biz}. בעל העסק ייצור קשר במידת הצורך.</p>"
+                           + legal.draft_footer())
 
     # ---------- הגדרות עסק (תיאום עם web/: מסך הגדרות) ----------
     @app.get("/api/settings", dependencies=auth)
