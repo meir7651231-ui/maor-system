@@ -6,7 +6,7 @@
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
+import { assertPortFree, srvStdio, srvLogLevel, waitHealthy, launchChromium } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8147, base = `http://127.0.0.1:${PORT}`;
@@ -25,7 +25,7 @@ const api = async (p, o = {}) => {
 };
 await waitHealthy(base, srv);
 const errors = [];
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 try {
   ok((await api('/open-list')).pending.length === 0, 'הדמו התחיל עם ממתינות (app/demo.py אמור לאשר)');
   const csv = 'מספר חשבונית,שם לקוח,טלפון,סכום,תאריך לתשלום\n'

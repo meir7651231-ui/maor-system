@@ -9,7 +9,7 @@
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, makeInject, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
+import { assertPortFree, makeInject, srvStdio, srvLogLevel, waitHealthy, launchChromium } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8147, base = `http://127.0.0.1:${PORT}`;
@@ -28,7 +28,7 @@ const errors = [];
 let expect503 = 0, seen503 = 0, console503 = 0, expectCut = 0, seenCut = 0;
 const H = { Authorization: `Bearer ${TOKEN}` };
 const FAKE = 987654;   // מזהה של התזכורת «החדשה» בסעיף 5 (קיים רק ביירוט)
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 try {
  for (const [vp, viewport] of [['דסקטופ', { width: 1366, height: 900 }], ['מובייל', { width: 390, height: 844 }]]) {
   const sfx = vp === 'מובייל' ? '-mobile' : '';

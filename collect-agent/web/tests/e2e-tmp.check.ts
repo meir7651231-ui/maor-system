@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 // @ts-expect-error — מודול JS בלי טיפוסים
-import { tempDir, trackProc, cleanupTemps } from '../e2e/lib.mjs';
+import { tempDir, trackProc, cleanupTemps, launchChromium } from '../e2e/lib.mjs';
 
 const LIB = fileURLToPath(new URL('../e2e/lib.mjs', import.meta.url));
 
@@ -62,6 +62,36 @@ test('מגן-מקור: אין mkdtemp/tmpdir ישיר ב-e2e — רק tempDir מ
   for (const f of readdirSync(dir)) {
     if (!f.endsWith('.mjs') || f === 'lib.mjs') continue;
     readFileSync(new URL(f, dir), 'utf8').split('\n').forEach((l, i) => { if (/mkdtemp|\btmpdir\(/.test(l)) bad.push(`${f}:${i + 1}`); });
+  }
+  assert.deepEqual(bad, []);
+});
+
+// הפעלה 223 (QA): Chromium עצמו השאיר ‎.org.chromium.Chromium.*‎ ב-TMPDIR ב-5 מ-64 הרצות של concepts-*-board (מרוץ
+// בכיבוי, גם אחרי close()). launchChromium נותן לדפדפן TMPDIR פרטי שנמחק ביציאה. אחרי: 0 מ-93.
+test('launchChromium: הדפדפן מקבל TMPDIR פרטי (לא של התהליך) שנמחק ב-cleanupTemps; opts נשמרים', async () => {
+  let got: { env: Record<string, string>; headless?: boolean } | undefined;
+  const fake = { launch: async (o: typeof got) => { got = o; return 'browser'; } };
+  assert.equal(await launchChromium(fake, { headless: true, env: { A: '1' } }), 'browser');
+  assert.ok(got);
+  const d = got.env.TMPDIR;
+  assert.notEqual(d, process.env.TMPDIR);
+  assert.match(d, /gabi-chromium-/);
+  assert.equal(got.env.TMP, d); assert.equal(got.env.TEMP, d);
+  assert.equal(got.env.A, '1'); assert.equal(got.headless, true);
+  assert.equal(got.env.PATH, process.env.PATH, 'שאר הסביבה עוברת');
+  assert.ok(existsSync(d));
+  cleanupTemps();
+  assert.ok(!existsSync(d));
+});
+
+test('מגן-מקור: כל launch של Playwright ב-e2e/ וב-scripts/ עובר דרך launchChromium', () => {
+  const bad: string[] = [];
+  for (const sub of ['../e2e/', '../scripts/']) {
+    const dir = new URL(sub, import.meta.url);
+    for (const f of readdirSync(dir)) {
+      if (!/\.(mjs|js|ts)$/.test(f) || f === 'lib.mjs') continue;
+      readFileSync(new URL(f, dir), 'utf8').split('\n').forEach((l, i) => { if (/\.launch(Persistent(Context)?|Server)?\(/.test(l)) bad.push(`${sub}${f}:${i + 1}`); });
+    }
   }
   assert.deepEqual(bad, []);
 });

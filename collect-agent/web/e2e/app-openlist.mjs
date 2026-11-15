@@ -7,7 +7,7 @@
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
+import { assertPortFree, srvStdio, srvLogLevel, waitHealthy, launchChromium } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8149, base = `http://127.0.0.1:${PORT}`;
@@ -32,7 +32,7 @@ const noHScroll = async (pg, where) =>
 
 await waitHealthy(base, srv);
 const errors = [];
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 try {
   const OPEN = ['9201,רונית פתוחה,050-0000201,380,2026-10-01', '9202,דוד שילם בביט,050-0000202,520,2026-10-02'];
   await importCsv(OPEN);

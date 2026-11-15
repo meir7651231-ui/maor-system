@@ -11,7 +11,7 @@
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
+import { assertPortFree, srvStdio, srvLogLevel, waitHealthy, launchChromium } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8145, GI_PORT = 8146, base = `http://127.0.0.1:${PORT}`, gi = `http://127.0.0.1:${GI_PORT}/api/v1`;
@@ -80,7 +80,7 @@ const watch = pg => {
     if (r.method() === 'POST' && /\/reminders\/\d+\/approve$/.test(r.url())) seenSent.push(JSON.parse(r.postData() || '{}').seen_hash ?? null);
   });
 };
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 try {
   const ctx = await b.newContext();
   await ctx.addInitScript(t => { try { sessionStorage.setItem('gabi_owner_token', t); } catch { /* */ } }, TOKEN);

@@ -4,7 +4,7 @@
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, makeInject, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
+import { assertPortFree, makeInject, srvStdio, srvLogLevel, waitHealthy, launchChromium } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8143, base = `http://127.0.0.1:${PORT}`;
@@ -25,7 +25,7 @@ const H = { Authorization: `Bearer ${TOKEN}` };
 await waitHealthy(base, srv);
 const errors = [];
 let mocked138 = [];
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 try {
   const ctx = await b.newContext();
   await ctx.addInitScript(t => { try { sessionStorage.setItem('gabi_owner_token', t); } catch { /* */ } }, TOKEN);

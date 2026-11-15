@@ -1,6 +1,7 @@
 // לוח קונספטים: כל כיוון × 512/64/24 × בהיר/כהה. כותב SVG לכל וריאציה + board.html, ומצלם PNG.
 // הרצה (מתוך web/, אחרי npm ci): node scripts/concepts-board.mjs
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { launchChromium } from '../e2e/lib.mjs';
 import { createRequire } from 'node:module';
 import { CONCEPTS, C, svgFor } from './concepts.mjs';
 const out = new URL('../../docs/brand/concepts/', import.meta.url);
@@ -30,7 +31,7 @@ ${CONCEPTS.map(row).join('')}
 writeFileSync(new URL('board.html', out), html);
 
 const { chromium } = createRequire(import.meta.url)('playwright');
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 const p = await b.newPage({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 2 });
 await p.goto(new URL('board.html', out).href);
 await p.screenshot({ path: new URL('board.png', out).pathname, fullPage: true });

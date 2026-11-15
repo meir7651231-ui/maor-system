@@ -1,4 +1,5 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { launchChromium } from '../e2e/lib.mjs';
 import { createRequire } from 'node:module';
 import { R2, C, svgR2, BG } from './concepts-r2.mjs';
 const out = new URL('../../docs/brand/concepts/round2/', import.meta.url);
@@ -18,7 +19,7 @@ section{background:#fff;margin:14px 24px;border-radius:16px;padding:14px}header 
 ${R2.map(row).join('')}</html>`;
 writeFileSync(new URL('board.html', out), html);
 const { chromium } = createRequire(import.meta.url)('playwright');
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 const p = await b.newPage({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 2 });
 await p.goto(new URL('board.html', out).href); await p.screenshot({ path: new URL('board.png', out).pathname, fullPage: true });
 const t = await b.newPage({ viewport: { width: R2.length * 34 * 2 + 10, height: 4 * 34 + 10 }, deviceScaleFactor: 1 });

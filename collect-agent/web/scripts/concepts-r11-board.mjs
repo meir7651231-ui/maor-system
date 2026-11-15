@@ -1,4 +1,5 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { launchChromium } from '../e2e/lib.mjs';
 import { createRequire } from 'node:module';
 import { R11, C, VARIANTS, svgR11, lockupSvg } from './concepts-r11.mjs';
 const out = new URL('../../docs/brand/concepts/round11/', import.meta.url);
@@ -22,7 +23,7 @@ section{background:#fff;margin:14px 24px;border-radius:16px;padding:14px}.grid{d
 </div></section><section><b>איפה החייב פוגש את המותג</b> ${sms}</section></html>`;
 writeFileSync(new URL('board.html', out), html);
 const { chromium } = createRequire(import.meta.url)('playwright');
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 const p = await b.newPage({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 2 });
 await p.goto(new URL('board.html', out).href); await p.screenshot({ path: new URL('board.png', out).pathname, fullPage: true });
 const V = Object.keys(VARIANTS); const BG = { ...Object.fromEntries(V.map(v => [v, VARIANTS[v].bg])) };

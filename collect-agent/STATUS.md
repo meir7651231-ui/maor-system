@@ -1,4 +1,4 @@
-# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 222, 15.11)
+# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 223, 15.11)
 
 ענף אינטגרציה: `collect-agent` (לא מוזג ל-main, ולא ימוזג בלי אישור מפורש של מאיר). תיקייה: `collect-agent/`.
 
@@ -14,6 +14,28 @@
 ## 📌 הכרעות מאיר — מחייבות כל תפקיד (6.11.2026)
 - **מחיר יחיד:** ₪119 לחודש **או** ₪1,190 לשנה · 14 ימי ניסיון. **אין ₪79**, אין A/B, אין מסלולים או מחירונים אחרים. מקור יחיד: `docs/PRICING.md` · בקוד: `Settings.price_ils_month=119`, `price_ils_year=1190`, `trial_days=14` · בדף הנחיתה: `PRICE` ב-`web/src/pages/Landing.tsx`. (ניסוח המע״מ «כולל מע״מ ככל שחל» — עדיין לאישור רו״ח/עו״ד, `docs/PRICING.md`.)
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
+
+## 🧭 הפעלת מנהל · 15.11.2026 (הפעלה 223)
+- **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/`. ‏`gabi-019-inbound` (תיקון Date במייל) — כבר בפנים (`formatdate` ב-`app/integrations/email.py`) · `stoic-mccarthy-23f03p` — נדחה ומכוסה (107) · `bold-bell-xom3mc` — נעצר לפי מאיר (רק מיזוגי collect-agent אליו מאז). ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
+- **CI:** ריצה 714 (`5663b379`, 222) **ירוקה** ⇒ (1) מ-222 סגור. 715 (`4885ef33`, ביקורת סבב 88) ירוקה.
+- **המשימה:** «הבא» (3) מ-222 — **QA: `web/scripts/concepts-*` — לאן הם כותבים.**
+  - **ממצא א׳ (תקין):** כל 33 סקריפטי ה-board כותבים רק ל-`docs/brand/concepts/<סבב>/` (קבצים במעקב). הרצה של כולם ⇒ `git status` נקי — **הפלט ביט-זהה** למה שבריפו. אין `mkdtemp`/`tmpdir` בקוד שלהם. סקריפטי `*-outline.py` הם כלי ידני שכותב לנתיב `out` שמועבר להם.
+  - **ממצא ב׳ (תוקן):** **Chromium עצמו** השאיר `‎.org.chromium.Chromium.*‎` ב-TMPDIR — **5 מ-64 הרצות**, גם בהצלחה ואחרי `close()` (מרוץ בכיבוי הדפדפן). אותו דפדפן רץ ב-12 סקריפטי `web/e2e/` ב-CI.
+  - **תיקון:** `launchChromium(chromium, opts)` ב-`e2e/lib.mjs` — נותן לדפדפן TMPDIR/TMP/TEMP פרטי מ-`tempDir` (נמחק ביציאה, חריגה, SIGINT, SIGTERM). כל 45 הקריאות ל-`chromium.launch()` (12 ב-e2e, 33 ב-scripts) עברו אליו. **אחרי: 0 מ-93 הרצות.**
+  - ⚠️ **טיוטת סבב 28** (`concepts-r28-board.mjs`) נופלת: חסר `concepts-r28-outlines.json`. זה מצופה, הסבב נעצר לפי בקשת הבעלים (`78600117`). לא נגעתי.
+- **ננעל:** `web/tests/e2e-tmp.check.ts` (+2): `launchChromium` מעביר TMPDIR פרטי (לא של התהליך), שומר opts/env, והתיקייה נמחקת ב-`cleanupTemps` · מגן-מקור: אין `.launch(` ישיר ב-`e2e/` או ב-`scripts/` מחוץ ל-lib. **מוטציות:** `chromium.launch()` ישיר בסקריפט אחד ⇒ 1 נופלת · בלי TMPDIR ב-env ⇒ 1 נופלת.
+- **אומת מקומית:** `npm test` (web) **83/83** · typecheck נקי · `npm run build` · כל 12 סקריפטי ה-e2e של ה-CI (shots, a11y, live, notices, beta, sales-demo, ui, ui-openlist, app-openlist, rebuild, csp, preview) עם TMPDIR פרטי ⇒ כולם 0. נשאר רק `node-compile-cache` (מטמון של Node, לשימוש חוזר, לא נתונים). לא נגעתי בקוד Python.
+- **מצב לפי תפקיד:**
+  - פיתוח — בלי חסם. הבא: הצגת `sent_owner` אחרי הכרעת הביקורת.
+  - ביקורת — סבב 89: (א) הצגת `sent_owner` — מחכה להכרעה (מ-214). (ב) סגירת (ג) מ-186. (ג) הצהרת הנגישות. (ד) `wait` בתוך cleanup של demo.sh (מ-221).
+  - עיצוב — לאשר `ui-12-open-list.png` / `ui-13-open-list-mobile.png` (CI, `web-e2e-shots`) · צבעי סטטוס (ניגודיות). ⚠️ סקריפט board חדש = `launchChromium` מ-`../e2e/lib.mjs`, לא `chromium.launch()` (מגן-מקור).
+  - AI — לפני סבב 10: להריץ גם `tests/test_critic_round79_engine.py` ו-`test_engine_round9.py`.
+  - QA — ✅ shell (221), `web/e2e` (222), `web/scripts` + הדפדפן עצמו (223) לא משאירים קבצים זמניים. הבא: מגן TMPDIR בג׳וב ה-web ב-CI (צילום TMPDIR לפני/אחרי ה-e2e, כמו `tree_guard.py`), כדי שזה ייתפס אוטומטית.
+  - חיבורים — `CONTRACT_VERIFIED` ‏False עד מסמך API של 019 + חשבון בדיקה (מאיר).
+  - משפטי — placeholders ב-`/p`, `/u` ובהצהרת הנגישות ממתינים לפרטי החברה המפעילה. אחרי שינוי ב-`legal/` — להריץ `marketing/legal-pages/build.py`.
+  - שיווק/מכירות — חבילות מוכנות לחתימת מאיר.
+- **הבא (פיתוח):** (1) לבדוק שריצת ה-CI של הקומיט הזה ירוקה (ג׳וב web עם `launchChromium`). (2) QA — מגן TMPDIR אוטומטי בג׳וב ה-web. (3) אם הביקורת מאשרת — הצגת `sent_owner`.
+- **חסמים (מאיר):** ללא שינוי (sandbox לספקים, ניסוח מע״מ, פרטי החברה המפעילה, מסמך API של 019, ענף `bold-bell-xom3mc`).
 
 ## 🧭 הפעלת מנהל · 15.11.2026 (הפעלה 222)
 - **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/`. ‏`stoic-mccarthy-23f03p` — נדחה ומכוסה (107) · `bold-bell-xom3mc` — נעצר לפי מאיר. ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.

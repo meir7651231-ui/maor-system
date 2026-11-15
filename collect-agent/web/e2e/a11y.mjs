@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, srvLogLevel, srvStdio, waitHealthy } from './lib.mjs';
+import { assertPortFree, srvLogLevel, srvStdio, waitHealthy, launchChromium } from './lib.mjs';
 const { chromium, devices } = createRequire(import.meta.url)('playwright');
 const AXE = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8');
 const MK = new URL('../../marketing/', import.meta.url).pathname;
@@ -35,7 +35,7 @@ const code = outbox.find(m => m.channel === 'sms' && m.body.includes('/p/')).bod
 const unsub = outbox.map(m => (m.body.match(/\/u\/([A-Za-z0-9_-]+)/) || [])[1]).find(Boolean);
 pages.push(['עמוד הקישור הקצר /p (לקוח)', `${API}/p/${code}`], ['עמוד החייב /pay (לקוח)', `${API}/pay/${code}`],
   ['עמוד הסרה /u (לקוח)', `${API}/u/${unsub}`]);
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 const failures = [];
 try {
   for (const [name, url] of pages) {

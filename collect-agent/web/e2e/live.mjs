@@ -5,7 +5,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { assertPortFree, tempDir, trackProc, makeInject, smallTargets, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
+import { assertPortFree, tempDir, trackProc, makeInject, smallTargets, srvStdio, srvLogLevel, waitHealthy, launchChromium } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8141, base = `http://127.0.0.1:${PORT}`;
@@ -53,7 +53,7 @@ const allowed401 = [];
 const allowed429 = [];        // 429 מותר רק בבדיקת הנעילה של מסך הכניסה (שלב השער)
 const allowed409 = [];        // תגובות 409 שאומתו
 const errors = [];
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 try {
   const ctx = await b.newContext();
   const p = await ctx.newPage();

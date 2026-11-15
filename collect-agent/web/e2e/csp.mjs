@@ -4,7 +4,7 @@
 // דרישה: npm run build. הרצה: node e2e/csp.mjs
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
-import { srvStdio, srvLogLevel, assertPortFree, waitHealthy } from './lib.mjs';
+import { srvStdio, srvLogLevel, assertPortFree, waitHealthy, launchChromium } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = new URL('../..', import.meta.url).pathname;
 const ok = (c, m) => { if (!c) throw new Error(m); };
@@ -17,7 +17,7 @@ await waitHealthy(base, srv);
 const H = { Authorization: 'Bearer ' + TOKEN };
 const api = async (p, m = 'GET') => (await fetch(base + p, { method: m, headers: H })).json();
 
-const b = await chromium.launch(); const fails = [];
+const b = await launchChromium(chromium); const fails = [];
 try {
   await api('/sync', 'POST'); await api('/plan', 'POST');
   // קוד /p/ אמיתי מתור התזכורות

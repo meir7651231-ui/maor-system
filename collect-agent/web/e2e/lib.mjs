@@ -27,6 +27,14 @@ export function tempDir(prefix) {
   return d;
 }
 export function trackProc(p) { hookExit(); _procs.add(p); return p; }
+/** הפעלה 223 (QA, «הבא» 3 מ-222): Chromium עצמו כותב ל-TMPDIR של התהליך שלו (‎.org.chromium.Chromium.*‎) ולפעמים
+ *  לא מנקה ב-close() — מרוץ בכיבוי. נמדד: 5 מ-64 הרצות של סקריפטי concepts-*-board השאירו תיקייה כזו, גם בהצלחה.
+ *  launchChromium נותן לדפדפן TMPDIR פרטי מ-tempDir (נמחק ביציאה, גם בחריגה/SIGINT/SIGTERM). כל launch של
+ *  Playwright ב-e2e/ וב-scripts/ עובר דרכו (מגן-מקור ב-tests/e2e-tmp.check.ts). */
+export function launchChromium(chromium, opts = {}) {
+  const d = tempDir('gabi-chromium-');
+  return chromium.launch({ ...opts, env: { ...process.env, ...(opts.env ?? {}), TMPDIR: d, TMP: d, TEMP: d } });
+}
 /** stdio לשרת שהבדיקה מרימה. עם E2E_LOG_DIR (ב-CI: תיקיית הצילומים, שעולה כ-artifact בכישלון) stdout+stderr
  *  של השרת נכתבים ל-<שם>.log; בלי המשתנה — 'ignore', כמו קודם. הפעלה 156: כשל נדיר של live.mjs (154) ו-460
  *  לא ניתנו לאבחון בדיעבד כי הפלט של השרת נזרק. */

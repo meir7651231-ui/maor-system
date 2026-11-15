@@ -5,14 +5,14 @@
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { join } from 'node:path';
-import { assertPortFree, tempDir, trackProc, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
+import { assertPortFree, tempDir, trackProc, srvStdio, srvLogLevel, waitHealthy, launchChromium } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = new URL('../..', import.meta.url).pathname;
 const out = process.argv[2];
 const ok = (c, m) => { if (!c) throw new Error(m); };
 const VERTICALS = { barber: 'מספרת הדמו', garage: 'מוסך הדמו', clinic: 'קליניקת הדמו', cpa: 'סטודיו הייעוץ דמו' };
 
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 const summary = [];
 try {
   let port = 8171;
