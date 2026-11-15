@@ -86,6 +86,11 @@ def real_send_blockers(settings: config.Settings, *, gi_report: str | None = Non
     if ph:
         out.append(f"משפטי: פרטי החברה המפעילה הם placeholder ({', '.join(ph)}). "
                    "צריך ישות מפעילה ואישור עו״ד (app/legal.py)")
+    elif operator is None:   # פרטים אמיתיים בסביבה, אבל קבצים סטטיים עוד מראים placeholder
+        left = legal.static_placeholder_files()
+        if left:
+            out.append(f"משפטי: פרטי המפעיל מוגדרים, אבל {len(left)} קבצים עדיין placeholder: "
+                       + ", ".join(left) + " (legal/OPERATOR-PLACEHOLDERS.md)")
     out += legal_signoff_blockers(signoff)
     if ".example" in settings.public_base_url or not settings.public_base_url.startswith("https://"):
         out.append(f"דומיין: PUBLIC_BASE_URL={settings.public_base_url}. צריך דומיין אמיתי ב-https "
