@@ -71,3 +71,12 @@ def test_video_endcard_does_not_claim_ezcount(p):
         pytest.skip("EZcount כבר לא בבדיקה")
     for m in re.finditer(r"עובד עם[^<\n]*", p.read_text(encoding="utf-8")):
         assert "EZcount" not in m.group(0), (p.name, m.group(0))
+
+
+@pytest.mark.parametrize("p", [ROOT / "marketing/emails-trial.md", ROOT / "team/beta-kit.md"], ids=lambda p: p.name)
+def test_onboarding_texts_cover_all_supported_sources(p):
+    """מיילי הניסיון וערכת הבטא מדריכים לחבר «את חשבונית ירוקה» בלבד ⇒ עסק עם iCount/רווחית נתקע (15.11)."""
+    t = p.read_text(encoding="utf-8")
+    assert "iCount" in t and "רווחית" in t
+    for narrowing in ("נשאר רק לחבר את חשבונית ירוקה", "עוד לא חיברת את חשבונית ירוקה", "קריאה בלבד מחשבונית ירוקה"):
+        assert narrowing not in t, narrowing
