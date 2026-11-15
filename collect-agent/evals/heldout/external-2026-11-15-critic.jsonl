@@ -1,0 +1,50 @@
+{"id": "xc01", "text": "שלום, אני מבקשת שתפסיקו לשלוח לי מיילים בנושא הזה. תודה", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "xc02", "text": "תורידו אותי מהרשימה שלכם בבקשה", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "xc03", "text": "הריני להודיעכם כי אינני מעוניין לקבל מכם הודעות נוספות.", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "xc04", "text": "תסירו אותיי", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "xc05", "text": "please stop messaging me", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "xc06", "text": "Прошу больше не писать мне", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "xc07", "text": "توقفوا عن مراسلتي من فضلكم", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "xc08", "text": "המייל הזה הגיע אליי בטעות, אני לא רונית", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "xc09", "text": "זה המספר שלי כבר שנתיים, מי שחיפשתם כבר לא פה", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "xc10", "text": "שלום, קיבלתי הודעה על חשבונית של מישהו אחר. אין לי קשר לעסק שלכם", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person"}, "critical": true}
+{"id": "xc11", "text": "העברתי את העניין לעורכת הדין שלי, היא תהיה איתכם בקשר", "ctx": {"channel": "email"}, "expect": {"intent": "legal"}, "critical": true}
+{"id": "xc12", "text": "אם לא תפסיקו אני פונה לרשות להגנת הצרכן", "ctx": {"channel": "sms"}, "expect": {"intent": "legal"}, "critical": true}
+{"id": "xc13", "text": "אני שוקל להגיש תביעה קטנה נגדכם", "ctx": {"channel": "email"}, "expect": {"intent": "legal"}, "critical": true}
+{"id": "xc14", "text": "החשבונית הזאת לא נכונה, סגרנו על 800 ולא על 1,200", "ctx": {"channel": "email"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "xc15", "text": "העבודה לא הסתיימה ועדיין יש תקלות, אני לא אשלם על משהו שלא עובד", "ctx": {"channel": "email"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "xc16", "text": "לא קיבלתי את השירות בכלל, איך אתם דורשים כסף?", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "xc17", "text": "העברתי את הכסף ביום שלישי בהעברה בנקאית, תבדקו אצלכם", "ctx": {"channel": "email"}, "expect": {"intent": "paid_claim"}, "critical": true}
+{"id": "xc18", "text": "שילמתי בביט לפני שבוע", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim"}, "critical": true}
+{"id": "xc19", "text": "כבר שולם, יש לי אסמכתא", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim"}, "critical": true}
+{"id": "xc20", "text": "שלום רב,\nבהמשך למייל שלכם, ברצוני לציין כי התשלום בוצע בתאריך 3.11 בהעברה בנקאית.\nבברכה,\nאבי", "ctx": {"channel": "email"}, "expect": {"intent": "paid_claim"}, "critical": true}
+{"id": "xc21", "text": "שלמתי\n\n> סטודיו דמו: שלום, חשבונית 1001 טרם סומנה כשולמה", "ctx": {"channel": "email"}, "expect": {"intent": "paid_claim"}, "critical": true}
+{"id": "xc22", "text": "Hi, I already paid this invoice last Thursday", "ctx": {"channel": "email"}, "expect": {"intent": "paid_claim"}, "critical": true}
+{"id": "xc23", "text": "אני כבר לא יודעת איך לקום בבוקר, הכל נופל עליי", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "xc24", "text": "אין לי כוח יותר לכלום, אני מרגיש שאין טעם", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "xc25", "text": "נפטר לי אבא השבוע, אין לי ראש לזה עכשיו", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "stop": "pause", "escalate": "urgent"}, "critical": true}
+{"id": "xc26", "text": "שלום, אני בת 14, זה הטלפון שלי. אמא שלי היא הלקוחה", "ctx": {"channel": "sms"}, "expect": {"intent": "minor"}, "critical": true}
+{"id": "xc27", "text": "אני תלמיד בכיתה ח׳, כנראה התבלבלתם", "ctx": {"channel": "sms"}, "expect": {"intent": "minor"}, "critical": true}
+{"id": "xc28", "text": "אני מובטל כרגע ואין לי מאיפה לשלם את זה", "ctx": {"channel": "email"}, "expect": {"intent": "cant_pay"}, "critical": false}
+{"id": "xc29", "text": "האם יש אפשרות לחלק את הסכום לכמה תשלומים?", "ctx": {"channel": "email"}, "expect": {"intent": "plan_request"}, "critical": false}
+{"id": "xc30", "text": "אפשר לשלם בשלוש פעימות?", "ctx": {"channel": "sms"}, "expect": {"intent": "plan_request"}, "critical": false}
+{"id": "xc31", "text": "אני רוצה לשלם אבל רק ב-2 תשלומים", "ctx": {"channel": "sms"}, "expect": {"intent": "plan_request"}, "critical": false}
+{"id": "xc32", "text": "אסדיר את התשלום עד סוף החודש", "ctx": {"channel": "email"}, "expect": {"intent": "promise"}, "critical": false}
+{"id": "xc33", "text": "אני אשלם ביום ראשון כשתיכנס המשכורת", "ctx": {"channel": "sms"}, "expect": {"intent": "promise"}, "critical": false}
+{"id": "xc34", "text": "תוכלו לשלוח לי שוב את החשבונית? לא מוצא אותה", "ctx": {"channel": "email"}, "expect": {"intent": "copy_request"}, "critical": false}
+{"id": "xc35", "text": "איך אפשר לשלם, יש אפשרות בכרטיס אשראי?", "ctx": {"channel": "sms"}, "expect": {"intent": "how_to_pay"}, "critical": false}
+{"id": "xc36", "text": "לא הצלחתי לפתוח את הקישור, יש דרך אחרת לשלם?", "ctx": {"channel": "email"}, "expect": {"intent": "how_to_pay"}, "critical": false}
+{"id": "xc37", "text": "אפשר שמישהו יתקשר אליי בערב? קשה לי לכתוב", "ctx": {"channel": "sms"}, "expect": {"intent": "callback"}, "critical": false}
+{"id": "xc38", "text": "מי אתם ומאיפה יש לכם את המספר שלי?", "ctx": {"channel": "sms"}, "expect": {"intent": "who_is_this"}, "critical": false}
+{"id": "xc39", "text": "יא חתיכת רמאים, לכו לעזאזל", "ctx": {"channel": "sms"}, "expect": {"intent": "abusive"}, "critical": false}
+{"id": "xc40", "text": "קיבלתי, תודה", "ctx": {"channel": "email"}, "expect": {"intent": "thanks"}, "critical": false}
+{"id": "xc41", "text": "?", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown"}, "critical": false}
+{"id": "xc42", "text": "תודה, לא צריך להסיר אותי, רק תזכירו לי בעוד שבוע", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out"]}, "critical": true}
+{"id": "xc43", "text": "אני עורכת דין בעצמי, אפשר לקבל חשבונית מס מסודרת?", "ctx": {"channel": "email"}, "expect": {"intent": "copy_request", "not": ["legal"]}, "critical": true}
+{"id": "xc44", "text": "הבן שלי בן 3 חולה אז אשלם בשבוע הבא", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["minor"]}, "critical": true}
+{"id": "xc45", "text": "לא מכירים? זה אני, יוסי מהסטודיו, אשלם היום", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["wrong_person"]}, "critical": true}
+{"id": "xc46", "text": "אל תדאגו, אין בעיה, משלם עכשיו", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute", "cant_pay"]}, "critical": true}
+{"id": "xc47", "text": "די, שילמתי כבר אתמול", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim", "not": ["opt_out"]}, "critical": true}
+{"id": "xc48", "text": "הסר בבקשה את ההנחה שלא סוכמה ותשלחו חשבונית מתוקנת", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "not": ["opt_out"]}, "critical": true}
+{"id": "xc49", "text": "שלחתי לכם מייל לפני שבוע ולא עניתם", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "not": ["opt_out", "paid_claim"]}, "critical": false}
+{"id": "xc50", "text": "אפשר הוראת קבע חודשית במקום תשלום אחד?", "ctx": {"channel": "email"}, "expect": {"intent": "plan_request"}, "critical": false}
