@@ -1,0 +1,22 @@
+{
+  "_doc": "מקור יחיד לדומיין ההשקה של גבי. החלפה: python3 marketing/launch/set_domain.py <דומיין>. שער השקה: python3 marketing/launch/check_launch.py --release",
+  "domain": "gabi.example",
+  "placeholder": true,
+  "videos_rendered_for": "gabi.example",
+  "files": [
+    "marketing/landing/index.html",
+    "marketing/posts.md",
+    "marketing/emails-trial.md",
+    "marketing/seo/01-how-to-ask-client-to-pay.md",
+    "marketing/seo/02-client-didnt-pay.md",
+    "marketing/video/scenes.json",
+    "marketing/video/script.md",
+    "marketing/video/storyboard.mjs",
+    "marketing/video/storyboard.html",
+    "marketing/video/compose/ui/meta.json",
+    "web/src/lib/site.ts"
+  ],
+  "videos": ["marketing/video/gabi-demo-16x9.mp4", "marketing/video/gabi-reel-9x16.mp4"],
+  "link_placeholders": ["[קישור לדף]"],
+  "domain_placeholders": ["[דומיין]"]
+}

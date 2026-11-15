@@ -220,10 +220,25 @@ def run(p: Probe, target: str) -> Report:
         if not any("dueDate" in d for d in docs):
             notes.append("אין dueDate באף מסמך ⇒ הקוד נופל ל-documentDate")
         if not any("amountDueVat" in d for d in docs):
-            notes.append("אין amountDueVat ⇒ תשלום חלקי לא ייראה (משתמשים ב-amount)")
-        if not any("linkedDocumentIds" in d or "linkedDocuments" in d for d in docs):
-            notes.append("אין linkedDocumentIds/linkedDocuments ⇒ לבדוק זיכויים/המרות ידנית")
+            notes.append("אין amountDueVat באף מסמך פתוח. ב-sandbox: לרשום תשלום חלקי על חשבונית "
+                         "ולהריץ שוב — אם עדיין אין, תשלום חלקי לא ייראה (הקוד נופל ל-amount)")
         return ("GAP", " · ".join(notes)) if notes else "כל השדות קיימים"
+
+    @check("doc_links", "זיכוי (330) מקושר לחשבונית (linkedDocumentIds | linkedDocuments)",
+           "test_webhook_on_payment_has_documented_payload")
+    def _():
+        # השדה יושב על הזיכוי, לא על החשבונית הפתוחה. בלעדיו זיכוי לא יקטין חוב בסנכרון.
+        # קבלות (400/405) נבדקות ב-receipts_link (גבי מבקר, סבב 77).
+        r = p.post("/documents/search", {"page": 1, "pageSize": 50, "type": [330]})
+        need(r.status_code == 200, f"HTTP {r.status_code}")
+        linked_docs = r.json().get("items", [])
+        if not linked_docs:
+            return "SKIP", "אין זיכויים בחשבון — ליצור ב-sandbox זיכוי אחד על חשבונית פתוחה"
+        names = {k for d in linked_docs for k in ("linkedDocumentIds", "linkedDocuments") if k in d}
+        if not names:
+            return "GAP", (f"{len(linked_docs)} זיכויים בלי linkedDocumentIds/linkedDocuments "
+                           "— שם השדה שונה; לעדכן greeninvoice._linked_ids")
+        return f"{len(linked_docs)} מסמכים · שדה: {', '.join(sorted(names))}"
 
     @check("doc_contact", "פרטי קשר: client.phone/mobile/emails במסמך, או השלמה מ-/clients/{id}",
            "test_client_enriches_missing_contact_from_clients_endpoint")
@@ -299,6 +314,31 @@ def run(p: Probe, target: str) -> Report:
         need(c.get("name"), f"אין name (שדות: {sorted(c)})")
         return "name קיים"
 
+    @check("receipts_link", "קבלות (400/405): איך מקושרות לחשבונית, והאם קבלה מקושרת סוגרת אותה "
+           "(critic סבב 77: גבי בודקת רק זיכויים 330 — קבלה לא-מקושרת ⇒ תזכורת למי ששילם)")
+    def _():
+        r = p.post("/documents/search", {"page": 1, "pageSize": 50, "type": [400, 405]})
+        need(r.status_code == 200, f"HTTP {r.status_code}")
+        items = r.json().get("items", [])
+        if not items:
+            return "SKIP", "אין קבלות בחשבון — ליצור ב-sandbox: חשבונית + קבלה מקושרת + קבלה לא-מקושרת לאותו לקוח"
+        link_keys = sorted({k for d in items for k in d if "link" in k.lower() or "reference" in k.lower()})
+        linked_open = []
+        for d in items:
+            for ld in (d.get("linkedDocuments") or d.get("linkedDocumentIds") or []):
+                lid = ld.get("id") if isinstance(ld, dict) else ld
+                g = p.get(f"/documents/{lid}")
+                if g.status_code == 200 and int(g.json().get("status", 0) or 0) == STATUS_OPEN:
+                    linked_open.append(str(lid))
+        unlinked = [d.get("number") for d in items
+                    if not (d.get("linkedDocuments") or d.get("linkedDocumentIds"))]
+        notes = [f"שדות קישור: {link_keys or 'אין'}"]
+        if linked_open:
+            notes.append(f"חשבוניות **פתוחות** עם קבלה מקושרת: {linked_open[:5]} ⇒ גבי תזכיר למי ששילם")
+        if unlinked:
+            notes.append(f"קבלות בלי קישור: {unlinked[:5]} ⇒ אין דרך לדעת על איזו חשבונית שולם")
+        return ("GAP" if (linked_open or unlinked or not link_keys) else "PASS"), " · ".join(notes)
+
     # ── כתיבה: לא בשלב הזה ────────────────────────────────────────────────
     for cid, why in WRITE_SKIPS.items():
         rep.checks.append(Check(cid, why.split(" — ")[0], "SKIP", why))
@@ -344,6 +384,13 @@ def main(argv: list[str] | None = None) -> int:
             from app.gi_mock import GreenInvoiceMock
             mock = GreenInvoiceMock(api_id=api_id, api_secret=secret, docs=demo_docs(),
                                     deliver=lambda url, payload: None)
+            # זיכוי אחד מקושר (כמו ב-sandbox אחרי "זיכוי חלקי") — כדי ש-doc_links ייבדק, לא ידולג
+            mock.route("POST", "/_mock/documents", {},
+                       {"type": 330, "amount": "200.00", "currency": "ILS",
+                        "client": dict(mock.docs["demo1"]["client"]),
+                        "linkedDocumentIds": ["demo1"]})
+            mock.route("POST", "/_mock/documents/demo2/partial", {}, {"paid": 450})  # יתרה חלקית
+            mock.route("POST", "/_mock/documents/demo5/pay", {}, {})   # קבלה מקושרת שסוגרת חשבונית
             transport = httpx.MockTransport(mock.handler)
             base, target = SANDBOX, "gi_mock בתוך התהליך"
     rep = run(Probe(base, api_id, secret, transport), target)
