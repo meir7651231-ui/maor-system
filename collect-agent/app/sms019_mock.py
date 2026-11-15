@@ -82,6 +82,13 @@ class Sms019Mock:
                               "source": root.findtext("source")})
             return 200, _xml(STATUS_OK, "sent", sid)
 
+    # SMPP 3.4 message_state ⇒ מה גבי צריכה לעשות (מצב ההודעה, האם להתריע לבעל העסק)
+    DLR_STATES: dict[str, tuple[str, bool]] = {
+        "DELIVRD": ("delivered", False), "ENROUTE": ("pending", False),
+        "ACCEPTD": ("pending", False), "EXPIRED": ("failed", True), "DELETED": ("failed", True),
+        "UNDELIV": ("failed", True), "REJECTD": ("failed", True), "UNKNOWN": ("unknown", False),
+    }
+
     @staticmethod
     def dlr(shipment_id: str, status: str = "DELIVRD") -> bytes:
         """גוף webhook של דוח מסירה (form), כפי ש-parse_019_dlr מצפה (לא מאומת)."""
