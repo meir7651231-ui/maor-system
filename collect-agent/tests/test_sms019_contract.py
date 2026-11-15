@@ -86,19 +86,24 @@ def _report(tmp_path, name, target, statuses):
 
 
 def test_gate_closed_today_and_lists_every_missing_item():
-    """היום: 9 חוסמים (6 + 3 משפטיים מ-legal/SIGNOFF.json), כל אחד עם מה לעשות.
-    אם מישהו "פותח" משהו בלי לסגור את כולם — זה ייראה כאן."""
-    b = golive.real_send_blockers(load_settings({}))
+    """היום: 12 חוסמים — 6 טכניים, 3 משפטיים (legal/SIGNOFF.json) ו-3 של QA (מפתח הצפנה,
+    מייל על דומיין דוגמה, מפתחות webhook). כל אחד עם מה לעשות."""
+    b = golive.real_send_blockers(load_settings({}), master_keys="")
     joined = "\n".join(b)
-    assert len(b) == 9, b
+    assert len(b) == 12, b
     for must in ("ALLOWED_SEND_MODES", "CONTRACT_VERIFIED_019", "placeholder", "PUBLIC_BASE_URL",
-                 "חשבונית ירוקה: אין דוח", "019: אין דוח", "DPA", "אין עו״ד", "בלי תשובה"):
+                 "חשבונית ירוקה: אין דוח", "019: אין דוח", "DPA", "אין עו״ד", "בלי תשובה",
+                 "COLLECT_MASTER_KEYS", "EMAIL_FROM", "SMS_WEBHOOK_KEY"):
         assert must in joined, must
 
 
 def test_gate_opens_only_when_everything_is_closed(tmp_path):
-    s = load_settings({"PUBLIC_BASE_URL": "https://gabi.co.il"})
+    from app.secretbox import generate_key
+    live_env = {"PUBLIC_BASE_URL": "https://gabi.co.il", "EMAIL_FROM": "no-reply@gabi.co.il",
+                "SMS_WEBHOOK_KEY": "k" * 32, "EMAIL_WEBHOOK_KEY": "e" * 32}
+    s = load_settings(live_env)
     ok = dict(allowed_send_modes={"dry_run", "live"}, verified_019=True,
+              master_keys=f"k1:{generate_key()}",
               operator={"legal_name": "חברה בע״מ", "company_id": "51-1234567"},
               signoff={"lawyer_name": "עו״ד לדוגמה", "dpa_signed": True,
                        "answered_questions": list(golive.REQUIRED_LAWYER_QUESTIONS)},
@@ -111,11 +116,19 @@ def test_gate_opens_only_when_everything_is_closed(tmp_path):
                    ("gi_report", _report(tmp_path, "g2.json", "sandbox", ["PASS", "FAIL"])),
                    ("gi_report", _report(tmp_path, "g3.json", "gi_mock בתוך התהליך", ["PASS"])),
                    ("sms_report", _report(tmp_path, "s2.json", "019 mock בתוך התהליך", ["PASS"])),
-                   ("sms_report", str(tmp_path / "missing.json"))):
+                   ("sms_report", str(tmp_path / "missing.json")),
+                   ("master_keys", ""), ("master_keys", "k1:short")):
         assert len(golive.real_send_blockers(s, **{**ok, k: bad})) == 1, (k, bad)
-    assert len(golive.real_send_blockers(load_settings({}), **ok)) == 1        # gabi.example
+    assert len(golive.real_send_blockers(load_settings({**live_env, "PUBLIC_BASE_URL":
+                                                        "https://gabi.example"}), **ok)) == 1
+    for k, bad in (("EMAIL_FROM", "no-reply@example.com"), ("SMS_WEBHOOK_KEY", ""),
+                   ("EMAIL_WEBHOOK_KEY", "")):
+        assert len(golive.real_send_blockers(load_settings({**live_env, k: bad}), **ok)) == 1, k
 
 
-def test_golive_cli_exit_code(capsys):
+def test_golive_cli_exit_code(capsys, monkeypatch):
+    for k in ("COLLECT_MASTER_KEYS", "EMAIL_FROM", "SMS_WEBHOOK_KEY", "EMAIL_WEBHOOK_KEY",
+              "PUBLIC_BASE_URL"):
+        monkeypatch.delenv(k, raising=False)  # לא תלוי בסביבה של המריץ
     assert golive.main([]) == 1
-    assert "השער סגור. 9 חוסמים" in capsys.readouterr().out
+    assert "השער סגור. 12 חוסמים" in capsys.readouterr().out

@@ -11,12 +11,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from . import config, legal
+from . import config, legal, secretbox
 from .integrations import sms
 
 
@@ -68,7 +69,8 @@ def real_send_blockers(settings: config.Settings, *, gi_report: str | None = Non
                        operator: Mapping[str, str] | None = None,
                        signoff: Mapping[str, Any] | None = None,
                        verified_019: bool | None = None,
-                       allowed_send_modes: set[str] | None = None) -> list[str]:
+                       allowed_send_modes: set[str] | None = None,
+                       master_keys: str | None = None) -> list[str]:
     """רשימת החוסמים. ריקה ⇒ אפשר להתחיל את שינוי הקוד המכוון למעבר (באישור מאיר)."""
     out: list[str] = []
     modes = config.ALLOWED_SEND_MODES if allowed_send_modes is None else allowed_send_modes
@@ -88,6 +90,28 @@ def real_send_blockers(settings: config.Settings, *, gi_report: str | None = Non
     if ".example" in settings.public_base_url or not settings.public_base_url.startswith("https://"):
         out.append(f"דומיין: PUBLIC_BASE_URL={settings.public_base_url}. צריך דומיין אמיתי ב-https "
                    "(הקישור הקצר ב-SMS והסרה במייל עוברים דרכו)")
+    # QA (גבי בדיקות): שלושה תנאים שהשער לא בדק
+    keys = os.environ.get(secretbox.ENV_VAR, "") if master_keys is None else master_keys
+    try:
+        secretbox.SecretBox.from_spec(keys) if keys.strip() else None
+        keys_ok = bool(keys.strip())
+    except secretbox.SecretError:
+        keys_ok = False
+    if not keys_ok:
+        out.append(f"הצפנה: {secretbox.ENV_VAR} חסר או לא תקין. בלעדיו אי אפשר לשמור את מפתחות "
+                   "העסק (חשבונית ירוקה/019/SMTP) מוצפנים ב-app/business_secrets.py")
+    if "email" in settings.channels:
+        dom = settings.email_from.rpartition("@")[2].lower()
+        if not dom or dom.endswith((".example", "example.com")):
+            out.append(f"מייל: EMAIL_FROM={settings.email_from}. צריך כתובת על דומיין אמיתי "
+                       "עם SPF/DKIM/DMARC (רשימת הבדיקה ב-team/qa.md)")
+    missing = [n for n, v in (("SMS_WEBHOOK_KEY", settings.sms_webhook_key if "sms" in
+                                settings.channels else "x"),
+                               ("EMAIL_WEBHOOK_KEY", settings.email_webhook_key if "email" in
+                                settings.channels else "x")) if not v]
+    if missing:
+        out.append(f"תשובות לקוחות: {', '.join(missing)} חסר ⇒ ה-webhook סגור, ו«הסר» שהלקוח "
+                   "משיב לא מגיע למערכת (חובה לפי 30א)")
     b = _report_blocker(gi_report, name="חשבונית ירוקה", want_target="sandbox",
                         how="מריצים scripts/gi_contract_check.py --sandbox --json <קובץ>")
     if b:
