@@ -43,7 +43,7 @@ export function Signup() {
           {s === 1 && (
             <div className="space-y-4">
               <h1 className="text-2xl font-extrabold">מאיפה מגיעות החשבוניות?</h1>
-              {[['greeninvoice', 'חשבונית ירוקה / morning', 'נתמך'], ['icount', 'iCount', 'לא נתמך עדיין'], ['csv', 'העלאת קובץ Excel/CSV', 'בהגדרות, אחרי ההרשמה']].map(([k, t, tag]) => (
+              {[['greeninvoice', 'חשבונית ירוקה / morning', 'נתמך'], ['icount', 'iCount', 'בהגדרות, אחרי ההרשמה'], ['csv', 'העלאת קובץ Excel/CSV', 'בהגדרות, אחרי ההרשמה']].map(([k, t, tag]) => (
                 <label key={k} className={`flex items-center gap-3 rounded-xl border p-3.5 ${k === 'greeninvoice' ? 'cursor-pointer' : 'opacity-50'} ${f.gi === k ? 'border-brand ring-1 ring-brand bg-brand-50' : 'border-ink-200'}`}>
                   <input type="radio" name="gi" className="accent-[#10B981] h-5 w-5" disabled={k !== 'greeninvoice'} checked={f.gi === k} onChange={() => setF({ ...f, gi: k })} />
                   <span className="font-bold">{t}</span><span className="ms-auto text-xs text-ink-500">{tag}</span>

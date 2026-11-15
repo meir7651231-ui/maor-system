@@ -84,3 +84,14 @@ def test_screen_copy(p):
     for pat, conv, key in CLAIMS:
         for m in re.finditer(pat, t):
             assert conv(m.group(1)) == CODE[key], (key, m.group(0))
+
+
+def test_signup_does_not_call_a_supported_source_unsupported():
+    """תיקון עצמי (גבי שיווק 15.11): בהרשמה כתבתי «iCount — לא נתמך עדיין», אבל מאז נבנה מקור iCount
+    (app/integrations/icount.py) ומסך ההגדרות מציע אותו. מקור שקיים ב-SOURCE_SYSTEMS לא יסומן «לא נתמך»."""
+    settings = (ROOT / "web/src/lib/settings.ts").read_text(encoding="utf-8")
+    supported = set(re.findall(r"key: '(\w+)'", settings.split("SOURCE_SYSTEMS")[1].split("];")[0]))
+    signup = (ROOT / "web/src/pages/Signup.tsx").read_text(encoding="utf-8")
+    for key, label in re.findall(r"\['(\w+)', '[^']+', '([^']+)'\]", signup):
+        if key in supported:
+            assert "לא נתמך" not in label, (key, label)
