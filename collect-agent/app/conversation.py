@@ -910,8 +910,11 @@ def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
     if dropped and t:
         # שורש משותף לרגרסיות (critic 80/88/91): עידון הוריד כוונה מגינה ולא בא דבר במקומה ⇒ לפחות השהיה + כרטיס
         names = ", ".join(sorted(i.value for i in dropped))
+        # critic סבב 93 🟡: לקוח שרוצה לשלם (קישור/הבטחה) ושנפל אצלו רק אזכור עו"ד/מחלוקת ⇒ כרטיס בלי השהיה.
+        # הסרה/מספר שגוי/קטין/מצוקה שנפלו ⇒ תמיד השהיה.
+        payer_only = d.intent in (Intent.HOW_TO_PAY, Intent.PROMISE) and dropped <= {Intent.LEGAL, Intent.DISPUTE}
         d = replace(
-            d, stop=d.stop if d.stop != Stop.NONE else Stop.PAUSE,
+            d, stop=d.stop if (d.stop != Stop.NONE or payer_only) else Stop.PAUSE,
             escalate=max(d.escalate, Escalation.NORMAL, key=_esc_rank),
             tags=d.tags + ("protective_floor",),
             owner_actions=d.owner_actions + (f"לבדוק: בהודעה יש סימן ל-{names} שהמנוע לא אישר — להחליט אם לעצור",))
