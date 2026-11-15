@@ -614,7 +614,24 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(404, "לא נמצא") from None
         except ValueError as e:
             raise HTTPException(400, str(e)) from e
-        return HTMLResponse(landing_done(action, res, svc.s.business_name))
+        # הפעלה 209 (PRG): עמוד ישיר מ-POST ⇒ רענון/«חזרה» בדפדפן שולח את הטופס שוב (טיוטת «שילמתי»
+        # או בקשת פריסה כפולה אצל בעל העסק). 303 ⇒ GET על עמוד תוצאה שלא משנה כלום.
+        from urllib.parse import quote
+        return RedirectResponse(f"/p/{quote(code, safe='')}/done?a={res['action']}", status_code=303)
+
+    @app.get("/p/{code}/done", response_class=HTMLResponse)
+    def paylink_done(code: str, a: str = ""):
+        """עמוד התוצאה של PRG. GET בלבד, ולכן לא משנה מצב (סורקי-קישורים). קוד לא קיים ⇒ 404.
+        פעולה לא מוכרת, או «הופסקו» כשהלקוח לא הוסר ⇒ חזרה ל-/p, כדי שקישור מפוברק לא יציג
+        «התזכורות הופסקו» כשהן עדיין פעילות."""
+        try:
+            info = svc.landing(code)
+        except KeyError:
+            return HTMLResponse(landing_page(None), status_code=404)
+        if a not in ("plan", "paid", "stop") or (a == "stop" and not info["opted_out"]):
+            from urllib.parse import quote
+            return RedirectResponse(f"/p/{quote(code, safe='')}", status_code=303)
+        return HTMLResponse(landing_done(a, {}, svc.s.business_name))
 
     @app.get("/u/{token}", response_class=HTMLResponse)
     def unsubscribe_page(token: str):

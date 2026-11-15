@@ -349,7 +349,8 @@ def test_link_scanners_get_requests_change_nothing(svc):
     tok = svc.new_unsub_token(inv["customer_id"])
     before = [dict(r) for r in svc.db.q("SELECT opted_out, paused_reason, disputed FROM customers")]
     for url in (f"/p/{code}", f"/p/{code}/pay", f"/u/{tok}", f"/p/{code}/stop",
-                f"/p/{code}/paid", f"/p/{code}/plan", f"/pay/{code}", f"/api/pay/{code}",
+                f"/p/{code}/paid", f"/p/{code}/plan", f"/p/{code}/done?a=stop", f"/p/{code}/done?a=paid",
+                f"/pay/{code}", f"/api/pay/{code}",
                 f"/pay/{code}/go", f"/api/pay/{code}/stop", f"/api/pay/{code}/paid"):
         api.get(url, follow_redirects=False)
         api.head(url)
