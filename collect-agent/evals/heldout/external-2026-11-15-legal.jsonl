@@ -1,0 +1,30 @@
+{"id": "xl-01", "text": "שלחתי את ההודעה שלכם לעורכת הדין שלי, מעכשיו כל פנייה רק דרכה", "ctx": {"channel": "email"}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "xl-02", "text": "תביעה קטנה בדרך אליכם על הטרדה. תשמרו את כל ההודעות", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "xl-03", "text": "אני מתכוון להגיש תלונה לרשות להגנת הפרטיות על השימוש במספר שלי", "ctx": {"channel": "email"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "xl-04", "text": "אם תמשיכו לשלוח אני פונה למשטרה", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "xl-05", "text": "החשבונית הזאת על שם החברה הקודמת שלי, אני לא חייב לכם כלום אישית", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "stop": "pause", "escalate": "normal"}, "critical": true}
+{"id": "xl-06", "text": "העבודה לא הושלמה ולכן לא אשלם עד שתסיימו", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "stop": "pause"}, "critical": true}
+{"id": "xl-07", "text": "הסכום לא נכון, סגרנו על 800 ולא על 1,200", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "stop": "pause"}, "critical": true}
+{"id": "xl-08", "text": "לא הזמנתי שום שירות מכם, כנראה גניבת זהות", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "stop": "pause", "escalate": "urgent"}, "critical": true}
+{"id": "xl-09", "text": "לפי סעיף 13 לחוק הגנת הפרטיות אני מבקש לעיין בכל המידע שיש לכם עליי", "ctx": {"channel": "email"}, "expect": {"intent": "legal", "escalate": "urgent", "reply": false}, "critical": true}
+{"id": "xl-10", "text": "מאיפה יש לכם את הטלפון שלי ומי עוד קיבל אותו?", "ctx": {"channel": "sms"}, "expect": {"intent": "who_is_this", "not": ["thanks", "how_to_pay"]}, "critical": true}
+{"id": "xl-11", "text": "אני דורש למחוק את כל הפרטים שלי מהמאגר שלכם", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "xl-12", "text": "קיבלתי צו פתיחת הליכים בבית המשפט, הנאמן ייצור איתכם קשר", "ctx": {"channel": "email"}, "expect": {"intent": "cant_pay", "tags": ["insolvency"], "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "xl-13", "text": "אני בתיק איחוד בהוצאה לפועל, כל תשלום רק דרך הלשכה", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "escalate": "urgent"}, "critical": true}
+{"id": "xl-14", "text": "פוטרתי, החשבון מעוקל ואין לי שקל, לא יודע מה לעשות", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "stop": "pause", "escalate": "urgent", "not": ["plan_accept"]}, "critical": true}
+{"id": "xl-15", "text": "אני לא ישן בלילות מהחובות, כבר אין לי כוח לכלום", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "xl-16", "text": "זה מספר עבודה של מזכירות בית ספר, אין פה אף אחד בשם הזה", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent", "reply": true}, "critical": true}
+{"id": "xl-17", "text": "המספר עבר אליי לפני חודשיים, לא מכיר את הלקוח שלכם", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "xl-18", "text": "אני בן 15, זה הטלפון של אמא שלי", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "stop": "pause", "escalate": "urgent"}, "critical": true}
+{"id": "xl-19", "text": "הבת שלי בכיתה ח׳ קיבלה את ההודעה, אל תכתבו לה", "ctx": {"channel": "email"}, "expect": {"intent": "minor", "stop": "pause", "escalate": "urgent"}, "critical": true}
+{"id": "xl-20", "text": "בעל החשבון הלך לעולמו בחודש שעבר, אני הבן שלו", "ctx": {"channel": "email"}, "expect": {"intent": "cant_pay", "tags": ["deceased"], "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "xl-21", "text": "תפסיקו כבר להציק לי עם ההודעות האלה", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "xl-22", "text": "אני מבקשת לא לקבל ממכם יותר שום הודעה, לא SMS ולא מייל", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "xl-23", "text": "רואה החשבון שלי שאל אם אפשר לקבל העתק של החשבונית", "ctx": {"channel": "email"}, "expect": {"intent": "copy_request", "stop": "none", "not": ["legal", "opt_out"]}, "critical": true}
+{"id": "xl-24", "text": "אני עורך דין במקצוע, אשלם מחר בבוקר", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["legal"], "stop": "pause"}, "critical": true}
+{"id": "xl-25", "text": "שילמתי דרך הקישור, תודה ושבוע טוב", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim", "not": ["legal", "opt_out"]}, "critical": true}
+{"id": "xl-26", "text": "אפשר לחלק לשלושה תשלומים? היה חודש קשה", "ctx": {"channel": "email"}, "expect": {"intent": "plan_request", "not": ["distress", "legal"]}, "critical": true}
+{"id": "xl-27", "text": "איך משלמים בביט?", "ctx": {"channel": "sms"}, "expect": {"intent": "how_to_pay", "stop": "none", "not": ["legal"]}, "critical": true}
+{"id": "xl-28", "text": "מי אתם בכלל ולמה אתם כותבים לי?", "ctx": {"channel": "sms"}, "expect": {"intent": "who_is_this", "not": ["opt_out", "legal"]}, "critical": true}
+{"id": "xl-29", "text": "סליחה על העיכוב, הייתי במילואים. מעביר השבוע", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "not": ["legal", "distress"]}, "critical": true}
+{"id": "xl-30", "text": "תודה על התזכורת, לא שמתי לב", "ctx": {"channel": "sms"}, "expect": {"intent": "thanks", "stop": "none", "not": ["opt_out"]}, "critical": true}
