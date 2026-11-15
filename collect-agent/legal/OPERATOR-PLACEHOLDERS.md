@@ -21,6 +21,8 @@
 | `legal/TERMS.md` | §1 הצדדים, §18 קשר |
 | `marketing/accessibility.html` | הצהרת נגישות — רכז נגישות |
 | `marketing/emails-trial.md` | חתימת מיילי הניסיון |
+| `marketing/faq/build.py` | תבנית פוטר דף «שאלות נפוצות» (מקור) |
+| `marketing/faq/index.html` | פוטר (נבנה מ-build.py) |
 | `marketing/landing/for/accountants-clients.html` | פוטר (נבנה מ-build.py) |
 | `marketing/landing/for/barbers.html` | פוטר (נבנה מ-build.py) |
 | `marketing/landing/for/build.py` | תבנית פוטר דפי הענפים (מקור) |

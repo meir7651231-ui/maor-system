@@ -122,7 +122,7 @@ def test_ci_guard_also_covers_sqlcipher_job() -> None:
     i_snap = job.index("tree_guard.py snapshot")
     i_first_test = job.index("python -m pytest -q")
     assert i_snap < i_first_test
-    i_full = job.index("python -m pytest -q\n")
+    i_full = job.index("pytest מלא")  # 226: עם --basetemp, השורה כבר לא נגמרת ב-«-q»
     assert i_full < job.index("tree_guard.py check", i_full) < job.index("./demo.sh --check")
     last_check = job.rindex("tree_guard.py check")
     for step in ("DB_ENCRYPTION=sqlcipher ./demo.sh --check", "bash scripts/smoke_server.sh"):
@@ -221,3 +221,25 @@ def test_fs_check_reports_count_beyond_200(tmp_path: Path, capsys) -> None:
         (root / f"f{i:03}").write_text("")
     assert tg.main(["tg", "fs-check", str(snap), str(root)]) == 1
     assert "ועוד 5 (סה״כ 205)" in capsys.readouterr().out
+
+
+# --- הפעלה 226: מגן TMPDIR גם בג'וב sqlcipher (pytest מוצפן + demo.sh + smoke מוצפנים) ---
+
+
+def test_sqlcipher_job_guards_dedicated_tmpdir_around_all_steps() -> None:
+    """עד 226 ג׳וב sqlcipher שמר רק על עץ הפרויקט: DB מוצפן/מפתח חד-פעמי שנשאר ב-/tmp לא נתפס.
+    שני ה-pytest עם --basetemp מחוץ לתיקייה הנבדקת (pytest-of-* נשמר בכוונה)."""
+    wf = (SCRIPT.parent.parent.parent / ".github" / "workflows" / "collect-agent.yml").read_text(encoding="utf-8")
+    job = wf.split("\n  sqlcipher:")[1].split("\n  web:")[0]
+    i_env = job.index('echo "TMPDIR=$RUNNER_TEMP/cipher-tmp" >> "$GITHUB_ENV"')
+    i_snap = job.index('fs-snapshot "$RUNNER_TEMP/cipher-tmp-before.txt" "$RUNNER_TEMP/cipher-tmp"')
+    i_check = job.index('fs-check "$RUNNER_TEMP/cipher-tmp-before.txt" "$RUNNER_TEMP/cipher-tmp"')
+    pytests = [m.start() for m in re.finditer(r"python -m pytest -q", job)]
+    assert len(pytests) == 2, "בדיקות SQLCipher + pytest מלא"
+    for i in pytests:
+        line = job[i:job.index("\n", i)]
+        assert '--basetemp="$RUNNER_TEMP/' in line, line
+    assert i_env < min(pytests) and i_snap < min(pytests), "TMPDIR והצילום לפני pytest הראשון"
+    for step in ("./demo.sh --check", "bash scripts/smoke_server.sh"):
+        assert max(pytests) < job.index(step) < i_check, step
+    assert "cipher-tmp/" not in job, "הצילום וה-basetemp מחוץ לתיקייה הנבדקת"

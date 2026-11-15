@@ -1,4 +1,4 @@
-# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 225, 15.11)
+# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 226, 15.11)
 
 ענף אינטגרציה: `collect-agent` (לא מוזג ל-main, ולא ימוזג בלי אישור מפורש של מאיר). תיקייה: `collect-agent/`.
 
@@ -14,6 +14,26 @@
 ## 📌 הכרעות מאיר — מחייבות כל תפקיד (6.11.2026)
 - **מחיר יחיד:** ₪119 לחודש **או** ₪1,190 לשנה · 14 ימי ניסיון. **אין ₪79**, אין A/B, אין מסלולים או מחירונים אחרים. מקור יחיד: `docs/PRICING.md` · בקוד: `Settings.price_ils_month=119`, `price_ils_year=1190`, `trial_days=14` · בדף הנחיתה: `PRICE` ב-`web/src/pages/Landing.tsx`. (ניסוח המע״מ «כולל מע״מ ככל שחל» — עדיין לאישור רו״ח/עו״ד, `docs/PRICING.md`.)
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
+
+## 🧭 הפעלת מנהל · 15.11.2026 (הפעלה 226)
+- **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/`. ‏`stoic-mccarthy-23f03p` — נדחה ומכוסה (107) · `bold-bell-xom3mc` — נעצר לפי מאיר · `bridge-gabi-engine-*` — רק `BRIDGE/`. ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
+- **CI:** ריצה 723 (`a5cb02ae`, 225, מגן TMPDIR בג׳וב test) **ירוקה** ⇒ (1) מ-225 סגור. ריצה 724 (`a64c82bc`, שיווק) בוטלה (הוחלפה בדחיפה חדשה).
+- **ממצא אדום (תוקן כאן):** דף «שאלות נפוצות» (`552047d2`, שיווק) הוסיף `marketing/faq/build.py` + `index.html` עם placeholders של פרטי המפעיל, בלי שורה ב-`legal/OPERATOR-PLACEHOLDERS.md` ⇒ `test_operator_placeholders::test_table_lists_exactly_the_static_placeholder_files` נכשלה (ה-CI של 724 היה נופל). נוספו 2 השורות. **שיווק:** דף חדש עם פוטר ⇒ לעדכן את הטבלה באותו קומיט.
+- **המשימה:** «הבא» (2) מ-225 — **QA: מגן TMPDIR בג׳וב `sqlcipher`.**
+  - **ב-CI:** צעד חדש לפני pytest הראשון — `TMPDIR=$RUNNER_TEMP/cipher-tmp` (דרך `GITHUB_ENV`) + `fs-snapshot`; שני ה-pytest עם `--basetemp` מחוץ לתיקייה; `fs-check` בסוף (אחרי demo.sh ו-smoke המוצפנים, מפתח חד-פעמי). ⇒ **כל ג׳וב שמריץ קוד מכוסה** (test · sqlcipher · web).
+  - **ננעל:** `tests/test_tree_guard.py` (+1, 18): env+צילום לפני pytest הראשון · שני ה-pytest עם basetemp · demo/smoke לפני הבדיקה · צילום מחוץ לתיקייה. הבדיקה הישנה (218) חיפשה `pytest -q\n` ⇒ עוגנה לשם הצעד «pytest מלא». **מוטציות:** בלי basetemp ב-pytest המלא ⇒ 1 נופלת · fs-check לפני demo ⇒ 1 נופלת.
+  - **אומת מקומית (כמו ה-CI, sqlcipher 4.19.0):** בדיקות SQLCipher 72 עברו · pytest מלא **2785 עברו** (אחרי תיקון הטבלה) · demo.sh/smoke מוצפנים 0 · שני השומרים ✅ · `fs-check` ✅ אין קבצים · `ruff` נקי · YAML תקין.
+- **מצב לפי תפקיד:**
+  - פיתוח — בלי חסם. הבא: הצגת `sent_owner` אחרי הכרעת הביקורת.
+  - ביקורת — סבב 90 נסגר (מילות הסרה). פתוח: (א) הצגת `sent_owner` (מ-214) · (ב) הצהרת הנגישות · (ג) `wait` בתוך cleanup של demo.sh (מ-221).
+  - עיצוב — לאשר `ui-12/13-open-list` (CI, `web-e2e-shots`) · צבעי סטטוס (ניגודיות).
+  - AI — סבב 10 (העדפת ערוץ) נסגר. הבא: סבב 11 מ-`critic.md`.
+  - QA — ✅ מגן TMPDIR בכל הג׳ובים שמריצים קוד (224 web · 225 test · 226 sqlcipher). הבא: שומר שמוודא שכל דף HTML/תבנית חדשה עם placeholder נכנסת לטבלה כבר ב-pre-commit (היום נתפס רק ב-pytest המלא).
+  - חיבורים — `CONTRACT_VERIFIED` ‏False עד מסמך API של 019 + חשבון בדיקה (מאיר).
+  - משפטי — placeholders ב-`/p`, `/u`, הצהרת הנגישות ו-`marketing/faq` ממתינים לפרטי החברה המפעילה.
+  - שיווק/מכירות — דף FAQ + טענות בידול נכנסו; חבילות מוכנות לחתימת מאיר.
+- **הבא (פיתוח):** (1) לבדוק שריצת ה-CI של הקומיט הזה ירוקה (כל 8 הג׳ובים, כולל «שומר TMPDIR — SQLCipher» על 3.11/3.13). (2) אם הביקורת מאשרת — הצגת `sent_owner`. (3) ביקורת (ג): `wait` ב-cleanup של demo.sh.
+- **חסמים (מאיר):** ללא שינוי (sandbox לספקים, ניסוח מע״מ, פרטי החברה המפעילה, מסמך API של 019, ענף `bold-bell-xom3mc`).
 
 ## 🧭 הפעלת מנהל · 15.11.2026 (הפעלה 225)
 - **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/`. ‏`bold-bell-xom3mc` (רק מיזוגי collect-agent אליו, נעצר לפי מאיר) · `gabi-019-inbound` — בלי הפרש בתיקייה · `stoic-mccarthy-23f03p` — נדחה ומכוסה (107) · `bridge-gabi-engine-*` — רק `BRIDGE/`. ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.

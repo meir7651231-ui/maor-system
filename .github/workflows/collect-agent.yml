@@ -105,10 +105,17 @@ jobs:
           python -c "import sqlcipher3; print(sqlcipher3.connect(':memory:').execute('PRAGMA cipher_version').fetchone())"
       - name: צילום העץ לפני הבדיקות (שומר-עץ, כולל קבצים מתעלמים — QA הפעלה 218)
         run: python3 -I scripts/tree_guard.py snapshot "$RUNNER_TEMP/tree-before.txt"
+      # הפעלה 226 (QA): TMPDIR ייעודי גם כאן (pytest מוצפן, demo.sh ו-smoke מוצפנים, מפתח חד-פעמי) + צילום לפני
+      # ⇒ fs-check בסוף. כל ג׳וב שמריץ קוד מכוסה (test · sqlcipher · web). basetemp מחוץ לתיקייה הנבדקת.
+      - name: TMPDIR ייעודי לצעדי SQLCipher + צילום לפני
+        run: |
+          mkdir -p "$RUNNER_TEMP/cipher-tmp"
+          echo "TMPDIR=$RUNNER_TEMP/cipher-tmp" >> "$GITHUB_ENV"
+          python3 -I scripts/tree_guard.py fs-snapshot "$RUNNER_TEMP/cipher-tmp-before.txt" "$RUNNER_TEMP/cipher-tmp"
       - name: בדיקות SQLCipher אמיתיות (המודול מותקן ⇒ אין skip)
-        run: python -m pytest -q -rs tests/test_db_encryption.py tests/test_backup.py tests/test_wipe.py tests/test_bench_dashboard.py tests/test_dashboard_sent_channels.py tests/test_messages_history_indexes.py tests/test_reminders_batched.py
+        run: python -m pytest -q -rs --basetemp="$RUNNER_TEMP/pytest-base-cipher" tests/test_db_encryption.py tests/test_backup.py tests/test_wipe.py tests/test_bench_dashboard.py tests/test_dashboard_sent_channels.py tests/test_messages_history_indexes.py tests/test_reminders_batched.py
       - name: pytest מלא (הדגל כבוי — התקנת המודול לבדה לא משנה התנהגות)
-        run: python -m pytest -q
+        run: python -m pytest -q --basetemp="$RUNNER_TEMP/pytest-base-full"
       - name: שומר-עץ — pytest עם המודול לא השאיר קבצים בפרויקט
         run: python3 -I scripts/tree_guard.py check "$RUNNER_TEMP/tree-before.txt"
       - name: הדגמה מקצה לקצה עם DB_ENCRYPTION=sqlcipher
@@ -117,6 +124,8 @@ jobs:
         run: DB_ENCRYPTION=sqlcipher COLLECT_MASTER_KEYS="$(python -m app.secretbox)" bash scripts/smoke_server.sh
       - name: שומר-עץ — demo/smoke המוצפנים לא השאירו קבצים (DB מוצפן, מפתח, demo-output) בפרויקט
         run: python3 -I scripts/tree_guard.py check "$RUNNER_TEMP/tree-before.txt"
+      - name: שומר TMPDIR — SQLCipher (pytest/demo/smoke מוצפנים) לא השאיר קבצים זמניים (חוץ מ-node-compile-cache)
+        run: python3 -I scripts/tree_guard.py fs-check "$RUNNER_TEMP/cipher-tmp-before.txt" "$RUNNER_TEMP/cipher-tmp"
 
   # הממשק המעוצב (web/): typecheck+build, בדיקות יחידה, e2e מוק (בלי שרת) ו-e2e חי מול שרת DEMO=1 אמיתי (dry-run).
   # ה-e2e החי אוכף: 409/401 רק צפויים ומאומתים, סגירת טיוטת plan_request מול השרת, בלי גלילה רוחבית בדסקטופ/מובייל.
