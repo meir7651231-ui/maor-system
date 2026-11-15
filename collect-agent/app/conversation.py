@@ -1046,7 +1046,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
     elif primary == Intent.PLAN_ACCEPT:
         plan = ctx.offered_plan
         reply = (f"מעולה, תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! ההסדר הועבר לאישור סופי, "
-                 f"ונשלח בקרוב את פרטי התשלום הראשון.{sig}")
+                 f"ואחרי האישור נשלח את פרטי התשלום הראשון.{sig}")
         summary = f"✅ {name} אישר/ה את הצעת הפריסה ({plan_lines(plan, ctx.currency)}). נדרש אישור סופי שלך."
         actions.append("לאשר את ההסדר")
         state = State.PLAN_PENDING_OWNER

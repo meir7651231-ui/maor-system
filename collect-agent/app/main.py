@@ -1059,10 +1059,10 @@ def landing_page(info: dict | None) -> str:
         head += f'<ul class="m iv" data-testid="landing-invoices">{rows}</ul>'
         pay = (f'<a class="b p" href="{base}/pay">לתשלום מאובטח</a>' if info["pay_shared"]
                else "" if any(i["can_pay"] for i in items)
-               else '<p class="m">קישור התשלום יישלח בהקדם.</p>')
+               else '<p class="m">בעל העסק יעדכן אתכם לגבי אפשרויות התשלום.</p>')
     else:
         pay = (f'<a class="b p" href="{base}/pay">לתשלום מאובטח</a>' if info["pay_url"]
-               else '<p class="m">קישור התשלום יישלח בהקדם.</p>')
+               else '<p class="m">בעל העסק יעדכן אתכם לגבי אפשרויות התשלום.</p>')
     opts = "".join(f'<option value="{n}">{n} תשלומים</option>' for n in (2, 3, 4, 6))
     stop = ('<p class="m">התזכורות האוטומטיות הופסקו.</p>' if info["opted_out"] else
             f'<form method="post" action="{base}/stop"><button class="b">הפסקת תזכורות</button></form>')
