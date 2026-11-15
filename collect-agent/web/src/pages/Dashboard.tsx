@@ -115,7 +115,7 @@ export function Dashboard() {
                     <div className="text-sm text-ink-500">{live && pendingOf(i.id)?.count
                       ? <span data-testid="queue-merged"><span className="num">{pendingOf(i.id)!.count}</span> חשבוניות · <b className="text-ink-900">{pendingOf(i.id)!.totalText}</b></span>
                       : <b className="text-ink-900">{fmtMoney(i.amount, i.currency)}</b>} · <LateBadge days={daysOverdue(i.dueAt, today)} /> · {STEP_LABEL[nextStep(i)]}
-                      {live && blockKind(pendingOf(i.id)?.block) === 'hard' && <span className="text-critical font-bold"> · ⛔ {BLOCK_LABEL[pendingOf(i.id)!.block!] ?? pendingOf(i.id)!.block}</span>}
+                      {live && blockKind(pendingOf(i.id)?.block) === 'hard' && <span className="text-critical-ink font-bold"> · ⛔ {BLOCK_LABEL[pendingOf(i.id)!.block!] ?? pendingOf(i.id)!.block}</span>}
                       {live && blockKind(pendingOf(i.id)?.block) === 'reapprove' && <span className="text-amber-700 font-bold"> · ⏳ {REAPPROVE_LABEL[pendingOf(i.id)!.block!]}</span>}
                       {!live && mockAmountCheck(i, invoices).length > 0 && <span className="text-amber-700 font-bold" data-testid="mock-amount-check"> · ⏳ {REAPPROVE_LABEL.amount_check}</span>}</div>
                   </div>
@@ -161,7 +161,7 @@ function Kpi({ label, value, sub, tone, hero, meter }: { label: string; value: s
   return (
     <Card className="p-4">
       <div className="text-sm text-ink-500">{label}</div>
-      <div className={`text-xl md:text-3xl font-extrabold font-display mt-1 num ${tone === 'late' ? 'text-late' : tone === 'good' ? 'text-brand-700' : ''}`}>{value}</div>
+      <div className={`text-xl md:text-3xl font-extrabold font-display mt-1 num ${tone === 'late' ? 'text-late-ink' : tone === 'good' ? 'text-brand-700' : ''}`}>{value}</div>
       <div className="text-xs text-ink-500 mt-0.5">{sub}</div>
     </Card>
   );

@@ -98,7 +98,7 @@ function DraftCard({ d }: { d: Draft }) {
             <span><b>הסכום נכון — בדקתי.</b> {odd.map(o => `חשבונית ${o.number || '(ללא מספר)'}: ${fmtMoney(o.amount_agorot / 100, o.currency)} (בדרך כלל ${fmtMoney(o.usual_agorot / 100, o.currency)})`).join(' · ')}. אולי הנקודה העשרונית במקום הלא נכון?</span>
           </label>
         )}
-        {err && <p className="mt-2 text-sm text-critical font-bold" role="alert">לא נשלח: {err}</p>}
+        {err && <p className="mt-2 text-sm text-critical-ink font-bold" role="alert">לא נשלח: {err}</p>}
         <div className="mt-4 flex flex-wrap gap-2 justify-end">
           <Button variant="ghost" disabled={busy} onClick={() => run(() => api.rejectDraft(d.id), 'הכרטיס נסגר בלי מענה', { want: 'rejected', msg: ALREADY_DRAFT_CLOSED })}>✗ סגירה בלי מענה</Button>
           <Button disabled={busy || !body.trim() || (odd.length > 0 && !confirmAmount)} onClick={() => run(() => api.approveDraft(d.id, body === d.body ? undefined : body, confirmAmount), '✓ המענה אושר ונשלח (dry-run)', { want: 'approved', msg: ALREADY_DRAFT })}>✓ אשר ושלח</Button>

@@ -108,7 +108,7 @@ export function Settings() {
           <b>🧪 מוק — ההגדרות לא נשמרות בשרת.</b> אין חיבור לשרת גבי. אפשר לנסות את המסך, אבל שינוי כאן לא משפיע על שום דבר ונמחק ברענון.
         </div>
       )}
-      {loadErr && <p role="alert" className="text-critical font-bold">לא הצלחנו לטעון את ההגדרות: {loadErr}</p>}
+      {loadErr && <p role="alert" className="text-critical-ink font-bold">לא הצלחנו לטעון את ההגדרות: {loadErr}</p>}
 
       <Card className="p-5 space-y-4">
         <h2 className="text-lg font-extrabold">פרטי העסק</h2>
@@ -157,14 +157,14 @@ export function Settings() {
           </span>
         </Field>
         {!live && <p className="text-xs text-ink-500">ייבוא CSV זמין בחיבור לשרת.</p>}
-        {csvErr && <p role="alert" className="mt-2 text-sm text-critical" data-testid="csv-error">⚠️ {csvErr}</p>}
+        {csvErr && <p role="alert" className="mt-2 text-sm text-critical-ink" data-testid="csv-error">⚠️ {csvErr}</p>}
         {csv && (
           <div className="rounded-xl bg-white border border-ink-200 p-3 text-sm" data-testid="csv-result">
             ✓ יובאו <b className="num">{csv.imported}</b> חשבוניות{csv.rejected.length ? ` · ${csv.rejected.length} שורות נדחו:` : ''}
-            {csv.rejected.length > 0 && <ul className="mt-1 text-xs text-critical">{csv.rejected.map(r => <li key={r.row}>שורה <span className="num">{r.row}</span>: {r.reason}</li>)}</ul>}
+            {csv.rejected.length > 0 && <ul className="mt-1 text-xs text-critical-ink">{csv.rejected.map(r => <li key={r.row}>שורה <span className="num">{r.row}</span>: {r.reason}</li>)}</ul>}
             {csv.date_order === 'mdy' && <p className="mt-1 text-xs text-amber-700" data-testid="csv-date-order">📅 התאריכים בקובץ זוהו בפורמט אמריקאי (חודש/יום) ונקראו כך. אם זו טעות — ייצאו מחדש בפורמט YYYY-MM-DD.</p>}
             {csv.date_order === 'mixed' && <p className="mt-1 text-xs text-amber-700" data-testid="csv-date-order">📅 בקובץ יש גם יום/חודש וגם חודש/יום — שורות עם תאריך דו-משמעי נדחו.</p>}
-            {(csv.amount_check?.length ?? 0) > 0 && <div role="alert" className="mt-1 text-xs text-critical" data-testid="csv-amount-check">⚠️ סכום חריג מאוד מהרגיל ללקוח — אולי הנקודה העשרונית במקום הלא נכון? גבי לא תשלח תזכורת עליו עד שתאשרו במפורש:
+            {(csv.amount_check?.length ?? 0) > 0 && <div role="alert" className="mt-1 text-xs text-critical-ink" data-testid="csv-amount-check">⚠️ סכום חריג מאוד מהרגיל ללקוח — אולי הנקודה העשרונית במקום הלא נכון? גבי לא תשלח תזכורת עליו עד שתאשרו במפורש:
               <ul className="mt-1">{csv.amount_check!.map(o => <li key={o.number}>חשבונית <span className="num">{o.number || '(ללא מספר)'}</span>: <span className="num">{fmtMoney(o.amount_agorot / 100, o.currency)}</span> (בדרך כלל <span className="num">{fmtMoney(o.usual_agorot / 100, o.currency)}</span>)</li>)}</ul></div>}
             {!!csv.credits && <p className="mt-1 text-xs text-amber-700" data-testid="csv-credits">⏸️ <span className="num">{csv.credits}</span> שורות ביתרה שלילית (זיכוי) — הלקוחות שלהן הושהו לבדיקתך, בלי תזכורת עד שתאשר/י</p>}
           </div>
@@ -211,7 +211,7 @@ export function Settings() {
         </Button>
         <Button variant="ghost" disabled={!dirty} onClick={() => { setF(orig); setSaveErr(null); setRestored(false); }}>ביטול שינויים</Button>
         {dirty && !saveErr && <span className="text-sm text-ink-500" data-testid="settings-dirty">{restored ? 'החזרנו את מה שהקלדתם לפני שתוקף הכניסה פג. עדיין לא נשמר' : 'יש שינויים שלא נשמרו'}</span>}
-        {saveErr && <span role="alert" className="text-sm text-critical font-bold" data-testid="settings-error">{saveErr}</span>}
+        {saveErr && <span role="alert" className="text-sm text-critical-ink font-bold" data-testid="settings-error">{saveErr}</span>}
       </div>
     </div>
   );
