@@ -1,0 +1,84 @@
+"""סבב 4 — מחלקות מהמדידה החיצונית של QA (15.11) + שער: אף טעות קריטית לא עוברת בשקט ב-100 ההודעות
+החיצוניות. הטקסטים בבדיקות היחידה חדשים; השער רץ על הסטים החיצוניים עצמם."""
+from pathlib import Path
+
+import pytest
+
+from app.conversation import Escalation, Intent, Stop, respond
+from evals.harness import build_ctx, report, run  # noqa: F401
+
+EXTERNAL = sorted((Path(__file__).parent.parent / "evals" / "heldout").glob("external-*.jsonl"))
+
+
+def d(text):
+    return respond(text, build_ctx({}))
+
+
+@pytest.mark.parametrize("text", ["זה לא אני שהזמנתי, זה הבן שלי, אבל אשלם בשבוע הבא",
+                                  "לא אני ביקשתי את השירות, אבל אני אסדר את זה"])
+def test_not_me_but_i_will_pay_is_not_wrong_person(text):
+    r = d(text)
+    assert Intent.WRONG_PERSON not in r.all_intents and r.stop != Stop.PERMANENT
+
+
+@pytest.mark.parametrize("text", ["רואה החשבון ועורכת הדין שלי אמרו לי לשלם, תשלחו קישור",
+                                  "דיברתי עם עורך דין והוא אמר שזה בסדר, אשלם מחר"])
+def test_lawyer_advice_to_pay_is_not_legal(text):
+    assert Intent.LEGAL not in d(text).all_intents
+
+
+def test_lawyer_threat_still_legal():
+    assert d("עורך הדין שלי ייצור איתכם קשר").intent == Intent.LEGAL
+
+
+@pytest.mark.parametrize("text", ["אין לי מה לאכול החודש", "בקושי יש לנו אוכל בבית"])
+def test_food_deprivation_is_urgent(text):
+    assert d(text).escalate == Escalation.URGENT
+
+
+@pytest.mark.parametrize("text", ["please take my number off your list", "unsubscribe me please"])
+def test_english_opt_out(text):
+    assert d(text).intent == Intent.OPT_OUT
+
+
+@pytest.mark.parametrize("text", ["הוא החליף מספר מזמן, זה כבר לא הטלפון שלו",
+                                  "אין לי שום קשר למספרה שלכם"])
+def test_wrong_person_round4(text):
+    assert d(text).intent == Intent.WRONG_PERSON
+
+
+@pytest.mark.parametrize("text", ["אפשר לשלם בביט?", "הלינק לא עובד אצלי"])
+def test_how_to_pay_round4(text):
+    assert d(text).intent == Intent.HOW_TO_PAY
+
+
+# סטייה מוצדקת מהציפייה של כותב הסט — לכיוון הבטוח יותר, עם נימוק. כל הוספה כאן = החלטה גלויה.
+ACCEPTED = {
+    "xc44": "מחלה במשפחה + תאריך ⇒ השהיה רגישה שלא משתחררת לבד (הכרעת המבקר, סבב 18, בדיקה בריפו)",
+}
+
+
+# כוונות "מגינות": פספוס שלהן לטובת כוונה תמימה = טעות קריטית שקטה
+PROTECTIVE = {"opt_out", "wrong_person", "legal", "dispute", "distress", "minor", "paid_claim"}
+
+
+def silent_critical(r) -> str | None:
+    """טעות קריטית שעוברת בשקט = (א) כוונה אסורה הופיעה, או (ב) כוונה מגינה צפויה הוחלפה בכוונה
+    אחרת בביטחון (לא 'לא ברור' ⇒ בעל העסק). הבדל בין שתי כוונות תמימות (הבטחה/קישור) אינו קריטי."""
+    e, dec = r.case["expect"], r.decision
+    got = {i.value for i in dec.all_intents}
+    if set(e.get("not", [])) & got:
+        return f"forbidden {sorted(set(e.get('not', [])) & got)}"
+    if e["intent"] in PROTECTIVE and dec.intent.value not in (e["intent"], "unknown") and e["intent"] not in got:
+        return f"{dec.intent.value} instead of {e['intent']}"
+    return None
+
+
+@pytest.mark.parametrize("path", EXTERNAL, ids=[p.name for p in EXTERNAL])
+def test_external_blind_sets_have_no_silent_critical_error(path):
+    """השער של היעד: על ההודעות שכתבו המבקר ו-QA — אפס טעויות קריטיות שקטות."""
+    res = run(path)
+    assert len(res) >= 50
+    bad = [f"{r.case['id']} «{r.case['text']}» ⇒ {why}" for r in res
+           if r.case.get("critical") and r.case["id"] not in ACCEPTED and (why := silent_critical(r))]
+    assert bad == []
