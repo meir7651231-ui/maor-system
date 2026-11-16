@@ -930,7 +930,7 @@ def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
             escalate=max(d.escalate, Escalation.NORMAL, key=_esc_rank),
             tags=d.tags + ("protective_floor",),
             owner_actions=d.owner_actions + (f"לבדוק: בהודעה יש סימן ל-{names} שהמנוע לא אישר — להחליט אם לעצור",))
-    d = replace(d, confidence=confidence)
+    d = replace(d, confidence=confidence, owner_summary=_with_quote(d.owner_summary, text))
     if confidence == "llm" and d.escalate == Escalation.NONE:
         d = replace(d, escalate=Escalation.NORMAL, tags=d.tags + ("llm_classified",))
     # מגן לולאה: אחרי X תשובות של הבוט — רק בעל העסק
@@ -1346,3 +1346,19 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
 
 def _clip(t: str, n: int = 80) -> str:
     return t if len(t) <= n else t[: n - 1] + "…"
+
+
+def _with_quote(summary: str, text: str) -> str:
+    """הפעלה 234: ציטוט אחיד של הודעת הלקוח בכל owner_summary. בעל העסק מאשר/סוגר מהכרטיס — בלי הציטוט
+    («שאל/ה איך משלמים», «אישר/ה קבלה») הוא לא יודע מה נכתב בפועל, וסיווג שגוי עובר בלי שיראה.
+    כבר מצוטט (מחלוקת/לא זוהה/שפה זרה) ⇒ לא מכפילים. אותם ציטוטים נבנו מהטקסט **המנורמל** (אותיות סופיות
+    ⇒ רגילות, «כלומ»; אותיות לטיניות קטנות; ניקוד הוסר) ⇒ מוחלפים בנוסח המקורי של הלקוח."""
+    q = _clip(re.sub(r"\s+", " ", text or "").strip())
+    if not q:
+        return summary
+    if f'"{q}"' in summary:
+        return summary
+    nq = f'"{_clip(normalize(text))}"'
+    if nq in summary:
+        return summary.replace(nq, f'"{q}"', 1)
+    return f"{summary} ההודעה: \"{q}\"" if summary else f"ההודעה: \"{q}\""
