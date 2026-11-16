@@ -405,6 +405,31 @@ class CollectService:
                                                           "message": mid})
         return "sent"
 
+    def _flush_urgent_owner_email(self) -> str | None:
+        """critic סבב 102: כרטיס דחוף שנבלע ב-throttle «נספר במייל הבא» — אבל בלי כרטיס דחוף נוסף אין מייל הבא.
+        dispatch (ה-cron) שולח מייל השלמה כשהיה throttle אחרי המייל האחרון ועדיין יש כרטיס דחוף/התראה פתוח
+        שנוצר אחרי המייל האחרון. אותו throttle, אותו נוסח בלי טקסט לקוח."""
+        last_sent = self.db.one("SELECT MAX(at) m FROM audit WHERE action='urgent_owner_email_sent'")["m"]
+        last_thr = self.db.one("SELECT MAX(at) m FROM audit WHERE action='urgent_owner_email_throttled'")["m"]
+        if not last_thr or (last_sent and last_thr <= last_sent):
+            return None
+        # בתוך חלון ה-throttle / מעבר לתקרה ⇒ לא קוראים (אחרת כל ריצת cron מוסיפה audit «throttled»)
+        now = self.clock()
+        if last_sent and now - _dt(last_sent) < self.URGENT_EMAIL_MIN_GAP:
+            return None
+        if self.db.one("SELECT COUNT(*) n FROM audit WHERE action='urgent_owner_email_sent' AND at>=?",
+                       (_iso(now - timedelta(days=1)),))["n"] >= self.URGENT_EMAIL_DAY_MAX:
+            return None
+        from app.inbox import _URGENT_OWNER_ALERT
+        try:
+            rows = self.db.q("SELECT intent, escalate, created_at FROM drafts WHERE status IN "
+                             "('pending_approval','needs_owner') AND created_at>?", (last_sent or "",))
+        except sqlite3.OperationalError:
+            return None
+        if not any(r["escalate"] == "urgent" or r["intent"] in _URGENT_OWNER_ALERT for r in rows):
+            return None
+        return self.email_owner_urgent("pending")
+
     def _open_urgent_count(self) -> int:
         try:
             return self.db.one("SELECT COUNT(*) n FROM drafts WHERE escalate='urgent' AND "
@@ -1572,6 +1597,7 @@ class CollectService:
     def dispatch(self) -> list[dict]:
         now = self.clock()
         out: list[dict] = []
+        self._flush_urgent_owner_email()   # critic סבב 102: לפני חלון השליחה — התראה לבעלים לא תלויה בשעות הלקוח
         if not self.policy.can_send_at(now) or not self.trial()["active"]:
             return out
         # critic סבב 13: ה-cron היחיד במפרט הוא dispatch. תשובות והצעות פריסה שבעל העסק אישר מחוץ
