@@ -51,6 +51,9 @@ def _allowed(path: str, prefix: str = "") -> bool:
     return rel.startswith(SKIP_PREFIXES)
 
 
+GIT_TIMEOUT = 60  # שניות. git תקוע לא תוקע צעד CI עד ה-timeout של ה-job (6 שעות)
+
+
 def _git(root: Path, *args: str) -> str:
     return subprocess.run(  # noqa: S603  # nosec B603 B607 — פקודת git קבועה, בלי קלט חיצוני
         ["git", *args],  # noqa: S607
@@ -58,6 +61,7 @@ def _git(root: Path, *args: str) -> str:
         check=True,
         capture_output=True,
         text=True,
+        timeout=GIT_TIMEOUT,
     ).stdout
 
 
