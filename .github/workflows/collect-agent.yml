@@ -190,6 +190,8 @@ jobs:
         run: TZ=UTC node e2e/ui-openlist.mjs "$RUNNER_TEMP/shots"
       - name: "e2e הדשבורד הפשוט (/ui) — הודעות מלקוחות: ציטוט, עריכה ⇒ אישור, סגירה בלי מענה (critic 95), «הסר» של בעל העסק ⇒ אין תזכורות אחרי (critic 97) מול DEMO=1"
         run: TZ=UTC node e2e/ui-messages.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e הדשבורד הפשוט (/ui) — «טעות בשם בחשבונית, תתקנו ואשלם» ⇒ פעולת תיקון-חשבונית בכרטיס, מחלוקת סכום דחופה, מלכודת בלי התראת שווא מול DEMO=1"
+        run: TZ=UTC node e2e/ui-invoice-fix.mjs "$RUNNER_TEMP/shots"
       - name: "e2e המסך המעוצב (/app/) — רשימת הפתוחות: אין תזכורת לפני אישור, «כבר שולם» לא נפתח בייבוא חוזר, מובייל"
         run: TZ=UTC node e2e/app-openlist.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)

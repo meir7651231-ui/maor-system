@@ -47,3 +47,13 @@ def test_name_fix_with_promise_stays_promise(text):
 def test_no_false_invoice_fix(text):
     d = _d(text)
     assert "invoice_fix" not in d.tags
+
+
+def test_invoice_fix_browser_e2e_runs_in_ci():
+    """הפעלה 240: הפעולה «לתקן את פרטי החשבונית» נבדקת גם בדפדפן מול שרת DEMO=1 (web/e2e/ui-invoice-fix.mjs)."""
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    wf = (root.parent / ".github/workflows/collect-agent.yml").read_text(encoding="utf-8")
+    e2e = (root / "web/e2e/ui-invoice-fix.mjs").read_text(encoding="utf-8")
+    assert "node e2e/ui-invoice-fix.mjs" in wf
+    assert "לתקן את פרטי החשבונית" in e2e and "ul.acts" in e2e
