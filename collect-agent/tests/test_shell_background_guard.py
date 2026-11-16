@@ -21,20 +21,12 @@ from pathlib import Path
 
 import pytest
 
+from tests.shell_files import tracked_sh
+
 ROOT = Path(__file__).resolve().parent.parent
-GIT = shutil.which("git")
 SH = shutil.which("sh")
 
-
-def _tracked_sh() -> list[Path]:
-    if GIT:
-        r = subprocess.run([GIT, "ls-files", "*.sh"], cwd=ROOT, capture_output=True, text=True)  # noqa: S603  # nosec B603
-        if r.returncode == 0 and r.stdout.strip():
-            return [ROOT / p for p in r.stdout.split()]
-    return sorted(p for p in ROOT.rglob("*.sh") if "node_modules" not in p.parts and ".venv" not in p.parts)
-
-
-SCRIPTS = _tracked_sh()
+SCRIPTS = tracked_sh()
 # `&` שמסיים פקודה: לא `&&`, לא `2>&1`/`&>`, ואחריו סוף שורה, `;` או `VAR=$!`.
 BG_RE = re.compile(r"(?<![&>|<0-9])&(?![&>])\s*(?:;|$|[A-Za-z_][A-Za-z0-9_]*=\$!)")
 PID_RE = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)=\$!")

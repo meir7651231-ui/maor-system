@@ -16,11 +16,17 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS = sorted(p for p in [*ROOT.glob("*.sh"), *ROOT.glob("scripts/*.sh")]
-                 if "node_modules" not in p.parts)
+from tests.shell_files import sh_id, tracked_sh
 
-MKTEMP = re.compile(r'^\s*(?:local\s+)?([A-Z_][A-Z0-9_]*)="\$\(mktemp\b')
+ROOT = Path(__file__).resolve().parents[1]
+# הפעלה 233: כל `*.sh` שב-git (היה: רק `*.sh` בשורש + `scripts/` ⇒ `marketing/video/compose/*.sh` לא נסרק).
+SCRIPTS = tracked_sh()
+
+# הפעלה 233: גם השמה באמצע שורה (`KEEP=0; OUT="$(mktemp -d)"` ב-sandbox_day.sh היה **שקוף למגן** —
+# ה-regex דרש את ההשמה בתחילת השורה, אז הסקריפט עבר בלי שאף כלל נבדק עליו).
+MKTEMP = re.compile(r'(?:^|[;&|]\s*|^\s*)(?:local\s+)?([A-Z_][A-Z0-9_]*)="\$\(mktemp\b')
+# כל קריאה ל-mktemp בקוד (לא בהערה) — חייבת להיות בצורה ש-MKTEMP מזהה
+MKTEMP_ANY = re.compile(r"\bmktemp\b")
 TRAP = re.compile(r"^\s*trap\s+(?:'([^']*)'|\"([^\"]*)\"|([A-Za-z_][A-Za-z0-9_]*))\s")
 
 
@@ -62,8 +68,8 @@ def violations(text: str) -> list[str]:
     lines = text.splitlines()
     bad = []
     for i, ln in enumerate(lines):
-        m = MKTEMP.match(ln)
-        if not m:
+        m = MKTEMP.search(ln)
+        if not m or ln.lstrip().startswith("#"):
             continue
         var = m.group(1)
         # (א) trap שמכסה לפני ה-mktemp
@@ -88,14 +94,36 @@ def violations(text: str) -> list[str]:
     return bad
 
 
+def unrecognised_mktemp(text: str) -> list[str]:
+    """שורות קוד שקוראות ל-mktemp בצורה שהמגן לא מזהה (לא `VAR="$(mktemp …)"`) ⇒ היו עוברות בשקט."""
+    return [f"שורה {i + 1}: {ln.strip()}" for i, ln in enumerate(text.splitlines())
+            if not ln.lstrip().startswith("#") and MKTEMP_ANY.search(ln.split(" #")[0])
+            and not MKTEMP.search(ln)]
+
+
 def test_scripts_found():
-    names = {p.name for p in SCRIPTS}
-    assert {"demo.sh", "smoke_server.sh", "ci_clean_demo.sh"} <= names, names
+    ids = {sh_id(p) for p in SCRIPTS}
+    assert {"demo.sh", "scripts/smoke_server.sh", "scripts/ci_clean_demo.sh", "scripts/sandbox_day.sh",
+            "marketing/video/compose/run_edit.sh", "marketing/video/compose/run_all.sh"} <= ids, ids
 
 
-@pytest.mark.parametrize("script", SCRIPTS, ids=lambda p: p.name)
+@pytest.mark.parametrize("script", SCRIPTS, ids=sh_id)
 def test_every_mktemp_has_trap_before_it(script):
     assert violations(script.read_text(encoding="utf-8")) == []
+
+
+@pytest.mark.parametrize("script", SCRIPTS, ids=sh_id)
+def test_every_mktemp_is_visible_to_the_guard(script):
+    """הפעלה 233: mktemp בצורה שהמגן לא מזהה = mktemp בלי מגן. צורה חדשה ⇒ להרחיב את MKTEMP, לא לעקוף."""
+    assert unrecognised_mktemp(script.read_text(encoding="utf-8")) == []
+
+
+def test_guard_sees_mid_line_mktemp():
+    """sandbox_day.sh: `KEEP=0; OUT="$(mktemp -d)"` — לפני 233 לא נבדק בכלל. עכשיו: בלי trap ⇒ נתפס."""
+    assert violations('KEEP=0; OUT="$(mktemp -d)"\necho x\n')
+    assert not violations('OUT=""\ncleanup() { rm -rf "$OUT"; }\ntrap cleanup EXIT\nKEEP=0; OUT="$(mktemp -d)"\n')
+    assert unrecognised_mktemp('cp a "$(mktemp)"\n') and unrecognised_mktemp("T=$(mktemp)\n")
+    assert not unrecognised_mktemp('# mktemp בהערה\nX="$(mktemp)"\n')
 
 
 def test_guard_catches_the_original_bug():

@@ -17,8 +17,11 @@ from pathlib import Path
 
 import pytest
 
+from tests.shell_files import sh_id, tracked_sh
+
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPTS = [ROOT / "demo.sh", *sorted((ROOT / "scripts").glob("*.sh"))]
+# הפעלה 233: כל `*.sh` שב-git (היה: demo.sh + scripts/ בלבד)
+SCRIPTS = tracked_sh()
 BASH = shutil.which("bash")
 
 
@@ -26,12 +29,13 @@ def _trap_lines(text: str) -> list[tuple[int, str]]:
     return [(i, ln) for i, ln in enumerate(text.splitlines()) if re.match(r"\s*trap\s", ln)]
 
 
-@pytest.mark.parametrize("path", SCRIPTS, ids=lambda p: p.name)
+@pytest.mark.parametrize("path", SCRIPTS, ids=sh_id)
 def test_mktemp_vars_are_initialised_empty_before_first_trap(path):
     lines = path.read_text(encoding="utf-8").splitlines()
     first_trap = next((i for i, ln in enumerate(lines) if re.match(r"\s*trap\s", ln)), None)
     for ln in lines:
-        m = re.match(r'\s*([A-Z_]+)="\$\(mktemp( -d)?\)"', ln)
+        # הפעלה 233: גם באמצע שורה (`KEEP=0; OUT="$(mktemp -d)"`) — היה re.match בתחילת שורה בלבד
+        m = None if ln.lstrip().startswith("#") else re.search(r'(?:^|[;&|])\s*([A-Z_]+)="\$\(mktemp( -d)?\)"', ln)
         if not m:
             continue
         var = m.group(1)
@@ -41,7 +45,7 @@ def test_mktemp_vars_are_initialised_empty_before_first_trap(path):
             f"{path.name}: {var} לא מאותחל לריק לפני ה-trap הראשון")
 
 
-@pytest.mark.parametrize("path", SCRIPTS, ids=lambda p: p.name)
+@pytest.mark.parametrize("path", SCRIPTS, ids=sh_id)
 def test_no_trap_on_int_that_continues(path):
     """trap על INT/TERM שלא יוצא ⇒ הסקריפט ממשיך אחרי Ctrl+C."""
     for _, ln in _trap_lines(path.read_text(encoding="utf-8")):
