@@ -75,17 +75,17 @@ function DraftCard({ d }: { d: Draft }) {
     await reload().catch(() => { setBusy(false); }); showToast(was && already ? already.msg : ok);
   };
   return (
-    <li>
+    <li data-testid={`draft-${d.id}`} data-intent={d.intent} data-escalate={d.escalate}>
       <Card className="p-5">
         <div className="flex flex-wrap items-center gap-2">
-          <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ring-1 ring-inset ${cls}`}>{esc}</span>
+          <span data-testid="draft-esc" className={`rounded-full px-2.5 py-0.5 text-xs font-bold ring-1 ring-inset ${cls}`}>{esc}</span>
           <b className="text-lg">{d.customer}</b>
           <span className="text-sm text-ink-500">· {INTENT[d.intent] ?? d.intent} · {d.channel === 'sms' ? '📱 SMS' : '✉️ מייל'}</span>
           <span className="ms-auto text-xs text-ink-500">{fmtWhenIL(d.created_at)}</span>
         </div>
         <p className="mt-3 font-medium">{d.owner_summary}</p>
         {d.owner_actions.length > 0 && (
-          <ul className="mt-2 space-y-1 text-sm text-ink-700">{d.owner_actions.map(a => <li key={a}>☐ {a}</li>)}</ul>
+          <ul className="mt-2 space-y-1 text-sm text-ink-700" data-testid="draft-actions" aria-label="מה לעשות">{d.owner_actions.map(a => <li key={a}>☐ {a}</li>)}</ul>
         )}
         <label className="block mt-4">
           <span className="text-sm font-bold">{needsWrite ? 'אין טיוטה — כתבו מענה (או סגרו את הכרטיס)' : 'טיוטת המענה של גבי (אפשר לערוך)'}</span>

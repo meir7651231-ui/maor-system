@@ -6,6 +6,7 @@
 //   B: «wrong name on the invoice, please send a corrected invoice» (מייל) ⇒ אותה פעולה.
 //   C: «טעות קטנה בסכום אבל אשלם» ⇒ מחלוקת **דחופה** (שבב «דחוף»), בלי פעולת תיקון-חשבונית.
 //   D (מלכודת): «מה שם העסק?» ⇒ בלי פעולת תיקון.
+//   E (הפעלה 244): «השם שלי בחשבונית שגוי» ⇒ «דחוף» וגם פעולת תיקון (מ-A, אחרי שהכרטיס שלו נסגר).
 // ולבסוף מובייל 390px: הפעולה גלויה ובלי גלילה רוחבית. הרצה: node e2e/ui-invoice-fix.mjs [תיקיית-צילומים]
 import { createRequire } from 'node:module';
 import { randomBytes } from 'node:crypto';
@@ -95,6 +96,18 @@ try {
   const sw = await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   ok(sw <= 0, `מובייל: גלילה רוחבית ${sw}px`);
   if (out) await p.screenshot({ path: `${out}/ui-16-invoice-fix-mobile.png`, fullPage: true });
+
+  // הפעלה 244: «השם שלי בחשבונית שגוי» (הכרעת 241) ⇒ שבב «דחוף» **וגם** פעולת תיקון באותו כרטיס.
+  // בדמו אין לקוח חמישי עם טלפון תקין ⇒ סוגרים את הכרטיס של A ושולחים ממנו.
+  await api(`/conversation/drafts/${dA.id}/approve`, { method: 'POST' });
+  await post('/conversation/inbound', { channel: 'sms', sender: A.phone, text: 'השם שלי בחשבונית שגוי' });
+  const dE = (await api('/conversation/drafts')).find(d => d.customer_id === A.id);
+  ok(dE && dE.intent === 'dispute' && dE.escalate === 'urgent', 'E בשרת: ' + JSON.stringify(dE && [dE.intent, dE.escalate]));
+  await p.goto(base + '/ui');
+  await row(dE).waitFor();
+  ok(await row(dE).locator('.chip.urgent').count() === 1, 'E: אין שבב «דחוף»');
+  ok((await row(dE).locator('ul.acts').textContent()).includes(FIX), 'E: אין פעולת תיקון בכרטיס');
+  if (out) await row(dE).screenshot({ path: `${out}/ui-16-invoice-fix-name-wrong.png` });
 
   ok(errors.length === 0, 'שגיאות בדפדפן: ' + errors.join(' | '));
   console.log('✓ ui-invoice-fix: פעולת «לתקן את פרטי החשבונית» בכרטיס (SMS+מייל), מחלוקת סכום דחופה בלי תיקון, מלכודת בלי התראת שווא, תזכורת לא יוצאת, מובייל');
