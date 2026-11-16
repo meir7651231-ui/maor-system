@@ -1353,7 +1353,10 @@ def _with_quote(summary: str, text: str) -> str:
     («שאל/ה איך משלמים», «אישר/ה קבלה») הוא לא יודע מה נכתב בפועל, וסיווג שגוי עובר בלי שיראה.
     כבר מצוטט (מחלוקת/לא זוהה/שפה זרה) ⇒ לא מכפילים. אותם ציטוטים נבנו מהטקסט **המנורמל** (אותיות סופיות
     ⇒ רגילות, «כלומ»; אותיות לטיניות קטנות; ניקוד הוסר) ⇒ מוחלפים בנוסח המקורי של הלקוח."""
-    q = _clip(re.sub(r"\s+", " ", text or "").strip())
+    # critic סבב 98: (1) בלי תווי כיוון/בקרה מהלקוח (היפוך ויזואלי של הכרטיס); (2) עד 600 תווים, לא 80 — ב-/ui זה
+    # המקום היחיד שבעל העסק רואה את ההודעה, ובקשת הסרה בסוף הודעה ארוכה לא נעלמת ב«…»
+    clean = re.sub(r"[\u202a-\u202e\u2066-\u2069\u200e\u200f\u061c\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", text or "")
+    q = _clip(re.sub(r"\s+", " ", clean).strip(), 600)
     if not q:
         return summary
     if f'"{q}"' in summary:
@@ -1361,4 +1364,8 @@ def _with_quote(summary: str, text: str) -> str:
     nq = f'"{_clip(normalize(text))}"'
     if nq in summary:
         return summary.replace(nq, f'"{q}"', 1)
+    raw = _clip(re.sub(r"\s+", " ", text or "").strip())
+    rq = f'"{raw}"'   # ציטוט קצר/גולמי קודם ⇒ מוחלף בנקי והארוך
+    if rq in summary:
+        return summary.replace(rq, f'"{q}"', 1)
     return f"{summary} ההודעה: \"{q}\"" if summary else f"ההודעה: \"{q}\""

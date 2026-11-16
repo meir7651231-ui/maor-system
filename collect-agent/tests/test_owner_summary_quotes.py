@@ -49,10 +49,10 @@ def test_foreign_language_quoted_once():
 
 
 def test_long_message_clipped_and_whitespace_collapsed():
-    text = "שלום\n\n" + "א" * 200
+    text = "שלום\n\n" + "א" * 700   # critic סבב 98: תקרת הציטוט 600 (היה 80 — בקשת הסרה בסוף הודעה נחתכה)
     s = _with_quote("x", text)
     assert "\n" not in s and s.endswith("…\"")
-    assert len(s) < 100
+    assert len(s) < 620
 
 
 def test_empty_message_leaves_summary():
