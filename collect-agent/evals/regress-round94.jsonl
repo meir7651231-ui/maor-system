@@ -1,0 +1,29 @@
+{"id": "c94-01", "text": "leave me alone", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-02", "text": "leave me alone", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-03", "text": "dont text me", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-04", "text": "dont text me", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-05", "text": "don't text me again", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-06", "text": "don't text me again", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-07", "text": "no more texts", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-08", "text": "no more texts", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-09", "text": "unsub", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-10", "text": "unsub", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-11", "text": "שחררו אותי", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-12", "text": "שחררו אותי", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-13", "text": "לא רוצה שום קשר איתכם", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-14", "text": "לא רוצה שום קשר איתכם", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-15", "text": "בלי הודעות יותר", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-16", "text": "בלי הודעות יותר", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-17", "text": "מה אתם רוצים ממני, תפסיקו", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-18", "text": "מה אתם רוצים ממני, תפסיקו", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-19", "text": "זה לא החוב שלי", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-20", "text": "I can't go on anymore", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-21", "text": "I can't go on anymore", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-22", "text": "I want to die", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-23", "text": "I want to die", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-24", "text": "I want to end my life", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-25", "text": "I want to end my life", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-26", "text": "I am 14", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-27", "text": "I am 14", "ctx": {"channel": "email"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-28", "text": "im 15 my mom pays", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-29", "text": "im 15 my mom pays", "ctx": {"channel": "email"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
