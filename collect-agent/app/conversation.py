@@ -803,6 +803,16 @@ _HE_MONTHS = {"ינואר": 1, "פברואר": 2, "מרצ": 3, "מרס": 3, "א�
 _HE_MON = "|".join(sorted(_HE_MONTHS, key=len, reverse=True))
 _HE_DAYW = {**_NUM_WORDS, **{k.translate(_FINALS): v for k, v in {"ראשון": 1, "חמישה עשר": 15, "חמש עשרה": 15,
                                                                     "עשרים": 20, "שלושים": 30}.items()}}
+# מנהל 253 (qa9 q9-17): «בעשרים ושלושה בנובמבר» ⇒ אין תאריך (רק «עשרים» לבד היה מוכר). מספרים מורכבים 11–31.
+_HE_UNITS = {"אחד": 1, "אחת": 1, "שניים": 2, "שתיים": 2, "שלושה": 3, "שלוש": 3, "ארבעה": 4, "ארבע": 4, "חמישה": 5,
+             "חמש": 5, "שישה": 6, "שש": 6, "שבעה": 7, "שבע": 7, "שמונה": 8, "תשעה": 9, "תשע": 9}
+for _w, _v in _HE_UNITS.items():
+    _HE_DAYW[("עשרים ו" + _w).translate(_FINALS)] = 20 + _v
+    if _v == 1:
+        _HE_DAYW[("שלושים ו" + _w).translate(_FINALS)] = 31
+    if _v >= 3:   # 13–19, זכר ונקבה («שלושה עשר», «שמונה עשרה»); 11, 12 כבר ב-_NUM_WORDS
+        for _suf in (" עשר", " עשרה"):
+            _HE_DAYW[(_w + _suf).translate(_FINALS)] = 10 + _v
 _HE_DAYW_RX = "|".join(sorted(_HE_DAYW, key=len, reverse=True))
 _EN_MONTHS = {"january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6, "july": 7, "august": 8,
               "september": 9, "october": 10, "november": 11, "december": 12, "jan": 1, "feb": 2, "mar": 3, "apr": 4,
@@ -857,6 +867,10 @@ def _named_month_en(t: str, today: date) -> tuple[date | None, bool] | None:
     m = re.search(r"\b(?:the\s+)?(\d{1,2})(st|nd|rd|th)?\s+(of\s+)?(" + _EN_MON + r")\b\.?", t)
     if m and not (m.group(4) == "may" and not (m.group(2) or m.group(3))):
         return _named_date(today, _EN_MONTHS[m.group(4)], int(m.group(1))), False  # None = אזכור עבר ⇒ לא «the Nth»
+    # מנהל 253 (qa9 q9-20): «May 10» כהודעה שלמה (תשובה ל«עד מתי?») ⇒ תאריך; «may» לבד בתוך משפט נשאר מלכודת
+    m = re.fullmatch(r"\W*may\s+(\d{1,2})\W*", t)
+    if m:
+        return _named_date(today, 5, int(m.group(1))), False
     m = re.search(r"(?:\b(on|by|until|till|before|from)\s+)?\b(" + _EN_MON + r")\b\.?\s+(?:the\s+)?(\d{1,2})(st|nd|rd|th)?\b(?![:.]\d)", t)
     if m and not (m.group(2) == "may" and not (m.group(1) or m.group(4))):
         return _named_date(today, _EN_MONTHS[m.group(2)], int(m.group(3))), False
@@ -915,6 +929,12 @@ def _extract_date_en(t: str, today: date) -> tuple[date | None, bool] | None:
                  r"after\s+(?:my\s+)?(?:salary|paycheck)|when\s+(?:my\s+)?(?:salary|paycheck)|later\s+this\s+(?:week|month))\b", t):
         return None, True
     return None
+
+
+# מנהל 253 (qa9 q9-19): «אחרי חנוכה» / «לפני פסח» כתשובה ל«עד מתי?» ⇒ «לא ברור» וכרטיס לבעלים. זה מועד מעורפל
+# (אין לוח עברי במנוע) ⇒ שואלים «עד איזה תאריך בערך?».
+_HOLIDAY_VAGUE = (r"(?:אחרי|לפני|אחר|עד|ב|מיד אחרי|לקראת)\s*-?\s*(?:ה)?(?:חנוכה|פסח|סוכות|פורים|שבועות|ראש השנה"
+                  r"|יום כיפור|ט\"?ו בשבט|ל\"?ג בעומר|החגים|החג)(?![\w])")
 
 
 def extract_date(t: str, today: date) -> tuple[date | None, bool]:
@@ -980,7 +1000,7 @@ def extract_date(t: str, today: date) -> tuple[date | None, bool]:
         return last, False
     if _s(r"(?:בשבוע הבא|שבוע הבא)", t):
         return _next_weekday(today, 6), False
-    if _s(r"(?:משכורת|אחרי החג|אחרי החגים|כשאקבל|כשיהיה|כשיהיה לי|בקרוב|בהקדם|בימים הקרובים|"
+    if _s(r"(?:" + _HOLIDAY_VAGUE + r"|משכורת|אחרי החג|אחרי החגים|כשאקבל|כשיהיה|כשיהיה לי|בקרוב|בהקדם|בימים הקרובים|"
                  r"כמה ימים|מתישהו|אחרי שאקבל|לקראת|כשאחזור|כשאסתדר)", t):
         return None, True
     if he_named is not None:
@@ -1051,10 +1071,21 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             _hits(_c(_ws("מסדר", "מעביר", "משלמ", "מטפל", "מפקיד", "סוגר")), _t_noq, negatable=True) and \
             (extract_date(t, ctx.today)[0] or _s(r"(?:עכשיו|כרגע|מיד|תיכף|בדקות הקרובות)", t)):
         found.add(Intent.PROMISE)
-    if ctx is not None and ctx.state == State.AWAITING_DATE:
+    if ctx is not None and ctx.state in (State.AWAITING_DATE, State.PROMISED):
+        # מנהל 253 (qa9 q9-26): «בשבוע הבא» ⇒ PROMISED, ואז «ביום שלישי ה-17 בנובמבר» (דיוק המועד) ⇒ «לא ברור».
+        # במצב PROMISED תאריך לבד = עדכון המועד. מעורפל לבד (חג) במצב AWAITING_DATE ⇒ הבטחה מעורפלת ⇒ שואלים שוב.
         d, _vague = extract_date(t, ctx.today)
-        if d is not None:
+        if d is not None or (_vague and ctx.state == State.AWAITING_DATE and _s(_HOLIDAY_VAGUE, t)):
             found.add(Intent.PROMISE)
+    # מנהל 253 (qa9 q9-28/משלים): «אפשר לשלם ב-18 בנובמבר?», «Can I pay next week?» = בקשת דחייה עם מועד, לא «איך משלמים»
+    if ctx is not None and (_s(r"(?:אפשר|אוכל|אני יכול\w*|ניתן|מותר)\s+(?:ל)?(?:שלם|לשלם|להעביר|לסדר|לדחות)", t)
+                            or re.search(r"\b(?:can|could|may)\s+(?:i|we)\s+(?:pay|transfer|send\s+(?:it|the\s+payment)|settle)\b", t)):
+        d, _vague = extract_date(t, ctx.today)
+        if (d is not None and d > ctx.today) or (_vague and re.search(r"[a-z]", t)) or _s(_HOLIDAY_VAGUE, t):
+            if not _s(r"(?:איך|לאן|למי|איפה|באיזה|באיזו|בכרטיס|באשראי|בביט|בפייבוקס|בהעברה|בצ'?ק|במזומן)", t) and \
+                    not re.search(r"\b(?:how|where|by\s+(?:card|credit|bit|paypal|check|cheque|bank|transfer)|with\s+(?:a\s+)?card|online|link)\b", t):
+                found.add(Intent.PROMISE)
+                found.discard(Intent.HOW_TO_PAY)
     # מנהל 242 (self4): «לא מכיר את המספר הזה, זה ממי?» = שאלה על השולח, לא «טעות במספר». בלי שם/«אין פה»/«טעות»
     # ⇒ who_is_this (תשובה עם שם העסק). רצפת ההגנה ב-respond עדיין משהה ומעלה כרטיס, כי wrong_person נתפס גולמית.
     if Intent.WRONG_PERSON in found and Intent.WHO_IS_THIS in found and \
@@ -1624,6 +1655,12 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         reply = (f"בסדר גמור. נחזור אליכם כדי למצוא יחד פתרון שמתאים לכם.{sig}")
         summary = f"{name} דחה/תה את הצעת הפריסה: \"{_clip(t)}\"."
         actions.append("להציע הסדר אחר או לדבר אישית")
+        # מנהל 253 (qa9 q9-02): «לא, אשלם הכל ב-15 בדצמבר» — המועד נבלע; בעל העסק ראה רק «דחה». נשאר כרטיס, עם המועד.
+        dd, _ = extract_date(t, ctx.today)
+        if Intent.PROMISE in allset and dd is not None and dd >= ctx.today:
+            promise_date = dd
+            summary += f" מציע/ה במקום לשלם עד {_he_date(dd)} ({(dd - ctx.today).days} ימים)."
+            actions.append(f"לאשר את המועד {_he_date(dd)} או להציע אחר")
         state = State.AWAITING_OWNER
     elif primary in (Intent.PLAN_REQUEST, Intent.PLAN_REJECT, Intent.CANT_PAY):
         requested = extract_installments(t)
