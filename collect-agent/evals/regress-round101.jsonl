@@ -1,0 +1,28 @@
+{"id": "c101-01", "text": "המחיר שונה ממה שאמרתם לי", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-02", "text": "המחיר שונה ממה שאמרתם לי", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-03", "text": "יש פה טעות בחשבון", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-04", "text": "יש פה טעות בחשבון", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-05", "text": "זה לא מה שהזמנתי", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-06", "text": "זה לא מה שהזמנתי", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-07", "text": "החזרתי את המוצר", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-08", "text": "החזרתי את המוצר", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-09", "text": "מבקש זיכוי", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-10", "text": "מבקש זיכוי", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-11", "text": "ההנחה שהובטחה לא מופיעה", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-12", "text": "ההנחה שהובטחה לא מופיעה", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-13", "text": "הטכנאי לא תיקן כלום", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-14", "text": "הטכנאי לא תיקן כלום", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-15", "text": "מחיר מופקע", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-16", "text": "מחיר מופקע", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-17", "text": "the amount is wrong", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-18", "text": "the amount is wrong", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-19", "text": "I never received the service", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-20", "text": "I never received the service", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-21", "text": "you overcharged me", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-22", "text": "you overcharged me", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c101-t1", "text": "מה המחיר? אשלם היום", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute", "opt_out"]}, "critical": true}
+{"id": "c101-t2", "text": "מה המחיר? אשלם היום", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "not": ["dispute", "opt_out"]}, "critical": true}
+{"id": "c101-t3", "text": "הטכנאי תיקן מעולה, תודה, אשלם היום", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute", "opt_out"]}, "critical": true}
+{"id": "c101-t4", "text": "הטכנאי תיקן מעולה, תודה, אשלם היום", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "not": ["dispute", "opt_out"]}, "critical": true}
+{"id": "c101-t5", "text": "the amount is fine, paying tomorrow", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute", "opt_out"]}, "critical": true}
+{"id": "c101-t6", "text": "the amount is fine, paying tomorrow", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "not": ["dispute", "opt_out"]}, "critical": true}
