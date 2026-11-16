@@ -37,10 +37,10 @@
 {"id": "x6-37", "text": "תודה, אני לא צריך עוד תזכורת, אשלם היום", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out"]}, "critical": true}
 {"id": "x6-38", "text": "הבן שלי בצבא ישלם לי את זה, אני אעביר מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["minor", "distress"]}, "critical": true}
 {"id": "x6-39", "text": "מת על השירות שלכם, אשלם בסוף השבוע", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["distress"]}, "critical": true}
-{"id": "x6-40", "text": "עו״ד שלי אמר שהכל בסדר, משלם עכשיו", "ctx": {"channel": "sms"}, "expect": {"not": ["legal"]}, "critical": true}
+{"id": "x6-40", "text": "עו״ד שלי אמר שהכל בסדר, משלם עכשיו", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["legal"]}, "critical": true}
 {"id": "x6-41", "text": "הייתי בחו״ל, רק עכשיו ראיתי. איך משלמים?", "ctx": {"channel": "email"}, "expect": {"intent": "how_to_pay", "not": ["paid_claim"]}, "critical": true}
-{"id": "x6-42", "text": "לא הבנתי את הסכום, אפשר פירוט?", "ctx": {"channel": "email"}, "expect": {"not": ["opt_out", "legal"]}, "critical": true}
-{"id": "x6-43", "text": "stop by tomorrow and I'll pay cash", "ctx": {"channel": "sms"}, "expect": {"not": ["opt_out"]}, "critical": true}
+{"id": "x6-42", "text": "לא הבנתי את הסכום, אפשר פירוט?", "ctx": {"channel": "email"}, "expect": {"intent": "copy_request", "not": ["opt_out", "legal"]}, "critical": true}
+{"id": "x6-43", "text": "stop by tomorrow and I'll pay cash", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out"]}, "critical": true}
 {"id": "x6-44", "text": "הילדים חולים כל השבוע, אשלם בשבוע הבא", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["minor", "distress"]}, "critical": true}
-{"id": "x6-45", "text": "הטעות שלי, שכחתי לגמרי. משלם עכשיו", "ctx": {"channel": "sms"}, "expect": {"not": ["dispute", "wrong_person"]}, "critical": true}
-{"id": "x6-46", "text": "לא קיבלתי את הקישור לתשלום, אפשר לשלוח שוב?", "ctx": {"channel": "email"}, "expect": {"not": ["paid_claim", "opt_out"]}, "critical": true}
+{"id": "x6-45", "text": "הטעות שלי, שכחתי לגמרי. משלם עכשיו", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute", "wrong_person"]}, "critical": true}
+{"id": "x6-46", "text": "לא קיבלתי את הקישור לתשלום, אפשר לשלוח שוב?", "ctx": {"channel": "email"}, "expect": {"intent": "copy_request", "not": ["paid_claim", "opt_out"]}, "critical": true}
