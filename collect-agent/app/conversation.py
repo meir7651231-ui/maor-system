@@ -794,6 +794,86 @@ _EN_NUM = {"a": 1, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 
            "a couple of": 2, "couple of": 2, "a couple": 2}
 
 
+# מנהל 252: חודש בשם — «ב-15 בדצמבר», «עד ה-1 לינואר», «בסוף דצמבר», «the 3rd of January», «Dec 5th».
+# לפני כן: בעברית ⇒ אין תאריך בכלל (כרטיס לבעל העסק / «עד מתי?» שוב); באנגלית «the 3rd of January» ⇒ 3 בדצמבר
+# (החודש נבלע ע״י «the Nth») ⇒ תזכורת חודש לפני המועד שהלקוח ביקש. תאריך שעבר לפני ≤90 יום = אזכור עבר
+# («שילמתי ב-10 בנובמבר»), לא הבטחה ⇒ מדלגים; ישן יותר ⇒ השנה הבאה («ב-3 בינואר» בנובמבר). חודש בלי יום ⇒ מעורפל.
+_HE_MONTHS = {"ינואר": 1, "פברואר": 2, "מרצ": 3, "מרס": 3, "אפריל": 4, "מאי": 5, "יוני": 6, "יולי": 7,
+              "אוגוסט": 8, "ספטמבר": 9, "אוקטובר": 10, "נובמבר": 11, "דצמבר": 12}
+_HE_MON = "|".join(sorted(_HE_MONTHS, key=len, reverse=True))
+_HE_DAYW = {**_NUM_WORDS, **{k.translate(_FINALS): v for k, v in {"ראשון": 1, "חמישה עשר": 15, "חמש עשרה": 15,
+                                                                    "עשרים": 20, "שלושים": 30}.items()}}
+_HE_DAYW_RX = "|".join(sorted(_HE_DAYW, key=len, reverse=True))
+_EN_MONTHS = {"january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6, "july": 7, "august": 8,
+              "september": 9, "october": 10, "november": 11, "december": 12, "jan": 1, "feb": 2, "mar": 3, "apr": 4,
+              "jun": 6, "jul": 7, "aug": 8, "sept": 9, "sep": 9, "oct": 10, "nov": 11, "dec": 12}
+_EN_MON = "|".join(sorted(_EN_MONTHS, key=len, reverse=True))
+_PAST_REF_DAYS = 90
+
+
+def _named_date(today: date, mo: int, day: int | None, part: str = "") -> date | None:
+    """יום בחודש בשם ⇒ המופע הקרוב. part: start/mid/end כשאין יום. None = לא חוקי או אזכור עבר."""
+    for y in (today.year, today.year + 1):
+        last = calendar.monthrange(y, mo)[1]
+        d = day if day is not None else {"start": 1, "mid": 15, "end": last}[part]
+        if not 1 <= d <= last:
+            if y == today.year and day is not None and day <= 31 and mo != 2:
+                return None  # «31 בנובמבר» — לא קיים בשום שנה
+            continue
+        cand = date(y, mo, d)
+        if cand >= today:
+            return cand
+        if (today - cand).days <= _PAST_REF_DAYS:
+            return None
+    return None
+
+
+def _named_month_he(t: str, today: date) -> tuple[date | None, bool] | None:
+    day_rx = r"(\d{1,2}|(?<![\w])(?:ב|ה|ל)?-?(?:" + _HE_DAYW_RX + r"))"
+    m = _s(r"(?<![\d.,/])" + day_rx + r"\s*-?\s*(?:(?:ב|ל)חודש\s+|של\s+)?(?:ב|ל)?-?\s?(" + _HE_MON + r")(?![\w])", t)
+    if m:
+        g = re.sub(r"^(?:ב|ה|ל)?-?", "", m.group(1)) if not m.group(1).isdigit() else m.group(1)
+        day = int(g) if g.isdigit() else _HE_DAYW.get(g)
+        d = _named_date(today, _HE_MONTHS[m.group(2)], day) if day else None
+        return (d, False) if d else None  # יום+חודש שעבר = אזכור עבר, לא «מעורפל»
+    m = _s(r"(?<![\w])(?:ב|עד )?(" + _HE_MON + r")\s+(\d{1,2})(?![\d.,/])", t)
+    if m:
+        d = _named_date(today, _HE_MONTHS[m.group(1)], int(m.group(2)))
+        return (d, False) if d else None
+    m = _s(r"(?<![\w])(?:ב|עד |ל)?(תחילת|ראשית|אמצע|סופ)\s+(?:חודש\s+)?(" + _HE_MON + r")(?![\w])", t)
+    if m:
+        part = {"תחילת": "start", "ראשית": "start", "אמצע": "mid", "סופ": "end"}[m.group(1)]
+        d = _named_date(today, _HE_MONTHS[m.group(2)], None, part)
+        if d:
+            return d, False
+    # חודש בלי יום ⇒ מעורפל. «יוני»/«מאי» בלי מילת יחס = שם/מילה («יוני אמר», «מאי נפקא מינה»)
+    m = _s(r"(?<![\w])(ב|ל|עד |מ|אחרי |לפני |לקראת |במהלכ |ה)?-?(" + _HE_MON + r")(?![\w])", t)
+    if m and (m.group(1) or m.group(2) not in ("יוני", "מאי")):
+        return None, True
+    return None
+
+
+def _named_month_en(t: str, today: date) -> tuple[date | None, bool] | None:
+    m = re.search(r"\b(?:the\s+)?(\d{1,2})(st|nd|rd|th)?\s+(of\s+)?(" + _EN_MON + r")\b\.?", t)
+    if m and not (m.group(4) == "may" and not (m.group(2) or m.group(3))):
+        return _named_date(today, _EN_MONTHS[m.group(4)], int(m.group(1))), False  # None = אזכור עבר ⇒ לא «the Nth»
+    m = re.search(r"(?:\b(on|by|until|till|before|from)\s+)?\b(" + _EN_MON + r")\b\.?\s+(?:the\s+)?(\d{1,2})(st|nd|rd|th)?\b(?![:.]\d)", t)
+    if m and not (m.group(2) == "may" and not (m.group(1) or m.group(4))):
+        return _named_date(today, _EN_MONTHS[m.group(2)], int(m.group(3))), False
+    m = re.search(r"\b(early|beginning\s+of|start\s+of|first\s+week\s+of|mid|middle\s+of|end\s+of|late)\s*-?\s*(?:the\s+month\s+of\s+)?("
+                  + _EN_MON + r")\b", t)
+    if m and not (m.group(2) == "may" and m.group(1) in ("early", "late", "mid")):
+        g = m.group(1)
+        part = "start" if g.startswith(("early", "beginning", "start", "first")) else "mid" if g.startswith("mid") else "end"
+        d = _named_date(today, _EN_MONTHS[m.group(2)], None, part)
+        if d:
+            return d, False
+    if re.search(r"\b(?:in|by|until|till|before|after|around|during|sometime\s+in|end\s+of|early|late)\s+(?:" + _EN_MON + r")\b", t) \
+            and not re.search(r"\b(?:in|by|until|till|before|after|around|during)\s+may\s+(?:be|i|we|have|not|pay)\b", t):
+        return None, True
+    return None
+
+
 def _extract_date_en(t: str, today: date) -> tuple[date | None, bool] | None:
     if not re.search(r"[a-z]", t):
         return None
@@ -808,6 +888,9 @@ def _extract_date_en(t: str, today: date) -> tuple[date | None, bool] | None:
         g = m.group(1)
         n = int(g) if g.isdigit() else _EN_NUM[g]
         return today + timedelta(days=n * (7 if m.group(2).startswith("week") else 1)), False
+    named = _named_month_en(t, today)
+    if named is not None and not named[1]:
+        return named
     m = re.search(r"\b(?:on|by|this|next|until|till|before)?\s*(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b", t)
     if m and not re.search(r"\b(?:last|every)\s+" + m.group(1), t):
         return _next_weekday(today, _EN_WD[m.group(1)]), False
@@ -826,6 +909,8 @@ def _extract_date_en(t: str, today: date) -> tuple[date | None, bool] | None:
     if re.search(r"\b(?:next\s+month|beginning\s+of\s+(?:next|the\s+next)\s+month|start\s+of\s+next\s+month)\b", t):
         y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
         return date(y, mo, 1), False
+    if named is not None:
+        return named
     if re.search(r"\b(?:soon|asap|in\s+a\s+few\s+days|next\s+few\s+days|this\s+week|payday|when\s+i\s+get\s+paid|"
                  r"after\s+(?:my\s+)?(?:salary|paycheck)|when\s+(?:my\s+)?(?:salary|paycheck)|later\s+this\s+(?:week|month))\b", t):
         return None, True
@@ -862,6 +947,9 @@ def extract_date(t: str, today: date) -> tuple[date | None, bool]:
         return today + timedelta(days=14), False
     if _s(r"(?:בעוד|תוך|עוד)\s+(?:כ)?חודש(?!\w)|(?:תנו|תן|תני) לי (?:עוד )?חודש", t):
         return today + timedelta(days=30), False
+    he_named = _named_month_he(t, today)
+    if he_named is not None and he_named[0] is not None:
+        return he_named
     m = _s(r"(?:(?:עד |ב|ל)?יום |ב|עד ה?|ל)-?(ראשון|שני|שלישי|רביעי|חמישי|שישי)(?![\w])", t)
     if m and not _s(r"(?:תשלום|חלק) (?:ה)?" + m.group(1), t):
         return _next_weekday(today, _WEEKDAYS[m.group(1)]), False
@@ -895,6 +983,8 @@ def extract_date(t: str, today: date) -> tuple[date | None, bool]:
     if _s(r"(?:משכורת|אחרי החג|אחרי החגים|כשאקבל|כשיהיה|כשיהיה לי|בקרוב|בהקדם|בימים הקרובים|"
                  r"כמה ימים|מתישהו|אחרי שאקבל|לקראת|כשאחזור|כשאסתדר)", t):
         return None, True
+    if he_named is not None:
+        return he_named
     return en or (None, False)  # מעורפל באנגלית רק אם אין תאריך עברי מדויק
 
 
