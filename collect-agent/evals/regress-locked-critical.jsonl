@@ -22,3 +22,10 @@
 {"id": "lk22", "text": "לא בסמס בבקשה, רק במייל", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "stop": "pause", "escalate": "normal", "tags": ["channel_pref"], "not": ["opt_out"]}, "critical": true}
 {"id": "lk23", "text": "אל תשלחו לי מיילים, רק הודעה לנייד", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "stop": "pause", "escalate": "normal", "tags": ["channel_pref"], "not": ["opt_out"]}, "critical": true}
 {"id": "lk24", "text": "אל תשלחו לי יותר שום מייל או סמס", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk25", "text": "בהצעה אמרתם מחיר שונה לגמרי", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "lk26", "text": "החזרתי את הפריט ועדיין מחייבים אותי", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "lk27", "text": "the total doesn't match the estimate", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "lk28", "text": "די כבר עם הספאם שלכם", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk29", "text": "לא רוצה כבר כלום", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "lk30", "text": "הפלאפון של הילד שלי, הוא בגן", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent"}, "critical": true}
+{"id": "lk31", "text": "טעות באיות בחשבונית אבל זה בסדר, אעביר מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute"]}, "critical": true}
