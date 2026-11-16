@@ -2,7 +2,9 @@
 // אפשר לענות או לסגור — בעל עסק שעובד רק ב-/ui היה תקוע. כאן מול שרת DEMO=1 אמיתי (dry-run), בלי יירוט:
 // שתי הודעות נכנסות («איך משלמים?» עם טיוטה, ו«מה זה בכלל?» בלי) ⇒ כרטיס «הודעות מלקוחות» עם ציטוט ההודעה ·
 // עריכת הטיוטה ⇒ «אישור ושליחה» ⇒ השרת שמר את הנוסח הערוך · בלי טיוטה «אישור» כבוי ⇒ «סגירה בלי מענה» ⇒ השרת:
-// rejected · התור ריק ⇒ הכרטיס נעלם · מובייל בלי גלילה רוחבית. הרצה: node e2e/ui-messages.mjs [תיקיית-צילומים]
+// rejected · התור ריק ⇒ הכרטיס נעלם · מובייל בלי גלילה רוחבית.
+// גבי בדיקות: הנוסח הערוך הוא שיצא בפועל (/outbox) · «הסר» של בעל העסק (סבב 97) חובה, על לקוח עם תזכורת
+// מאושרת ⇒ אחרי ההסרה /plan + /dispatch + flush לא מוציאים אליו כלום, והתזכורת בוטלה. הרצה: node e2e/ui-messages.mjs [תיקיית-צילומים]
 import { createRequire } from 'node:module';
 import { randomBytes } from 'node:crypto';
 import { assertPortFree, srvStdio, srvLogLevel, waitHealthy, launchChromium, spawnServer } from './lib.mjs';
@@ -28,8 +30,13 @@ const b = await launchChromium(chromium);
 try {
   ok((await api('/conversation/drafts')).length === 0, 'הדמו התחיל עם הודעות בתור (app/demo.py מאשר את כולן)');
   const custs = (await api('/customers')).filter(c => c.phone && !c.opted_out && !c.disputed);
-  ok(custs.length >= 2, 'אין שני לקוחות עם טלפון בדמו');
-  const [A, B] = custs;
+  // גבי בדיקות: C = לקוח עם תזכורת שממתינה לאישור (הדמו משאיר אחת) — כדי להוכיח שאחרי «הסר» היא לא יוצאת.
+  // היה `if (C)` — בדמו עם פחות מ-3 לקוחות השלב דולג בשקט ו«עבר». נבחר ראשון; A ו-B מהשאר.
+  const pendR = (await api('/reminders?status=pending_approval')).filter(r => !r.block_reason);
+  const C = custs.find(c => pendR.some(r => r.customer_name === c.name));
+  ok(C, 'אין בדמו לקוח עם תזכורת שממתינה לאישור — שלב ההסרה חייב לרוץ');
+  const [A, B] = custs.filter(c => c.id !== C.id);
+  ok(A && B, 'אין שני לקוחות נוספים עם טלפון בדמו');
   await post('/conversation/inbound', { channel: 'sms', sender: A.phone, text: 'היי, איך אפשר לשלם?' });
   await post('/conversation/inbound', { channel: 'sms', sender: B.phone, text: 'מה זה בכלל? לא מבין' });
   const q = await api('/conversation/drafts');
@@ -69,13 +76,20 @@ try {
   const all = await api('/conversation/drafts?status=');
   const sA = all.find(d => d.id === dA.id);
   ok(['approved', 'sent_dry_run'].includes(sA.status) && sA.body === edited && sA.edited === 1, 'השרת: ' + JSON.stringify({ s: sA.status, b: sA.body, e: sA.edited }));
+  // גבי בדיקות: מה שיצא בפועל (יומן היוצאים) = הנוסח הערוך, לא הטיוטה המקורית
+  if (sA.status !== 'sent_dry_run') await api('/conversation/flush', { method: 'POST' });
+  const outA = (await api('/outbox')).messages.filter(m => m.to === A.phone.replace(/\D/g, '').replace(/^0/, '972') || m.to === A.email);
+  ok(outA.some(m => m.body.includes('תודה רבה!')), 'הנוסח הערוך לא יצא בפועל: ' + JSON.stringify(outA.map(m => m.body.slice(0, 60))));
+  ok(!outA.some(m => m.body.trim() === dA.body.trim()), 'יצאה גם/במקום הטיוטה המקורית');
   // בלי מענה: סגירה
   await rowB.getByRole('button', { name: 'סגירה בלי מענה' }).click();
   await rowB.waitFor({ state: 'detached' });
   ok((await api('/conversation/drafts?status=rejected')).some(d => d.id === dB.id), 'השרת: ההודעה של B לא נסגרה');
   // critic סבב 97: המנוע לא זיהה בקשת הסרה ⇒ בעל העסק קורא ומסיר בעצמו. לחיצה ראשונה רק מחמשת (סופי)
-  const C = custs[2];
-  if (C) {
+  const rC = pendR.find(r => r.customer_name === C.name);
+  await api(`/reminders/${rC.id}/approve`, { method: 'POST' });   // בעל העסק כבר אישר את התזכורת אליו
+  const toC = new Set([C.phone.replace(/\D/g, '').replace(/^0/, '972'), C.email].filter(Boolean));
+  {
     await post('/conversation/inbound', { channel: 'sms', sender: C.phone, text: 'בבקשה תעצרו את זה כבר, לא רלוונטי לי' });
     await p.evaluate(() => load(false));
     const dC = (await api('/conversation/drafts')).find(d => d.customer_id === C.id);
@@ -90,6 +104,20 @@ try {
     await rowC.waitFor({ state: 'detached' });
     ok((await api('/customers')).find(c => c.id === C.id).opted_out, 'השרת: C לא הוסר/ה');
     ok(/הוסר/.test(await p.locator('#cmDone').textContent()), 'הודעת הצלחה להסרה');
+    // אחרי «הסר»: שום דבר לא יוצא אל C — לא התזכורת שכבר אושרה, לא תזכורת חדשה, לא טיוטה
+    const mark = (await api('/outbox')).messages.length;
+    await api('/plan', { method: 'POST' });
+    for (const r of (await api('/reminders?status=pending_approval')).filter(r => r.customer_name === C.name)) {
+      const res = await fetch(base + `/reminders/${r.id}/approve`, { method: 'POST', headers: H });
+      ok(!res.ok || res.status === 409, 'תזכורת חדשה אל לקוח שהוסר אושרה');
+    }
+    await api('/dispatch', { method: 'POST' });
+    await api('/conversation/flush', { method: 'POST' });
+    const after = (await api('/outbox')).messages.slice(mark).filter(m => toC.has(m.to));
+    ok(after.length === 0, 'אחרי «הסר» יצאה הודעה אל הלקוח: ' + JSON.stringify(after.map(m => [m.channel, m.body.slice(0, 50)])));
+    const stC = (await api('/reminders')).find(r => r.id === rC.id);
+    ok(stC && !['approved', 'sent_dry_run', 'pending_approval'].includes(stC.status),
+      'התזכורת שאושרה לפני ההסרה לא בוטלה: ' + (stC && stC.status));
   }
   if (!(await api('/conversation/drafts')).length) await card.waitFor({ state: 'hidden' });
   await p.setViewportSize({ width: 390, height: 844 });
