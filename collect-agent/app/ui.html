@@ -73,6 +73,10 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 #ol li .who{flex:1;min-width:180px}#ol li .mk{display:flex;gap:6px}#ol li .mk button{min-height:36px;padding:4px 12px;font-size:14px}
 #ol li .mk button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--brand-ink);font-weight:600}
 #ol li .mk button.paid[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--card)}
+#cm{border-color:var(--warn);margin-bottom:12px}#cm[hidden],#cmDone[hidden]{display:none}#cm ul{list-style:none;margin:0;padding:0}
+#cm li{padding:12px 0;border-bottom:1px solid var(--line)}#cm li:last-child{border-bottom:0}#cm .sum{margin:8px 0;font-weight:600;white-space:pre-wrap;word-break:break-word}
+#cm .acts{margin:0 0 8px;padding-inline-start:18px;font-size:14px}#cm textarea{width:100%;min-height:72px;margin-top:4px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:inherit;font:inherit;box-sizing:border-box}
+#cm .hd{display:flex;flex-wrap:wrap;align-items:center;gap:8px}#cm .lbl{font-size:13px;font-weight:600}#cm .chip.urgent{background:var(--bad);color:#fff}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 </style>
 </head>
@@ -100,6 +104,10 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
     <ul id="olList"></ul><div class="decide"><button class="primary" id="olOk" disabled>אישור (0)</button><button id="olAll">הכול עדיין פתוח</button></div>
     <div class="err" id="olErr" role="alert"></div></section>
   <div class="note" id="olDone" role="status" hidden></div>
+  <section class="card" id="cm" hidden aria-labelledby="cmH"><h2 id="cmH"></h2>
+    <p class="slogan">גבי קרא, סיכם והכין מענה. עד שתענו או תסגרו, לא יוצאות ללקוח הזה תזכורות. שום מענה לא נשלח בלי אישור שלכם.</p>
+    <ul id="cmList"></ul><div class="err" id="cmErr" role="alert"></div></section>
+  <div class="note" id="cmDone" role="status" hidden></div>
   <section class="card"><div class="row"><h2>חובות פתוחים וסטטוס תזכורות</h2><span class="slogan" id="today"></span></div><input type="search" class="find" id="dFind" placeholder="חיפוש לפי שם לקוח, מספר חשבונית או טלפון" aria-label="חיפוש בחובות" autocomplete="off" hidden><div class="qf" id="df" role="group" aria-label="סינון החובות"></div>
     <div class="tbl"><table><thead><tr><th>לקוח</th><th>חשבונית</th><th>סכום</th><th>מועד</th><th>איחור</th>
     <th>תזכורות שנשלחו</th><th>סטטוס אחרון</th></tr></thead><tbody id="debts"></tbody></table></div><div id="dmore"></div></section>
@@ -125,7 +133,7 @@ const pause=r=>{const [b,u]=String(r).split(":until=");const t=BLOCK[b]||PAUSE[b
   return u?t+" · עד "+u.split("-").reverse().join("."):t};
 const BLOCK={no_contact:"אין נייד או מייל תקין",compliance:"נחסם במסנן הניסוח",plan_active:"בהסדר תשלומים",disputed:"מחלוקת",no_payment_link:"אין קישור תשלום",
   no_reply_to:"ללקוח יש רק מייל ולא הוגדרה כתובת תשובה לעסק",
-  awaiting_owner:"הלקוח כתב לכם — התזכורות ממתינות לתשובה שלכם",
+  awaiting_owner:"הלקוח כתב לכם — התזכורות ממתינות לתשובה שלכם (בכרטיס «הודעות מלקוחות» למעלה)",
   opted_out:"הלקוח ביקש הסרה",paid_claim:"הלקוח טוען ששילם",dispute:"מחלוקת",credit_review:"זיכוי לא משויך, לבדיקתך",
   invoice_closed:"החשבונית נסגרה",plan_request:"ביקש פריסה"};
 // הפעלה 133: חסימה קשה = HARD_BLOCKS בשרת (אסור לאשר). REAPPROVE = התזכורת רק חזרה לאישור, השרת מתיר.
@@ -180,7 +188,7 @@ function skel(){if(got.d&&got.q)return;
   if(!got.q)$("#list").innerHTML=Array(3).fill(`<div class="card skitem" aria-hidden="true"><span class="sk w"></span>${SK}</div>`).join("");
   $("#dash").setAttribute("aria-busy","true");$("#list").setAttribute("aria-busy","true");$("#busyMsg").textContent="טוען נתונים…"}
 function lock(had){locked=true;stale=false;clearTimeout(rt);sel=shown=null;$("#detail").removeAttribute("aria-busy");try{sessionStorage.removeItem(TOK)}catch(e){}got={d:false,q:false};busyOff();
-  for(const i of ["#kpis","#debts","#list","#df","#dmore","#qf","#qmore"])$(i).innerHTML="";$("#olList").innerHTML="";olItems=[];olMark={};$("#ol").hidden=$("#olDone").hidden=true;dQ=qQ="";for(const i of ["#dFind","#qFind"]){$(i).value="";$(i).hidden=true}$("#today").textContent="";
+  for(const i of ["#kpis","#debts","#list","#df","#dmore","#qf","#qmore"])$(i).innerHTML="";$("#olList").innerHTML="";olItems=[];olMark={};$("#ol").hidden=$("#olDone").hidden=true;$("#cmList").innerHTML="";$("#cmErr").textContent="";cmItems=[];cmBody={};cmAmt={};$("#cm").hidden=$("#cmDone").hidden=true;dQ=qQ="";for(const i of ["#dFind","#qFind"]){$(i).value="";$(i).hidden=true}$("#today").textContent="";
   $("#detail").innerHTML='<div class="empty">בחרו תזכורת כדי לראות תצוגה מקדימה של SMS ומייל</div>';
   $("#loaderr").hidden=$("#wunk").hidden=$("#acterr").hidden=true;hdr();
   $("#lockMsg").textContent=had?"תוקף הכניסה פג. הנתונים הוסרו מהמסך. היכנסו שוב כדי להמשיך"
@@ -224,6 +232,7 @@ async function loadDash(ask){
   $("#kpis").innerHTML=k.map(([l,v,w])=>`<div class="card kpi ${w?"warn":""}"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("");
   dRows=d.invoices;drawDebts();
   await loadOpen(t.open_unreviewed||0);
+  await loadMsgs();
 }
 // הפעלה 214: שער «אישור רשימת הפתוחות» (critic 79) — ב-/app/ יש כרטיס (OpenListCard), אבל בעל עסק שעובד רק
 // ב-/ui (הדשבורד הפשוט, גם מה ש-demo.sh פותח בלי build) לא ראה כלום: חשבונית חדשה מסנכרון/CSV ממתינה לאישור,
@@ -255,6 +264,57 @@ $("#olOk").onclick=async()=>{const ids=m=>Object.keys(olMark).filter(k=>olMark[k
     olMark={};$("#olDone").textContent=`נשמר: ${open.length} פתוחות${paid.length?` · ${paid.length} סומנו כשולמו ולא יתוזכרו`:""}`;$("#olDone").hidden=false}
   catch(e){failed(e,m=>{$("#olErr").textContent="האישור לא נשמר: "+m})}
   finally{olBusy=false;await load()}};
+// הפעלה 232: critic סבב 95 — לקוח כתב משהו (טיוטה/כרטיס בתור) ⇒ awaiting_owner עוצר את התזכורות אליו, ו-/ui הציג
+// רק «הלקוח כתב לכם» בלי דרך לקרוא את ההודעה, לענות או לסגור. בעל עסק שעובד רק ב-/ui (גם demo.sh בלי build) היה
+// תקוע, והלקוח בלי מענה. עכשיו: כרטיס «הודעות מלקוחות» מ-/conversation/drafts (התור: pending_approval+needs_owner),
+// כמו Inbox ב-/app/: סיכום גבי (כולל ציטוט ההודעה), מה לבדוק, טיוטה שאפשר לערוך, אישור סכום חריג, «אישור ושליחה»
+// ו«סגירה בלי מענה». אין «חידוש» עיוור. עריכה נשמרת בין רענונים, ורענון לא מוחק טקסט שמקלידים כרגע.
+const INTENT={how_to_pay:"שאל/ה איך משלמים",paid_claim:"טוען/ת ששילם/ה",plan_request:"מבקש/ת פריסה",opt_out:"ביקש/ה הסרה",
+  dispute:"מחלוקת",copy_request:"מבקש/ת העתק חשבונית",thanks:"תודה",unknown:"לא ברור",promise:"הבטיח/ה לשלם",
+  cant_pay:"כתב/ה שאין אפשרות לשלם כרגע",legal:"הוזכר עניין משפטי",distress:"נראה/ית במצוקה",callback:"מבקש/ת שתחזרו",
+  wrong_person:"כתב/ה שזה לא המספר הנכון",abusive:"תגובה פוגענית",minor:"ייתכן שמדובר בקטין/ה",who_is_this:"שואל/ת מי פונה",
+  plan_accept:"הסכים/ה להצעת הפריסה",plan_reject:"דחה/תה את הצעת הפריסה"};
+const ESCL={urgent:"דחוף",normal:"לטיפולך"};
+const whenIL=v=>{const d=new Date(v);return isNaN(d)?"":d.toLocaleString("he-IL",{timeZone:"Asia/Jerusalem",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})};
+let cmItems=[],cmBody={},cmAmt={},cmBusy=null;
+async function loadMsgs(){
+  try{cmItems=await api("/conversation/drafts",{},false);$("#cmErr").textContent=""}
+  catch(e){if(e.auth)return;$("#cmErr").textContent="הודעות הלקוחות לא נטענו: "+e.message}
+  const live=new Set(cmItems.map(d=>String(d.id)));for(const o of [cmBody,cmAmt])for(const k in o)if(!live.has(k))delete o[k];
+  drawMsgs()}
+function drawMsgs(){
+  const c=$("#cm"),n=cmItems.length;c.hidden=!n&&!$("#cmErr").textContent;
+  // מקלידים עכשיו באחת הטיוטות ואותן טיוטות בתור ⇒ לא מציירים מחדש (אחרת הפוקוס והסמן אובדים)
+  const a=document.activeElement,ids=[...$("#cmList").children].map(li=>li.dataset.did).join();
+  if(a&&a.matches("#cmList textarea")&&ids===cmItems.map(d=>d.id).join()){btnsMsgs();return}
+  $("#cmH").textContent=n===1?"לקוח אחד כתב לכם":`${n} הודעות מלקוחות מחכות לכם`;
+  $("#cmList").innerHTML=cmItems.map(d=>{const odd=d.amount_check||[],body=cmBody[d.id]??(d.body||""),w=d.status==="needs_owner";
+    return `<li data-did="${d.id}"><div class="hd">${ESCL[d.escalate]?`<span class="chip ${d.escalate==="urgent"?"urgent":"pending"}">${ESCL[d.escalate]}</span>`:""}<strong>${esc(d.customer)}</strong>
+      <span class="slogan">${esc(INTENT[d.intent]||d.intent)} · ${d.channel==="sms"?"SMS":"מייל"}${d.created_at?" · "+esc(whenIL(d.created_at)):""}</span></div>
+      <p class="sum">${esc(d.owner_summary||"")}</p>
+      ${(d.owner_actions||[]).length?`<ul class="acts">${d.owner_actions.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}
+      <label><span class="lbl">${w?"אין טיוטה. כתבו מענה, או סגרו בלי מענה":"טיוטת המענה של גבי (אפשר לערוך)"}</span>
+      <textarea rows="3" aria-label="מענה ל${esc(d.customer)}">${esc(body)}</textarea></label>
+      ${odd.length?`<label class="confirm"><input type="checkbox" data-amt${cmAmt[d.id]?" checked":""}><span><b>הסכום נכון, בדקתי.</b> ${esc(odd.map(o=>`חשבונית ${o.number||"(ללא מספר)"}: ${fmtCur(o.amount_agorot,o.currency)} (בדרך כלל ${fmtCur(o.usual_agorot,o.currency)})`).join(" · "))}. אולי הנקודה העשרונית במקום הלא נכון?</span></label>`:""}
+      <div class="decide"><button class="primary" data-a="approve">אישור ושליחה</button><button class="ghost-bad" data-a="reject">סגירה בלי מענה</button></div>
+      <div class="err" data-e role="alert"></div></li>`}).join("");
+  btnsMsgs()}
+function btnsMsgs(){for(const li of $("#cmList").children){const id=li.dataset.did,d=cmItems.find(x=>String(x.id)===id);if(!d)continue;
+  const body=(cmBody[id]??(d.body||"")).trim(),odd=(d.amount_check||[]).length,busy=cmBusy!==null||locked;
+  li.querySelector('[data-a="approve"]').disabled=busy||!body||(odd&&!cmAmt[id]);li.querySelector('[data-a="reject"]').disabled=busy}}
+$("#cmList").addEventListener("input",e=>{const li=e.target.closest("li[data-did]");if(!li)return;
+  if(e.target.matches("textarea"))cmBody[li.dataset.did]=e.target.value;
+  if(e.target.matches("[data-amt]"))cmAmt[li.dataset.did]=e.target.checked;btnsMsgs()});
+$("#cmList").addEventListener("change",e=>{const li=e.target.closest("li[data-did]");if(li&&e.target.matches("[data-amt]")){cmAmt[li.dataset.did]=e.target.checked;btnsMsgs()}});
+$("#cmList").addEventListener("click",async e=>{const b=e.target.closest("button[data-a]");if(!b||cmBusy!==null)return;
+  const li=b.closest("li"),id=li.dataset.did,d=cmItems.find(x=>String(x.id)===id);if(!d)return;const a=b.dataset.a;
+  const body=cmBody[id],payload={...(body!==undefined&&body!==(d.body||"")?{body}:{}),...(cmAmt[id]?{confirm_amount:true}:{})};
+  cmBusy=id;btnsMsgs();li.querySelector("[data-e]").textContent="";$("#cmDone").hidden=true;let msg="";
+  try{await api(`/conversation/drafts/${id}/${a}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(a==="approve"?payload:{})});
+    msg=a==="approve"?`המענה ל${d.customer} אושר ונשלח (בדיקה)`:`ההודעה של ${d.customer} נסגרה בלי מענה`}
+  catch(e){if(e.already===DONE[a])msg=e.message+". המסך עודכן";
+    else{cmBusy=null;btnsMsgs();return failed(e,m=>{li.querySelector("[data-e]").textContent=(a==="approve"?"לא נשלח: ":"לא נסגר: ")+m})}}
+  delete cmBody[id];delete cmAmt[id];cmBusy=null;$("#cmDone").textContent=msg;$("#cmDone").hidden=false;await load()});
 // הפעלה 167: טבלת החובות ציירה את כל החשבוניות (גם שנסגרו) בכל רענון. על 5,000 חשבוניות: 5,000 שורות ב-DOM,
 // 4.5–5.1 שנ׳ עד שהטבלה הופיעה (מעבד מואט ×4). עכשיו, כמו התור (165): ברירת מחדל «פתוחות» (סגורות מאחורי «הכול»)
 // ועד DPAGE שורות לפי סדר השרת (המועד המוקדם ראשון); «הצגת עוד» מוסיף עוד DPAGE. הסינון בצד הלקוח בלבד.
