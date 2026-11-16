@@ -951,9 +951,11 @@ def _extract_date_en(t: str, today: date) -> tuple[date | None, bool] | None:
         return last, False
     if re.search(r"\bnext\s+week\b", t):
         return _next_weekday(today, 6), False
-    if re.search(r"\b(?:next\s+month|beginning\s+of\s+(?:next|the\s+next)\s+month|start\s+of\s+next\s+month)\b", t):
+    if re.search(r"\b(?:next\s+month|beginning\s+of\s+(?:next|the\s+next)\s+month|start\s+of\s+next\s+month|early\s+next\s+month)\b", t):
         y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
-        return date(y, mo, 1), False
+        # עקבי עם העברית: «בחודש הבא» ⇒ 10 בחודש, «בתחילת החודש הבא» ⇒ 1 (ביקורת qa9 q9-28)
+        bare = not re.search(r"\b(?:beginning|start|early)\b", t)
+        return date(y, mo, 10 if bare else 1), False
     if named is not None:
         return named
     if re.search(r"\b(?:soon|asap|in\s+a\s+few\s+days|next\s+few\s+days|this\s+week|payday|when\s+i\s+get\s+paid|"
