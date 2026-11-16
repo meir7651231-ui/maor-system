@@ -4,18 +4,16 @@
 // רשם בדיוק את זה (/open-list), הכרטיס מציג 1, והחשבונית ששולמה לא בטבלת החובות הפתוחים. «הכול עדיין פתוח» ⇒
 // הכרטיס נעלם. הרצה: node e2e/ui-openlist.mjs [תיקיית-צילומים]
 import { createRequire } from 'node:module';
-import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, srvStdio, srvLogLevel, waitHealthy, launchChromium } from './lib.mjs';
+import { assertPortFree, srvStdio, srvLogLevel, waitHealthy, launchChromium, spawnServer } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8147, base = `http://127.0.0.1:${PORT}`;
 const TOKEN = randomBytes(32).toString('base64url');
 const ROOT = new URL('../..', import.meta.url).pathname;
 await assertPortFree(PORT);
-const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
+const srv = spawnServer('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
   { cwd: ROOT, env: { ...process.env, DEMO: '1', OPEN_REVIEW: '1', OWNER_API_TOKEN: TOKEN }, stdio: srvStdio('server-ui-openlist') });
-process.on('exit', () => srv.kill());
 const ok = (c, m) => { if (!c) throw new Error(m); };
 const H = { Authorization: `Bearer ${TOKEN}` };
 const api = async (p, o = {}) => {

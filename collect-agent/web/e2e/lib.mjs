@@ -1,5 +1,6 @@
 // עזרים משותפים לבדיקות הדפדפן (live.mjs, ui.mjs, rebuild.mjs, notices.mjs, beta.mjs).
 import { mkdirSync, mkdtempSync, openSync, rmSync } from 'node:fs';
+import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 /** הפעלה 222 (QA, «הבא» 3 מ-221): live.mjs השאיר ב-TMPDIR תיקייה עם סוד ה-TOTP של עובד הדמו, ו-beta.mjs ארבע
@@ -9,7 +10,11 @@ import { join } from 'node:path';
 const _temps = new Set(), _procs = new Set();
 let _hooked = false;
 export function cleanupTemps() {
-  for (const p of _procs) { try { if (p.exitCode === null && p.signalCode === null) p.kill('SIGKILL'); } catch { /* כבר מת */ } }
+  for (const p of _procs) {
+    // קבוצת תהליכים (spawnServer): הורגים את כל הקבוצה גם אם המוביל כבר יצא — נכד (vite מתחת ל-npx) עוד חי.
+    if (p[GROUP]) { try { process.kill(-p.pid, 'SIGKILL'); } catch { /* הקבוצה כבר ריקה */ } continue; }
+    try { if (p.exitCode === null && p.signalCode === null) p.kill('SIGKILL'); } catch { /* כבר מת */ }
+  }
   for (const d of _temps) { try { rmSync(d, { recursive: true, force: true }); } catch { /* מחיקה נכשלה — לא מפילים יציאה */ } }
   _temps.clear();
 }
@@ -27,6 +32,19 @@ export function tempDir(prefix) {
   return d;
 }
 export function trackProc(p) { hookExit(); _procs.add(p); return p; }
+const GROUP = Symbol('gabi-proc-group');
+/** הפעלה 235 (QA, «הבא» 2 מ-234): a11y.mjs ו-shots.mjs הרימו `npx vite preview` ועצרו ב-srv.kill() — זה הורג רק
+ *  את npx; vite (נכד) נשאר חי על הפורט **בכל ריצה, גם בהצלחה** (נמדד: SIGTERM וגם SIGKILL ⇒ יתום). ושאר הסקריפטים
+ *  (uvicorn) רשמו רק process.on('exit') ⇒ ב-SIGINT/SIGTERM node יוצא בלי exit ⇒ השרת יתום.
+ *  spawnServer: קבוצת תהליכים משלו (detached) + רישום ב-trackProc ⇒ srv.kill() הורג את כל הקבוצה, ו-cleanupTemps
+ *  הורג אותה (SIGKILL) ביציאה רגילה, בחריגה, ב-SIGINT⇒130 וב-SIGTERM⇒143. כל spawn ב-e2e/ עובר דרכו (מגן-מקור
+ *  ב-tests/e2e-procs.check.ts). */
+export function spawnServer(cmd, args, opts = {}) {
+  const p = trackProc(spawn(cmd, args, { ...opts, detached: true }));
+  p[GROUP] = true;
+  p.kill = (sig = 'SIGTERM') => { try { process.kill(-p.pid, sig); return true; } catch { return false; } };
+  return p;
+}
 /** הפעלה 223 (QA, «הבא» 3 מ-222): Chromium עצמו כותב ל-TMPDIR של התהליך שלו (‎.org.chromium.Chromium.*‎) ולפעמים
  *  לא מנקה ב-close() — מרוץ בכיבוי. נמדד: 5 מ-64 הרצות של סקריפטי concepts-*-board השאירו תיקייה כזו, גם בהצלחה.
  *  launchChromium נותן לדפדפן TMPDIR פרטי מ-tempDir (נמחק ביציאה, גם בחריגה/SIGINT/SIGTERM). כל launch של

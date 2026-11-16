@@ -2,10 +2,9 @@
 // axe-core מקומי (npm, בלי שירות חיצוני) בתוך Playwright. נכשל על כל הפרה serious/critical.
 // דרישה: npm run build (לדף /app/). הרצה: node e2e/a11y.mjs
 import { createRequire } from 'node:module';
-import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, srvLogLevel, srvStdio, waitHealthy, launchChromium } from './lib.mjs';
+import { assertPortFree, srvLogLevel, srvStdio, waitHealthy, launchChromium, spawnServer } from './lib.mjs';
 const { chromium, devices } = createRequire(import.meta.url)('playwright');
 const AXE = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8');
 const MK = new URL('../../marketing/', import.meta.url).pathname;
@@ -21,12 +20,12 @@ const pages = [
   ['תמליל הסרטונים', 'file://' + MK + 'video/transcript.html'],
   ['דף נחיתה מעוצב /app/', 'http://localhost:4339/'],
 ];
-const srv = spawn('npx', ['vite', 'preview', '--port', '4339', '--strictPort'], { stdio: 'ignore' });
+const srv = spawnServer('npx', ['vite', 'preview', '--port', '4339', '--strictPort'], { stdio: 'ignore' });
 // עמודי הלקוח של העסק (/p, /pay, /u) מוגשים מהשרת ⇒ שרת DEMO=1 (dry-run, נתונים בדויים), כמו live.mjs
 const TOKEN = randomBytes(32).toString('base64url'), API = 'http://127.0.0.1:8152';
 // critic סבב 81: כמו שאר הסוויטות — פלט השרת נשמר בכישלון (srvStdio), והמתנה שמזהה שרת שמת (waitHealthy)
 await assertPortFree(8152);
-const api = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', '8152', '--log-level', srvLogLevel()],
+const api = spawnServer('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', '8152', '--log-level', srvLogLevel()],
   { cwd: new URL('../..', import.meta.url).pathname, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN }, stdio: srvStdio('server-a11y') });
 await waitHealthy(API, api);
 const health = await (await fetch(API + '/health')).json();

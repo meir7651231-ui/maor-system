@@ -4,18 +4,16 @@
 // עריכת הטיוטה ⇒ «אישור ושליחה» ⇒ השרת שמר את הנוסח הערוך · בלי טיוטה «אישור» כבוי ⇒ «סגירה בלי מענה» ⇒ השרת:
 // rejected · התור ריק ⇒ הכרטיס נעלם · מובייל בלי גלילה רוחבית. הרצה: node e2e/ui-messages.mjs [תיקיית-צילומים]
 import { createRequire } from 'node:module';
-import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, srvStdio, srvLogLevel, waitHealthy, launchChromium } from './lib.mjs';
+import { assertPortFree, srvStdio, srvLogLevel, waitHealthy, launchChromium, spawnServer } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8148, base = `http://127.0.0.1:${PORT}`;
 const TOKEN = randomBytes(32).toString('base64url');
 const ROOT = new URL('../..', import.meta.url).pathname;
 await assertPortFree(PORT);
-const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
+const srv = spawnServer('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
   { cwd: ROOT, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN }, stdio: srvStdio('server-ui-messages') });
-process.on('exit', () => srv.kill());
 const ok = (c, m) => { if (!c) throw new Error(m); };
 const H = { Authorization: `Bearer ${TOKEN}` };
 const api = async (p, o = {}) => {

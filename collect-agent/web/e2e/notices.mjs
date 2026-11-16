@@ -2,8 +2,7 @@
 // בעוד 3 ימים ⇒ כרטיס trial_ending, בדסקטופ ובמובייל, בלי גלילה רוחבית ובלי שגיאות. ניסיון רגיל (9 ימים) ⇒ אין כרטיס.
 // דרישה: npm run build. הרצה: node e2e/notices.mjs
 import { createRequire } from 'node:module';
-import { spawn } from 'node:child_process';
-import { srvStdio, srvLogLevel, waitHealthy, launchChromium } from './lib.mjs';
+import { srvStdio, srvLogLevel, waitHealthy, launchChromium, spawnServer } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = new URL('../..', import.meta.url).pathname;
 const ok = (c, m) => { if (!c) throw new Error(m); };
@@ -11,7 +10,7 @@ const ok = (c, m) => { if (!c) throw new Error(m); };
 async function run(port, trialStart) {
   const base = `http://127.0.0.1:${port}`;
   const TOKEN = (await import('node:crypto')).randomBytes(32).toString('base64url');
-  const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(port), '--log-level', srvLogLevel()],
+  const srv = spawnServer('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(port), '--log-level', srvLogLevel()],
     { cwd: root, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN, PORT: String(port), DEMO_TRIAL_START: trialStart }, stdio: srvStdio(`server-notices-${port}`) });
   await waitHealthy(base, srv);
   const b = await launchChromium(chromium); const errors = []; const seen = {};

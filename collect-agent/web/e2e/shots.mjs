@@ -1,11 +1,10 @@
 // מצב מוק (בלי שרת): כל המסכים, דסקטופ + מובייל, אפס שגיאות, אפס בקשות חיצוניות, אפס גלילה רוחבית.
 // דרישה: npm run build. הרצה: node e2e/shots.mjs <תיקיית-צילומים>
 import { createRequire } from 'node:module';
-import { spawn } from 'node:child_process';
-import { smallTargets, launchChromium } from './lib.mjs';
+import { smallTargets, launchChromium, spawnServer } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2] ?? 'screenshots';
-const srv = spawn('npx', ['vite', 'preview', '--port', '4319', '--strictPort'], { stdio: 'ignore' });
+const srv = spawnServer('npx', ['vite', 'preview', '--port', '4319', '--strictPort'], { stdio: 'ignore' });
 await new Promise(r => setTimeout(r, 2500));
 const base = 'http://localhost:4319/';
 const ok = (c, m) => { if (!c) throw new Error(m); };
