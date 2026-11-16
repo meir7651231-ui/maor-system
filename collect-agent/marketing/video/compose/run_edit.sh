@@ -18,7 +18,7 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
-S=$1; PY=${PY:-python}; W=$S/w; Q=qa
+S=$1; PY=${PY:-python3}; W=$S/w; Q=qa
 HV=$S/drive/1sJfN57MHeRehHOtXrmWhxUM4NA1ZjcTG.mp4
 VV=$S/drive/1XXo941NIJVCT4tl58J60bn1EgvJfVSiR.mp4
 for c in ${CLIPS:-h v}; do

@@ -1,7 +1,7 @@
 #!/bin/sh
 # הצנרת המלאה לשני הקליפים. שימוש (מתוך compose/): PY=<python עם opencv+scipy> sh run_all.sh <scratch: drive/ + w/> ..
 set -e
-S=$1; O=$2; PY=${PY:-python}
+S=$1; O=$2; PY=${PY:-python3}
 HV=$S/drive/1sJfN57MHeRehHOtXrmWhxUM4NA1ZjcTG.mp4
 VV=$S/drive/1XXo941NIJVCT4tl58J60bn1EgvJfVSiR.mp4
 W=$S/w

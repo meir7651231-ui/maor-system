@@ -87,8 +87,10 @@ def test_works_where_only_python3_exists(tmp_path):
 def test_shell_scripts_never_call_bare_python():
     """critic סבב 87: אין `python` בסקריפטי ה-shell — רק python3 (או .venv/bin/python3)."""
     bad = []
-    for f in [ROOT / "demo.sh", *sorted((ROOT / "scripts").glob("*.sh"))]:
+    # critic סבב 96: כל *.sh בריפו (לא רק scripts/) — גם ברירת מחדל «${PY:-python}» (run_all/run_edit של הווידאו)
+    files = sorted(p for p in ROOT.rglob("*.sh") if "node_modules" not in p.parts and ".venv" not in p.parts)
+    for f in files:
         for n, line in enumerate(f.read_text("utf-8").splitlines(), 1):
-            if not line.lstrip().startswith("#") and re.search(r"(?:^|[;&|(`]\s*|\s)python(?:\s|$)", line):
+            if not line.lstrip().startswith("#") and re.search(r"(?:^|[;&|(`]\s*|\s|:-|=)python(?:\s|$|;|\})", line):
                 bad.append(f"{f.name}:{n}")
     assert not bad, bad
