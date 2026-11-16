@@ -798,6 +798,10 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     # "stop calling me sir/madam" = כינוי, לא בקשת הפסקת פנייה (self4)
     if Intent.OPT_OUT in found and _s(r"\bstop calling me (?:sir|madam|ma'?am|mr|mrs|ms|bro|dude|that|names|by)\b", t):
         found.discard(Intent.OPT_OUT)
+    # בקשת קבלה / "send me the invoice again" ⇒ copy_request (הענף מבדיל קבלה מהעתק חשבונית)
+    if not (found - {Intent.UNKNOWN, Intent.THANKS}) and (_s(_RECEIPT, t) or _s(r"\b(?:re)?send\b.{0,20}\binvoice\b", t)):
+        found.discard(Intent.UNKNOWN)
+        found.add(Intent.COPY_REQUEST)
     # שאלה על עו"ד ("אתם עובדים עם עו"ד?") ≠ איום
     if Intent.LEGAL in found and "?" in t and _s(r"(?:אתם|יש לכם|האם)\W+(?:\w+\W+){0,3}(?:עו\"ד|עורכ\w* ה?דין)", t) \
             and not _s(_KEEPS_LEGAL, t):  # critic סבב 80
@@ -1026,6 +1030,7 @@ def _foreign(lang: str, text: str, ctx: Context) -> Decision:
         tags=("foreign_language", f"lang:{lang}"), confidence="none")
 
 
+_RECEIPT = r"(?<![\w])(?:ה|ו)?(?:קבלה|קבלות)(?![\w])|\breceipts?\b"
 _FLOOR_INTENTS = (Intent.OPT_OUT, Intent.DISPUTE, Intent.LEGAL, Intent.DISTRESS, Intent.MINOR, Intent.WRONG_PERSON)
 
 
@@ -1322,6 +1327,13 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             summary = f"{name} אמר/ה שישלם/תשלם (בלי תאריך). שאלתי עד מתי; הושהה ל-3 ימים."
             if vague:
                 tags.append("vague_date")
+    elif primary == Intent.COPY_REQUEST and _s(_RECEIPT, t):
+        # critic סבב 102: בקשת *קבלה* רומזת שהלקוח שילם ⇒ לא "נשלח חשבונית"; השהיה עד שבעל העסק בודק
+        reply = f"תודה! נבדוק את התשלום אצלנו ונשלח לכם קבלה ברגע שהוא יאומת.{sig}"
+        summary = f"{name} ביקש/ה קבלה — ייתכן שכבר שילם/ה. התזכורות הושהו עד שתבדקו."
+        actions.append("לבדוק אם התקבל תשלום; אם כן — להנפיק קבלה ולסגור את החשבונית")
+        bump(Escalation.NORMAL, Stop.PAUSE)
+        tags.append("receipt_request")
     elif primary == Intent.COPY_REQUEST:
         reply = f"בטח. נשלח לכם שוב את {_numbers(ctx) or 'החשבונית'} עם הפירוט בהקדם.{sig}"
         summary = f"{name} מבקש/ת העתק/פירוט של {_numbers(ctx) or 'החשבונית'}."
