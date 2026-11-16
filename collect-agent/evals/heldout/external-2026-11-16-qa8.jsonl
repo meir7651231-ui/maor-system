@@ -1,0 +1,46 @@
+{"id": "x8-01", "text": "Yes, that works for me, thanks", "ctx": {"channel": "email", "state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_accept", "state": "plan_pending_owner"}, "critical": false}
+{"id": "x8-02", "text": "OK sounds good", "ctx": {"channel": "sms", "state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_accept", "state": "plan_pending_owner"}, "critical": false}
+{"id": "x8-03", "text": "כן, ok, deal", "ctx": {"channel": "sms", "state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_accept", "state": "plan_pending_owner"}, "critical": false}
+{"id": "x8-04", "text": "Agreed. Please send me the link for the first payment", "ctx": {"channel": "email", "state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_accept", "state": "plan_pending_owner"}, "critical": false}
+{"id": "x8-05", "text": "No, that doesn't work for me", "ctx": {"channel": "email", "state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_reject", "not": ["plan_accept"]}, "critical": false}
+{"id": "x8-06", "text": "לא מתאים לי, sorry", "ctx": {"channel": "sms", "state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_reject", "not": ["plan_accept"]}, "critical": false}
+{"id": "x8-07", "text": "3 payments is still too much for me, can we do 6 instead?", "ctx": {"channel": "email", "state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_request", "not": ["plan_accept"]}, "critical": false}
+{"id": "x8-08", "text": "Actually I already paid the full amount yesterday", "ctx": {"channel": "email", "state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "paid_claim", "not": ["plan_accept"]}, "critical": true}
+{"id": "x8-09", "text": "please stop messaging me", "ctx": {"channel": "sms", "state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "x8-10", "text": "Who gave you this number? I'm not Dana", "ctx": {"channel": "sms", "state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "x8-11", "text": "ok but the amount is wrong, I was quoted much less", "ctx": {"channel": "email", "state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "dispute", "escalate": "urgent", "not": ["plan_accept"]}, "critical": true}
+{"id": "x8-12", "text": "fine whatever. I can't deal with any of this anymore, I don't want to live", "ctx": {"channel": "sms", "state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "x8-13", "text": "I'll think about it and get back to you", "ctx": {"channel": "email", "state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "unknown", "not": ["plan_accept"]}, "critical": true}
+{"id": "x8-14", "text": "Thursday", "ctx": {"channel": "sms", "state": "awaiting_date"}, "expect": {"intent": "promise", "promise_in_days": 4, "state": "promised"}, "critical": false}
+{"id": "x8-15", "text": "by Wednesday at the latest", "ctx": {"channel": "email", "state": "awaiting_date"}, "expect": {"intent": "promise", "promise_in_days": 3, "state": "promised"}, "critical": false}
+{"id": "x8-16", "text": "tomorrow morning", "ctx": {"channel": "sms", "state": "awaiting_date"}, "expect": {"intent": "promise", "promise_in_days": 1, "state": "promised"}, "critical": false}
+{"id": "x8-17", "text": "ביום חמישי, after my salary comes in", "ctx": {"channel": "sms", "state": "awaiting_date"}, "expect": {"intent": "promise", "promise_in_days": 4, "state": "promised"}, "critical": false}
+{"id": "x8-18", "text": "On the 15th", "ctx": {"channel": "email", "state": "awaiting_date"}, "expect": {"intent": "promise", "promise_in_days": 7, "state": "promised"}, "critical": false}
+{"id": "x8-19", "text": "I don't know honestly, I lost my job last week", "ctx": {"channel": "email", "state": "awaiting_date"}, "expect": {"intent": "cant_pay"}, "critical": false}
+{"id": "x8-20", "text": "I don't owe you anything, I cancelled the service back in September", "ctx": {"channel": "email", "state": "awaiting_date"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "x8-21", "text": "stop", "ctx": {"channel": "sms", "state": "awaiting_date"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "x8-22", "text": "My lawyer will be in touch with you", "ctx": {"channel": "email", "state": "awaiting_date"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "x8-23", "text": "already transferred it this morning, check your account", "ctx": {"channel": "sms", "state": "awaiting_date"}, "expect": {"intent": "paid_claim"}, "critical": true}
+{"id": "x8-24", "text": "Sorry, I can't make it on Thursday, can we push it a few days?", "ctx": {"channel": "email", "state": "promised"}, "expect": {"intent": "promise", "not": ["dispute", "opt_out"]}, "critical": false}
+{"id": "x8-25", "text": "Done! paid just now 👍", "ctx": {"channel": "sms", "state": "promised"}, "expect": {"intent": "paid_claim"}, "critical": true}
+{"id": "x8-26", "text": "Hi, what's the process (התהליך) for paying by bank transfer?", "ctx": {"channel": "email"}, "expect": {"intent": "how_to_pay", "not": ["opt_out", "dispute"]}, "critical": true}
+{"id": "x8-27", "text": "הטרנזקציה נכשלה, how do I try again?", "ctx": {"channel": "email"}, "expect": {"intent": "how_to_pay", "not": ["dispute", "paid_claim", "opt_out"]}, "critical": true}
+{"id": "x8-28", "text": "כדי לשלוח לכם את הכסף אני צריך את פרטי החשבון, can you send them?", "ctx": {"channel": "email"}, "expect": {"intent": "how_to_pay", "not": ["opt_out"]}, "critical": true}
+{"id": "x8-29", "text": "Can you send me a copy of the invoice? My accountant needs it", "ctx": {"channel": "email"}, "expect": {"intent": "copy_request"}, "critical": false}
+{"id": "x8-30", "text": "Please call me, it's easier to talk on the phone", "ctx": {"channel": "email"}, "expect": {"intent": "callback"}, "critical": false}
+{"id": "x8-31", "text": "This is Dana's phone, I'm her son and I'm 12. What is this message?", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent"}, "critical": true}
+{"id": "x8-32", "text": "you people are scammers and idiots", "ctx": {"channel": "sms"}, "expect": {"intent": "abusive"}, "critical": false}
+{"id": "x8-33", "text": "Thanks for the reminder, I'll pay on Thursday", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "promise_in_days": 4}, "critical": false}
+{"id": "x8-34", "text": "תודה רבה! paid in full via bit", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim"}, "critical": true}
+{"id": "x8-35", "text": "Money is really tight this month, I can't pay right now", "ctx": {"channel": "email"}, "expect": {"intent": "cant_pay"}, "critical": false}
+{"id": "x8-36", "text": "Could I pay half now and the other half next month?", "ctx": {"channel": "email"}, "expect": {"intent": "plan_request"}, "critical": false}
+{"id": "x8-37", "text": "Who is this? I don't recognize this business at all", "ctx": {"channel": "sms"}, "expect": {"intent": "who_is_this"}, "critical": false}
+{"id": "x8-38", "text": "Remove me from your list. Now.", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "x8-39", "text": "I have no problem paying, just send me the link", "ctx": {"channel": "email"}, "expect": {"intent": "how_to_pay", "not": ["opt_out", "dispute"]}, "critical": true}
+{"id": "x8-40", "text": "Please don't stop the service, I'll pay by Wednesday", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "promise_in_days": 3, "not": ["opt_out"]}, "critical": true}
+{"id": "x8-41", "text": "My son is 17, he'll drop by with the cash tomorrow", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["minor"]}, "critical": true}
+{"id": "x8-42", "text": "This amount is killing me haha, but ok, paying tonight", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["distress"]}, "critical": true}
+{"id": "x8-43", "text": "I think there's a mistake — this invoice is for a service I never received", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "x8-44", "text": "Unsubscribe me please. Also, I already paid this last week.", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent", "also": ["paid_claim"]}, "critical": true}
+{"id": "x8-45", "text": "התהליך באתר נתקע בתשלום, the page keeps crashing. Is there another way to pay?", "ctx": {"channel": "email"}, "expect": {"intent": "how_to_pay", "not": ["dispute", "opt_out"]}, "critical": true}
+{"id": "x8-46", "text": "Sorry for the delay, I was abroad. Sending it today", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "not": ["opt_out", "dispute"]}, "critical": false}
