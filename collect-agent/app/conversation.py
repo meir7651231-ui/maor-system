@@ -1208,6 +1208,17 @@ def _foreign(lang: str, text: str, ctx: Context) -> Decision:
             owner_summary=f"🌐 {name} ביקש/ה ב{label} להפסיק לקבל הודעות: \"{_clip(text)}\". הוסר/ה לצמיתות.",
             owner_actions=("לוודא בתרגום שזו אכן בקשת הסרה",),
             tags=("foreign_language", f"lang:{lang}"), confidence="rules")
+    # critic סבב 112: מצוקה/קטין בשפה זרה ⇒ דחוף (מייל לבעלים) + תווית בעברית; עדיין בלי מענה אוטומטי
+    if _FOREIGN_DISTRESS.search(text or "") or _FOREIGN_MINOR.search(text or ""):
+        kind = "ייתכן מצוקה" if _FOREIGN_DISTRESS.search(text or "") else "ייתכן קטין"
+        intent = Intent.DISTRESS if kind == "ייתכן מצוקה" else Intent.MINOR
+        return Decision(
+            intent=intent, secondary=(), reply=None, auto_send=False,
+            escalate=Escalation.URGENT, stop=Stop.PAUSE, pause_until=None, next_state=State.AWAITING_OWNER,
+            owner_summary=f"🚨 {kind} — {name} כתב/ה ב{label}: \"{_clip(text)}\". התזכורות נעצרו; נדרש מענה אישי דחוף.",
+            owner_actions=("לתרגם ולפנות אישית בהקדם", "לא לחדש תזכורות לפני בירור"),
+            tags=("foreign_language", f"lang:{lang}", "minor" if intent == Intent.MINOR else "sensitive"),
+            confidence="rules")
     return Decision(
         intent=Intent.UNKNOWN, secondary=(), reply=None, auto_send=False,
         escalate=Escalation.NORMAL, stop=Stop.PAUSE, pause_until=None, next_state=State.AWAITING_OWNER,
@@ -1216,6 +1227,12 @@ def _foreign(lang: str, text: str, ctx: Context) -> Decision:
         tags=("foreign_language", f"lang:{lang}"), confidence="none")
 
 
+# critic סבב 112: סימני מצוקה/קטין בסיסיים ברוסית ובערבית (לא תרגום מלא — רק כדי להסלים לדחוף)
+_FOREIGN_DISTRESS = re.compile(
+    r"умереть|умру|покончить с собой|убить себя|самоубий|не (?:хочу|могу) (?:больше )?жить|жить не (?:хочу|могу)"
+    r"|أموت|انتحار|أنتحر|انتحر|لا أريد أن أعيش|لا أستطيع العيش|أقتل نفسي", re.I)
+_FOREIGN_MINOR = re.compile(
+    r"мне\s+(?:1[0-7]|[5-9])\s+(?:лет|год)|عمري\s+(?:1[0-7]|١[٠-٧]|[5-9]|[٥-٩])\s+(?:سنة|سنوات|عام)", re.I)
 _RECEIPT = r"(?<![\w])(?:ה|ו)?(?:קבלה|קבלות)(?![\w])|\breceipts?\b"
 _FLOOR_INTENTS = (Intent.OPT_OUT, Intent.DISPUTE, Intent.LEGAL, Intent.DISTRESS, Intent.MINOR, Intent.WRONG_PERSON)
 
