@@ -594,6 +594,8 @@ RX: dict[Intent, re.Pattern[str]] = {
         # מנהל 249 (qa7 x7-28/46): «will transfer… by end of month», «I'll take care of it this week»
         r"(?:^|[.,!]\s*)(?:we\s+)?will\s+(?:transfer|send|wire|settle)\b", r"\b(?:i|we)(?:'ll|\s+will)\s+(?:take\s+care\s+of|handle|sort\s+out)\s+(?:it|this|that)\b", r"\b(?:i|we)(?:'ll|\s+will)\s+sort\s+(?:it|this|that)\s+out\b",
         r"\b(?:paying|pay|will\s+pay)\s+(?:it\s+|you\s+)?(?:on\s+)?(?:sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b", r"\bmoney is coming\b|\bpayment is coming\b",
+        # מנהל 254 (רצפי רגרסיה): «I haven't transferred it yet, will do Thursday» ⇒ «לא ברור» (אין פועל תשלום ליד המועד)
+        r"\b(?:i(?:'ll|\s+will)|will)\s+do\s+(?:it\s+|that\s+|so\s+)?(?:today|tonight|tomorrow|this\s+week|next\s+week|(?:on\s+|by\s+)?(?:sun|mon|tues|wednes|thurs|fri|satur)day)\b",
         r"(?:יעביר|תעביר|ישלם|תשלם|יסדר|תסדר|יעבירו|ישלמו)\w*\s+(?:\w+\s+){0,4}(?:בשבילי|עבורי|במקומי)", r"(?:תזכירו|תזכיר|תזכרו|תזכירי) לי (?:בעוד|עוד|ב|אחרי|בתחילת|בסוף)", r"(?:רוצה|צריך|צריכה|צריכים|אפשר|אשמח ל|אבקש) (?:עוד )?(?:קצת )?(?:זמן|ארכה|דחייה)", r"(?:זה|הכסף|התשלום) (?:יהיה )?אצלכם", r"(?:ב|עד ה?)(?:ראשון|שני|שלישי|רביעי|חמישי) (?:הקרוב|הבא)",
         # מנהל 242 (self4): צד שלישי ישלם — «הבן שלי בן 20 ישלם», «בעלי יעביר מחר», «רואה החשבון יסדר»
         r"(?:הבן|הבת|בעלי|בעלה|אשתי|אבא|אמא|אבי|אמי|אחי|אחותי|הנכד|הנכדה|השותף|השותפה|המשרד|ההנהלה|הנהלת החשבונות|"
@@ -782,6 +784,27 @@ def _next_weekday(today: date, wd: int) -> date:
     return today + timedelta(days=(wd - today.weekday()) % 7 or 7)
 
 
+def _weekday_with_day(today: date, wd: int, day: int) -> tuple[date | None, bool]:
+    """מנהל 254: «ביום שלישי ה-17» / «Tuesday the 17th» — היום בחודש קובע, לא «שלישי הקרוב».
+    עד 254: כלל היום-בשבוע רץ קודם ⇒ «בעצם ביום שלישי ה-17» נרשם כ-10.11 (טעות בטוחה-בעצמה, תזכורת שבוע מוקדם).
+    יום בשבוע ויום בחודש לא מתאימים זה לזה (או יום לא קיים) ⇒ מעורפל ⇒ «עד איזה תאריך?» — לא מנחשים."""
+    if not 1 <= day <= 31:
+        return None, True
+    y, m = today.year, today.month
+    for _ in range(2):  # החודש הנוכחי (אם היום עוד לא עבר) או הבא
+        if day > today.day or (y, m) != (today.year, today.month):
+            try:
+                cand = date(y, m, day)
+            except ValueError:
+                cand = None
+            if cand is not None:
+                return (cand, False) if cand.weekday() == wd else (None, True)
+        m += 1
+        if m > 12:
+            y, m = y + 1, 1
+    return None, True
+
+
 def _month_day(today: date, day: int) -> date:
     y, m = today.year, today.month
     if day <= today.day:
@@ -909,6 +932,10 @@ def _extract_date_en(t: str, today: date) -> tuple[date | None, bool] | None:
     named = _named_month_en(t, today)
     if named is not None and not named[1]:
         return named
+    m = re.search(r"\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s*,?\s*(?:the\s+)?(\d{1,2})(?:st|nd|rd|th)?\b(?![.:/]\d)"
+                  r"(?!\s*(?:payments|installments|days|weeks|months|dollars|shekels|nis|%))", t)
+    if m:
+        return _weekday_with_day(today, _EN_WD[m.group(1)], int(m.group(2)))
     m = re.search(r"\b(?:on|by|this|next|until|till|before)?\s*(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b", t)
     if m and not re.search(r"\b(?:last|every)\s+" + m.group(1), t):
         return _next_weekday(today, _EN_WD[m.group(1)]), False
@@ -974,6 +1001,9 @@ def extract_date(t: str, today: date) -> tuple[date | None, bool]:
     he_named = _named_month_he(t, today)
     if he_named is not None and he_named[0] is not None:
         return he_named
+    wd_dom = _s(r"(ראשון|שני|שלישי|רביעי|חמישי|שישי)\s*,?\s*(?:ה|ב)?-?(\d{1,2})(?![\d./:]|\s*(?:תשלומ|ש\"?ח|₪|שקל|אלף|חשבונ|ימים|יום|שבוע|חודש|%))", t)
+    if wd_dom:
+        return _weekday_with_day(today, _WEEKDAYS[wd_dom.group(1)], int(wd_dom.group(2)))
     m = _s(r"(?:(?:עד |ב|ל)?יום |ב|עד ה?|ל)-?(ראשון|שני|שלישי|רביעי|חמישי|שישי)(?![\w])", t)
     if m and not _s(r"(?:תשלום|חלק) (?:ה)?" + m.group(1), t):
         return _next_weekday(today, _WEEKDAYS[m.group(1)]), False

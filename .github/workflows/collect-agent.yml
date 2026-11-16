@@ -61,6 +61,8 @@ jobs:
         run: python3 -I scripts/tree_guard.py check "$RUNNER_TEMP/tree-before.txt"
       - name: evals של מנוע השיחה (315 מקרים, נכשל על הפרת מעקה)
         run: python -m evals.harness
+      - name: רצפי רגרסיה רב-הודעתיים דרך svc.inbound (evals/seq/, כולל מעבר SMS⇄מייל) — נכשל על כל רצף
+        run: python -m evals.sequences
       - name: הדגמה מקצה לקצה (שרת + נתוני דמו + דשבורד, dry-run)
         run: ./demo.sh --check
       - name: smoke — מעקות השרת (טוקן, 401, docs, webhook 019, DB 0600, אין דליפה ללוג)

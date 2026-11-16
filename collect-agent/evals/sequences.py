@@ -1,6 +1,7 @@
 """הרצת סט רצפים (רב-הודעתי) דרך השירות האמיתי — `svc.inbound`, לא המנוע הבודד.
 
-    python3 -m evals.sequences evals/heldout/external-2026-11-16-qa9-seq.jsonl
+    python3 -m evals.sequences                       # כל סטי הרגרסיה ב-evals/seq/ (רץ ב-CI)
+    python3 -m evals.sequences evals/heldout/external-2026-11-16-qa9-seq.jsonl   # סט מוחזק, ידני
 
 כל רצף = לקוח אחד (דנה כהן, 1,200 ₪ פתוח) בשירות טרי (DB בזיכרון, חשבונית ירוקה מדומה, dry-run).
 כל הודעה נכנסת ב-`inbound` ⇒ ההקשר (מצב, הצעה שנשלחה, מונה תורות) נבנה מה-DB כמו בפרודקשן.
@@ -67,7 +68,8 @@ def run_seq(seq: dict) -> list[str]:
     with _service() as (svc, seen):
         for i, turn in enumerate(seq["turns"], 1):
             seen.clear()
-            out = svc.inbound(seq["channel"], ADDR[seq["channel"]], turn["text"])
+            ch = turn.get("channel", seq["channel"])  # מנהל 254: מעבר ערוץ באמצע רצף (SMS⇄מייל, אותו לקוח)
+            out = svc.inbound(ch, ADDR[ch], turn["text"])
             d = seen[-1] if seen else None
             conv = svc.db.one("SELECT state FROM conversations WHERE customer_id=1")
             e, tag = turn["expect"], f"#{i}"
@@ -90,8 +92,19 @@ def run_seq(seq: dict) -> list[str]:
     return fails
 
 
+HERE = Path(__file__).parent
+
+
 def main(argv: list[str]) -> int:
-    path = Path(argv[0]) if argv else Path("evals/heldout/external-2026-11-16-qa9-seq.jsonl")
+    """בלי ארגומנטים ⇒ כל סטי הרגרסיה ב-`evals/seq/` (מנהל 254: שער CI). סט מוחזק רץ רק בהעברה מפורשת."""
+    paths = [Path(p) for p in argv] or sorted((HERE / "seq").glob("*.jsonl"))
+    if not paths:
+        print("אין סטי רצפים ב-evals/seq/")
+        return 1
+    return max(_run_file(p) for p in paths)
+
+
+def _run_file(path: Path) -> int:
     seqs = [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x.strip()]
     ok = crit_ok = crit = turns = 0
     for s in seqs:
