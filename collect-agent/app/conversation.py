@@ -1318,10 +1318,16 @@ def _foreign(lang: str, text: str, ctx: Context) -> Decision:
             owner_actions=("לתרגם ולפנות אישית בהקדם", "לא לחדש תזכורות לפני בירור"),
             tags=("foreign_language", f"lang:{lang}", "minor" if intent == Intent.MINOR else "sensitive"),
             confidence="rules")
+    # critic סבב 113: רמז בעברית לבעל עסק שלא קורא את השפה; עו״ד/מחלוקת ⇒ דחוף. הכוונה לא משתנה (אישור אחרי תרגום)
+    hint = next((h for rx, h, _u in _FOREIGN_HINTS if rx.search(text or "")), None)
+    urgent = any(u and rx.search(text or "") for rx, _h, u in _FOREIGN_HINTS)
     return Decision(
         intent=Intent.UNKNOWN, secondary=(), reply=None, auto_send=False,
-        escalate=Escalation.NORMAL, stop=Stop.PAUSE, pause_until=None, next_state=State.AWAITING_OWNER,
-        owner_summary=f"🌐 {name} השיב/ה ב{label}: \"{_clip(text)}\". האוטומציה נעצרה; נדרש מענה אישי.",
+        escalate=Escalation.URGENT if urgent else Escalation.NORMAL, stop=Stop.PAUSE, pause_until=None,
+        next_state=State.AWAITING_OWNER,
+        owner_summary=(f"🌐 {name} השיב/ה ב{label}: \"{_clip(text)}\". "
+                       + (f"ייתכן: {hint} (לוודא בתרגום). " if hint else "")
+                       + "האוטומציה נעצרה; נדרש מענה אישי."),
         owner_actions=("לקרוא/לתרגם ולהשיב אישית", "לחדש תזכורות רק אחרי שבירור"),
         tags=("foreign_language", f"lang:{lang}"), confidence="none")
 
@@ -1332,6 +1338,13 @@ _FOREIGN_DISTRESS = re.compile(
     r"|أموت|انتحار|أنتحر|انتحر|لا أريد أن أعيش|لا أستطيع العيش|أقتل نفسي", re.I)
 _FOREIGN_MINOR = re.compile(
     r"мне\s+(?:1[0-7]|[5-9])\s+(?:лет|год)|عمري\s+(?:1[0-7]|١[٠-٧]|[5-9]|[٥-٩])\s+(?:سنة|سنوات|عام)", re.I)
+_FOREIGN_HINTS = (   # (תבנית, רמז בעברית, דחוף?)
+    (re.compile(r"адвокат|юрист|суд(?![а-я]*\s*(?:-|\s)?(?:поч))|المحامي|محامي|المحكمة|محكمة", re.I), "פנייה לעו״ד / משפטית", True),
+    (re.compile(r"ничего не должен|не должна|не заказывал|не заказывала|это ошибка|неправильн\w* сумм"
+                r"|لم أطلب|لا أدين|هذا خطأ|المبلغ خطأ|مبلغ غير صحيح", re.I), "מחלוקת על החוב", True),
+    (re.compile(r"не мой номер|ошиблись номером|не тот номер|ليس رقمي|رقم خطأ|الرقم الخطأ", re.I), "מספר שגוי", False),
+    (re.compile(r"уже (?:за)?платил|уже оплатил|я оплатил|دفعت|تم الدفع|سددت", re.I), "טוען/ת ששילם/ה", False),
+)
 _RECEIPT = r"(?<![\w])(?:ה|ו)?(?:קבלה|קבלות)(?![\w])|\breceipts?\b"
 _FLOOR_INTENTS = (Intent.OPT_OUT, Intent.DISPUTE, Intent.LEGAL, Intent.DISTRESS, Intent.MINOR, Intent.WRONG_PERSON)
 
