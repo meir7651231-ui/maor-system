@@ -484,7 +484,12 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"מחיר (?:של )?(?:שוד|גנבה|מטורף|הזוי|מופרך)|שוד לאור היום|(?:קורעים|קרעתם|קרעו) (?:אותי|אותנו|לי)",
         r"\bdoes(?:n'?t| not) match\b", r"\b(?:nobody|no one) (?:ever )?(?:showed|came|turned)(?: up)?\b",
         r"\b(?:the\s+)?(?:quote|estimate|agreed\s+price)\s+(?:was|said)\b", r"\bwe\s+agreed\s+on\b", r"\bplease\s+(?:fix|correct)\s+(?:it|the\s+(?:invoice|bill|amount))\s+before\b",
-        r"\bovercharg\w*|\bcharged (?:me|us) (?:way )?too much\b|\bwhy am i paying\b"),
+        r"\bovercharg\w*|\bcharged (?:me|us) (?:way )?too much\b|\bwhy am i paying\b",
+        # מנהל 251 (qa8): «an invoice for a service I never received», «I never ordered this», «the invoice is wrong»
+        r"\b(?:product|item|order|goods|service|work|job|delivery)\s+(?:that\s+)?(?:i|we)\s+(?:never|did\s*n'?t|did\s+not)\s+(?:receive|received|get|got|order|ordered|ask\s+for|asked\s+for|use|used|agree\s+to|agreed\s+to)\b",
+        r"\b(?:i|we)\s+(?:never|did\s*n'?t|did\s+not)\s+(?:order|ordered|ask\s+for|asked\s+for|agree\s+to|agreed\s+to)\s+(?:this|that|it|any|the)\b",  # «never signed up» = הסכמה לרשימה (הסרה), לא מחלוקת
+        r"\b(?:the\s+)?(?:invoice|bill|amount|charge|total)\s+is\s+(?:wrong|incorrect|not\s+correct|a\s+mistake)\b",
+        r"\b(?:there'?s|there\s+is)\s+(?:a|some)\s+mistake\b.{0,30}\b(?:invoice|bill|charge|amount)\b"),
     Intent.PAID_CLAIM: _rx(
         _ws(r"שילמ", r"(?<!מ)שלמת", r"(?<!מ)שלמנו"), _w("שולם", "שולמה", "שולמו", "משולם", "משולמת"),
         _ws(r"העברת", r"העברנו", r"הפקדת", r"הפקדנו"),
@@ -492,7 +497,11 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"(?:שלחתי|שלחנו|העברתי) (?:לכם |לך )?(?:כבר )?(?:ב|ב-)?(?:ביט|פייבוקס|paybox|bit|העברה|צ'?ק)",
         r"(?:נתתי|מסרתי|השארתי|שלחתי) (?:לו |לה |לכם )?(?:צ'?ק|צ'?קים|מזומן|את הכסף)",
         r"הכסף (?:כבר )?(?:הועבר|נשלח|אצלכם|ירד|יצא)", r"(?:התשלום|הכסף) (?:בוצע|יצא|ירד מהחשבון)",
-        r"\b(?:already )?paid\b", r"(?:יש לי|מצרפ\w*|הנה|שולח\w*) (?:את ה)?אסמכתא", r"(?:בעלי|אשתי|בעלה|אבא שלי|אמא שלי|השותף) (?:כבר )?(?:שילם|שילמה|העביר|העבירה)",
+        r"\b(?:already )?paid\b",
+        # מנהל 251 (qa8): «already transferred it this morning», «I wired the money yesterday»
+        r"\b(?:already\s+)?(?:transferred|wired|deposited)\s+(?:it|the\s+(?:money|payment|amount|funds))\b",
+        r"\b(?:i|we)\s+(?:already\s+)?(?:transferred|wired|deposited|sent)\s+(?:you\s+)?(?:the\s+)?(?:money|payment|funds|transfer)\b",
+        r"(?:יש לי|מצרפ\w*|הנה|שולח\w*) (?:את ה)?אסמכתא", r"(?:בעלי|אשתי|בעלה|אבא שלי|אמא שלי|השותף) (?:כבר )?(?:שילם|שילמה|העביר|העבירה)",
         r"(?:ה)?(?:ביט|פייבוקס|העברה|תשלום|צ'?ק|כסף)(?: \w+)? (?:כבר )?(?:נשלח|נשלחה|בוצע|בוצעה|יצא|יצאה|הועבר|הועברה|הופקד)",
         r"(?:קיבלתם|קיבלת) (?:כבר )?(?:את )?(?:ה)?(?:כסף|תשלום)",
         r"מצורפ\w*\s+(?:ה)?(?:אסמכתא|צילום|קבלה|אישור)\w*",
@@ -531,6 +540,8 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"\binstall?ments?\b", r"payment plan",
         # מנהל 248 (qa6 x6-26): «split this into a few monthly payments», «pay it in parts»
         r"\bsplit\b(?:\s+\S+){0,6}?\s+(?:monthly\s+)?(?:payments?|parts|chunks)\b",
+        # מנהל 251 (qa8): מקבילה ל«חצי עכשיו וחצי…» — «pay half now and the other half next month», «part now, the rest later»
+        r"\b(?:half|part|some)\s+(?:of\s+it\s+)?(?:now|today|this\s+month)\b.{0,30}\b(?:half|rest|remainder|balance)\b",
         r"\bpay\s+(?:it\s+|this\s+|the\s+\w+\s+)?(?:in|over)\s+(?:a\s+few\s+|several\s+|\d{1,2}\s+|two\s+|three\s+|four\s+)?(?:monthly\s+)?(?:payments|parts|chunks|months)\b",
         r"\b(?:prefer|want|wanna|would like|'d like|need|can (?:i|we) (?:make|do)|could (?:i|we) (?:make|do))\s+(?:\w+\s+){0,2}?monthly payments\b", r"(?<![\w])ב?תשלומיים(?![\w])", r"(?:\d{1,2}|" + "|".join(_NUM_STEMS) + r") (?:צ'?קים|צ'?יקים|צקים)",
         r"(?:לפצל|לחלק) (?:את )?(?:זה|הסכום|התשלום|החוב|החשבון)", r"פעימות", r"הוראת קבע",
@@ -538,12 +549,21 @@ RX: dict[Intent, re.Pattern[str]] = {
     Intent.PLAN_ACCEPT: _rx(
         r"^\W*(?:מאשר|מאשרת|מאשרים|מסכים|מסכימה|מסכימים|כן|סגור|סגרנו|מתאים|מתאים לי|מעולה|אוקיי|אוקי|ok|okay|בסדר|יאללה|דיל|עובד)\b",
         r"(?:מאשר|מאשרת|מאשרים|מסכים|מסכימה|מסכימים) (?:את )?(?:ה)?(?:הצעה|הסדר|פריסה|זה)",
-        r"(?:ההצעה|ההסדר|הפריסה) (?:מתאימ\w*|בסדר|טוב\w*)"),
+        r"(?:ההצעה|ההסדר|הפריסה) (?:מתאימ\w*|בסדר|טוב\w*)",
+        # מנהל 251 (qa8): אישור הצעה באנגלית — «Yes, that works for me», «Agreed», «sounds good»
+        r"^\W*(?:yes|yeah|yep|yup|sure|agreed|deal|perfect|great|fine|sounds\s+good|works\s+for\s+me|go\s+ahead)\b(?!\s+but\b)",
+        r"\b(?:i|we)\s+(?:accept|agree)\b(?!\s+(?:to\s+disagree|with\s+(?:nothing|none)))",
+        r"\b(?:that|this|it|the\s+(?:plan|offer|proposal))\s+(?:works|is\s+fine|is\s+ok(?:ay)?|sounds\s+good)\b",
+        r"\bsounds\s+(?:good|great|fine|ok(?:ay)?)\b(?!\s*,?\s*but\b)"),
     Intent.PLAN_REJECT: _rx(
         r"^\W*(?:לא|ממש לא|לא מתאים|לא מתאימה|לא טוב|לא מסכים|לא מסכימה)\b",
         r"(?:ההצעה|ההסדר|הפריסה) (?:לא מתאימ\w*|לא טוב\w*|גבוה\w* מדי)", r"(?:סכום|תשלום) (?:חודשי )?גבוה מדי",
         r"לא (?:אוכל|אצליח) (?:לעמוד ב|לשלם) (?:זה|כזה|סכום כזה)",
-        r"(?:יותר מדי|גבוה מדי|יקר מדי|הרבה מדי)", r"(?:זה |זו |זאת )?לא (?:מתאים|מתאימה|מסתדר|מסתדרת|טוב) (?:לי|לנו)", r"קשה (?:לי|לנו) עם (?:זה|הסכום|הסכומים)"),
+        r"(?:יותר מדי|גבוה מדי|יקר מדי|הרבה מדי)", r"(?:זה |זו |זאת )?לא (?:מתאים|מתאימה|מסתדר|מסתדרת|טוב) (?:לי|לנו)", r"קשה (?:לי|לנו) עם (?:זה|הסכום|הסכומים)",
+        # מנהל 251 (qa8): דחייה באנגלית — «No, that doesn't work for me», «too much», «can't do that»
+        r"^\W*(?:no|nope|nah|not\s+really)\b(?!\s+(?:problem|worries|issue|prob)\b)",
+        r"\b(?:does\s*n'?t|does\s+not|won'?t|will\s+not)\s+work\s+for\s+(?:me|us)\b",
+        r"\btoo\s+(?:much|high|expensive|steep)\b", r"\b(?:can'?t|cannot)\s+(?:do|afford|manage)\s+(?:that|this|it)\b"),
     Intent.PROMISE: _rx(
         # critic סבב 100: «paying tomorrow», «אני כבר משלם» (הווה)
         r"\bpaying\s+(?:it\s+|you\s+)?(?:tomorrow|today|tonight|now|on\s+\w+|this\s+\w+|next\s+\w+)\b", r"(?:^|[,.!]\s*)אני\s+(?:כבר\s+)?(?:משלם|משלמת|מעביר|מעבירה)(?:\s+(?:עכשיו|היום|כבר))?\W*$",
@@ -558,6 +578,12 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"(?:בתחילת|בסוף|באמצע) (?:ה)?חודש", r"\bwill pay\b",
         r"(?:זה |הכסף |התשלום )?(?:יהיה )?אצלכם (?:עד|תוך|ב|מחר|השבוע)", r"(?:תוך|בעוד) (?:יומיים|יום|שבוע|שבועיים) (?:זה|הכסף|התשלום)",
         r"תקבלו (?:את )?(?:ה)?(?:כסף|תשלום)",
+        # מנהל 251 (qa8): «Sending it today», «he'll drop by with the cash tomorrow», «can we push it a few days?»
+        r"\b(?:sending|transferring|wiring|paying)\s+(?:it|you|the\s+(?:money|payment|rest))?\s*(?:today|tonight|tomorrow|now|this\s+week|on\s+\w+day)\b",
+        r"\b(?:he|she|they|we)(?:'ll|\s+will)\s+(?:pay|transfer|send|bring|drop\s+(?:by|off)|wire|settle)\b",
+        r"\b(?:husband|wife|partner|son|daughter|dad|father|mom|mother|brother|sister|accountant|boss)\s+(?:will|'ll|is\s+going\s+to)\s+(?:pay|transfer|send|wire|settle|bring)\b",
+        r"\b(?:push|postpone|delay|move)\s+(?:it|the\s+(?:payment|date|deadline))\s+(?:by\s+|to\s+|a\s+few|a\s+couple|a\s+week|until|till|back)",
+        r"\bcan'?t\s+make\s+it\s+(?:on|by)\s+\w+day\b",
         # מנהל 248 (qa2 xq2-48): «רק צריך עוד שבוע» — בקשת זמן בלי מילה «זמן»
         r"(?:צריך|צריכה|צריכים|נצטרך|אצטרך) (?:רק )?עוד (?:יום|יומיים|כמה ימים|שבוע|שבועיים|חודש|קצת)(?![\w])",
         r"\bi(?:'ll| will| am going to|'m going to)\s+(?:pay|transfer|send|settle|wire)\b",
@@ -597,7 +623,13 @@ RX: dict[Intent, re.Pattern[str]] = {
         # מנהל 242 (self4): שאלה על הסכום הכולל — «כמה זה עולה בסך הכל?», «מה הסכום הסופי?», «how much do I owe»
         r"כמה (?:זה |זאת |הכל |הכול )?(?:עולה|עלה|יוצא|יוצאת|יצא|צריך לשלם|צריכה לשלם|עליי לשלם|עלי לשלם|נשאר לשלם|לשלם)(?![\w])",
         r"(?:מה|מהו|מהי) (?:ה)?(?:סכום|עלות|מחיר|יתרה)(?: ה?(?:כולל|כוללת|סופי|סופית|הכולל|הסופי|לתשלום))",
-        r"\bhow much (?:do i owe|is it|is the (?:bill|invoice|total)|in total|altogether|should i pay)\b"),
+        r"\bhow much (?:do i owe|is it|is the (?:bill|invoice|total)|in total|altogether|should i pay)\b",
+        # מנהל 251 (qa8): «what's the process for paying by bank transfer», «just send me the link», «another way to pay»,
+        # «how do I try again» אחרי תשלום שנכשל; «הטרנזקציה נכשלה», «נתקע בתשלום»
+        r"\b(?:what'?s|what\s+is)\s+the\s+(?:process|procedure|way)\b.{0,25}\bpay", r"\bhow\s+(?:do|can|should)\s+(?:i|we)\s+(?:pay|transfer|retry|try\s+again)\b",
+        r"\b(?:send|give|text|email)\s+(?:me|us)\s+(?:the\s+|a\s+)?(?:payment\s+)?(?:link|account\s+details|bank\s+details|payment\s+details)\b",
+        r"\b(?:another|other|different|alternative)\s+way\s+(?:to|i\s+can|we\s+can)\s+pay\b", r"\bpay(?:ing)?\s+(?:by|via|with)\s+(?:bank\s+transfer|wire|credit\s+card|card)\b",
+        r"(?:ה)?(?:טרנזקציה|עסקה|תשלום|העברה|סליקה)\s+נכשל\w*", r"נתקע\w*\s+(?:ב|באמצע\s+(?:ה)?)(?:תשלום|העברה)"),
     Intent.CALLBACK: _rx(
         r"(?:תתקשרו|תתקשר|תתקשרי|התקשרו|תחזרו|תחזור|חזרו) (?:אליי|אלי|אלינו|לי)", r"(?:אפשר|רוצה|אשמח) (?:ל)?(?:דבר|שיחה|שתתקשרו|שיחזרו)",
         r"(?:מתי|באיזה שעה) (?:אפשר )?(?:לדבר|להתקשר)",
@@ -755,8 +787,56 @@ def _month_day(today: date, day: int) -> date:
     return date(y, m, min(day, calendar.monthrange(y, m)[1]))
 
 
+# מנהל 251 (qa8): תאריכים באנגלית — «Thursday», «tomorrow morning», «on the 15th» במצב AWAITING_DATE נפלו ל«לא ברור»
+# (בעל העסק קיבל כרטיס על כל לקוח שענה באנגלית מתי ישלם). רץ רק על אותיות לטיניות ⇒ טקסט עברי לא מושפע.
+_EN_WD = {"monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3, "friday": 4, "saturday": 5, "sunday": 6}
+_EN_NUM = {"a": 1, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "ten": 10,
+           "a couple of": 2, "couple of": 2, "a couple": 2}
+
+
+def _extract_date_en(t: str, today: date) -> tuple[date | None, bool] | None:
+    if not re.search(r"[a-z]", t):
+        return None
+    if re.search(r"\bday\s+after\s+tomorrow\b", t):
+        return today + timedelta(days=2), False
+    if re.search(r"\b(?:tomorrow|tmrw|tmr|2morrow)\b", t):
+        return today + timedelta(days=1), False
+    if re.search(r"\b(?:today|tonight|this\s+(?:evening|afternoon)|later\s+today|right\s+now|by\s+end\s+of\s+day)\b", t):
+        return today, False
+    m = re.search(r"\b(?:in|within)\s+(\d{1,2}|a couple of|couple of|a couple|a|one|two|three|four|five|six|seven|ten)\s+(days?|weeks?)\b", t)
+    if m:
+        g = m.group(1)
+        n = int(g) if g.isdigit() else _EN_NUM[g]
+        return today + timedelta(days=n * (7 if m.group(2).startswith("week") else 1)), False
+    m = re.search(r"\b(?:on|by|this|next|until|till|before)?\s*(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b", t)
+    if m and not re.search(r"\b(?:last|every)\s+" + m.group(1), t):
+        return _next_weekday(today, _EN_WD[m.group(1)]), False
+    m = re.search(r"\b(?:on|by|until|till|before)?\s*the\s+(\d{1,2})(?:st|nd|rd|th)\b", t) or \
+        re.search(r"\b(?:on|by|until|till|before)\s+(\d{1,2})(?:st|nd|rd|th)\b", t)
+    if m and 1 <= int(m.group(1)) <= 31:
+        return _month_day(today, int(m.group(1))), False
+    if re.search(r"\b(?:by\s+|at\s+|before\s+|until\s+|till\s+)?(?:the\s+)?end\s+of\s+(?:the|this)\s+month\b", t):
+        last = date(today.year, today.month, calendar.monthrange(today.year, today.month)[1])
+        if (last - today).days < 3:
+            y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+            last = date(y, mo, calendar.monthrange(y, mo)[1])
+        return last, False
+    if re.search(r"\bnext\s+week\b", t):
+        return _next_weekday(today, 6), False
+    if re.search(r"\b(?:next\s+month|beginning\s+of\s+(?:next|the\s+next)\s+month|start\s+of\s+next\s+month)\b", t):
+        y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+        return date(y, mo, 1), False
+    if re.search(r"\b(?:soon|asap|in\s+a\s+few\s+days|next\s+few\s+days|this\s+week|payday|when\s+i\s+get\s+paid|"
+                 r"after\s+(?:my\s+)?(?:salary|paycheck)|when\s+(?:my\s+)?(?:salary|paycheck)|later\s+this\s+(?:week|month))\b", t):
+        return None, True
+    return None
+
+
 def extract_date(t: str, today: date) -> tuple[date | None, bool]:
     """מחזיר (תאריך, מעורפל?). מעורפל = יש כוונה לתאריך אבל אי אפשר לקבע אותו."""
+    en = _extract_date_en(t, today)
+    if en is not None and en[0] is not None:
+        return en
     if _s(r"(?<![\w])(?:מחרתיים)", t):
         return today + timedelta(days=2), False
     if _s(r"(?<![\w])(?:עד |כבר )?מחר(?![\w])", t):
@@ -815,7 +895,7 @@ def extract_date(t: str, today: date) -> tuple[date | None, bool]:
     if _s(r"(?:משכורת|אחרי החג|אחרי החגים|כשאקבל|כשיהיה|כשיהיה לי|בקרוב|בהקדם|בימים הקרובים|"
                  r"כמה ימים|מתישהו|אחרי שאקבל|לקראת|כשאחזור|כשאסתדר)", t):
         return None, True
-    return None, False
+    return en or (None, False)  # מעורפל באנגלית רק אם אין תאריך עברי מדויק
 
 
 # ═══════════════════════════ סיווג ═══════════════════════════
@@ -851,6 +931,18 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         if _fm(r"\W*(?:אפשר |ו?אם |מה עם )?(?:ב-?|ל-?)?(\d{1,2}|" + _NUMW + r")\W*\??", t) or \
                 _s(r"(?:אפשר|ואם|מה עם|רק|אולי) (?:ב-?|ל-?)?(\d{1,2}|" + _NUMW + r")(?![\d\w])", t):
             found.add(Intent.PLAN_REQUEST)
+        if re.search(r"\b(?:can|could)\s+(?:we|i)\s+(?:do|make\s+it|have\s+it\s+in|go\s+with|split\s+it\s+(?:in|into))\s+"
+                     r"(?:\d{1,2}|two|three|four|five|six|eight|ten|twelve)\b|\bwhat\s+about\s+(?:\d{1,2}|two|three|four|five|six)\b"
+                     r"|\b(?:\d{1,2}|two|three|four|five|six)\s+(?:payments|installments|months)\s+instead\b", t):
+            found.add(Intent.PLAN_REQUEST)
+    # מנהל 251 (qa8): «I'm not Dana», «this isn't Dana», «no Dana here» — שם באותיות לטיניות (שם הלקוח במערכת בעברית).
+    # שם פרטי = מילה באות גדולה בטקסט המקורי, לא מילה מרשימת השגרה («I'm not Sure/Home» ≠ טעות במספר).
+    _m_name = re.search(r"\b(?:I'?m|I\s+am|Im|i'?m|i\s+am|im|[Tt]his\s+is\s*n'?t|[Tt]his\s+is\s+not|[Ii]t'?s\s+not|[Mm]y\s+name\s+is\s*n'?t"
+                        r"|[Mm]y\s+name\s+is\s+not)\s+(?:not\s+)?([A-Z][a-z]{1,15})\b(?!'|\s*-)"
+                        r"|\b[Nn]o\s+([A-Z][a-z]{1,15})\s+(?:here|at\s+this\s+number)\b|\b[Tt]here'?s\s+no\s+([A-Z][a-z]{1,15})\b", text or "")
+    if _m_name and (_m_name.group(1) or _m_name.group(2) or _m_name.group(3) or "") not in _EN_NOT_NAMES and \
+            (_m_name.group(2) or _m_name.group(3) or re.search(r"\bnot\b|n'?t\b", _m_name.group(0))):
+        found.add(Intent.WRONG_PERSON)
     # זיהוי לפי שם הלקוח מההקשר: "אין פה דנה" / "אני לא דנה" / "לא מכיר שום דנה"
     fn = normalize(ctx.first_name) if ctx is not None else ""
     if fn and len(fn) >= 2 and _s(r"(?:אין (?:פה|כאן|בבית|בטלפון הזה)|לא מכיר\w*|אני לא|זה לא|מי (?:זאת|זה|זו)|אין לי)"
@@ -900,7 +992,7 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     if Intent.PAID_CLAIM in found:
         t_en = re.sub(r"\b(?:have\s*n'?t|have\s+not|has\s*n'?t|has\s+not|had\s*n'?t|did\s*n'?t|did\s+not|not|never|"
                       r"if\s+(?:i|we)(?:'ve|\s+have|\s+already)?|whether\s+(?:i|we)(?:'ve|\s+have|\s+already)?|"
-                      r"did\s+(?:i|we)|have\s+(?:i|we))\s+(?:yet\s+|already\s+|actually\s+)?(?:been\s+)?paid\b(?:\s+yet)?", " ", t)
+                      r"did\s+(?:i|we)|have\s+(?:i|we))\s+(?:yet\s+|already\s+|actually\s+)?(?:been\s+)?(?:paid|transferred|wired|sent|deposited)\b(?:\s+(?:it|the\s+(?:money|payment|funds)))?(?:\s+yet)?", " ", t)
         if t_en != t and not _hits(RX[Intent.PAID_CLAIM], t_en):
             found.discard(Intent.PAID_CLAIM)
     if not found and "?" in t and _s(r"(?:ה)?(?:קישור|לינק)", t):
@@ -1010,6 +1102,13 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     return out
 
 
+_EN_NOT_NAMES = frozenset(
+    "I Sure Able Interested Paying Going Home Available Happy Ok Okay Fine Here There The A An This That It Your You "
+    "Ignoring Refusing Trying Asking Saying Angry Upset Mad Kidding Joking Rich Responsible Liable Aware Satisfied "
+    "Comfortable Convinced Certain Done Ready Free Back In Out Well Feeling Working Receiving Getting Paid Yet Sorry "
+    "Hebrew English Israeli A Mr Mrs Ms Dr Please Thanks Thank Just Really Even Only Actually Still Always Never "
+    "Monday Tuesday Wednesday Thursday Friday Saturday Sunday January February March April May June July August "
+    "September October November December Bit Paybox Gmail Google Whatsapp Visa Mastercard Amex Paypal".split())
 _INSOLVENCY = r"פשיטת רגל|חדלות פירעונ|צו כינוס|צו פתיחת הליכימ|הליכ חדלות|כונס נכסימ"
 _RESERVIST_PAST = r"(?:הייתי|חזרתי|יצאתי|השתחררתי|שוחררתי)\s+(?:מ|ב)?(?:ה)?מילואי[םמ]"
 # שאלה על העברת המידע לאחרים («מי עוד קיבל», «למי נתתם») ⇒ בעל העסק. «מאיפה יש לכם את המספר» לבד = זיהוי (d146)
