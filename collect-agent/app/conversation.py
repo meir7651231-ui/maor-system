@@ -856,6 +856,10 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     if Intent.DISPUTE in found and _s(r"(?:^|\W)(?:ו?אם|מה קורה אם|מה יקרה אם)\s+לא\s+(?:אשלם|נשלם|אעביר)", t) \
             and not _s(_KEEPS_DISPUTE, t):  # critic סבב 80
         found.discard(Intent.DISPUTE)
+    # critic סבב 108: «אם הביטוח ישלם…» = תנאי, לא הבטחה (בעל העסק צריך לדעת שהתשלום תלוי בצד שלישי)
+    if Intent.PROMISE in found and _s(r"(?:^|\W)(?:רק\s+)?אם\s+(?:ה)?(?:ביטוח|חברת\s+ה?ביטוח)", t) and not _s(
+            r"(?<![\w])(?:אשלם|נשלם|אעביר|נעביר)(?![\w])", t):
+        found.discard(Intent.PROMISE)
     # "אני עורכת דין" (זהות, לא איום) ⇒ לא legal, אלא אם יש גם מילת הליך
     if Intent.LEGAL in found and _s(r"אני (?:עורכ\w*|עו\"ד)(?: דין)?(?: בעצמי| במקצוע)?", t) and not _s(
             _KEEPS_LEGAL + r"|שלי (?:י|ת)", t):
