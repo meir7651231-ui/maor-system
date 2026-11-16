@@ -34,3 +34,6 @@
 {"id": "lk34", "text": "ניתן לי צו פתיחת הליכים מבית המשפט, תפנו לנאמן", "ctx": {"channel": "email"}, "expect": {"intent": "cant_pay", "tags": ["insolvency", "legal"], "escalate": "urgent", "stop": "pause"}, "critical": true}
 {"id": "lk35", "text": "לא מעביר מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "escalate": "normal", "not": ["promise"]}, "critical": true}
 {"id": "lk36", "text": "לא מעביר מחר כלום", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "stop": "pause"}, "critical": true}
+{"id": "lk37", "text": "honestly im done with life", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "lk38", "text": "i wanna kms", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "lk39", "text": "i cant go on the way things are", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
