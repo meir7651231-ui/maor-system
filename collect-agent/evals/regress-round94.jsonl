@@ -27,3 +27,10 @@
 {"id": "c94-27", "text": "I am 14", "ctx": {"channel": "email"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
 {"id": "c94-28", "text": "im 15 my mom pays", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
 {"id": "c94-29", "text": "im 15 my mom pays", "ctx": {"channel": "email"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-t1", "text": "I am 14 days late, sorry, paying tomorrow", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out", "minor"]}, "critical": true}
+{"id": "c94-t2", "text": "leave me alone for a week, I'll pay on the 1st", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out", "minor"]}, "critical": true}
+{"id": "c94-t3", "text": "תפסיקו לחייב אותי כפול", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "not": ["opt_out", "minor"]}, "critical": true}
+{"id": "c94-t4", "text": "נמאס לי מהמצב, אשלם כשאוכל", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out", "minor"]}, "critical": true}
+{"id": "c94-t5", "text": "עזבו, אני כבר משלם", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out", "minor"]}, "critical": true}
+{"id": "c94-t6", "text": "stop worrying, I will pay friday", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out", "minor"]}, "critical": true}
+{"id": "c94-t7", "text": "עצרו את החיוב הכפול", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "not": ["opt_out", "minor"]}, "critical": true}
