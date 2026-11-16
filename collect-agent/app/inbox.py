@@ -118,6 +118,10 @@ def _draft_decided(status: str, action: str) -> ValueError:
         return AlreadyDecided(he, "rejected")
     return ValueError(he + (". אי אפשר לאשר אותה" if action == "approve" else ". אי אפשר לדחות אותה"))
 
+# כוונות שמודיעות לבעל העסק במייל גם אם המנוע לא סימן אותן urgent (הסרה = חובה לכבד; קטין/מצוקה = אדם)
+_URGENT_OWNER_ALERT = {"opt_out", "minor", "distress", "dispute", "legal"}
+
+
 class ConversationInbox:
     def __init__(self, svc: Any, policy: OwnerPolicy | None = None, llm: Any = "env") -> None:
         self.svc = svc
@@ -195,6 +199,9 @@ class ConversationInbox:
             self.db.x(sql, (cust["id"],))
             self._wrong_number = False
         self._save_state(cust["id"], d, bump_turn=bool(d.reply))
+        # מבקר סבב 99: כרטיס דחוף לא הודיע לבעלים מחוץ לאפליקציה ⇒ מייל קצר (בלי טקסט הלקוח, עם throttle)
+        if d.escalate == Escalation.URGENT or d.intent.value in _URGENT_OWNER_ALERT:
+            self.svc.email_owner_urgent(d.intent.value)
         self.svc.audit("customer", "conversation", {
             "customer": cust["id"], "intent": d.intent.value,
             "secondary": [i.value for i in d.secondary], "escalate": d.escalate.value,

@@ -6,6 +6,7 @@ import pytest
 from app.channels import sent_mark
 from app.conversation import OwnerPolicy
 from app.inbox import ConversationInbox
+from tests.conftest import customer_sent
 
 DANA = "050-1234567"
 
@@ -58,11 +59,11 @@ def test_opt_out_is_immediate_and_later_drafts_blocked(inbox, svc):
     assert cust(svc)["opted_out"] == 1 and res["stop"] == "permanent"
     # אישור ההסרה מותר; הטיוטה הקודמת הוחלפה ואי אפשר לאשר אותה
     inbox.approve_draft(res["draft_id"])
-    assert svc.sender.sent[-1]["body"].endswith("תזכורות אוטומטיות.")
+    assert customer_sent(svc)[-1]["body"].endswith("תזכורות אוטומטיות.")
     # critic סבב 58: נעצרת כבר בהסרה, וההסבר אומר זאת במפורש (היה «הוחלפה»)
     with pytest.raises(ValueError, match="ביקש הסרה"):
         inbox.approve_draft(first)
-    assert sent_mark(svc.sender.sent) == 1
+    assert sent_mark(customer_sent(svc)) == 1   # בלי התראת הבעלים על ההסרה (מבקר סבב 99)
 
 
 def test_opted_out_customer_promise_gets_no_reply(inbox, svc):

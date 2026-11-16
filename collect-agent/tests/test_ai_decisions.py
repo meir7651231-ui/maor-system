@@ -9,6 +9,7 @@ from app.conversation import Intent, Stop, foreign_language, respond
 from app.inbox import ConversationInbox
 from app.llm import MockLLM, SafeClassifier, load_classifier
 from evals.harness import build_ctx
+from tests.conftest import customer_sent
 
 DANA = "050-1234567"
 
@@ -48,7 +49,7 @@ def test_mock_llm_gets_redacted_text_and_cannot_send(svc):
     prompt = clf.provider.seen[0]
     for leak in ("דנה", "כהן", "050", "1234567", "1001"):
         assert leak not in prompt
-    assert svc.sender.sent == []
+    assert customer_sent(svc) == []   # רק התראת בעלים על כרטיס דחוף (מבקר סבב 99)
 
 
 class Boom:

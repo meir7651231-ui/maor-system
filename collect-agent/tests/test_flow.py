@@ -10,7 +10,7 @@ from app.config import SafetyError
 from app.main import create_app
 from app.policy import TZ
 from app.service import CollectService
-from tests.conftest import AUTH, OWNER_TOKEN
+from tests.conftest import AUTH, OWNER_TOKEN, customer_sent
 
 
 @pytest.fixture
@@ -115,7 +115,7 @@ def test_opt_out_stops_everything(api, svc, clock):
     assert api.post("/plan").json()["created"] == []
     api.post("/dispatch")
     # SMS+מייל של התזכורת + אישור-ההסרה ב-SMS, ולא יותר
-    assert [m["channel"] for m in svc.sender.sent] == ["sms", "email", "sms"]
+    assert [m["channel"] for m in customer_sent(svc)] == ["sms", "email", "sms"]
 
 
 def test_paid_claim_escalates_and_stops(api, svc):

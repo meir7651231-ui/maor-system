@@ -5,6 +5,7 @@ import hashlib
 import json
 import re
 import secrets
+import sqlite3
 from collections.abc import Callable
 from dataclasses import replace
 from datetime import date, datetime, time, timedelta
@@ -359,6 +360,57 @@ class CollectService:
             self.audit("system", "settings_changed_email_failed", {"to": to, "error": str(e)[:300]})
             return
         self.audit("system", "settings_changed_email_sent", {"to": to, "message": mid})
+
+    # ---------- התראת מייל לבעלים על כרטיס דחוף (מבקר סבב 99 🟡) ----------
+    URGENT_EMAIL_MIN_GAP = timedelta(minutes=30)   # throttle: לכל היותר מייל אחד בחצי שעה
+    URGENT_EMAIL_DAY_MAX = 8                       # ותקרה יומית (ספאם לבעלים = הוא יפסיק לקרוא)
+    _URGENT_KIND = {"distress": "מצוקה", "minor": "ייתכן שקטין", "legal": "פנייה משפטית",
+                    "dispute": "מחלוקת על החוב", "opt_out": "בקשת הסרה", "wrong_person": "מספר שגוי"}
+
+    def email_owner_urgent(self, intent: str) -> str:
+        """כרטיס דחוף (מצוקה/קטין/מחלוקת/משפטי/הסרה) ⇒ מייל קצר לבעל העסק מחוץ לאפליקציה, כדי שאדם במצוקה
+        יקבל מענה אנושי גם אם בעל העסק לא נכנס היום. **בלי טקסט הלקוח, בלי שם, בלי טלפון, בלי סכום** — רק
+        סוג הפנייה, כמה כרטיסים דחופים ממתינים, וקישור כניסה. throttle: 30 דק׳ + 8 ביום; פנייה שנבלעה
+        בהגבלה נספרת במייל הבא (המונה = כל הכרטיסים הדחופים הפתוחים). דרך self.sender (DryRunSender עד אישור
+        ספק) ו-send_owner (לא נספר כפנייה ללקוח). מחזיר: sent / throttled / skipped / failed."""
+        kind = self._URGENT_KIND.get(intent, "הודעה דחופה")
+        to = clean_email(self.s.email_reply_to or "")
+        if not valid_email(to) or getattr(self.sender, "email", None) is None:
+            self.audit("system", "urgent_owner_email_skipped",
+                       {"intent": intent, "reason": "no_owner_address" if not valid_email(to)
+                        else "no_email_channel"})
+            return "skipped"
+        now = self.clock()
+        sent = [_dt(r["at"]) for r in self.db.q(
+            "SELECT at FROM audit WHERE action='urgent_owner_email_sent' AND at>=? ORDER BY id DESC",
+            (_iso(now - timedelta(days=1)),))]
+        if (sent and now - sent[0] < self.URGENT_EMAIL_MIN_GAP) or len(sent) >= self.URGENT_EMAIL_DAY_MAX:
+            self.audit("system", "urgent_owner_email_throttled", {"intent": intent})
+            return "throttled"
+        waiting = self._open_urgent_count()
+        msg = Message("email", to,
+                      f"שלום,\n\nבמערכת גבי של {self.s.business_name} מחכה פנייה דחופה של לקוח ({kind}).\n"
+                      f"כרטיסים דחופים שממתינים לכם עכשיו: {waiting}.\n\n"
+                      "התזכורות האוטומטיות ללקוח הזה כבר נעצרו. התשובה ממתינה לכם, ואף הודעה לא נשלחת בלי "
+                      f"אישורכם.\nלכניסה: {self.s.public_base_url}/ui\n\n"
+                      "מטעמי פרטיות, המייל לא כולל את תוכן ההודעה ולא פרטי לקוח.",
+                      subject=f"גבי: פנייה דחופה ממתינה לטיפולכם ({self.s.business_name})")
+        send = getattr(self.sender, "send_owner", None) or self.sender.send
+        try:
+            mid = send(msg)
+        except IntegrationError as e:
+            self.audit("system", "urgent_owner_email_failed", {"intent": intent, "error": str(e)[:300]})
+            return "failed"
+        self.audit("system", "urgent_owner_email_sent", {"intent": intent, "waiting": waiting,
+                                                          "message": mid})
+        return "sent"
+
+    def _open_urgent_count(self) -> int:
+        try:
+            return self.db.one("SELECT COUNT(*) n FROM drafts WHERE escalate='urgent' AND "
+                               "status IN ('pending_approval','needs_owner')")["n"]
+        except sqlite3.OperationalError:
+            return 0
 
     # ---------- audit ----------
     def audit(self, actor: str, action: str, detail: Any = None) -> None:
