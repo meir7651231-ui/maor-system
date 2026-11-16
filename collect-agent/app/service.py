@@ -2021,6 +2021,18 @@ class CollectService:
         self._opt_out(c["id"], "link")
         return True
 
+    def owner_opt_out(self, customer_id: int, actor: str = "owner") -> dict:
+        """critic סבב 97: בעל העסק קרא הודעה שהמנוע לא זיהה כבקשת הסרה ⇒ מסיר בעצמו. אותו מסלול כמו קישור
+        ההסרה (כתובת משותפת, טיוטות ממתינות) — סופי, כמו כל הסרה."""
+        if not self.db.one("SELECT 1 FROM customers WHERE id=?", (customer_id,)):
+            raise KeyError(customer_id)
+        self._opt_out(customer_id, "owner")
+        if self._table_exists("drafts"):   # הכרטיס שממנו בעל העסק הסיר — נסגר (הוא זה שפעל, אין צורך בהודעה)
+            self.db.x("UPDATE drafts SET status='superseded', decided_by=? WHERE customer_id=? AND "
+                      "status IN ('needs_owner','pending_approval')", (f"{actor}:opt_out", customer_id))
+        self.audit(actor, "owner_opt_out", {"customer": customer_id})
+        return dict(self.db.one("SELECT id, opted_out FROM customers WHERE id=?", (customer_id,)))
+
     def _opt_out(self, cid: int, how: str) -> None:
         self.db.x("UPDATE customers SET opted_out=1 WHERE id=?", (cid,))
         c = self.db.one("SELECT phone, email FROM customers WHERE id=?", (cid,))

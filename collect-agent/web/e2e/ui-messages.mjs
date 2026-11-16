@@ -75,6 +75,24 @@ try {
   await rowB.getByRole('button', { name: 'סגירה בלי מענה' }).click();
   await rowB.waitFor({ state: 'detached' });
   ok((await api('/conversation/drafts?status=rejected')).some(d => d.id === dB.id), 'השרת: ההודעה של B לא נסגרה');
+  // critic סבב 97: המנוע לא זיהה בקשת הסרה ⇒ בעל העסק קורא ומסיר בעצמו. לחיצה ראשונה רק מחמשת (סופי)
+  const C = custs[2];
+  if (C) {
+    await post('/conversation/inbound', { channel: 'sms', sender: C.phone, text: 'בבקשה תעצרו את זה כבר, לא רלוונטי לי' });
+    await p.evaluate(() => load(false));
+    const dC = (await api('/conversation/drafts')).find(d => d.customer_id === C.id);
+    ok(dC, 'ההודעה של C לא בתור');
+    const rowC = card.locator(`li[data-did="${dC.id}"]`);
+    await rowC.waitFor();
+    await rowC.getByRole('button', { name: /הלקוח ביקש הסרה/ }).click();
+    ok(!(await api('/customers')).find(c => c.id === C.id).opted_out, 'לחיצה אחת כבר הסירה (צריך שתיים)');
+    await rowC.getByRole('button', { name: /לחצו שוב להסרה סופית/ }).waitFor();
+    if (out) await p.screenshot({ path: `${out}/ui-15-owner-opt-out.png` });
+    await rowC.getByRole('button', { name: /לחצו שוב להסרה סופית/ }).click();
+    await rowC.waitFor({ state: 'detached' });
+    ok((await api('/customers')).find(c => c.id === C.id).opted_out, 'השרת: C לא הוסר/ה');
+    ok(/הוסר/.test(await p.locator('#cmDone').textContent()), 'הודעת הצלחה להסרה');
+  }
   if (!(await api('/conversation/drafts')).length) await card.waitFor({ state: 'hidden' });
   await p.setViewportSize({ width: 390, height: 844 });
   ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'גלילה רוחבית במובייל');

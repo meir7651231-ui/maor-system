@@ -170,6 +170,8 @@ export const api = {
   /** confirmAmount (critic סבב 48): טיוטה עם כסף ללקוח עם סכום חריג — אישור מפורש (השרת מחייב). */
   approveDraft: (id: number, body?: string, confirmAmount = false) => j<{ status: string }>(`/conversation/drafts/${id}/approve`, { method: 'POST', body: JSON.stringify({ ...(body === undefined ? {} : { body }), ...(confirmAmount ? { confirm_amount: true } : {}) }) }),
   rejectDraft: (id: number) => j<unknown>(`/conversation/drafts/${id}/reject`, { method: 'POST' }),
+  /** critic סבב 97: בעל העסק קרא בקשת הסרה שהמנוע לא זיהה ⇒ מסיר את הלקוח (סופי, כמו קישור ההסרה). */
+  optOut: (cid: number) => j<unknown>(`/customers/${cid}/opt-out`, { method: 'POST' }),
   settings: () => j<DesignSettings>('/settings'),
   saveSettings: (patch: Record<string, unknown>) => j<DesignSettings>('/settings', { method: 'PUT', body: JSON.stringify(patch) }),
   importCsv: (csv: string) => j<{ imported: number; credits?: number; date_order?: string; amount_check?: AmountCheck[]; rejected: { row: number; reason: string }[] }>('/settings/source/csv',

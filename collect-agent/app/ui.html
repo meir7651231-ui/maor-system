@@ -276,7 +276,7 @@ const INTENT={how_to_pay:"שאל/ה איך משלמים",paid_claim:"טוען/ת
   plan_accept:"הסכים/ה להצעת הפריסה",plan_reject:"דחה/תה את הצעת הפריסה"};
 const ESCL={urgent:"דחוף",normal:"לטיפולך"};
 const whenIL=v=>{const d=new Date(v);return isNaN(d)?"":d.toLocaleString("he-IL",{timeZone:"Asia/Jerusalem",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})};
-let cmItems=[],cmBody={},cmAmt={},cmBusy=null;
+let cmItems=[],cmBody={},cmAmt={},cmBusy=null,cmArm=null;   // cmArm: critic סבב 97 — הסרה בשתי לחיצות
 async function loadMsgs(){
   try{cmItems=await api("/conversation/drafts",{},false);$("#cmErr").textContent=""}
   catch(e){if(e.auth)return;$("#cmErr").textContent="הודעות הלקוחות לא נטענו: "+e.message}
@@ -296,18 +296,25 @@ function drawMsgs(){
       <label><span class="lbl">${w?"אין טיוטה. כתבו מענה, או סגרו בלי מענה":"טיוטת המענה של גבי (אפשר לערוך)"}</span>
       <textarea rows="3" aria-label="מענה ל${esc(d.customer)}">${esc(body)}</textarea></label>
       ${odd.length?`<label class="confirm"><input type="checkbox" data-amt${cmAmt[d.id]?" checked":""}><span><b>הסכום נכון, בדקתי.</b> ${esc(odd.map(o=>`חשבונית ${o.number||"(ללא מספר)"}: ${fmtCur(o.amount_agorot,o.currency)} (בדרך כלל ${fmtCur(o.usual_agorot,o.currency)})`).join(" · "))}. אולי הנקודה העשרונית במקום הלא נכון?</span></label>`:""}
-      <div class="decide"><button class="primary" data-a="approve">אישור ושליחה</button><button class="ghost-bad" data-a="reject">סגירה בלי מענה</button></div>
+      <div class="decide"><button class="primary" data-a="approve">אישור ושליחה</button><button class="ghost-bad" data-a="reject">סגירה בלי מענה</button><button class="ghost-bad" data-a="optout" title="הלקוח ביקש להפסיק לקבל הודעות? ההסרה סופית, כמו קישור ההסרה">${cmArm===String(d.id)?"⚠ לחצו שוב להסרה סופית":"⛔ הלקוח ביקש הסרה"}</button></div>
       <div class="err" data-e role="alert"></div></li>`}).join("");
   btnsMsgs()}
 function btnsMsgs(){for(const li of $("#cmList").children){const id=li.dataset.did,d=cmItems.find(x=>String(x.id)===id);if(!d)continue;
   const body=(cmBody[id]??(d.body||"")).trim(),odd=(d.amount_check||[]).length,busy=cmBusy!==null||locked;
-  li.querySelector('[data-a="approve"]').disabled=busy||!body||(odd&&!cmAmt[id]);li.querySelector('[data-a="reject"]').disabled=busy}}
+  li.querySelector('[data-a="approve"]').disabled=busy||!body||(odd&&!cmAmt[id]);li.querySelector('[data-a="reject"]').disabled=busy;li.querySelector('[data-a="optout"]').disabled=busy||!d.customer_id}}
 $("#cmList").addEventListener("input",e=>{const li=e.target.closest("li[data-did]");if(!li)return;
   if(e.target.matches("textarea"))cmBody[li.dataset.did]=e.target.value;
   if(e.target.matches("[data-amt]"))cmAmt[li.dataset.did]=e.target.checked;btnsMsgs()});
 $("#cmList").addEventListener("change",e=>{const li=e.target.closest("li[data-did]");if(li&&e.target.matches("[data-amt]")){cmAmt[li.dataset.did]=e.target.checked;btnsMsgs()}});
 $("#cmList").addEventListener("click",async e=>{const b=e.target.closest("button[data-a]");if(!b||cmBusy!==null)return;
   const li=b.closest("li"),id=li.dataset.did,d=cmItems.find(x=>String(x.id)===id);if(!d)return;const a=b.dataset.a;
+  // critic סבב 97: הסרה ע"י בעל העסק (המנוע לא זיהה בקשת הסרה). סופית ⇒ לחיצה ראשונה רק מחמשת
+  if(a==="optout"){if(cmArm!==id){cmArm=id;drawMsgs();return}
+    cmArm=null;cmBusy=id;btnsMsgs();li.querySelector("[data-e]").textContent="";$("#cmDone").hidden=true;
+    try{await api(`/customers/${d.customer_id}/opt-out`,{method:"POST"});
+      $("#cmDone").textContent=`${d.customer} הוסר/ה. לא יישלחו אליו/ה עוד תזכורות`;$("#cmDone").hidden=false}
+    catch(e){cmBusy=null;btnsMsgs();return failed(e,m=>{li.querySelector("[data-e]").textContent="לא הוסר: "+m})}
+    cmBusy=null;await load();return}
   const body=cmBody[id],payload={...(body!==undefined&&body!==(d.body||"")?{body}:{}),...(cmAmt[id]?{confirm_amount:true}:{})};
   cmBusy=id;btnsMsgs();li.querySelector("[data-e]").textContent="";$("#cmDone").hidden=true;let msg="";
   try{await api(`/conversation/drafts/${id}/${a}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(a==="approve"?payload:{})});

@@ -496,6 +496,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def resume(cid: int, request: Request):
         return guard(svc.resume_customer, cid, request.state.actor)
 
+    @app.post("/customers/{cid}/opt-out", dependencies=auth)
+    def customer_opt_out(cid: int, request: Request):                  # critic סבב 97
+        return guard(svc.owner_opt_out, cid, request.state.actor)
+
     @app.post("/customers/{cid}/hold", dependencies=auth)
     def customer_hold(cid: int, b: HoldIn, request: Request):          # ר-6
         return guard(svc.set_hold, cid, b.reason, b.note, request.state.actor)

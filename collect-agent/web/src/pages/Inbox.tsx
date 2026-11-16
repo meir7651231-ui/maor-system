@@ -58,6 +58,7 @@ function DraftCard({ d }: { d: Draft }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [confirmAmount, setConfirmAmount] = useState(false);
+  const [armOut, setArmOut] = useState(false);   // critic סבב 97: הסרה סופית ⇒ שתי לחיצות
   const odd = d.amount_check ?? [];   // critic סבב 48: סכום חריג ⇒ אישור מפורש
   const [esc, cls] = ESC[d.escalate] ?? ESC.none;
   const needsWrite = d.status === 'needs_owner';
@@ -100,6 +101,9 @@ function DraftCard({ d }: { d: Draft }) {
         )}
         {err && <p className="mt-2 text-sm text-critical-ink font-bold" role="alert">לא נשלח: {err}</p>}
         <div className="mt-4 flex flex-wrap gap-2 justify-end">
+          <Button variant="ghost" data-testid="draft-optout" disabled={busy} title="הלקוח ביקש להפסיק לקבל הודעות? ההסרה סופית, כמו קישור ההסרה"
+            onClick={() => armOut ? run(() => api.optOut(d.customer_id), `${d.customer} הוסר/ה — לא יישלחו אליו/ה עוד תזכורות`) : setArmOut(true)}>
+            {armOut ? '⚠ לחצו שוב להסרה סופית' : '⛔ הלקוח ביקש הסרה'}</Button>
           <Button variant="ghost" disabled={busy} onClick={() => run(() => api.rejectDraft(d.id), 'הכרטיס נסגר בלי מענה', { want: 'rejected', msg: ALREADY_DRAFT_CLOSED })}>✗ סגירה בלי מענה</Button>
           <Button disabled={busy || !body.trim() || (odd.length > 0 && !confirmAmount)} onClick={() => run(() => api.approveDraft(d.id, body === d.body ? undefined : body, confirmAmount), '✓ המענה אושר ונשלח (dry-run)', { want: 'approved', msg: ALREADY_DRAFT })}>✓ אשר ושלח</Button>
         </div>
