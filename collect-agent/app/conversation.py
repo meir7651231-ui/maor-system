@@ -1566,9 +1566,14 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                            r"|תשלחו\s+(?:לי\s+)?(?:רק\s+)?(?:ה)?(?:קישור|לינק)|\bonly\s+(?:by\s+|via\s+)?(?:sms|text|email)\b", t)
         wants_pay = bool(allset & {Intent.PROMISE, Intent.HOW_TO_PAY, Intent.PLAN_REQUEST}) or _s(
             r"(?<![\w])(?:אשלם|נשלם|משלם|משלמת|משלמים|אעביר|נעביר|מעביר|מעבירה)(?![\w])|\bi(?:'ll| will| am going to)\s+(?:pay|transfer)\b", t)
-        if wants_channel or wants_pay:
+        # critic סבב 114: «כן… ותפסיקו לשלוח» אחרי הצעת פריסה ⇒ ההסכמה לפריסה לא אובדת בשקט
+        accepts_plan = ctx.state == State.AWAITING_PLAN_REPLY and _s(
+            r"^\W*(?:כן|מתאים|מאשר|מאשרת|מסכים|מסכימה|בסדר|yes|yeah|yep|ok|okay|sure|that works|deal)(?![\w])", t)
+        if wants_channel or wants_pay or accepts_plan:
             bump(Escalation.NORMAL)
             summary += (" ביקש/ה ערוץ אחר." if wants_channel else "") + (" כתב/ה שמתכוון/ת לשלם." if wants_pay else "")
+            if accepts_plan:
+                summary += " ענה/תה «כן» להצעת הפריסה — ייתכן שמסכים/ה לתשלומים; לברר אישית (ההסרה בתוקף)."
             actions.append("ההסרה בתוקף — לפנות אישית רק אם ביקש/ה ערוץ אחר, או לחכות לתשלום ולסגור את החשבונית")
         state = State.OPTED_OUT
     elif primary == Intent.WRONG_PERSON:
