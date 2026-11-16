@@ -1343,8 +1343,11 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         elif "reservist" in tags:
             reply = (f"{hi}תודה על השירות! עצרנו את התזכורות לתקופה הקרובה, ונחזור אליכם אישית "
                      f"כשיהיה נוח. אין שום לחץ.{sig}")
-            summary = f"{name} במילואים. התזכורות הושהו ל-30 יום."
+            # הפעלה 246: ההשהיה לא משתחררת לבד (רק הבטחה משתחררת, inbox.py) ⇒ הנוסח לא מבטיח "30 יום".
+            summary = (f"{name} במילואים. התזכורות הושהו ולא יתחדשו לבד — רק כשתחדש/י אותן. "
+                       f"מוצע לבדוק שוב סביב {_he_date(ctx.today + timedelta(days=30))}.")
             actions.append("לחזור אחרי המילואים; לשקול דחייה בלי לחץ")
+            actions.append("לחדש תזכורות ידנית כשמתאים (לא מתחדשות לבד)")
             pause_until = ctx.today + timedelta(days=30)
             state = State.AWAITING_OWNER
         elif "insolvency" in tags:
@@ -1355,11 +1358,13 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         elif "sensitive" in tags:
             reply = (f"{hi}מצטערים לשמוע, ומאחלים שיהיה רק טוב. עצרנו את התזכורות לתקופה הקרובה, "
                      f"ונחזור אליכם אישית כשיהיה מתאים.{sig}")
-            summary = f"{name} שיתף/ה במצב רגיש (מחלה/אבל). התזכורות הושהו ל-30 יום."
+            summary = (f"{name} שיתף/ה במצב רגיש (מחלה/אבל). התזכורות הושהו ולא יתחדשו לבד — "
+                       f"רק כשתחדש/י אותן. מוצע לבדוק שוב סביב {_he_date(ctx.today + timedelta(days=30))}.")
             if "deceased" in tags:
                 summary = (f"🔴 נמסר על פטירה בהקשר של {name}. התזכורות הושהו; "
                            "אם בעל החשבון נפטר — לא פונים שוב, החוב מול העיזבון.")
             actions.append("לפנות אישית ובעדינות כשיהיה מתאים")
+            actions.append("לחדש תזכורות ידנית כשמתאים (לא מתחדשות לבד)")
             pause_until = ctx.today + timedelta(days=30)
             state = State.AWAITING_OWNER
         else:
