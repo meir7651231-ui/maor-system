@@ -240,8 +240,44 @@ def _hits(pattern: re.Pattern[str], t: str, *, negatable: bool = False) -> bool:
     return False
 
 
+# מנהל 250 (סריקת גבולות מילה): חלק שמתחיל באות עברית יכול היה להתחיל באמצע מילה —
+# «די לשלוח» בתוך «כדי לשלוח» ⇒ הסרה לצמיתות של לקוח ששאל איך לשלם; «נזק» בתוך «טרנזקציה» ⇒ מחלוקת;
+# «חולה» בתוך «כחולה» ⇒ השהיה. השער: תחילת ההתאמה = תחילת מילה, או אחרי תחילית עברית תקנית בלבד
+# (ו/ש/כש/ה/ב/ל/מ, כמו _P). lookbehind בלבד ⇒ נקודת ההתחלה לא זזה ובדיקת השלילה (_NEG_BEFORE) לא משתנה.
+_HEB_START = re.compile(r"^(?:\(\?:|\(|\^)*[\u05D0-\u05EA]")
+
+
+def _lead_variants() -> list[str]:
+    units = ("כש", "ש", "ה", "ב", "ל", "מ")
+    out = {""}
+    for a in ("", "ו"):
+        out.add(a)
+        for u1 in units:
+            out.add(a + u1)
+            for u2 in units:
+                out.add(a + u1 + u2)
+    return sorted(v.translate(_FINALS) for v in out if v)
+
+
+def _word_start_guard() -> str:
+    by_len: dict[int, list[str]] = {}
+    for v in _lead_variants():
+        by_len.setdefault(len(v), []).append(v)
+    alts = [r"(?<![\u05D0-\u05EA])"]
+    for n in sorted(by_len):
+        alts.append(r"(?<=(?<![\u05D0-\u05EA])(?:" + "|".join(by_len[n]) + "))")
+    return "(?:" + "|".join(alts) + ")"
+
+
+_WSG = _word_start_guard()
+
+
+def _guard(part: str) -> str:
+    return _WSG + "(?:" + part + ")" if _HEB_START.match(part) else part
+
+
 def _rx(*parts: str) -> re.Pattern[str]:
-    return _c("|".join(parts))
+    return _c("|".join(_guard(p) for p in parts))
 
 
 # ═══════════════════════════ אותות ═══════════════════════════
@@ -361,7 +397,16 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"(?:זה|זו|זאת) (?:ה)?מספר של (?:אמא|אבא|הבן|הבת|אח|אחות|בעלי|אשתי|הילד|סבתא|סבא)\w*",
         # critic סבב 63: «המספר הזה כבר לא שלה», «לא אני, טעות»
         r"(?:ה)?(?:מספר|טלפון)(?: הזה| הזאת)? (?:כבר )?(?:לא|אינו) (?:שלה|שלו|שייך לה|שייך לו)(?![\w])",
-        r"^\W*לא אני\W+(?:זו |זאת |זה )?טעות\W*$"),
+        r"^\W*לא אני\W+(?:זו |זאת |זה )?טעות\W*$",
+        # מנהל 250: מקבילות אנגלית ל«המספר עבר אליי/חדש אצלי», «לא מכיר שום X», «את מי אתם מחפשים»
+        r"\b(?:this|my)\s+number\s+(?:was|has\s+been|got)\s+(?:re-?assigned|transferred|recycled)\b",
+        r"\b(?:just\s+|recently\s+)?(?:got|bought)\s+this\s+(?:phone\s+)?number\s+(?:recently|only\s+recently|new|"
+        r"a\s+(?:few|couple\s+of)\s+(?:days|weeks|months)\s+ago|last\s+(?:week|month))\b",
+        r"\b(?:i\s+)?(?:just|recently)\s+got\s+this\s+(?:phone\s+)?number\b",
+        r"\bnot\s+(?:the\s+)?(?:person|one|who)\s+(?:you'?re|you\s+are)\s+(?:looking|searching)\s+for\b",
+        r"\b(?:i\s+)?(?:don'?t|do\s+not)\s+know\s+(?:any(?:one|body)?|a)\s+(?:named\s+|called\s+)?"
+        r"(?!(?:who|that|which|how|what|when|where|if|way|ways|one|thing|reason)\b)[a-zא-ת]+\W*$",
+        r"\bnever\s+heard\s+of\s+(?:this|that|your)\s+(?:business|company|place|studio|clinic|shop|person|guy)\b"),
     Intent.LEGAL: _rx(
         _w(r'עו"ד', r"עוה\"ד", r"עורך דין", r"עורכת דין", r"עורך הדין", r"עורכי דין", r"עו\"דית"),
         _ws(r"תביע", r"אתבע", r"נתבע", r"לתבוע", r"תובע"), _w("משטרה", "למשטרה", "בית משפט",
@@ -418,7 +463,7 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"(?:לא משלם|לא אשלם|לא אעביר|לא נשלם|לא משלמת) עד ש",
         r"(?:תתקנו|תסדרו|תשלימו|תקנו|סדרו|השלימו)\w*(?:\s+(?!ה?(?:קישור|לינק))\S+){0,6}?\s+(?:לפני ש|ואז|קודם)|(?:קודם|לפני ש)\s*(?:\w+\s+){0,2}(?:תתקנו|תסדרו|תשלימו)",
         r"(?:שלא|לא) (?:הוחלפו|הוחלף|בוצע|בוצעו|עבדתם|נעשה|נעשו|הותקנ\w*|הגעתם)",
-        r"(?:תתקנו|תקנו|תסדרו)\w*(?: בבקשה)?\W*$",
+        r"(?:תתקנו|תקנו|תסדרו)(?!ת)\w*(?: בבקשה)?\W*$",
         r"(?:גבוה|יקר|יותר|שונה)\w* ממה ש(?:הוסכם|סוכם|סיכמנו|הוצע|קיבלתי|דובר)",
         r"(?:לא תואמ\w*|שונה מ)\s*(?:את )?(?:ל)?(?:ה)?(?:הצעה|הצעת ה?מחיר|הסכם|ה?חוזה|מה שסוכם)",
         r"(?:לא|טרם|עוד לא) (?:הסתיימ\w*|הושלמ\w*)", r"לא (?:קיבלתי|קיבלנו) (?:שום|כלום)",
@@ -596,7 +641,15 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"(?:ה)?(?:מכשיר|טלפון|מספר)(?: ה?זה)? של (?:ה)?(?:בן|בת|ילד|ילדה)(?: שלי)? (?:בן|בת) (?:1[0-7]|[1-9])(?![\d])",
         # critic סבב 63: «אני רק/עדיין בן 14», והורה שכותב על ילד/ה («הטלפון של הבן שלי, הוא בן 12»)
         r"אני (?:רק |עדיין |בסך הכל )(?:בן|בת) (?:1[0-7]|[5-9])(?![\d\w])",
-        r"(?:הבן|הבת|הילד|הילדה|הנכד|הנכדה) שלי\W.{0,40}?(?:הוא|היא|ש)?\s?(?:רק )?(?:בן|בת) (?:1[0-7]|[4-9])(?![\d\w])"),
+        r"(?:הבן|הבת|הילד|הילדה|הנכד|הנכדה) שלי\W.{0,40}?(?:הוא|היא|ש)?\s?(?:רק )?(?:בן|בת) (?:1[0-7]|[4-9])(?![\d\w])",
+        # מנהל 250: מקבילות אנגלית ל«הטלפון של הבן שלי, הוא בן 12» — גיל הילד **רק** יחד עם בעלות על הטלפון/ההודעה.
+        # «My son is 15 so it's been a crazy week, will pay Friday» (qa7 x7-40) = הורה שמספר, לא קטין.
+        r"\b(?:my\s+)?(?:son|daughter|kid|child|grand(?:son|daughter|child))\b.{0,40}?\b(?:is|he'?s|she'?s)\s+(?:only\s+|just\s+)?"
+        r"(?:1[0-7]|[4-9])\b(?!\s*(?:days?|weeks?|months?|hours?|minutes?|%|nis|ils|shekels?|[.,]?\d))"
+        r".{0,50}\b(?:(?:his|her|their|this|the)\s+(?:phone|number|cell|mobile)|got\s+(?:this|your)\s+(?:message|text|sms))\b",
+        r"\b(?:this\s+is|it'?s)\s+(?:my\s+)?(?:son|daughter|kid|child)'?s\s+(?:phone|number|cell|mobile)\b.{0,40}?"
+        r"\b(?:is|he'?s|she'?s)\s+(?:only\s+|just\s+)?(?:1[0-7]|[4-9])\b",
+        r"\b(?:this\s+is\s+)?(?:my\s+)?(?:kid|child|little\s+(?:boy|girl))'?s\s+(?:phone|number|cell|mobile)\b"),
     Intent.THANKS: _rx(
         r"^\W*(?:(?:תודה|תודה רבה|תודהה|תנקס|thanks|thank you|תודה על העדכון|קיבלתי|קיבלנו|סבבה|אחלה|"
         r"thx|thnx|tnx|thanx|ty|10x|tks|אוקיי|אוקי|ok|בסדר|בסדר גמור|מעולה|יופי|👍|🙏|רשמתי|ראיתי|טוב|רבה|גמור|לכם|לך|יום טוב|שבוע טוב)\W*)+$"),
