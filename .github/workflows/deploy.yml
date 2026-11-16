@@ -5,6 +5,15 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    # דחיפה של מסמכים בלבד (דיווחי BRIDGE, דוחות-ידע, *.md) לא בונה ולא מפרסמת
+    # מחדש — אף אחד מהם לא נכנס ל-dist. issue #553: ב-14.11 ‏25 commits של
+    # BRIDGE/room-updates הפעילו 10 ריצות-פריסה ו-build-ID חדש בלי שינוי-קוד.
+    # GitHub מדלג רק כשכל הקבצים בדחיפה תואמים — דחיפה עם קוד נפרסת כרגיל.
+    # פריסה ידנית תמיד אפשרית דרך workflow_dispatch.
+    paths-ignore:
+      - 'BRIDGE/**'
+      - 'knowledge/**'
+      - '**/*.md'
   workflow_dispatch:
 
 permissions:
