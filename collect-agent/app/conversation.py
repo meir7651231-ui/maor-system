@@ -257,6 +257,9 @@ _NUM_STEMS = ("שניים", "שני", "שתי", "שלושה", "שלוש", "אר�
 
 RX: dict[Intent, re.Pattern[str]] = {
     Intent.DISTRESS: _rx(
+        # critic סבב 111: אנגלית נפוצה — «i wanna die», «i might end it», «cant go on», «want it all to end»,
+        # «want to disappear»; «can't take this anymore» רק כמשפט שלם (לא «…the app keeps crashing»)
+        r"\b(?:wanna|want\s+to|going\s+to|gonna)\s+die\b", r"\b(?:might|will|gonna|going\s+to|want\s+to)\s+end\s+it\b(?!\s+(?:for|with|today|tomorrow|on))", r"(?<![\w'])(?:i\s+)?can'?t\s+go\s+on\b", r"\bwant\s+(?:it\s+all|everything)\s+to\s+end\b", r"\bwant\s+to\s+disappear\b", r"^\W*i\s*can'?t\s+take\s+(?:this|it)\s+any\s*more\W*$",
         # critic סבב 94: אנגלית קצרה
         r"\bi\s*(?:can'?t|cannot)\s+go\s+on\b", r"\bwant\s+to\s+die\b", r"\bend\s+(?:it\s+all|my\s+life)\b",
         r"(?:רוצה|בא לי|הולכ\w?) ל(?:מות|התאבד)", r"להתאבד", r"אתאבד", r"לשים קץ",
