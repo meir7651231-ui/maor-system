@@ -29,3 +29,8 @@
 {"id": "lk29", "text": "לא רוצה כבר כלום", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
 {"id": "lk30", "text": "הפלאפון של הילד שלי, הוא בגן", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent"}, "critical": true}
 {"id": "lk31", "text": "טעות באיות בחשבונית אבל זה בסדר, אעביר מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute"]}, "critical": true}
+{"id": "lk32", "text": "מאיפה השגתם את המספר שלי ולמי עוד נתתם?", "ctx": {"channel": "sms"}, "expect": {"intent": "who_is_this", "escalate": "normal", "tags": ["data_source"]}, "critical": true}
+{"id": "lk33", "text": "סורי, הייתי במילואים. מעבירה מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "tags": ["reservist"], "stop": "pause"}, "critical": true}
+{"id": "lk34", "text": "ניתן לי צו פתיחת הליכים מבית המשפט, תפנו לנאמן", "ctx": {"channel": "email"}, "expect": {"intent": "cant_pay", "tags": ["insolvency", "legal"], "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "lk35", "text": "לא מעביר מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "escalate": "normal", "not": ["promise"]}, "critical": true}
+{"id": "lk36", "text": "לא מעביר מחר כלום", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "stop": "pause"}, "critical": true}
