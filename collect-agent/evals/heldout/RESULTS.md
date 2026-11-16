@@ -213,3 +213,26 @@ sha256 `c75f9572…` (commit `09e60ef`), נכתב ונעול לפני הרצה; 
 **מנהל הפעלה 248 · תיקון פספוסים לפי מחלקה (רגרסיה, לא מדידה):** חשש מהונאה («אמיתי או ספאם?», «מפחד לפתוח») ⇒ who_is_this בלי קישור + תג `phishing_concern` + כרטיס · «רק צריך עוד שבוע» ⇒ promise · פריסה באנגלית (split/in parts/over N months) · בקשת פירוט ⇒ copy_request · «איך/לאן משלמים» אחרי «עכשיו» ≠ הבטחה. באג שנחשף בדרך: «ללחוץ» (על קישור) הכיל «לחוץ» ⇒ cant_pay. בדיקות: `tests/test_mgr248_ai_misses.py` (52), מוטציה ⇒ 43 נופלות.
 אחרי: qa6 44/46 · qa2 44/50 · qa3 45/50 · שאר הסטים **זהים**.
 **הוכרע לא לשנות:** x6-27 «מסכים לפריסה שהצעתם» בלי הצעה פתוחה ⇒ plan_request (אין מה לאשר; ‏plan_accept רק במצב AWAITING_PLAN_REPLY) · x6-46 «לא קיבלתי את הקישור» ⇒ how_to_pay (שולח קישור — מה שהלקוח צריך) · xq2-49 «עובדים עם עו״ד?» ו-xq2-50 «עד מתי זה בסדר?» ⇒ unknown (בעל העסק עונה אישית; תשובת who_is_this/how_to_pay לא עונה על השאלה).
+
+---
+
+## external-2026-11-16-qa7.jsonl · 46 מקרים (32 קריטיים) · אנגלית ומעורב עברית-אנגלית · **נכתב ע"י מנהל הצוות (הפעלה 249)** · ריצה יחידה, 16.11.2026
+נכתב **לפני** קריאת כללי המנוע ולפני הרצה (נקראו רק ה-harness, ה-README וסט qa6 לפורמט), נעול ב-commit `478c10db`, sha256 `90264718…daca8da4`. 36 באנגלית, 10 מעורבים, 10 מלכודות.
+הסתייגות: הכותב ראה את ניסוחי qa6, כך שהסט «עיוור לכללים», לא «עיוור לגמרי».
+
+| מדד | ערך |
+|---|---|
+| עברו את כל הציפיות | **32/46 (69.6%)** |
+| קריטיים | 22/32 |
+| פספוס בטוח ("לא ברור" ⇒ בעל העסק) | 11 |
+| **טעויות בטוחות-בעצמן** | **3 (2 קריטיות)** |
+
+🔴 **החמצה חמורה:** «honestly I'm thinking of killing myself, this debt is too much» ⇒ «לא ברור». ההסלמה הייתה רגילה, לא דחופה, ולא הייתה השהיה. הכלל תפס רק «kill myself».
+🔴 **טעויות בטוחות-בעצמן:** «I haven't paid yet, how do I pay?» ⇒ paid_claim (הלקוח היה מקבל «תודה שעדכנתם» והתזכורות היו נעצרות) · «not sure if I paid, can you check?» ⇒ paid_claim · «תודה, I'll take care of it this week» ⇒ thanks (ההבטחה הלכה לאיבוד).
+פספוסים בטוחים: עו״ד ובית משפט באנגלית (attorney, small claims) · אבל, אשפוז ואובדן עבודה באנגלית · «new number, this isn't Yossi anymore» · «the quote was 1,800» · «will transfer…» · «who is this? I don't recognize…» · «just pay link please».
+כל 10 המלכודות עברו.
+
+**תיקון לפי מחלקה (אותה הפעלה, רגרסיה ולא מדידה):** מצוקה בנטיות (killing/hurting myself, self-harm) · legal באנגלית (attorney, small claims, in court, lawsuit, legal action, filing a complaint, harassment, ומילות «שומר-legal» באנגלית) · cant_pay באנגלית (lost my job, laid off, can't afford, passed away, funeral, hospital, surgery, ICU; פטירה ואשפוז ⇒ sensitive ודחוף) · «this isn't X anymore» ⇒ wrong_person · quote/estimate/agreed on ⇒ dispute · will transfer/I'll take care of it/sort it out/paying Friday ⇒ promise · «who is this?…» + don't recognize ⇒ who_is_this · **שלילה באנגלית לפני paid** (haven't/didn't/not sure if/did I) ⇒ לא טענת תשלום · pay link ⇒ how_to_pay.
+בדיקות: `tests/test_mgr249_heldout7_english.py` (96, ניסוחים אחרים, SMS ומייל, כולל מלכודות ו«טענת תשלום אמיתית» שלא נשברת). מוטציה (מנוע קודם) ⇒ 72 נופלות.
+**qa7 אחרי:** 46/46 (רגרסיה). **8 הסטים המוחזקים האחרים זהים** (diff ריק).
+**שבעת הסטים החיצוניים בריצה הראשונה:** 68% · 74% · 66% · 63% · 64% · 83% · **70%**. מסקנה: אנגלית היא הפער הגדול. רוב הכללים נכתבו בעברית.
