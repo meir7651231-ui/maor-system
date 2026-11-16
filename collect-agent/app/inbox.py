@@ -120,6 +120,18 @@ def _draft_decided(status: str, action: str) -> ValueError:
 
 # כוונות שמודיעות לבעל העסק במייל גם אם המנוע לא סימן אותן urgent (הסרה = חובה לכבד; קטין/מצוקה = אדם)
 _URGENT_OWNER_ALERT = {"opt_out", "minor", "distress", "dispute", "legal"}
+# מנהל 243: סוג הפנייה במייל הדחוף — תג המצב גובר על הכוונה. חדלות פירעון/פטירה/אשפוז מסווגים cant_pay+תג
+# (עקבי עם evals), ולכן לפי הכוונה בלבד המייל אמר «הודעה דחופה» במקום «הליך חדלות פירעון» / «פטירה».
+_ALERT_TAGS = ("minor", "insolvency", "deceased")
+
+
+def _alert_kind(d: Decision) -> str:
+    tag = next((t for t in _ALERT_TAGS if t in d.tags), None)
+    if tag:
+        return tag
+    if d.intent == Intent.CANT_PAY and "sensitive" in d.tags:
+        return "sensitive"
+    return d.intent.value
 
 
 class ConversationInbox:
@@ -201,7 +213,7 @@ class ConversationInbox:
         self._save_state(cust["id"], d, bump_turn=bool(d.reply))
         # מבקר סבב 99: כרטיס דחוף לא הודיע לבעלים מחוץ לאפליקציה ⇒ מייל קצר (בלי טקסט הלקוח, עם throttle)
         if d.escalate == Escalation.URGENT or d.intent.value in _URGENT_OWNER_ALERT:
-            self.svc.email_owner_urgent(d.intent.value)
+            self.svc.email_owner_urgent(_alert_kind(d))
         self.svc.audit("customer", "conversation", {
             "customer": cust["id"], "intent": d.intent.value,
             "secondary": [i.value for i in d.secondary], "escalate": d.escalate.value,
