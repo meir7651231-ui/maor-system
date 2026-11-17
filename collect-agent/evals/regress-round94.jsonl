@@ -44,3 +44,6 @@
 {"id": "c122-3", "text": "i never payed this", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["paid_claim"]}, "critical": true}
 {"id": "c132-1", "text": "חייבתם אותי 1,500 במקום 1,200", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
 {"id": "c132-2", "text": "the bill should be 1,000 not 1,200", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c133-1", "text": "המוצר לא הגיע", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c133-2", "text": "the technician never showed up", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c133-3", "text": "לא קיבלתי את החשבונית, אפשר לשלוח שוב?", "ctx": {"channel": "sms"}, "expect": {"intent": "copy_request", "not": ["dispute"]}, "critical": true}

@@ -980,6 +980,30 @@ _extend(Intent.DISPUTE,
         r"\b(?:bill|amount|charge|invoice|price|total)\s+(?:\S+\s+){0,3}?" + _NUMV + r"\s+(?:not|instead\s+of)\s+\d",
         r"\b(?:you\s+|they\s+)?(?:charged|billed)\s+(?:me|us)\s+(?:for\s+)?" + _NUMV + r"\s+(?:not|instead\s+of)\s+\d")
 
+# ═══ critic סבב 133: מחלוקות יומיומיות — שירות/מוצר לא סופק, באיחור/חלקי, ביטול שכבר בוקש, מחיר שלא הוסכם ═══
+_extend(Intent.DISPUTE,
+        r"לא\s+קיבלתי\s+(?:את\s+)?(?:ה)?(?:הזמנה|מוצר|משלוח|חבילה|שירות|סחורה|פריט|ציוד)(?![\w])",
+        r"(?:ה)?(?:מוצר|הזמנה|משלוח|חבילה|סחורה|פריט|ציוד)\s+(?:עדיינ\s+|בכלל\s+|עוד\s+)?לא\s+"
+        r"(?:הגיע|הגיעה|סופק|סופקה|נמסר|נמסרה)(?![\w])",
+        r"(?:ה)?(?:שירות|עבודה|תיקונ|טיפול)\s+(?:עדיינ\s+|בכלל\s+|עוד\s+)?לא\s+(?:סופק|ניתנ|בוצע|בוצעה|הושלמ|הושלמה"
+        r"|הסתיימ|הסתיימה|נעשה|נעשתה)(?![\w])",
+        r"(?:ו)?לא\s+(?:סיימו|סיימ|השלימו|תיקנו)(?![\w])", r"(?:עשו|ביצעו|סיימו)\s+רק\s+(?:חצי|חלק)(?![\w])",
+        r"ביקשתי\s+(?:לבטל|ביטול)(?![\w])", r"ביטלתי\s+(?:בזמנ|מראש|לפני|מזמנ|כבר\s+מזמנ)(?![\w])",
+        r"עדיינ\s+(?:מחייבימ|חייבתמ|גובימ|מחייבתמ)(?![\w])",
+        r"אמרו\s+(?:לי|לנו)\s+ש(?:זה\s+|זאת\s+)?(?:יעלה|תעלה|עולה|יהיה)\s+\d",
+        r"\b(?:still\s+)?(?:have\s*n'?t|haven'?t|havent|did\s*n'?t|didnt|did\s+not|never)\s+(?:received|got|get)\s+"
+        r"(?:the|my|our)\s+(?:product|order|item|package|delivery|goods|service|equipment)\b",
+        r"\b(?:my|our|the)\s+(?:order|package|delivery|product|item)\s+(?:never|has\s*n'?t|hasnt|did\s*n'?t|didnt)\s+"
+        r"(?:arrived|arrive|came|come|showed\s+up)\b",
+        r"\bservice\s+was\s+(?:never|not)\s+(?:provided|delivered|done|performed)\b",
+        r"\b(?:technician|tech|plumber|electrician|contractor|worker|cleaner|installer)\s+(?:never|did\s*n'?t|didnt)\s+"
+        r"(?:show(?:ed)?\s+up|come|came|arrive|turn(?:ed)?\s+up)\b",
+        r"\b(?:they|he|she|you|and)\s+(?:did\s*n'?t|didnt|did\s+not|never)\s+finish(?:ed)?\b", r"\b(?:only\s+)?half[\s-]+done\b",
+        r"\b(?:work|job)\s+(?:is\s*n'?t|isnt|is\s+not|was\s*n'?t|wasnt|was\s+not)\s+(?:finished|done|complete|completed)\b",
+        r"\b(?:i|we)\s+asked\s+(?:you\s+)?to\s+cancel\b", r"\b(?:i|we)\s+cancell?ed\s+(?:before|in\s+time|on\s+time|ahead)\b",
+        r"\b(?:never|did\s*n'?t|didnt|did\s+not)\s+agree(?:d)?\s+(?:on|to)\s+(?:this|that|the|such\s+a)\s+(?:price|amount|fee|charge)\b",
+        r"\bnot\s+the\s+price\s+(?:we|i)\s+agreed\b", r"\b(?:you|they)\s+quoted\s+(?:me|us)\s+\d")
+
 # q12-08/10: «התשלומים» כשם עצם כללי («אני אחראית על התשלומים בבית», «התשלומים של האשראי יורדים ב-10») ≠ בקשת
 # פריסה. הביטויים מוסרים מהטקסט רק לבדיקת PLAN_REQUEST; «אפשר בתשלומים?» לא נוגע.
 _GEN_PAYMENTS = _c(
