@@ -2544,6 +2544,14 @@ def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
             escalate=max(d.escalate, Escalation.NORMAL, key=_esc_rank),
             tags=d.tags + ("protective_floor",),
             owner_actions=d.owner_actions + (f"לבדוק: בהודעה יש סימן ל-{names} שהמנוע לא אישר — להחליט אם לעצור",))
+    if t and Intent.DISPUTE not in d.all_intents and _hits(_C133_DISPUTE, t) and _C133_VETO.search(t):
+        # המשך לסבב 134: הווטו מונע מחלוקת-שווא **דחופה** («will pay» / «אשלם» / «כרטיס»), אבל תלונה אמיתית
+        # באותה הודעה («I will pay but the technician never came») נבלעה — הבטחה בלי כרטיס. בלי מחלוקת ובלי
+        # השהיה נוספת: רק כרטיס רגיל לבעל העסק עם התלונה.
+        d = replace(
+            d, escalate=max(d.escalate, Escalation.NORMAL, key=_esc_rank), auto_send=False,
+            tags=d.tags + ("complaint_with_payment",),
+            owner_actions=d.owner_actions + ("הלקוח/ה מזכיר/ה תלונה על השירות/המוצר — לבדוק לפני שממשיכים",))
     d = replace(d, confidence=confidence, owner_summary=_with_quote(d.owner_summary, text))
     if confidence == "llm" and d.escalate == Escalation.NONE:
         d = replace(d, escalate=Escalation.NORMAL, tags=d.tags + ("llm_classified",))
