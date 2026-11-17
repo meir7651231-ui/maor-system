@@ -851,6 +851,8 @@ _GLUE_LEX = frozenset(w.translate(_FINALS) for w in (
     "חייב", "חייבת", "חייבים", "הזמנתי", "הזמנו", "קיבלתי", "קיבלנו", "שירות", "החיוב", "החשבונית", "הסכום", "נכון",
     "נכונה", "טעות", "שגוי", "שגויה", "המספר", "מספר", "מכיר", "מכירה", "החוב", "חוב", "ביטלתי", "שבוטל",
     "עורך", "דין", "משטרה", "למשטרה", "תביעה", "אתבע", "נתבע", "אתלונן", "ילד", "ילדה", "בן", "בת", "קטין", "קטינה",
+    # מנהל 263 (qa14 q14-02/06): «דיתורידואותימהרשימהשלכם», «לעורכדין»
+    "שלכם", "לעורך", "לעורכת", "עורכת", "במספר", "מהמספר",
 ))
 _GLUE_MAX = max(map(len, _GLUE_LEX))
 _GLUE_TOKEN = re.compile(r"[\u05D0-\u05EA]{5,}")
@@ -881,6 +883,23 @@ def _deglue(t: str) -> str:
         seg = _segment(tok)
         return " ".join(seg) if seg and len(seg) >= 2 else tok
     return _GLUE_TOKEN.sub(sub, t)
+
+
+# ═══ מנהל 263 (סט QA #14, עיוור) · שגיאות כתיב בעברית בכוונות מגינות ═══
+# «תפסיקו לשלך לי הודעות», «אני לא חיבת לכם כלום», «טעות במיספר», «לעורכדין שלי» ⇒ היו «לא ברור» (בלי עצירה).
+# החלפה ברמת מילה שלמה, מאוצר סגור של כתיב שגוי נפוץ; כמו _deglue — רק לכוונות מגינות, לא להבטחה/תאריך/פריסה.
+_TYPO_HE = {k.translate(_FINALS): v.translate(_FINALS) for k, v in {
+    "לשלך": "לשלוח", "לשלח": "לשלוח", "לשלוך": "לשלוח", "תפסקו": "תפסיקו", "תפסיקוו": "תפסיקו", "תפסיקולי": "תפסיקו לי",
+    "חיבת": "חייבת", "חיב": "חייב", "חיבים": "חייבים", "חייבתת": "חייבת",
+    "מיספר": "מספר", "במיספר": "במספר", "המיספר": "המספר", "למיספר": "למספר", "מהמיספר": "מהמספר",
+    "עורכדין": "עורך דין", "לעורכדין": "לעורך דין", "העורכדין": "העורך דין", "עורחדין": "עורך דין",
+    "מישטרה": "משטרה", "למישטרה": "למשטרה", "להתעבד": "להתאבד", "אתעבד": "אתאבד",
+}.items()}
+_TYPO_TOKEN = re.compile(r"[\u05D0-\u05EA]{3,}")
+
+
+def _typofix(t: str) -> str:
+    return _TYPO_TOKEN.sub(lambda m: _TYPO_HE.get(m.group(0), m.group(0)), t)
 
 
 # כוונות שמבוססות על הקשר (מגיבות להצעה שנשלחה)
@@ -1250,6 +1269,9 @@ def extract_date(t: str, today: date) -> tuple[date | None, bool]:
             y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
             last = date(y, mo, calendar.monthrange(y, mo)[1])
         return last, False
+    # מנהל 263 (q14-22): «אעביר מתישהו שבוע הבא» ⇒ היה ראשון הבא (ניחוש בטוח); «מתישהו/במהלך/באמצע» ⇒ מעורפל
+    if _s(r"(?:מתישהו|איפשהו|באיזשהו שלב|במהלכ|באמצע)\s+(?:ה|ב)?שבוע (?:ה)?הבא", t):
+        return None, True
     if _s(r"(?:בשבוע הבא|שבוע הבא)", t):
         return _next_weekday(today, 6), False
     if _s(r"(?:" + _HOLIDAY_VAGUE + r"|משכורת|אחרי החג|אחרי החגים|כשאקבל|כשיהיה|כשיהיה לי|בקרוב|בהקדם|בימים הקרובים|"
@@ -1309,10 +1331,52 @@ def _bare_day(t: str, today: date, need_marker: bool = False) -> date | None:
     return _month_day(today, day)
 
 
+# ═══ מנהל 263 (סט QA #14) · צורות הבטחה שלא נתפסו ═══
+# «ב20 אני משלמת» (תאריך לפני הפועל), «next tuesday אנימשלמת» (אני צמוד), «אשלם בביט ב-19» (אמצעי תשלום בין הפועל
+# ליום), «אשלם שני הבא» (יום בשבוע בלי «ב»/«ביום»). מנרמלים לצורה שהכללים הקיימים כבר מכירים — רק להבטחה ותאריך.
+_PV_HE = r"(?:אשלמ|נשלמ|אעביר|נעביר|אסדר|נסדר|אפקיד|נפקיד)"
+_PAY_METHOD_HE = r"(?:ב|דרכ\s+)(?:ה)?(?:ביט|פייבוקס|העברה(?: בנקאית)?|אשראי|כרטיס(?: אשראי)?|מזומנ|צ'?ק|paybox|bit)"
+
+
+def _promise_prep(t: str) -> str:
+    t = re.sub(_c(r"(?<![\w])(אני|אנחנו)(?=(?:משלמ|מעביר|מסדר|אשלמ|אעביר)\w*)"), r"\1 ", t)
+    t = re.sub(_c(r"(?<![\w])(" + _PV_HE + r")\s+" + _PAY_METHOD_HE + r"(?![\w])"), r"\1", t)
+    t = re.sub(_c(r"^\W*((?:ב|עד ה?)-?\s*\d{1,2})(?![\d./:])\s+(?:אני |אנחנו )?"
+                  r"(?:משלמ|משלמת|משלמימ|מעביר|מעבירה|מעבירימ|אשלמ|אעביר|נשלמ|נעביר)(?![\w])"), r"אשלמ \1", t)
+    t = re.sub(_c(r"(?<![\w])(" + _PV_HE + r")\s+(ראשונ|שני|שלישי|רביעי|חמישי|שישי)\s+(?=(?:ה)?(?:הבא|הקרוב)(?![\w]))"),
+               r"\1 ביומ \2 ", t)
+    return t
+
+
+# מנהל 263 (STATUS 262 «הבא» AI; q14-23/26/27): הודעה ראשונה שהיא *רק* מועד, בלי פועל — «חמישי הבא», «ב-15»,
+# «אחרי המשכורת, ב-1 לדצמבר» ⇒ היה «לא ברור» וכרטיס לבעלים. כל ההודעה = מילות מילוי + מועד; יום בשבוע לבד חייב
+# מילת יחס («ביום», «ב») או «הבא/הקרוב» («שני» לבד יכול להיות מספר). «הבא» עמום ⇒ (None, True) ⇒ «עד איזה תאריך?».
+_DATE_ONLY_LEAD = (r"^\W*(?:(?:אז|טוב|אולי|בערכ|כנראה|נגיד|רק|בסדר|אוקיי|אוקי|סבבה|כנ|יאללה"
+                   r"|(?:אחרי|לאחר) (?:ה)?משכורת|כשתיכנס (?:ה)?משכורת)\W+)*")
+
+
+def _date_only(t: str, today: date) -> tuple[date | None, bool] | None:
+    u = re.sub(_c(_DATE_ONLY_LEAD), "", t)
+    wm = _fm(r"\W*((?:(?:עד )?(?:ב)?יומ\s+)|ב)?(ראשונ|שני|שלישי|רביעי|חמישי|שישי)(?:\s+(?:ה)?(הבא|הקרוב))?\W*", u)
+    if wm:
+        if not (wm.group(1) or wm.group(3)):
+            return None
+        return _next_weekday_he(today, _WEEKDAYS[wm.group(2)], wm.group(3) or "")
+    bd = _bare_day(u, today, need_marker=True)
+    if bd is not None:
+        return bd, False
+    if _fm(r"\W*(?:ב|עד |עד ה|ה)?-?\s*\d{1,2}\s*-?\s*(?:(?:ב|ל)חודש\s+|של\s+)?(?:ב|ל)?-?\s?(?:" + _HE_MON + r")\W*", u):
+        nm = _named_month_he(u, today)
+        if nm is not None and nm[0] is not None:
+            return nm
+    return None
+
+
 def extract_date_ctx(t: str, ctx: Context | None) -> tuple[date | None, bool]:
     """extract_date + יום בחודש לבד כשההקשר הוא תשובה ל«עד מתי?» (או עדכון מועד אחרי הבטחה)."""
     if ctx is None:
         return None, False
+    t = _promise_prep(t)   # מנהל 263
     # מנהל 261 (q13-11): «אשלםב20» — פועל הבטחה צמוד למילת היחס והיום (בלי רווח) ⇒ מפרידים
     t = re.sub(_c(r"(?<![\w])(אשלמ|נשלמ|אעביר|נעביר|אסדר|נסדר|אפקיד|נפקיד)(ב|עד)(?=-?\d)"), r"\1 \2", t)
     # מנהל 261 (q13-13): «אני משלמת ב-20» (הווה + יום מיד אחריו) = «אשלם ב-20». «אני משלמת כל חודש ב-10» ⇒ לא נוגע.
@@ -1338,6 +1402,10 @@ def extract_date_ctx(t: str, ctx: Context | None) -> tuple[date | None, bool]:
         bd = _owner_correction_day(t, ctx)
         if bd is not None:
             return bd, False
+    if d is None and not vague and ctx.state == State.IDLE:
+        do = _date_only(t, ctx.today)   # מנהל 263: הודעה ראשונה שהיא רק מועד (ב-AWAITING_OWNER — רק תיקון מפורש, 257)
+        if do is not None:
+            return do
     return d, vague
 
 
@@ -1455,7 +1523,7 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             continue
         if _hits(rx, t_plan if it == Intent.PLAN_REQUEST else t, negatable=it in NEGATABLE):
             found.add(it)
-    t_dg = _deglue(t)   # מנהל 262: הדבקת מילים — רק כוונות מגינות
+    t_dg = _deglue(_typofix(t))   # מנהל 262: הדבקת מילים · 263: שגיאות כתיב — רק כוונות מגינות
     if t_dg != t:
         for it in _GLUE_INTENTS:
             if it not in found and _hits(RX[it], t_dg, negatable=it in NEGATABLE):
@@ -1505,6 +1573,17 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     # מנהל 260 (q12-17): «אני אסגור את זה ביום שישי בבוקר», «אוכל לשלם לכם ב-11» — פועל הבטחה (לא מוכחש) + מועד במשפט שלו
     if ctx is not None and Intent.PROMISE not in found and _hits(_c(_PROMISE_VERB_HE), t, negatable=True) and \
             _promise_clause_date(t, ctx.today, min_clauses=1) is not None:
+        found.add(Intent.PROMISE)
+    # מנהל 263 (q14-15/22/24/25): «ב20 אני משלמת», «אנימשלמת», «אשלם בביט ב-19», «אשלם שני הבא»
+    t_pp = _promise_prep(t)
+    if ctx is not None and Intent.PROMISE not in found and t_pp != t and (
+            _hits(RX[Intent.PROMISE], t_pp, negatable=True) or
+            (_hits(_c(_PROMISE_VERB_HE), t_pp, negatable=True) and _promise_clause_date(t_pp, ctx.today, min_clauses=1))
+            or (_hits(_c(_ws("מעביר", "משלמ")), t_pp, negatable=True) and extract_date(t_pp, ctx.today)[0] is not None
+                and not _s(r"(?:משלמ|מעביר)\w*\s+(?:\w+\s+){0,2}?(?:כל|בכל)\s+(?:חודש|שבוע)", t_pp))):
+        found.add(Intent.PROMISE)
+    # מנהל 263: הודעה ראשונה שהיא רק מועד («חמישי הבא», «ב-15», «אחרי המשכורת, ב-1 לדצמבר») ⇒ הבטחה
+    if ctx is not None and not found and ctx.state == State.IDLE and _date_only(t, ctx.today) is not None:
         found.add(Intent.PROMISE)
     if ctx is not None and ctx.state in (State.AWAITING_DATE, State.PROMISED):
         # מנהל 253 (qa9 q9-26): «בשבוע הבא» ⇒ PROMISED, ואז «ביום שלישי ה-17 בנובמבר» (דיוק המועד) ⇒ «לא ברור».

@@ -143,8 +143,8 @@ def run_seq(seq: dict) -> list[str]:
                     fails.append(f"{tag} promise {got}≠{e['promise']}")
             for k in ("stop", "escalate"):
                 key = "escalation" if k == "escalate" else k
-                if k in e and out[key] != e[k]:
-                    fails.append(f"{tag} {k} {out[key]}≠{e[k]}")
+                if k in e and out.get(key) != e[k]:
+                    fails.append(f"{tag} {k} {out.get(key)}≠{e[k]}")
             all_i = [out["intent"], *out.get("secondary", [])]
             for n in e.get("not", []):
                 if n in all_i:

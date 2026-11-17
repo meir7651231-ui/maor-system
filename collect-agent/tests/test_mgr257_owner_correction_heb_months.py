@@ -48,7 +48,8 @@ def test_owner_no_correction_no_date(text):
     assert detect(text, c)[0] != Intent.PROMISE
 
 
-@pytest.mark.parametrize("state", [State.IDLE, State.AWAITING_PLAN_REPLY, State.PLAN_PENDING_OWNER])
+# מנהל 263: IDLE הוצא — שם «בעצם ב-25» כהודעה ראשונה = רק מועד ⇒ תאריך (test_mgr263_qa14_classes).
+@pytest.mark.parametrize("state", [State.AWAITING_PLAN_REPLY, State.PLAN_PENDING_OWNER])
 def test_correction_only_in_awaiting_owner(state):
     assert extract_date_ctx(normalize("בעצם ב-25"), _ctx(state))[0] is None
 

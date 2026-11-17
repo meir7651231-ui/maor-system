@@ -48,11 +48,16 @@ def test_installments_and_paid_claim_not_dates():
 
 @pytest.mark.parametrize("text", ["ב-23", "17", "עד ה-17", "the 17th"])
 def test_no_context_unchanged(text):
-    """בלי הקשר (IDLE / ctx=None) — ביט-זהה: יום בחודש לבד אינו תאריך."""
+    """בלי הקשר (ctx=None) — ביט-זהה: יום בחודש לבד אינו תאריך.
+    שינוי מדיניות מנהל 263 (STATUS 262 «הבא» AI, qa14 q14-23/26/27): ב-IDLE הודעה ראשונה שהיא *רק* יום עם מילת יחס
+    («ב-23», «עד ה-17») = תשובה לתזכורת ⇒ מועד. בלי מילת יחס («17») ⇒ עדיין לא."""
     assert extract_date_ctx(normalize(text), None) == (None, False)
-    if text != "the 17th":
+    if text == "17":
         assert extract_date_ctx(normalize(text), _ctx(State.IDLE))[0] is None
         assert Intent.PROMISE not in detect(text, _ctx(State.IDLE))
+    elif text != "the 17th":
+        assert extract_date_ctx(normalize(text), _ctx(State.IDLE))[0] is not None
+        assert Intent.PROMISE in detect(text, _ctx(State.IDLE))
 
 
 def test_promised_needs_marker():

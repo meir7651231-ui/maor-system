@@ -38,7 +38,8 @@ def test_promise_clause_day_any_state(text, want, state):
     "ב-5", "תתקשרו ב-5. אשלם", "17 שקל",
 ])
 def test_no_promise_verb_or_not_a_day_no_date(text):
-    assert _d(text) is None
+    # מנהל 263: «ב-5» לבד ב-IDLE = רק מועד ⇒ תאריך (test_mgr263). כאן נבדק במצב משותף (AWAITING_OWNER).
+    assert _d(text, State.AWAITING_OWNER if text == "ב-5" else State.IDLE) is None
 
 
 def test_prefer_to_pay_is_promise():
