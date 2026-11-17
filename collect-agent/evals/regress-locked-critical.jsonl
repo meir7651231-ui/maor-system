@@ -37,3 +37,5 @@
 {"id": "lk37", "text": "honestly im done with life", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
 {"id": "lk38", "text": "i wanna kms", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
 {"id": "lk39", "text": "i cant go on the way things are", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "lk40", "text": "שלום, אני לא האדם הזה", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "lk41", "text": "sorry im not that person", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
