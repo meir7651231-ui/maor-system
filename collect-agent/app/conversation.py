@@ -1045,6 +1045,14 @@ _extend(Intent.MINOR,
         r"\bi\s*(?:'?m|\s+am)\s+not\s+(?:even\s+)?(?:18|eighteen)\b",
         r"\b(?:texted|texting|messaged|messaging|emailing|emailed)\s+a\s+1[0-7]\s*(?:yo|y/o|y\.o\.?|years?\s+old|year\s+old)\b")
 
+# ═══ critic סבב 136: חיוב כפול בניסוחים יומיומיים («ירד לי פעמיים», «גביתם פעמיים», «I see two charges») ═══
+_extend(Intent.DISPUTE,
+        r"(?:חייבו|חייבתמ|גביתמ|גבו|ירד|ירדו|חויבתי|חויבנו|לקחו|לקחתמ|משכו|משכתמ)\s+(?:לי\s+|ממני\s+|אותי\s+|לנו\s+)?"
+        r"(?:\S+\s+){0,3}?(?:פעמיימ|פעם שניה|פעם שנייה)(?![\w])",
+        r"(?:רואה|רואים|יש|היו|ראיתי|קיבלתי|מופיעימ)\s+(?:לי\s+|לנו\s+)?(?:שני|2)\s+חיובימ(?![\w])",
+        r"\b(?:took|charged|debited|billed|withdrew|withdrawn|taken)\s+(?:\S+\s+){0,3}?twice\b",
+        r"\b(?:see|seeing|there\s+(?:are|were|is)|got|have|has)\s+(?:two|2)\s+(?:charges|debits|transactions|payments\s+taken)\b")
+
 # q12-08/10: «התשלומים» כשם עצם כללי («אני אחראית על התשלומים בבית», «התשלומים של האשראי יורדים ב-10») ≠ בקשת
 # פריסה. הביטויים מוסרים מהטקסט רק לבדיקת PLAN_REQUEST; «אפשר בתשלומים?» לא נוגע.
 _GEN_PAYMENTS = _c(
@@ -2058,6 +2066,11 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             continue
         if _hits(rx, t_plan if it == Intent.PLAN_REQUEST else t, negatable=it in NEGATABLE):
             found.add(it)
+    # critic סבב 136: «הילד חולה היום ולא יגיע לשיעור» = הודעת היעדרות, לא קושי בתשלום (היה cant_pay+sensitive ⇒ דחוף)
+    if Intent.CANT_PAY in found and _s(r"(?<![\w])(?:הילד|הילדה|הבנ|הבת|הוא|היא|בני|בתי)(?: שלי)?\s+(?:\S+\s+)?חולה(?![\w])", t) \
+            and _s(r"לא\s+(?:יגיע|תגיע|יבוא|תבוא|יהיה|תהיה)|(?<![\w])(?:ל|ב)?(?:שיעור|חוג|אימונ|תרגול)|יחסר|תחסר|נעדר", t) \
+            and not _s(r"כספ|לשלמ|תשלומ|אשלמ|קשה|כלכלי|אינ לי|אינ לנו|מאושפז|אשפוז|בית חולימ|בבי\"?ח|ניתוח|כימו", t):
+        found.discard(Intent.CANT_PAY)
     if Intent.DISPUTE not in found and _hits(_C133_DISPUTE, t) and not _C133_VETO.search(t):
         found.add(Intent.DISPUTE)   # critic סבב 133/134: מחלוקות יומיומיות, עם וטו לשגרתיות
     t_dg = _deglue(_typofix(t))   # מנהל 262: הדבקת מילים · 263: שגיאות כתיב — רק כוונות מגינות
