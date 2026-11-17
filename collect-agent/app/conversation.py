@@ -615,6 +615,11 @@ RX: dict[Intent, re.Pattern[str]] = {
         # מנהל 251 (qa8): «already transferred it this morning», «I wired the money yesterday»
         r"\b(?:already\s+)?(?:transferred|wired|deposited)\s+(?:it|the\s+(?:money|payment|amount|funds))\b",
         r"\b(?:i|we)\s+(?:already\s+)?(?:transferred|wired|deposited|sent)\s+(?:you\s+)?(?:the\s+)?(?:money|payment|funds|transfer)\b",
+        # מנהל 271: «I transferred 2000 yesterday», «I sent 500 via bit» ⇒ היה «לא ברור» (תזכורות ממשיכות למי ששילם)
+        r"\b(?:i|we)\s+(?:already\s+|just\s+)?(?:transferred|wired|deposited|sent)\s+(?:(?:you|u|over|already)\s+)*"
+        r"(?:₪|nis\s*|ils\s*)?(?:\d{1,3}(?:,\d{3})+|\d{2,})(?!\s*(?:messages?|emails?|texts?|photos?|pictures?|screenshots?|times?|days?|%))",
+        r"\b(?:i|we)\s+(?:already\s+|just\s+)?(?:sent|transferred|paid)\s+(?:it\s+|you\s+|the\s+money\s+|\d[\d,]*\s*(?:nis|ils|₪|shekels?)?\s+)?"
+        r"(?:via|by|with|through|on)\s+(?:bit|paybox|bank\s+transfer)\b",
         r"(?:יש לי|מצרפ\w*|הנה|שולח\w*) (?:את ה)?אסמכתא", r"(?:בעלי|אשתי|בעלה|אבא שלי|אמא שלי|השותף) (?:כבר )?(?:שילם|שילמה|העביר|העבירה)",
         r"(?:ה)?(?:ביט|פייבוקס|העברה|תשלום|צ'?ק|כסף)(?: \w+)? (?:כבר )?(?:נשלח|נשלחה|בוצע|בוצעה|יצא|יצאה|הועבר|הועברה|הופקד)",
         r"(?:קיבלתם|קיבלת) (?:כבר )?(?:את )?(?:ה)?(?:כסף|תשלום)",
@@ -1082,7 +1087,14 @@ _AMOUNT_RX = _c(r"(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?\s*(?:₪|ש\"ח|שח|
 _PAID_AMOUNT_RX = _c(
     r"(?:שילמ\w*|שלמת\w*|העבר\w*|הפקד\w*|שלחת\w*|שולמ\w*|שולם|נתתי|מסרתי)\s*(?:לכם |לך |כבר |רק |בינתיים |את )*"
     r"(?:ב-?(?:ביט|פייבוקס|העברה)\s*)?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?\s*(₪|ש\"ח|שח|שקלים|שקל)?")
-_PARTIAL_WORDS = _c(r"(?<![\w])(?:חלק|חלקי|חצי|מקדמה|רק חלק|את רוב|קצת|חלק מה)")
+# מנהל 271: סכום ששולם באנגלית — «I paid 1000» / «I paid 1500 nis» (חוב 5,000) ⇒ היה «טוען/ת ששילם/ה 5,000 ₪»
+# (מלוא החוב, בלי «חלקי») כי רק הפעלים העבריים נקראו. דולר מפורש ⇒ לא מחולץ (המטבע של החוב שקלי; לא ממירים).
+_PAID_AMOUNT_EN_RX = _c(
+    r"\b(?:paid|payed|transferred|wired|deposited|sent)\s+(?:(?:you|u|it|over|already|just|only|about|around|like)\s+)*"
+    r"(?:(?:via|by|with|through)\s+(?:bit|paybox|bank\s+transfer|transfer|credit\s+card|card|cash|check|cheque)\s+)?"
+    r"(₪|\$|nis\s*|ils\s*)?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?\s*(₪|nis|ils|shekels?|dollars?|usd|\$)?")
+_PARTIAL_WORDS = _c(r"(?<![\w])(?:חלק|חלקי|חצי|מקדמה|רק חלק|את רוב|קצת|חלק מה)"
+                    r"|\b(?:half|part\s+of|partial(?:ly)?|a\s+portion|a\s+deposit|down\s*payment|some\s+of\s+it)\b")
 
 
 def extract_paid_amount(t: str) -> int | None:
@@ -1093,6 +1105,22 @@ def extract_paid_amount(t: str) -> int | None:
         whole = int(m.group(1).replace(",", ""))
         frac = int((m.group(2) or "0").ljust(2, "0"))
         if whole == 0 or whole > 10_000_000:
+            continue
+        return whole * 100 + frac
+    for m in _PAID_AMOUNT_EN_RX.finditer(t):
+        cur = ((m.group(1) or "") + (m.group(4) or "")).strip()
+        if cur in ("$", "dollar", "dollars", "usd") or any(c in cur for c in ("$", "dollar", "usd")):
+            continue
+        after = t[m.end():m.end() + 20]
+        # «paid 2 payments», «paid 3 days ago», «sent 200 a month», «paid 1.5», «paid 10/11»
+        if _m(r"\s*(?:payments?|installments?|instalments?|days?|weeks?|months?|years?|hours?|times?|messages?|emails?|"
+              r"texts?|photos?|pictures?|screenshots?|(?:a|per|each|every)\s+month|monthly|\.\d|/|st\b|nd\b|rd\b|th\b|am\b|pm\b|:)",
+              after):
+            continue
+        whole = int(m.group(2).replace(",", ""))
+        frac = int((m.group(3) or "0").ljust(2, "0"))
+        if whole == 0 or whole > 10_000_000 or (not cur and 1990 <= whole <= 2100 and "," not in m.group(2)
+                                                  and _s(r"\b(?:in|since|from)\s*$", t[:m.start(2)])):
             continue
         return whole * 100 + frac
     return None

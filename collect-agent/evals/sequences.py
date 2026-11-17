@@ -6,7 +6,7 @@
 כל רצף = לקוח אחד (דנה כהן, 1,200 ₪ פתוח) בשירות טרי (DB בזיכרון, חשבונית ירוקה מדומה, dry-run).
 כל הודעה נכנסת ב-`inbound` ⇒ ההקשר (מצב, הצעה שנשלחה, מונה תורות) נבנה מה-DB כמו בפרודקשן.
 ציפיות לכל הודעה: intent · state (מצב השיחה ב-DB אחרי ההודעה) · promise (ISO / null) · stop ·
-escalate · not (כוונות שאסור שיופיעו) · plan_status / plans (מנהל 266) ·
+escalate · paid (אגורות, מנהל 271) · not (כוונות שאסור שיופיעו) · plan_status / plans (מנהל 266) ·
 draft (סטטוס הטיוטה שנוצרה: pending_approval/needs_owner/…; null = לא נוצרה). רצף critical חייב לעבור במלואו.
 
 מנהל 256 — רצפים ארוכים עם בעל העסק באמצע:
@@ -141,6 +141,10 @@ def run_seq(seq: dict) -> list[str]:
                 got = d.promise_date.isoformat() if d and d.promise_date else None
                 if got != e["promise"]:
                     fails.append(f"{tag} promise {got}≠{e['promise']}")
+            if "paid" in e:           # מנהל 271: סכום שהלקוח טוען ששילם (אגורות; null = לא חולץ)
+                got = d.paid_agorot if d else None
+                if got != e["paid"]:
+                    fails.append(f"{tag} paid {got}≠{e['paid']}")
             for k in ("stop", "escalate"):
                 key = "escalation" if k == "escalate" else k
                 if k in e and out.get(key) != e[k]:
