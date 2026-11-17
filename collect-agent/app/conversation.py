@@ -304,6 +304,11 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"\bi\s*(?:can'?t|cannot)\s+go\s+on\b(?!\s+(?:(?:a|an|the|my|our|this|that)\s+)?(?:vacation|holiday|trip|leave|website|site|app|portal|call|line|link|tour|date)s?\b)", r"\bwant\s+to\s+die\b", r"\bend\s+(?:it\s+all|my\s+life)\b",
         r"(?:רוצה|בא לי|הולכ\w?) ל(?:מות|התאבד)", r"להתאבד", r"אתאבד", r"לשים קץ",
         r"אין (?:לי )?(?:טעם|סיבה|כוח) (?:לחיות|יותר לחיות)", r"נמאס לי מהחיים",
+        # מנהל 258 (qa11 q11-13 🔴): «אין לי כסף אפילו לאוכל לילדים, אני לא יודעת מה לעשות יותר» ⇒ היה cant_pay רגיל.
+        # מחסור במזון / ייאוש מפורש = מצוקה (השהיה + דחוף לבעל העסק). «לא יודעת מה לעשות» לבד (בלי «יותר»/«עם עצמי») ≠ מצוקה.
+        r"אין (?:לי|לנו) (?:אפילו )?(?:כסף|שקל|גרוש)\s+(?:אפילו\s+)?(?:ל|בשביל\s+(?:ה)?)(?:אוכל|לאכול|לחמ|אוכל ל(?:ה)?ילדימ)(?![\w])",
+        r"אין (?:לי|לנו) (?:מה|מאיפה) (?:לאכול|להאכיל)", r"(?:לא|כבר לא) (?:יודע|יודעת|יודעימ) מה לעשות (?:יותר|עמ עצמי|כבר)(?![\w])",
+        r"\b(?:can'?t|cannot)\s+(?:even\s+)?(?:afford|buy)\s+(?:food|groceries)\b", r"\bno\s+money\s+(?:even\s+)?for\s+food\b",
         r"אני גומר עם (?:זה|הכול|הכל|החיים)", r"לא רוצה לחיות", r"אין לי בשביל מה לחיות", r"לא רוצה (?:כבר |יותר )?כלום(?: מהחיים)?\W*$", r"לא רוצה (?:כבר |יותר )?כלום מהחיים", r"\bwant (?:it all|everything) to (?:end|stop)\b|\bend it all\b", r"(?:אין|בקושי יש) (?:לי|לנו) (?:מה )?(?:לאכול|אוכל)", r"(?:ה)?(?:כל|כול) נופל עליי", r"(?:אין לי כוח|לא יכול\w*) ל(?:קום|צאת) מה?(?:מיטה|בוקר)", r"(?:לקום|לצאת מהמיטה) בבוקר", r"(?:מרגיש|מרגישה) ש?אין טעם", r"אין טעם (?:לשום|לכלום|בכלום|לחיות)", r"אין לי כוח (?:יותר )?(?:לכלום|לשום דבר)", r"(?:ה)?(?:כל|כול|חיים|עולם)(?: שלי)? (?:קורס|קרס|מתפרק|מתמוטט)\w*(?! ה?(?:מזגן|מחשב|אתר|שרת))(?:\s+(?:עליי|עלי|לי)|\s*[,.!]|$)", r"(?:אני )?(?:מתפרק|מתפרקת|מתמוטט|מתמוטטת)(?![\w])", r"(?:אני )?על הקצה", r"(?:כבר )?לא מחזיק\w* מעמד", r"אין לי כוח (?:לכלום|לשום דבר|לחיים)", r"לא (?:מסוגל|מסוגלת|יכול|יכולה)\w* יותר(?: עם (?:זה|הכל|הכול|החיים))?(?:\s*[,.!]|$)", r"לא רואה (?:שום )?טעם (?:להמשיך|לחיות|בחיים|בכלום)", r"עדיף ש(?:לא אהיה|אמות|איעלם|אעלם)",
         r"(?:לא רוצה להיות|לא אהיה) (?:פה|כאן|בחיים) (?:יותר|בכלל)", r"לסיים את (?:החיים|הכול|הכל) (?:שלי)?$", r"לא יכול\w* (?:יותר )?עם (?:ה)?חיים", r"(?:בשביל מה|למה|סיבה|טעם|כוח) (?:לי )?(?:להמשיך )?לחיות",
         r"\bsuicid", r"kill myself",
@@ -472,7 +477,7 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"(?:תתקנו|תקנו|תסדרו)(?!ת)\w*(?: בבקשה)?\W*$",
         r"(?:גבוה|יקר|יותר|שונה)\w* ממה ש(?:הוסכם|סוכם|סיכמנו|הוצע|קיבלתי|דובר)",
         r"(?:לא תואמ\w*|שונה מ)\s*(?:את )?(?:ל)?(?:ה)?(?:הצעה|הצעת ה?מחיר|הסכם|ה?חוזה|מה שסוכם)",
-        r"(?:לא|טרם|עוד לא) (?:הסתיימ\w*|הושלמ\w*)", r"לא (?:קיבלתי|קיבלנו) (?:שום|כלום)",
+        r"(?:לא|טרם|עוד לא) (?:הסתיימ\w*|הושלמ\w*)", r"לא (?:קיבלתי|קיבלנו) (?:(?:מכם|מכן|מאיתכם|ממך|מהם|אף פעם|בכלל|עדיין)\s+)?(?:שום|כלום)",
         # qa3: אנגלית
         r"\bi'?m disputing\b|\bi dispute\b|\bdisputing (?:this|the)\b", r"\bnever (?:finished|completed|done|delivered)\b",
         r"\b(?:won'?t|will not|refuse to) pay\b",
@@ -609,6 +614,8 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"(?:העתק|עותק|צילום) (?:של )?(?:ה)?(?:חשבונית|קבלה)", r"לא (?:קיבלתי|ראיתי|מצאתי|מוצא|מוצאת|רואה|רואים) (?:את )?(?:ה)?(?:חשבונית|חשבון)",
         r"(?:תשלחו|שלחו|תשלח|תוכלו לשלוח|אפשר לקבל) (?:לי )?(?:שוב )?(?:את )?(?:ה)?(?:חשבונית|פירוט|קבלה|חשבון)",
         r"(?:על מה|עבור מה|בשביל מה) (?:בדיוק )?(?:ה)?(?:חשבונית|חיוב|תשלום|סכום|זה)", r"(?:פירוט|פרטים) (?:של |על )?(?:ה)?(?:חשבונית|חיוב|עבודה)",
+        # מנהל 258 (qa11 q11-26): «מספר החשבונית לא מופיע לי, אפשר לשלוח שוב?» = שליחה חוזרת של החשבונית, לא «איך משלמים»
+        r"(?:מספר|פרטי|פירוט) (?:ה)?(?:חשבונית|חשבון)\W+(?:\w+\W+){0,2}?לא (?:מופיע|מופיעה|מופיעים|רואים|רשום|רשומה|כתוב)",
         r"\binvoice copy\b", r"\b(?:copy|duplicate)\s+of\s+(?:the\s+|my\s+|this\s+|that\s+)?(?:invoice|bill)\b",  # מנהל 256 (q10-22)
         r"\b(?:resend|re-send|send\s+(?:me\s+)?again)\s+(?:me\s+)?(?:the\s+|my\s+)?(?:invoice|bill)\b", r"(?:פירוט|פרטים) (?:של )?מה (?:בדיוק )?(?:כלול|נכלל|כולל)", r"מה (?:בדיוק )?(?:כלול|נכלל) ב(?:ה)?(?:סכום|חשבונית|חיוב|מחיר)", r"(?:למייל|במייל) (?:את ה)?(?:חשבונית|פירוט)",
         # מנהל 248 (qa6 x6-42): «לא הבנתי את הסכום, אפשר פירוט?», «אשמח לפירוט», «send me a breakdown»
@@ -639,6 +646,9 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"\b(?:what'?s|what\s+is)\s+the\s+(?:process|procedure|way)\b.{0,25}\bpay", r"\bhow\s+(?:do|can|should)\s+(?:i|we)\s+(?:pay|transfer|retry|try\s+again)\b",
         r"\b(?:send|give|text|email)\s+(?:me|us)\s+(?:the\s+|a\s+)?(?:payment\s+)?(?:link|account\s+details|bank\s+details|payment\s+details)\b",
         r"\b(?:another|other|different|alternative)\s+way\s+(?:to|i\s+can|we\s+can)\s+pay\b", r"\bpay(?:ing)?\s+(?:by|via|with)\s+(?:bank\s+transfer|wire|credit\s+card|card)\b",
+        # מנהל 258 (qa11 q11-09/13): «What's the easiest way to pay this?», «Is there a link to pay online?», «I asked how I can pay»
+        r"\b(?:easiest|best|quickest|simplest|fastest|easy)\s+way\s+(?:to|i\s+can|we\s+can)\s+pay\b",
+        r"\bis\s+there\s+(?:a|an|any)\s+(?:\w+\s+)?(?:link|way|option)\s+(?:to\s+pay|for\s+pay(?:ing|ment))\b", r"\bhow\s+(?:i|we)\s+(?:can|could|should)\s+pay\b",
         r"(?:ה)?(?:טרנזקציה|עסקה|תשלום|העברה|סליקה)\s+נכשל\w*", r"נתקע\w*\s+(?:ב|באמצע\s+(?:ה)?)(?:תשלום|העברה)"),
     Intent.CALLBACK: _rx(
         r"(?:תתקשרו|תתקשר|תתקשרי|התקשרו|תחזרו|תחזור|חזרו) (?:אליי|אלי|אלינו|לי)", r"(?:אפשר|רוצה|אשמח) (?:ל)?(?:דבר|שיחה|שתתקשרו|שיחזרו)",
@@ -655,7 +665,9 @@ RX: dict[Intent, re.Pattern[str]] = {
     Intent.WHO_IS_THIS: _rx(
         r"^\W*(?:מי (?:זה|זאת|אתם|את|אתה|שולח|כותב)|מי זה\?|מה זה|מה זה\?|על מה (?:מדובר|זה)|מאיפה (?:יש לכם|השגתם) את המספר|who is this)\W*$",
         # מנהל 249 (qa7 x7-32): «who is this? I don't recognize this business»
-        r"^\W*who\s+(?:is\s+this|are\s+you)\b", r"\bdon'?t\s+recogni[sz]e\s+(?:this|the|your)\s+(?:business|company|sender|name)\b",
+        r"^\W*who\s+(?:is\s+this|are\s+you)\b", # מנהל 258 (qa11 q11-15 🔴): «Who sent this?», «who is this from», «what company is this?»
+        r"^\W*who\s+(?:sent|sends|is\s+sending|wrote|texted|emailed)\s+(?:me\s+)?(?:this|these|that)\b", r"\bwho\s+is\s+this\s+from\b",
+        r"\bwhat\s+(?:company|business)\s+is\s+this\b", r"\bdon'?t\s+recogni[sz]e\s+(?:this|the|your)\s+(?:business|company|sender|name)\b",
         r"(?:מי|מאיזה עסק|מאיזו חברה) (?:זה|אתם|שולח)", r"ממי (?:ה)?(?:הודעה|מייל)", r"(?:איזה|איזו|מאיזה|מאיזו) (?:עסק|חברה|מקום|משרד|ספק)", r"מאיפה (?:יש לכם|השגתם|קיבלתם) את (?:ה)?מספר", r"על מה (?:מדובר|ההודעה)",
         # מנהל 242 (self4): «זה ממי?», «ממי זה?», «ממי ההודעה הזאת»
         r"(?:זה|זאת|זו|ההודעה|המייל|המספר)(?: ה?(?:זה|זאת|זו))? ממי(?![\w])", r"(?:^|\W)ממי (?:זה|זאת|זו|ההודעה|המייל|זה הגיע)(?![\w])",
@@ -696,7 +708,7 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"\b(?:this\s+is\s+)?(?:my\s+)?(?:kid|child|little\s+(?:boy|girl))'?s\s+(?:phone|number|cell|mobile)\b"),
     Intent.THANKS: _rx(
         r"^\W*(?:(?:תודה|תודה רבה|תודהה|תנקס|thanks|thank you|תודה על העדכון|קיבלתי|קיבלנו|סבבה|אחלה|"
-        r"thx|thnx|tnx|thanx|ty|10x|tks|אוקיי|אוקי|ok|בסדר|בסדר גמור|מעולה|יופי|👍|🙏|רשמתי|ראיתי|טוב|רבה|גמור|לכם|לך|יום טוב|שבוע טוב)\W*)+$"),
+        r"thx|thnx|tnx|thanx|ty|10x|tks|got it|noted|received|perfect|great|awesome|אוקיי|אוקי|ok|בסדר|בסדר גמור|מעולה|יופי|👍|🙏|רשמתי|ראיתי|טוב|רבה|גמור|לכם|לך|יום טוב|שבוע טוב)\W*)+$"),
 }
 
 # כוונות שמבוססות על הקשר (מגיבות להצעה שנשלחה)
@@ -1136,15 +1148,30 @@ def extract_date_ctx(t: str, ctx: Context | None) -> tuple[date | None, bool]:
 # לכן כאן רק **תיקון מפורש**: מילת תיקון בראש ההודעה («בעצם», «תיקון», «רגע», «סליחה», «actually», «sorry») +
 # יום עם מילת יחס, וכל ההודעה היא התאריך. «ב-25» לבד, «17», «שילמתי ב-25» ⇒ לא נתפס.
 _CORRECTION_LEAD = (r"^\W*(?:(?:אז|אה|אהה|טוב|אוקיי|אוקי|לא)\W+)?(?:בעצם|תיקון|רגע|סליחה|טעיתי|התכוונתי)(?![\w])"
-                    r"|^\W*(?:(?:oh|ok|okay|no)\W+)?(?:actually|sorry|correction|i\s+meant)\b")
+                    r"|^\W*(?:(?:oh|ok|okay|no)\W+)?(?:actually|sorry|correction|i\s+meant)\b"
+                    # מנהל 258 (qa11 q11-16/19/21): ויתור/הקדמה אחרי מועד רחוק — «טוב אני יכולה להקדים, ב-20»,
+                    # «אם זה בעיה אז ב-19 לחודש הזה», «אוקיי אוקיי, ב-13». עדיין חובה מילה מובילה + יום עם מילת יחס;
+                    # «ב-25» לבד (rm257-03) ⇒ לא נתפס.
+                    r"|^\W*(?:טוב|אוקיי|אוקי|בסדר|סבבה|יאללה)(?![\w])"
+                    r"|^\W*(?:(?:טוב|אוקיי|אוקי|אז)\W+)?(?:אמ (?:זה|זאת) (?:\w+\W+){0,2}?אז|(?:אני |אנחנו )?(?:יכול|יכולה|יכולימ|אוכל|נוכל) להקדימ|אקדימ|נקדימ)(?![\w])")
+_CORRECTION_STRIP = (r"^\W*(?:(?:אז|אה|אהה|טוב|אוקיי|אוקי|לא|בסדר|סבבה|יאללה|כנ|בעצמ|תיקונ|רגע|סליחה|טעיתי|התכוונתי|אקדימ|נקדימ)(?![\w])\W*"
+                     r"|אמ (?:זה|זאת) (?:\w+\W+){0,2}?אז(?![\w])\W*|(?:אני |אנחנו )?(?:יכול|יכולה|יכולימ|אוכל|נוכל) להקדימ(?![\w])\W*)*")
 
 
 def _owner_correction_day(t: str, ctx: Context) -> date | None:
     if ctx.state != State.AWAITING_OWNER or not re.search(_c(_CORRECTION_LEAD), t):
         return None
-    u = re.sub(_c(r"^\W*(?:(?:אז|אה|אהה|טוב|אוקיי|אוקי|לא)\W+)?(?:טעיתי|התכוונתי)(?![\w])\W*"), "", t)
-    u = re.sub(r"^\W*(?:(?:oh|ok|okay|no)\W+)?(?:actually|sorry|correction|i\s+meant)\b\W*", "", u)
-    return _bare_day(u, ctx.today, need_marker=True)
+    u = re.sub(_c(_CORRECTION_STRIP), "", t)
+    u = re.sub(r"^\W*(?:(?:oh|ok|okay|no)\W+)?(?:(?:actually|sorry|correction|i\s+meant)\b\W*)+", "", u)
+    bd = _bare_day(u, ctx.today, need_marker=True)
+    if bd is None and u != t:
+        # מנהל 258 (q11-17/21): «Sorry, I meant November 15, not December», «טוב, אז בחודש הבא» — תאריך מלא אחרי מילת התיקון
+        u2 = re.sub(r",?\s*(?:not|rather\s+than)\s+(?:in\s+|on\s+)?[a-z]+\W*$", "", u)
+        u2 = re.sub(_c(r",?\s*(?:ולא|לא)\s+(?:ב)?\S+\W*$"), "", u2)
+        d, vague = extract_date(u2, ctx.today)
+        if d is not None and not vague and d > ctx.today and not re.search(_c(r"\d\s*(?:תשלומ|payments|installments)"), u2):
+            bd = d
+    return bd
 
 
 # מנהל 256 (qa10 q10-02/14/19/23/27): «קיבלתי תודה. אשלם ב-15», «סליחה, לא הספקתי. אשלם ב-20»,
@@ -1243,7 +1270,9 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         found.add(Intent.PROMISE)   # מנהל 257: «בעצם ב-25» אחרי מועד שהועבר לבעלים = עדכון המועד
     # מנהל 253 (qa9 q9-28/משלים): «אפשר לשלם ב-18 בנובמבר?», «Can I pay next week?» = בקשת דחייה עם מועד, לא «איך משלמים»
     if ctx is not None and (_s(r"(?:אפשר|אוכל|אני יכול\w*|ניתן|מותר)\s+(?:ל)?(?:שלם|לשלם|להעביר|לסדר|לדחות)", t)
-                            or re.search(r"\b(?:can|could|may)\s+(?:i|we)\s+(?:pay|transfer|send\s+(?:it|the\s+payment)|settle)\b", t)):
+                            or re.search(r"\b(?:can|could|may)\s+(?:i|we)\s+(?:pay|transfer|send\s+(?:it|the\s+payment)|settle)\b", t)
+                            # מנהל 258 (qa11 q11-17): «I can pay on December 15» (חיווי, לא שאלה) — כמו «אני יכולה לשלם ב-…»
+                            or re.search(r"\b(?:i|we)\s+(?:can|could)\s+(?:only\s+)?(?:pay|transfer|settle)\b", t)):
         d, _vague = extract_date(t, ctx.today)
         if (d is not None and d > ctx.today) or (_vague and re.search(r"[a-z]", t)) or _s(_HOLIDAY_VAGUE, t):
             if not _s(r"(?:איך|לאן|למי|איפה|באיזה|באיזו|בכרטיס|באשראי|בביט|בפייבוקס|בהעברה|בצ'?ק|במזומן)", t) and \
@@ -1362,6 +1391,12 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     if Intent.WHO_IS_THIS in found and _s(_PHISH, t):
         found.discard(Intent.HOW_TO_PAY)
         found.discard(Intent.UNKNOWN)
+    # מנהל 258 (qa11 q11-28 🔴): «טוב שילמתי עכשיו את הכל» במצב PROMISED ⇒ «עכשיו» נקרא כמועד ⇒ promise משני.
+    # טענת תשלום בעבר בלי פועל עתיד ובלי יתרה («את השאר אשלם ב-20») ⇒ אין הבטחה.
+    if Intent.PAID_CLAIM in found and Intent.PROMISE in found and _s(_claims_paid, t) and \
+            not _s(_PROMISE_VERB_HE + r"|(?:ה)?(?:שאר|יתרה)|(?:אשלמ|אעביר|נשלמ|נעביר)", t) and \
+            not re.search(_PROMISE_VERB_EN + r"|\b(?:the\s+)?(?:rest|remaining|balance)\b", t):
+        found.discard(Intent.PROMISE)
     if Intent.THANKS in found and len(found) > 1:
         found.discard(Intent.THANKS)
     if Intent.PLAN_ACCEPT in found and (found & {Intent.DISPUTE, Intent.OPT_OUT, Intent.LEGAL}):
