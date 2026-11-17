@@ -2012,6 +2012,19 @@ class CollectService:
             self._release_webhook("mail:" + (message_id or hashlib.sha256(f"{sender}|{text}".encode()).hexdigest()))
             raise
 
+    def _subject_protective_with_empty_body(self, subject: str, body: str) -> str:
+        """המשך לסבב 125: נושא «הסר»/«לא חייב לכם» עם גוף שלא אומר כלום («תודה», «נשלח מה-iPhone», «בברכה, דנה»)
+        ⇒ ההסרה נבלעה בשקט (הגוף לא ריק ⇒ הנושא לא נקרא). הנושא מצטרף רק כשהגוף עצמו בלי תוכן (תודה/לא ברור)
+        **וגם** הנושא מגן (הסרה/מחלוקת/משפטי/מצוקה/קטין/מספר שגוי). גוף עם תוכן ⇒ הנושא לא משנה דבר (סבב 125)."""
+        from .conversation import _FLOOR_INTENTS, Intent, detect
+
+        if set(detect(body)) - {Intent.THANKS, Intent.UNKNOWN}:
+            return body
+        s = self._email_subject_text(subject)
+        if not s or not set(detect(s)) & set(_FLOOR_INTENTS):
+            return body
+        return s + "\n" + body
+
     def _email_subject_text(self, subject: str) -> str:
         """critic סבב 125: נושא מייל ⇒ טקסט לסיווג, רק אם הוא אומר משהו (בלי Re:/Fwd:, בלי שם העסק)."""
         from .conversation import Intent, detect
@@ -2045,6 +2058,8 @@ class CollectService:
         addr, body = parse_address(sender), strip_reply(text)
         if not body and subject:   # critic סבב 125: «הסר» בשורת הנושא עם גוף ריק/ציטוט בלבד נבלע בשקט
             body = self._email_subject_text(subject)
+        elif body and subject:
+            body = self._subject_protective_with_empty_body(subject, body)
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
                   " VALUES(NULL,'webhook','email','inbound',?,?)", (key, _iso(self.clock())))
         if not addr or not body:

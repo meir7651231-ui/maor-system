@@ -781,7 +781,9 @@ _extend(Intent.DISTRESS,
 # «unsubcribe», «reportin u to the polise», «i feel so hopless». מילת-פעולה של שליחה נדרשת אחרי stop (לא «stop worrying»).
 _extend(Intent.OPT_OUT,
         r"\b(?:stop|stpo|sotp|stp|stopp)\s+(?:txt\w*|tex\w*|msg\w*|mesag\w*|messag\w*|sms\w*|sending\s+(?:me|us|messages|texts)\b|emai?l\w*|contact\w*|bother\w*|harass\w*|spam\w*)",
-        r"\bun\s?sub\w{2,9}\b")
+        r"\bun\s?sub\w{2,9}\b",
+        # «הסר אותי» + כל המשך («Thanks», «נשלח מה-iPhone שלי» — חתימת מייל) נפל: נתפס רק כמשפט שלם. ציווי + מושא ⇒ הסרה
+        r"(?<![\w])(?:הסר|הסירו|הסירי|תסירי)\s+(?:אותי|אותנו|את\s+(?:ה)?(?:מספר|טלפון|מייל|אימייל|כתובת)(?:\s+שלי)?|מהרשימה|מהרשימות)(?![\w])")
 _extend(Intent.LEGAL,
         r"\b(?:report\w*|call\w*|go\w*\s+to)\s+(?:u\s+|you\s+|ur\s+business\s+)?(?:to\s+)?(?:the\s+)?pol+i[cs]e?\b")
 _extend(Intent.DISTRESS,
