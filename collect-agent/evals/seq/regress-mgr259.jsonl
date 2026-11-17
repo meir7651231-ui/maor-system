@@ -1,0 +1,8 @@
+{"id": "rm259-01", "channel": "sms", "critical": true, "turns": [{"text": "קיבלתי, תודה. המספר שלי מסתיים ב-55, תעדכנו אצלכם", "expect": {"not": ["wrong_person", "opt_out"], "stop": "none"}}, {"text": "אשלם ב-20", "expect": {"intent": "promise", "promise": "2026-11-20"}}]}
+{"id": "rm259-02", "channel": "email", "critical": true, "turns": [{"text": "המספר שלי משתנה בחודש הבא", "expect": {"not": ["wrong_person", "opt_out"], "stop": "none"}}, {"text": "מה מספר החשבונית?", "expect": {"intent": "copy_request", "not": ["how_to_pay"]}}]}
+{"id": "rm259-03", "channel": "sms", "critical": true, "turns": [{"text": "המספר הזה שייך לי כבר שנתיים, אין פה דנה", "expect": {"intent": "wrong_person", "stop": "permanent"}}]}
+{"id": "rm259-04", "channel": "sms", "critical": true, "turns": [{"text": "אני נזקק לעזרה, אין לי איך לשלם הכל עכשיו", "expect": {"not": ["dispute"]}}]}
+{"id": "rm259-05", "channel": "sms", "critical": false, "turns": [{"text": "נפטרתי מהחוב הזה כבר מזמן", "expect": {"not": ["cant_pay"]}}]}
+{"id": "rm259-06", "channel": "sms", "critical": true, "turns": [{"text": "אבא שלי נפטר בשבוע שעבר", "expect": {"intent": "cant_pay", "stop": "pause"}}]}
+{"id": "rm259-07", "channel": "sms", "critical": false, "turns": [{"text": "התקשרו אליו, הוא מטפל בזה", "expect": {"not": ["callback"]}}, {"text": "תחזרו אליי מחר", "expect": {"intent": "callback"}}]}
+{"id": "rm259-08", "channel": "email", "critical": true, "turns": [{"text": "תמחקו את המספר שלי מהמערכת שלכם", "expect": {"intent": "opt_out", "stop": "permanent"}}]}
