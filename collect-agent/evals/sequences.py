@@ -14,6 +14,7 @@ draft (סטטוס הטיוטה שנוצרה: pending_approval/needs_owner/…; n
   {"owner": "approve_draft"[, "body"]}  מאשר את הטיוטה האחרונה שממתינה (needs_owner ⇒ חובה body)
   {"owner": "reject_draft"}             סוגר את הטיוטה האחרונה בלי מענה
   ציפיות לתור בעלים: ok (הפעולה הצליחה) · state · plan_status.
+  מייל (מנהל 276) נכנס דרך `email_webhook` כמו בפרודקשן — הציטוט/החתימה מוסרים לפני המנוע.
   "advance_days": N בכל תור ⇒ השעון מתקדם N ימים לפני התור (הבטחה שעברה, השהיה שפגה).
 """
 from __future__ import annotations
@@ -125,7 +126,14 @@ def run_seq(seq: dict) -> list[str]:
                         fails.append(f"{tag} plan_status {got}≠{e['plan_status']}")
                 continue
             ch = turn.get("channel", seq["channel"])  # מנהל 254: מעבר ערוץ באמצע רצף (SMS⇄מייל, אותו לקוח)
-            out = svc.inbound(ch, ADDR[ch], turn["text"])
+            if ch == "email":
+                # מנהל 276: מייל עובר את מסלול הפרודקשן (`email_webhook` ⇒ strip_reply: בלי הציטוט של התזכורת,
+                # בלי חתימה/הסתייגות). קודם הרצף קרא `inbound` ישירות ⇒ «להסרה השיבו הסר» שבציטוט נמדד כ-opt_out.
+                out = svc.email_webhook(ADDR[ch], turn["text"], f"<seq-{seq['id']}-{i}@eval>")
+                if out.get("ignored"):
+                    out = {"intent": "ignored"}
+            else:
+                out = svc.inbound(ch, ADDR[ch], turn["text"])
             d = seen[-1] if seen else None
             if "intent" in e and out["intent"] != e["intent"]:
                 fails.append(f"{tag} intent {out['intent']}≠{e['intent']}")

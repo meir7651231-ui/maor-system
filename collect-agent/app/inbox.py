@@ -307,8 +307,11 @@ class ConversationInbox:
         # מנהל 275 (qa16 q16-09): הלקוח ביקש **בדיוק** את מה שהוצע («אפשר ב-3 תשלומים?» אחרי הצעת 3) ⇒ התשובה
         # «זה בדיוק מה שהצענו… מתאים?» אבל ההצעה סומנה rejected ⇒ «מאשרת» אחר כך הוביל ל-plan_pending_owner בלי
         # הסדר לאישור. בקשה זהה (plan_same) היא לא דחייה — ההצעה נשארת בתוקף.
-        if prior == State.AWAITING_PLAN_REPLY and "plan_same" not in d.tags and intents & {
-                Intent.PLAN_REJECT.value, Intent.PLAN_REQUEST.value}:
+        # מנהל 276 (qa17 q17-10): «So 400 a month for 3 months, right? Ok I'm in» ⇒ plan_accept + plan_request משני
+        # (חזרה על ההצעה) ⇒ ההצעה סומנה rejected **לפני** שהאישור נקשר אליה ⇒ בעל העסק: «אין הסדר מוצע». אישור
+        # הוא לעולם לא דחייה של ההצעה שהוא מאשר.
+        if prior == State.AWAITING_PLAN_REPLY and "plan_same" not in d.tags and d.intent != Intent.PLAN_ACCEPT \
+                and intents & {Intent.PLAN_REJECT.value, Intent.PLAN_REQUEST.value}:
             # ההצעה האחרונה כבר נשלחה (status='approved' = בעל העסק אישר לשלוח), והלקוח דחה אותה
             # או ביקש אחרת. בלי זה היא נשארה approved לנצח ⇒ `plan_active` חוסם תזכורות גם אחרי
             # שבעל העסק מחדש (critic 2.3.4). השהיית plan_reject/plan_request עצמה נשארת.

@@ -424,7 +424,10 @@ _EN_INST = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "e
             "eighteen": 18, "nineteen": 19, "twenty": 20, "twenty four": 24, "twenty-four": 24}
 _EN_INW = "|".join(sorted(_EN_INST, key=len, reverse=True))
 _EN_INST_RX = re.compile(r"(?<!\bmade )(?<!\bpaid )(?<!\bsent )(?<!\bdid )\b(\d{1,2}|" + _EN_INW
-                         + r")\s+(?:monthly\s+|equal\s+|smaller\s+)?(?:payments|installments|instalments)\b", re.I)
+                         + r")\s+(?:monthly\s+|equal\s+|smaller\s+)?(?:payments|instal{1,2}me?nts)\b", re.I)
+# מנהל 276 (qa17 q17-08/34): «can I split it into 3?» — פיצול עם מספר בלי שם עצם (היה «לא ברור»); «instalmnts» (שגיאת הקלדה)
+_EN_SPLIT_RX = re.compile(r"\bsplit\s+(?:(?:it|this|that|the\s+(?:bill|amount|balance|debt|payment|invoice))\s+)?(?:in|into)\s+(\d{1,2}|"
+                          + _EN_INW + r")\b(?!\s*(?:%|percent|days?|weeks?|years?|hours?|people|ways?\s+with))", re.I)
 
 
 RX: dict[Intent, re.Pattern[str]] = {
@@ -641,6 +644,12 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"מחיר (?:של )?(?:שוד|גנבה|מטורף|הזוי|מופרך)|שוד לאור היום|(?:קורעים|קרעתם|קרעו) (?:אותי|אותנו|לי)",
         r"\bdoes(?:n'?t| not) match\b", r"\b(?:nobody|no one) (?:ever )?(?:showed|came|turned)(?: up)?\b",
         r"\b(?:the\s+)?(?:quote|estimate|agreed\s+price)\s+(?:was|said)\b", r"\bwe\s+agreed\s+on\b", r"\bplease\s+(?:fix|correct)\s+(?:it|the\s+(?:invoice|bill|amount))\s+before\b",
+        # מנהל 276 (qa17 q17-39): מנוי מוקפא / שיעורים שלא נלקחו — «I froze my membership for October… I'm not paying 1,200
+        # for classes I didn't take» ⇒ היה «לא ברור» (כרטיס רגיל, בלי עצירה כמחלוקת)
+        r"\b(?:froze|frozen|paused|suspended)\s+(?:my\s+|the\s+|our\s+)?(?:membership|subscription|classes|lessons)\b",
+        r"\b(?:classes|lessons|sessions)\s+(?:that\s+)?(?:i|we|my\s+(?:son|daughter|kid|child))\s+(?:didn'?t|did\s+not|never)\s+(?:take|attend|go\s+to|get)\b",
+        r"(?<![\w])הקפא\w*\s+(?:את\s+)?(?:ה)?(?:מנוי|חוג\w*|שיעורימ|שיעורים|הרשמה)",
+        r"(?:שיעור\w*|חוג\w*|מפגש\w*)\s+ש(?:לא|בכלל לא)\s+(?:הייתי|היינו|הייתה|היה|הגעתי|הגענו|הגיע\w*|השתתפ\w*|לקחתי)",
         r"\bovercharg\w*|\bcharged (?:me|us) (?:way )?too much\b|\bwhy am i paying\b",
         # מנהל 251 (qa8): «an invoice for a service I never received», «I never ordered this», «the invoice is wrong»
         r"\b(?:product|item|order|goods|service|work|job|delivery)\s+(?:that\s+)?(?:i|we)\s+(?:never|did\s*n'?t|did\s+not)\s+(?:receive|received|get|got|order|ordered|ask\s+for|asked\s+for|use|used|agree\s+to|agreed\s+to)\b",
@@ -708,7 +717,7 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"(?:לחלק|לפצל) (?:את (?:ה)?(?:סכום|תשלום|חוב|חשבון))?", _w("הסדר", "הסדר תשלומים"),
         r"חצי (?:עכשיו|היום|החודש) ו?(?:חצי|השאר|את השאר)", r"(?:כל|בכל) חודש (?:קצת|סכום|\d)",
         r"(?:בכמה|כמה) (?:תשלומים|פעמים)", r"(?:לשלם|אשלם|לשלם לכם) (?:בחלקים|לאט לאט|בהדרגה|חלק חלק)",
-        r"\binstall?ments?\b", r"payment plan", _EN_INST_RX.pattern,
+        r"\binstal{1,2}me?nts?\b", r"payment plan", _EN_INST_RX.pattern, _EN_SPLIT_RX.pattern,
         # מנהל 248 (qa6 x6-26): «split this into a few monthly payments», «pay it in parts»
         r"\bsplit\b(?:\s+\S+){0,6}?\s+(?:monthly\s+)?(?:payments?|parts|chunks)\b",
         # מנהל 251 (qa8): מקבילה ל«חצי עכשיו וחצי…» — «pay half now and the other half next month», «part now, the rest later»
@@ -727,7 +736,9 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"^\W*(?:yes|yeah|yep|yup|sure|agreed|deal|perfect|great|fine|sounds\s+good|works\s+for\s+me|go\s+ahead)\b(?!\s+but\b)",
         r"\b(?:i|we)\s+(?:accept|agree)\b(?!\s+(?:to\s+disagree|with\s+(?:nothing|none)))",
         r"\b(?:that|this|it|the\s+(?:plan|offer|proposal))\s+(?:works|is\s+fine|is\s+ok(?:ay)?|sounds\s+good)\b",
-        r"\bsounds\s+(?:good|great|fine|ok(?:ay)?)\b(?!\s*,?\s*but\b)"),
+        r"\bsounds\s+(?:good|great|fine|ok(?:ay)?)\b(?!\s*,?\s*but\b)",
+        # מנהל 276 (qa17 q17-45/10): «Accepted, thank you.», «Ok I'm in» (רק בסוף משפט / אחרי ok — לא «I'm in the hospital»)
+        r"^\W*accepted\b(?!\s*,?\s*but\b)", r"\b(?:ok|okay|count\s+me)\s*,?\s*i'?m\s+in\s*[.!]*\s*$"),
     Intent.PLAN_REJECT: _rx(
         r"^\W*(?:לא|ממש לא|לא מתאים|לא מתאימה|לא טוב|לא מסכים|לא מסכימה)\b",
         r"(?:ההצעה|ההסדר|הפריסה) (?:לא מתאימ\w*|לא טוב\w*|גבוה\w* מדי)", r"(?:סכום|תשלום) (?:חודשי )?גבוה מדי",
@@ -1138,7 +1149,7 @@ def extract_installments(t: str) -> int | None:
         return 2
     m = _INST_RX.search(t)
     if not m:
-        e = _EN_INST_RX.search(t)
+        e = _EN_INST_RX.search(t) or _EN_SPLIT_RX.search(t)
         if not e:
             return None
         g = e.group(1).lower()
@@ -1229,6 +1240,20 @@ _PAID_AFTER_SKIP_RX = _c(
     r"(?:out\s+)?of\s+(?:the\s+|my\s+)?\d{1,2}\s+(?:payments?|installments?))")
 
 
+# מנהל 276 (qa17 q17-05/06/33): תשלום בהסדר — «שילמתי את התשלום הראשון, 400 ₪», «שילמתי היום את התשלום השני, 400 ש״ח»,
+# «paid the first 200 today». מילת הסידור/«התשלום» בין הפועל לסכום ⇒ הסכום לא חולץ ⇒ paid=None (בעל העסק רואה
+# «טוען/ת ששילם/ה» בלי סכום, כאילו מלוא החוב). חובה סמן תשלום/סידור; «התשלום הראשון מתוך 3» / «the first 2 payments» ⇒ לא.
+_ORD_HE = r"(?:ה(?:ראשונ|שני|שלישי|רביעי|חמישי|שישי|אחרונ|באה?|חודשי)\w*|של החודש)"
+_ORD_EN = r"(?:first|1st|second|2nd|third|3rd|fourth|4th|fifth|5th|sixth|6th|next|last|final|monthly|this\s+month'?s)"
+_PAID_INSTALLMENT_AMOUNT_RX = _c(
+    r"(?:(?<![\w])(?:שילמ\w*|העבר\w*|הפקד\w*|שלחת\w*)\s*(?:(?:לכם|לך|כבר|רק|היומ|אתמול|הבוקר|עכשיו|את)\s+)*"
+    r"(?:ה?תשלומ\s*" + _ORD_HE + r"?|" + _ORD_HE + r")"
+    r"|\b(?:paid|payed|transferred|wired|sent|made)\s+(?:(?:you|u|already|just|today|yesterday)\s+)*(?:the|my)\s+"
+    r"(?:" + _ORD_EN + r"(?:\s+(?:installment|instalment|payment))?|(?:installment|instalment|payment)))"
+    r"\s*[,:\-–—]?\s*(?:(?:של|בסך|of|for)\s*)?"
+    r"(₪|nis\s*|ils\s*)?" + _PAID_NUM + r"(?:\.(\d{1,2}))?\s*(₪|ש\"ח|שח|שקלימ|שקלים|שקל|nis|ils|shekels?)?")
+
+
 def extract_paid_amount(t: str) -> int | None:
     for m in _PAID_AMOUNT_RX.finditer(t):
         after = t[m.end():m.end() + 12]
@@ -1256,6 +1281,15 @@ def extract_paid_amount(t: str) -> int | None:
                                                   and _s(r"\b(?:in|since|from)\s*$", t[:m.start(2)])):
             continue
         return (whole * 100 + frac) * _k_mult(t, m.end())
+    for m in _PAID_INSTALLMENT_AMOUNT_RX.finditer(t):
+        if _PAID_AFTER_SKIP_RX.match(t[m.end():m.end() + 20]):
+            continue
+        cur = ((m.group(1) or "") + (m.group(4) or "")).strip()
+        whole = _paid_whole(m.group(2))
+        frac = int((m.group(3) or "0").ljust(2, "0"))
+        if whole == 0 or whole > 10_000_000 or (not cur and whole < 100):
+            continue
+        return whole * 100 + frac
     for m in _PAID_PARTIAL_AMOUNT_RX.finditer(t):
         cur = ((m.group(1) or "") + (m.group(4) or "")).strip()
         if any(c in cur for c in ("$", "dollar", "usd")):
