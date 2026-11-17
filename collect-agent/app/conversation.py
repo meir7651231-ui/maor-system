@@ -1439,10 +1439,43 @@ _RETRACT_NEG = (r"(?<![\w])(?:לא|אל|אין|בלי)\s+(?:\w+\s+)?(?:מבטל|
                 r"|מתחרט|מתחרטת|צריך לבטל)(?![\w])|\b(?:don'?t|do\s+not|not|no\s+need\s+to)\s+(?:\w+\s+)?cancel\w*\b")
 
 
+# מנהל 267 («הבא» AI מ-266): הצעה נגדית במספר תשלומים *אחרי* שהלקוח אישר הסדר (PLAN_PENDING_OWNER) —
+# «לא מסתדר לי, אולי 6?», «3 payments is still too much, can we do 6 instead?», «4 זה הרבה, אולי 8». היה:
+# «לא ברור» (כרטיס בלי הקשר), או גרוע — «לא מסתדר»/«too much» ⇒ plan_retract ⇒ «↩️ חוזר/ת בו», והבקשה הממשית (6)
+# אבדה. גם ב-AWAITING_PLAN_REPLY: «too much, can we do 6 instead?» ⇒ דחייה; «6 instead» / «six instead» ⇒ «לא ברור».
+# המספר שאחרי הסמן («אולי/אפשר/מה עם/can we do/what about/make it», או «N instead») — לא הראשון בהודעה
+# («3 תשלומים זה הרבה, אולי 6?» = 6). ב-PLAN_PENDING_OWNER זהירים יותר (ההסדר כבר אושר ע״י הלקוח):
+# בלי ספרה לבד, בלי «ב-6» / «עד ה-6» (יכול להיות תאריך), 2–12 בלבד, ושונה מההסדר הנוכחי.
+_CNT_EN_NUM = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+           "eleven": 11, "twelve": 12}
+_CNT_TAIL = (r"(?![\d\w]|\s*(?:₪|ש\"ח|שח|שקל|ימימ|יומ|לחודש|בחודש|באותו|ב?(?:ינואר|פברואר|מרצ|אפריל|מאי|יוני|יולי"
+             r"|אוגוסט|ספטמבר|אוקטובר|נובמבר|דצמבר)|[./:%]\d|%|nis|ils|days?|weeks?|st\b|nd\b|rd\b|th\b|of\s+the\s+month))")
+_CNT_HE = (r"(?:^|[\s,.;!?(])(?:אולי|אפשר|ואמ|ומה אמ|מה עמ|מה לגבי|ואולי)\s+(?:בעצמ\s+|רק\s+|גמ\s+)?(?P<pre>(?:ב|ל)-?\s*)?"
+           r"(?P<n>\d{1,2}|" + _NUMW + r")(?:\s*(?:תשלומימ|תשלומי|חלקימ|פעמימ|פעימות))?" + _CNT_TAIL)
+_EN_NW = "|".join(_CNT_EN_NUM)
+_CNT_EN = (r"\b(?:(?:can|could)\s+(?:we|i)\s+(?:do|make\s+it|have\s+it\s+in|go\s+with|split\s+it\s+(?:in|into)|pay\s+(?:it\s+)?in)"
+           r"|what\s+about|how\s+about|make\s+it|maybe)\s+(?P<pre>in\s+)?(?P<n>\d{1,2}|" + _EN_NW + r")"
+           r"(?:\s+(?:payments|installments|instalments|months))?" + _CNT_TAIL +
+           r"|(?<![\w])(?P<n2>\d{1,2}|" + _EN_NW + r")\s+(?:(?:payments|installments|instalments|months)\s+)?instead\b")
+
+
+def plan_counter(t: str, current: int = 0, pending: bool = False) -> int | None:
+    """הצעה נגדית במספר תשלומים בתוך הסדר שבשיחה ⇒ המספר, או None. ההקשר (יש הסדר) נבדק אצל הקורא."""
+    for rx in (_CNT_HE, _CNT_EN):
+        for m in _c(rx).finditer(t):
+            g = m.groupdict().get("n") or m.groupdict().get("n2") or ""
+            n = int(g) if g.isdigit() else (_NUM_WORDS.get(g) or _CNT_EN_NUM.get(g) or 0)
+            if pending and (m.groupdict().get("pre") and rx is _CNT_HE or not 2 <= n <= 12 or n == current):
+                continue
+            if 1 <= n <= 36:
+                return n
+    return None
+
+
 def plan_retract(t: str) -> bool:
     """הלקוח חוזר בו מההסדר — בלי בקשה חדשה וממשית (מספר תשלומים / סכום חודשי / שינוי מועד)."""
     return bool(_s(_RETRACT, t)) and not _s(_RETRACT_NEG, t) and extract_installments(t) is None and \
-        extract_monthly_amount(t) is None and plan_change(t) is None
+        extract_monthly_amount(t) is None and plan_change(t) is None and plan_counter(t) is None
 
 
 def change_date(t: str, today: date) -> date | None:
@@ -1610,6 +1643,11 @@ _KEEPS_LEGAL = (r"תביע|אתבע|לתבוע|נתבע|משטרה|בית ה?מ�
                 r"|\bcourt\b|\bsue\b|\blawsuit|\bsmall claims|\bcomplaint|\bhandling (?:it|this)|\bbe in touch|\bcontact (?:him|her|them|my)|\brepresent")
 
 
+# כוונות מגינות — כשהן בהודעה, לא מוסיפים פרשנות של הצעה נגדית (מנהל 267)
+_PROTECTIVE = frozenset({Intent.DISTRESS, Intent.MINOR, Intent.OPT_OUT, Intent.WRONG_PERSON, Intent.LEGAL,
+                         Intent.DISPUTE, Intent.PAID_CLAIM})
+
+
 def _plan_ctx(ctx: Context | None) -> bool:
     """יש הסדר בשיחה (הוצע ללקוח, או שהלקוח אישר/בעל העסק אישר) ⇒ בקשות שינוי מתפרשות מולו."""
     return ctx is not None and bool(ctx.offered_plan) and \
@@ -1655,6 +1693,16 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             and ("?" in t or not _s(r"(?<![\w])(?:תודה|thanks|thank\s+you|thx|ty)(?![\w])", t)) \
             and not _hits(RX[Intent.PLAN_REJECT], t) and _hits(RX[Intent.PLAN_ACCEPT], t):
         found.add(Intent.PLAN_ACCEPT)
+    # מנהל 267: הצעה נגדית במספר תשלומים («אולי 6?», «can we do 6 instead?») — גם אחרי שהלקוח אישר.
+    # גוברת על «לא מסתדר / too much» (שאחרת נקראים דחייה/חזרה מההסדר) ועל אישור/«לא ברור».
+    if _plan_ctx(ctx) and not (found & _PROTECTIVE) and plan_change(t) is None and plan_counter(
+            t, len(ctx.offered_plan), ctx.state == State.PLAN_PENDING_OWNER) is not None:
+        found.add(Intent.PLAN_REQUEST)
+        found -= {Intent.PROMISE, Intent.UNKNOWN, Intent.PLAN_ACCEPT, Intent.THANKS}
+        # ב-AWAITING_PLAN_REPLY דחייה+מספר נשארת «דחייה עם הצעה נגדית» (תווית f034, סט קפוא); ההצעה תהיה במספר
+        # הנגדי. ב-PLAN_PENDING_OWNER דחייה = «חוזר/ת בו» ⇒ חייבים להסיר, אחרת הבקשה הממשית (6) אובדת.
+        if ctx.state == State.PLAN_PENDING_OWNER:
+            found.discard(Intent.PLAN_REJECT)
     # מנהל 264: בקשת שינוי בהסדר שבשיחה (מועד/סכום/מספר תשלומים) ⇒ פריסה, לא הבטחה/«לא ברור»/אישור/דחייה
     if _plan_ctx(ctx) and plan_change(t) is not None:
         found.add(Intent.PLAN_REQUEST)
@@ -2405,6 +2453,15 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         # מנהל 264: שינוי בהסדר שבשיחה — אותו מספר תשלומים, רק מה שביקשו משתנה. נבדק לפני «ספרה לבד = מספר
         # תשלומים»: אחרת «להזיז את התשלום הראשון ל-20» ב-AWAITING_PLAN_REPLY נקרא «20 תשלומים».
         chg = plan_change(t) if primary == Intent.PLAN_REQUEST and _plan_ctx(ctx) else None
+        # מנהל 267: המספר שאחרי סמן ההצעה הנגדית קודם למספר הראשון בהודעה («3 תשלומים זה הרבה, אולי 6?» = 6)
+        cnt = plan_counter(t, len(ctx.offered_plan), ctx.state == State.PLAN_PENDING_OWNER) \
+            if primary in (Intent.PLAN_REQUEST, Intent.PLAN_REJECT) and _plan_ctx(ctx) and (chg is None or chg[1] == "count") \
+            else None
+        if cnt is not None:
+            requested = cnt
+        counter_pending = cnt is not None and ctx.state == State.PLAN_PENDING_OWNER
+        if counter_pending:
+            tags.append("plan_change")
         if requested is None and ctx.state == State.AWAITING_PLAN_REPLY and (chg is None or chg[1] == "count"):
             m = _s(r"(\d{1,2}|" + _NUMW + r")", t)
             if m:
@@ -2457,7 +2514,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                      }.get(primary, f"{hi}בשמחה. הצעה לפריסת {total} בלי תוספת: ")
             if over:
                 intro = f"{hi}אפשר לפרוס עד {p.max_installments} תשלומים בלי תוספת: "
-            elif chg is not None:
+            elif chg is not None or counter_pending:
                 intro = f"{hi}בשמחה. הצעה מעודכנת לפריסת {total} בלי תוספת: "
             reply = (intro + plan_lines(plan, ctx.currency) + ". "
                      f"בכפוף לאישור סופי. מתאים? השיבו \"מאשר\" או כתבו מה מתאים לכם.{sig}")
@@ -2468,9 +2525,14 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                          f"בכפוף לאישור. מתאים? השיבו \"מאשר\".{sig}")
             state = State.AWAITING_PLAN_REPLY
             summary = f"{name} " + ("סיפר/ה על קושי" if primary == Intent.CANT_PAY else
-                                    "ביקש/ה שינוי בהסדר" if chg is not None else "ביקש/ה פריסה") + \
+                                    "ביקש/ה שינוי בהסדר" if chg is not None or counter_pending else "ביקש/ה פריסה") + \
                       (f" ל-{requested} תשלומים" if requested else "") + \
                       f". טיוטת הצעה: {plan_lines(plan, ctx.currency)}."
+            if counter_pending:
+                # מנהל 267: אחרי שהלקוח כבר אישר — בעל העסק צריך לדעת שזה שינוי, ומה ההסדר הקודם
+                summary += (f" 🔁 ההסדר שהלקוח/ה אישר/ה קודם: {plan_lines(ctx.offered_plan, ctx.currency)}"
+                            + (" (אושר על ידך; נשאר בתוקף עד שתאשר/י את החדש)." if ctx.plan_approved
+                               else " (ממתין לאישורך — לא לאשר את הקודם אם שולחים את החדש)."))
             if over:
                 summary += f" ⚠️ ביקש/ה {requested} — מעל התקרה שלך ({p.max_installments})."
                 actions.append(f"להחליט אם לאשר {requested} תשלומים")
