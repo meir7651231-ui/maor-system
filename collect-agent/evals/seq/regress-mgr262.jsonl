@@ -1,0 +1,8 @@
+{"id": "rm262-01", "channel": "sms", "critical": true, "turns": [{"text": "תורידואותי מהרשימה", "expect": {"intent": "opt_out", "state": "opted_out", "stop": "permanent"}}, {"text": "אשלם ב-20", "expect": {"state": "opted_out"}}]}
+{"id": "rm262-02", "channel": "email", "critical": true, "turns": [{"text": "אנירוצה למות", "expect": {"intent": "distress", "escalate": "urgent"}}]}
+{"id": "rm262-03", "channel": "sms", "critical": true, "turns": [{"text": "איןליכסף לאוכל לילדים", "expect": {"intent": "distress", "escalate": "urgent"}}]}
+{"id": "rm262-04", "channel": "sms", "critical": true, "turns": [{"text": "לאחייבת לכם כלום", "expect": {"intent": "dispute"}}]}
+{"id": "rm262-05", "channel": "sms", "critical": false, "turns": [{"text": "כדילשלוח את הכסף איך עושים?", "expect": {"not": ["opt_out", "distress", "dispute"]}}]}
+{"id": "rm262-06", "channel": "sms", "critical": true, "turns": [{"text": "אשלם ביום שלישי הבא", "expect": {"intent": "promise", "state": "awaiting_date"}}, {"text": "ה-17", "expect": {"intent": "promise", "promise": "2026-11-17", "state": "promised"}}]}
+{"id": "rm262-07", "channel": "email", "critical": false, "turns": [{"text": "I'll pay on Tuesday", "expect": {"intent": "promise", "promise": "2026-11-10", "state": "promised"}}, {"text": "Sorry, missed it. I'll do it next Tuesday", "expect": {"intent": "promise", "promise": "2026-11-17", "state": "promised"}, "advance_days": 3}]}
+{"id": "rm262-08", "channel": "sms", "critical": false, "turns": [{"text": "אשלם ביום שלישי הקרוב", "expect": {"intent": "promise", "promise": "2026-11-10", "state": "promised"}}]}

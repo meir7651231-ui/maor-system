@@ -31,11 +31,17 @@ def _d(t, ch="sms", **ctx):
 
 # ── 1. תאריכים באנגלית (היום = יום ראשון 8.11.2026) ──
 DATES = [
-    ("friday", 5), ("Monday works", 1), ("by tuesday", 2), ("next Saturday", 6), ("this Sunday", 7),
+    ("friday", 5), ("Monday works", 1), ("by tuesday", 2), ("on Saturday", 6), ("this Sunday", 7),
     ("tmrw", 1), ("tomorrow evening after work", 1), ("day after tomorrow", 2), ("tonight", 0), ("later today", 0),
     ("in 3 days", 3), ("in two weeks", 14), ("within a week", 7), ("in a couple of days", 2),
     ("by the 20th", 12), ("the 1st", 23), ("on 10th", 2), ("end of the month", 22), ("next week", 7),
 ]
+
+
+# מנהל 262: «next Saturday» ביום ראשון (השבת הזאת עוד לפנינו) = שתי קריאות ⇒ מעורפל, «עד איזה תאריך?» (היה +6).
+# ראו tests/test_mgr262_glue_next_weekday.py. «on Saturday» נשאר +6.
+def test_next_saturday_same_week_ambiguous():
+    assert extract_date(normalize("next Saturday"), TODAY) == (None, True)
 
 
 @pytest.mark.parametrize("t,days", DATES)

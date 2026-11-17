@@ -126,11 +126,17 @@ def test_busy_now_is_not_a_date():
 
 
 # ── 5. יום בשבוע לבד כתשובה ל«עד מתי?» ──
-@pytest.mark.parametrize("t,day", [("שלישי הבא", date(2026, 11, 10)), ("יום חמישי", date(2026, 11, 12)),
+# מנהל 262: «שלישי הבא» ביום ראשון (השלישי הזה עוד לפנינו) ⇒ מעורפל ⇒ שואלים שוב (היה 10.11); «יום שלישי» נשאר 10.11.
+@pytest.mark.parametrize("t,day", [("יום שלישי", date(2026, 11, 10)), ("יום חמישי", date(2026, 11, 12)),
                                    ("חמישי הקרוב", date(2026, 11, 12))])
 def test_bare_weekday_awaiting_date(t, day):
     d = _d(t, state="awaiting_date")
     assert d.intent == Intent.PROMISE and d.promise_date == day
+
+
+def test_bare_next_weekday_same_week_reasks():
+    d = _d("שלישי הבא", state="awaiting_date")
+    assert d.intent == Intent.PROMISE and d.promise_date is None
 
 
 def test_bare_weekday_idle_unchanged():

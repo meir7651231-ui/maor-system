@@ -820,6 +820,60 @@ _GEN_PAYMENTS = _c(
     r"|(?<![\w])(?:ה)?תשלומימ\s+(?:של|על|ל)\s*(?:ה)?(?:אשראי|כרטיס|משכנתא|בית|בנק|הלוואה|הלוואות|רכב|ארנונה|חשמל|גנ|ביטוח)\w*"
     r"|(?<![\w])(?:ה)?תשלומימ\s+(?:\w+\s+)?(?:יורדימ|נגבימ|יוצאימ|יורדות)(?![\w])")
 
+# ═══ מנהל 262 · הדבקת מילים כללית (המשך q13-01) ═══
+# 261 תיקן «תפסיקולשלוחלי» בתבנית ייעודית. כל צירוף מגן אחר שהודבק («תורידואותי», «איןליכסף לאוכל», «אנירוצה למות»,
+# «לאחייבת לכם», «זהלאהמספר שלי») נשאר «לא ברור». כאן: פירוק מילה ארוכה למילים מאוצר מילים סגור — רק אם *כל* המילה
+# מתפרקת (≥2 חלקים, כל חלק ≥2 אותיות, מינימום חלקים). התוצאה משמשת רק לכוונות מגינות (הסרה/מצוקה/מחלוקת/משפטי/
+# מספר שגוי/קטין), דרך אותן תבניות ואותם שערי שלילה — לא להבטחה, תאריך או פריסה.
+_GLUE_LEX = frozenset(w.translate(_FINALS) for w in (
+    # כינויים ומילות קישור
+    "אני", "איני", "אנחנו", "אתה", "אתם", "לי", "לנו", "לכם", "אותי", "אותנו", "אלי", "אליי", "אלינו", "לא", "אל",
+    "אין", "יש", "די", "עוד", "יותר", "כבר", "זה", "זאת", "זו", "שלי", "שלנו", "כלום", "שום", "מה", "את", "ממני",
+    "מאיתנו", "רשימה", "הרשימה", "מהרשימה", "הודעות", "הודעה", "בבקשה", "פה", "כאן", "כל", "אף", "פעם", "אצלכם", "מכם",
+    "עם", "על", "גם", "רק", "ממש", "בכלל", "אבל", "שאני", "שלא", "הזה", "הזאת", "לכן", "אז", "כדי", "בגלל",
+    # הסרה
+    "תפסיקו", "תפסיק", "תפסיקי", "הפסיקו", "תורידו", "תוריד", "תורידי", "הורידו", "תמחקו", "תמחק", "מחקו", "הסירו",
+    "תסירו", "תסיר", "הסר", "תשלחו", "תשלח", "לשלוח", "להטריד", "להציק", "לפנות", "לכתוב", "להתקשר", "תתקשרו",
+    "רוצה", "רוצים", "מעוניין", "מעוניינת", "מבקש", "מבקשת", "להסיר", "להוריד", "תעזבו", "עזבו", "מטרידים",
+    # מצוקה
+    "למות", "אתאבד", "להתאבד", "לחיות", "כוח", "כסף", "לאוכל", "אוכל", "לאכול", "לילדים", "במצוקה", "נואש", "נואשת",
+    "התמוטטות", "סף", "מתמוטטת", "מתמוטט", "רעב", "רעבים", "יכול", "יכולה", "מסוגל", "מסוגלת", "נגמר", "מוות",
+    # מחלוקת / מספר שגוי / משפטי / קטין
+    "חייב", "חייבת", "חייבים", "הזמנתי", "הזמנו", "קיבלתי", "קיבלנו", "שירות", "החיוב", "החשבונית", "הסכום", "נכון",
+    "נכונה", "טעות", "שגוי", "שגויה", "המספר", "מספר", "מכיר", "מכירה", "החוב", "חוב", "ביטלתי", "שבוטל",
+    "עורך", "דין", "משטרה", "למשטרה", "תביעה", "אתבע", "נתבע", "אתלונן", "ילד", "ילדה", "בן", "בת", "קטין", "קטינה",
+))
+_GLUE_MAX = max(map(len, _GLUE_LEX))
+_GLUE_TOKEN = re.compile(r"[\u05D0-\u05EA]{5,}")
+_GLUE_INTENTS = (Intent.OPT_OUT, Intent.DISTRESS, Intent.DISPUTE, Intent.LEGAL, Intent.WRONG_PERSON, Intent.MINOR)
+
+
+def _segment(tok: str) -> list[str] | None:
+    """פירוק מלא של tok למילים מ-_GLUE_LEX במינימום חלקים (DP); None אם אין פירוק מלא."""
+    n = len(tok)
+    best: list[list[str] | None] = [None] * (n + 1)
+    best[0] = []
+    for i in range(n):
+        if best[i] is None:
+            continue
+        for j in range(i + 2, min(n, i + _GLUE_MAX) + 1):
+            w = tok[i:j]
+            if w in _GLUE_LEX and (best[j] is None or len(best[i]) + 1 < len(best[j])):  # type: ignore[arg-type]
+                best[j] = [*best[i], w]  # type: ignore[misc]
+    return best[n]
+
+
+def _deglue(t: str) -> str:
+    """«תורידואותי מהרשימה» ⇒ «תורידו אותי מהרשימה». מילה שכבר באוצר המילים, או שלא מתפרקת כולה ⇒ לא נוגעים."""
+    def sub(m: re.Match[str]) -> str:
+        tok = m.group(0)
+        if tok in _GLUE_LEX:
+            return tok
+        seg = _segment(tok)
+        return " ".join(seg) if seg and len(seg) >= 2 else tok
+    return _GLUE_TOKEN.sub(sub, t)
+
+
 # כוונות שמבוססות על הקשר (מגיבות להצעה שנשלחה)
 STATEFUL = {Intent.PLAN_ACCEPT, Intent.PLAN_REJECT}
 
@@ -907,6 +961,16 @@ _WEEKDAYS = {k.translate(_FINALS): v for k, v in _WEEKDAYS.items()}
 def _next_weekday(today: date, wd: int) -> date:
     """המופע הבא של היום (לעולם לא היום עצמו)."""
     return today + timedelta(days=(wd - today.weekday()) % 7 or 7)
+
+
+def _next_weekday_he(today: date, wd: int, nx: str) -> tuple[date | None, bool]:
+    """מנהל 262: «שלישי הבא» כשהשלישי הזה עוד לפנינו *באותו שבוע* (ראשון–שבת) — שתי קריאות שגורות: השלישי הזה
+    או של השבוע הבא. ניחוש מוקדם ⇒ תזכורת לפני המועד שהלקוח התכוון אליו (טעות בטוחה-בעצמה) ⇒ מעורפל ⇒ «עד איזה תאריך?».
+    «הקרוב», בלי סיומת, או יום שכבר עבר השבוע ⇒ המופע הבא (ללא שינוי)."""
+    nxt = _next_weekday(today, wd)
+    if nx in ("הבא", "next") and (wd + 1) % 7 > (today.weekday() + 1) % 7:
+        return None, True
+    return nxt, False
 
 
 def _weekday_with_day(today: date, wd: int, day: int) -> tuple[date | None, bool]:
@@ -1061,9 +1125,9 @@ def _extract_date_en(t: str, today: date) -> tuple[date | None, bool] | None:
                   r"(?!\s*(?:payments|installments|days|weeks|months|dollars|shekels|nis|%))", t)
     if m:
         return _weekday_with_day(today, _EN_WD[m.group(1)], int(m.group(2)))
-    m = re.search(r"\b(?:on|by|this|next|until|till|before)?\s*(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b", t)
-    if m and not re.search(r"\b(?:last|every)\s+" + m.group(1), t):
-        return _next_weekday(today, _EN_WD[m.group(1)]), False
+    m = re.search(r"\b(?:(on|by|this|next|until|till|before)\s+)?(?:on\s+|by\s+)?(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b", t)
+    if m and not re.search(r"\b(?:last|every)\s+" + m.group(2), t):
+        return _next_weekday_he(today, _EN_WD[m.group(2)], "next" if m.group(1) == "next" else "")
     m = re.search(r"\b(?:on|by|until|till|before)?\s*the\s+(\d{1,2})(?:st|nd|rd|th)\b", t) or \
         re.search(r"\b(?:on|by|until|till|before)\s+(\d{1,2})(?:st|nd|rd|th)\b", t)
     if m and 1 <= int(m.group(1)) <= 31:
@@ -1103,6 +1167,8 @@ _HOLIDAY_VAGUE = (r"(?:אחרי|לפני|אחר|עד|ב|מיד אחרי|לקרא
 _HEB_MONTH_VAGUE = (r"(?:(?:אחרי|לפני|עד|ב|לקראת|בסוף|עד סוף|בתחילת|עד תחילת|באמצע|במהלך)\s*-?\s*(?:ה)?(?:חודש\s+)?"
                     r"(?:תשרי|חשוון|חשון|מרחשוון|מרחשון|כסלו|כסליו|טבת|שבט|אדר(?:\s*[אב]'?(?![\w]))?|ניסן|אייר|סיוון|סיון"
                     r"|תמוז|מנחם[- ]?אב|אלול)|(?:ב|עד\s+)אב)(?![\w])")
+_NEXT_WD_VAGUE = r"(?<![\w])(?:ראשון|שני|שלישי|רביעי|חמישי|שישי)\s+(?:ה)?הבא(?![\w])"
+_NEXT_WD_VAGUE_EN = r"\bnext\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b"
 _HOLIDAY_VAGUE = r"(?:" + _HOLIDAY_VAGUE + r"|" + _HEB_MONTH_VAGUE + r")"
 
 
@@ -1144,9 +1210,9 @@ def extract_date(t: str, today: date) -> tuple[date | None, bool]:
     wd_dom = _s(r"(ראשון|שני|שלישי|רביעי|חמישי|שישי)\s*,?\s*(?:ה|ב)?-?(\d{1,2})(?![\d./:]|\s*(?:תשלומ|ש\"?ח|₪|שקל|אלף|חשבונ|ימים|יום|שבוע|חודש|%))", t)
     if wd_dom:
         return _weekday_with_day(today, _WEEKDAYS[wd_dom.group(1)], int(wd_dom.group(2)))
-    m = _s(r"(?:(?:עד |ב|ל)?יום |ב|עד ה?|ל)-?(ראשון|שני|שלישי|רביעי|חמישי|שישי)(?![\w])", t)
+    m = _s(r"(?:(?:עד |ב|ל)?יום |ב|עד ה?|ל)-?(ראשון|שני|שלישי|רביעי|חמישי|שישי)(?![\w])(?:\s+(?:ה)?(הבא|הקרוב)(?![\w]))?", t)
     if m and not _s(r"(?:תשלום|חלק) (?:ה)?" + m.group(1), t):
-        return _next_weekday(today, _WEEKDAYS[m.group(1)]), False
+        return _next_weekday_he(today, _WEEKDAYS[m.group(1)], m.group(2) or "")
     m = _s(r"(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?", t)
     if m:
         d, mo = int(m.group(1)), int(m.group(2))
@@ -1249,9 +1315,9 @@ def extract_date_ctx(t: str, ctx: Context | None) -> tuple[date | None, bool]:
     d, vague = extract_date(t, ctx.today)
     if d is None and ctx.state in (State.AWAITING_DATE, State.PROMISED):
         # מנהל 260 (q12-16): «שלישי הבא» / «יום חמישי» לבד כתשובה ל«עד מתי?» (בלי «ב»/«ביום»)
-        wm = _fm(r"\W*(?:יום\s+)?(ראשון|שני|שלישי|רביעי|חמישי|שישי)(?:\s+(?:ה)?(?:הבא|הקרוב))?\W*", t)
+        wm = _fm(r"\W*(?:יום\s+)?(ראשון|שני|שלישי|רביעי|חמישי|שישי)(?:\s+(?:ה)?(הבא|הקרוב))?\W*", t)
         if wm:
-            return _next_weekday(ctx.today, _WEEKDAYS[wm.group(1)]), False
+            return _next_weekday_he(ctx.today, _WEEKDAYS[wm.group(1)], wm.group(2) or "")
         bd = _bare_day(t, ctx.today, need_marker=ctx.state == State.PROMISED)
         if bd is not None:
             return bd, False
@@ -1380,6 +1446,11 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             continue
         if _hits(rx, t_plan if it == Intent.PLAN_REQUEST else t, negatable=it in NEGATABLE):
             found.add(it)
+    t_dg = _deglue(t)   # מנהל 262: הדבקת מילים — רק כוונות מגינות
+    if t_dg != t:
+        for it in _GLUE_INTENTS:
+            if it not in found and _hits(RX[it], t_dg, negatable=it in NEGATABLE):
+                found.add(it)
     awaiting = ctx is not None and ctx.state == State.AWAITING_PLAN_REPLY
     if awaiting:
         if _hits(RX[Intent.PLAN_REJECT], t):
@@ -1430,7 +1501,9 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         # מנהל 253 (qa9 q9-26): «בשבוע הבא» ⇒ PROMISED, ואז «ביום שלישי ה-17 בנובמבר» (דיוק המועד) ⇒ «לא ברור».
         # במצב PROMISED תאריך לבד = עדכון המועד. מעורפל לבד (חג) במצב AWAITING_DATE ⇒ הבטחה מעורפלת ⇒ שואלים שוב.
         d, _vague = extract_date_ctx(t, ctx)
-        if d is not None or (_vague and ctx.state == State.AWAITING_DATE and _s(_HOLIDAY_VAGUE, t)):
+        # מנהל 262: «שלישי הבא» / «next Tuesday» כשהיום הזה עוד לפנינו השבוע ⇒ מעורפל ⇒ שואלים שוב (לא «לא ברור»)
+        if d is not None or (_vague and ctx.state == State.AWAITING_DATE and (
+                _s(_HOLIDAY_VAGUE, t) or _s(_NEXT_WD_VAGUE, t) or re.search(_NEXT_WD_VAGUE_EN, t))):
             found.add(Intent.PROMISE)
     if ctx is not None and ctx.state == State.AWAITING_OWNER and _owner_correction_day(t, ctx) is not None:
         found.add(Intent.PROMISE)   # מנהל 257: «בעצם ב-25» אחרי מועד שהועבר לבעלים = עדכון המועד
