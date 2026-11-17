@@ -139,6 +139,8 @@ def run_seq(seq: dict) -> list[str]:
                 fails.append(f"{tag} intent {out['intent']}≠{e['intent']}")
             if "state" in e and _state(svc) != e["state"]:
                 fails.append(f"{tag} state {_state(svc)}≠{e['state']}")
+            if "state_not" in e and _state(svc) == e["state_not"]:   # מנהל 278: מלכודת — המצב הזה אסור
+                fails.append(f"{tag} state {_state(svc)} (אסור)")
             if "draft" in e:
                 dr = (svc.db.one("SELECT status FROM drafts WHERE id=?", (out["draft_id"],))
                       if out.get("draft_id") else None)

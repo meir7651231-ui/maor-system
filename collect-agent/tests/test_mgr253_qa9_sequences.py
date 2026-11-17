@@ -76,10 +76,15 @@ def test_how_to_pay_traps_stay(text):
                                        ("No, I'll pay it all on Thursday", date(2026, 11, 12))])
 def test_plan_reject_keeps_date(text, want):
     d = _d(text, "awaiting_plan_reply", "email" if text.isascii() else "sms")
-    assert d.intent == Intent.PLAN_REJECT            # לא משנים כוונה (הכרעה 251)
-    assert d.next_state == State.AWAITING_OWNER
+    # מנהל 278 (q10-02/q17-42): «הכל» + מועד על הצעה פתוחה ⇒ הבטחה עיקרית, הדחייה משנית (ההצעה בוטלה).
+    # מעל max_defer_days (15 בדצמבר) ⇒ עדיין כרטיס לבעלים עם המועד.
+    assert d.intent == Intent.PROMISE and Intent.PLAN_REJECT in d.all_intents
     assert d.promise_date == want
-    assert "מציע/ה במקום לשלם עד" in d.owner_summary and any("לאשר את המועד" in a for a in d.owner_actions)
+    assert "דחה/תה את הצעת הפריסה" in d.owner_summary
+    if (want - date(2026, 11, 8)).days > 14:
+        assert d.next_state == State.AWAITING_OWNER and any("לאשר" in a for a in d.owner_actions)
+    else:
+        assert d.next_state == State.PROMISED
 
 
 def test_plan_reject_without_date_unchanged():
@@ -161,7 +166,7 @@ def test_e2e_compound_day_answer(svc, channel):
 def test_e2e_plan_reject_with_date_card_has_date(svc):
     svc.sync()
     out = _seq(svc, "sms", ["אפשר בתשלומים?", "לא, זה יותר מדי. אני אשלם הכל ב-15 בדצמבר"])
-    assert out[-1]["intent"] == "plan_reject" and "15" in out[-1]["owner_summary"]
+    assert out[-1]["intent"] == "promise" and "15" in out[-1]["owner_summary"]   # מנהל 278
 
 
 def test_e2e_english_may(svc):

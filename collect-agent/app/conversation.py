@@ -2416,7 +2416,26 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     if out[:2] == [Intent.LEGAL, Intent.CANT_PAY] and _s(_INSOLVENCY, t) and \
             not _hits(RX[Intent.LEGAL], re.sub(r"(?:ב|מ|ל)?בית (?:ה)?משפט|(?:ה)?נאמנ", " ", t)):
         out[0], out[1] = Intent.CANT_PAY, Intent.LEGAL
+    # מנהל 278 (q17-42 + q10-02 🔴, שני סטים עיוורים): הצעת פריסה פתוחה, והלקוח דוחה אותה ומתחייב לשלם **הכל**
+    # במועד מוגדר בעתיד («לא צריך בעצם, אשלם הכל ביום חמישי», «לא מתאים לי. אשלם הכל ב-20») ⇒ הבטחה עיקרית.
+    # עד עכשיו (253) רק כרטיס עם המועד ⇒ התזכורות נעצרו בלי מועד חזרה, וההבטחה לא נרשמה. PLAN_REJECT נשאר
+    # משני ⇒ ההצעה עדיין מסומנת rejected (inbox). רק AWAITING_PLAN_REPLY: חזרה מהסדר שהלקוח כבר אישר
+    # (PLAN_PENDING_OWNER, 266) נשארת כרטיס. בלי «הכל», עם שאלה, או בלי מועד בעתיד ⇒ כמו קודם (כרטיס).
+    if out[:1] == [Intent.PLAN_REJECT] and Intent.PROMISE in found and Intent.PLAN_REQUEST not in found \
+            and ctx is not None and ctx.offered_plan and ctx.state == State.AWAITING_PLAN_REPLY \
+            and _s(_PAY_ALL, t) and "?" not in t:
+        dd, _ = extract_date_ctx(t, ctx)
+        if dd is not None and dd >= ctx.today:
+            out.remove(Intent.PROMISE)
+            out.insert(0, Intent.PROMISE)
     return out
+
+
+# מנהל 278: «הכל / את כל הסכום / במלואו / in full» — תשלום מלא, לא חלק (אז אין משמעות לדחיית הפריסה כהבטחה)
+_PAY_ALL = (r"(?<![\w])(?:את\s+)?(?:ה)?(?:הכל|הכול|כל\s+(?:ה)?(?:סכומ|חוב|יתרה|כספ)|כולו|במלואו|במלואה|בבת\s+אחת"
+            r"|מלוא\s+(?:ה)?(?:סכומ|חוב|יתרה))(?![\w])"
+            r"|\b(?:in\s+full|everything|all\s+of\s+it|the\s+(?:whole|full)\s+(?:amount|thing|balance)|at\s+once"
+            r"|pay(?:ing)?\s+(?:it\s+|you\s+|this\s+)?all)\b")
 
 
 _EN_NOT_NAMES = frozenset(
@@ -3131,6 +3150,9 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                 bump(s=Stop.PAUSE)
                 state = State.PROMISED
                 summary = f"{name} התחייב/ה לשלם עד {_he_date(dd)}. התזכורות הושהו עד אז."
+                if Intent.PLAN_REJECT in allset:   # מנהל 278: דחה/תה את הפריסה ⇒ בעל העסק יודע שההצעה בוטלה
+                    summary = (f"{name} דחה/תה את הצעת הפריסה ({plan_lines(ctx.offered_plan, ctx.currency)}) "
+                               f"והתחייב/ה לשלם הכל עד {_he_date(dd)}. ההצעה בוטלה; התזכורות הושהו עד אז.")
             else:
                 reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}. נבדוק את המועד שביקשתם "
                          f"ונחזור אליכם.{sig}")
@@ -3138,6 +3160,8 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                 state = State.AWAITING_OWNER
                 summary = (f"{name} מבקש/ת לדחות עד {_he_date(dd)} ({days} ימים) — מעל {p.max_defer_days} "
                            f"הימים שמותר לי לאשר לבד.")
+                if Intent.PLAN_REJECT in allset:   # מנהל 278
+                    summary = f"{name} דחה/תה את הצעת הפריסה. " + summary
                 actions.append("לאשר או להציע מועד אחר")
         else:
             reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! כדי שלא נטריד סתם — "
