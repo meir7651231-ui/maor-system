@@ -241,6 +241,29 @@ def _is_quote_header(s: str) -> bool:
     return bool(s.startswith(">") or _QUOTE_HDR.match(s) or s == "--" or _QUOTE_HDR_TAIL.search(s))
 
 
+# critic סבב 124: חתימת הלקוח עצמו נכנסה לסיווג — «שם | עורכת דין», «Name, Attorney at Law», «יעוץ משפטי», הודעת
+# סודיות סטנדרטית ⇒ «קיבלתי תודה» סווג legal + השהיה + דחוף. חותכים משורת חתימה/סודיות (לא שורה ראשונה).
+_SIG_DISCLAIMER = re.compile(
+    r"(?:הודעה|הודעת|מייל|דוא\"?ל|דואר)\s+(?:\S+\s+){0,3}?(?:זו|זה|זאת)\s+(?:\S+\s+){0,2}?(?:חסוי|חסויה|סודי|סודית)"
+    r"|מיועד\w*\s+(?:\S+\s+){0,2}?לנמען|\bconfidentiality\s+notice\b|\bprivileged\s+and\s+confidential\b"
+    r"|\bif\s+you\s+(?:have\s+)?received\s+this\s+(?:e-?mail|message|communication)\s+in\s+error\b", re.I)
+_SIG_TITLE = re.compile(
+    r"^[^.!?]{0,40}(?:\||–)\s*(?:עו\"?ד|עורכ\S*\s+דינ?|משרד\s+עורכי\s+דינ?|י?יעוצ\s+משפטי"
+    r"|attorney(?:\s+at\s+law)?|esq\.?|lawyer|counsel(?:or)?|law\s+(?:office|firm))(?:\s+\S+){0,3}\s*$"
+    r"|^[^.!?,]{0,40},\s*(?:עו\"?ד|attorney(?:\s+at\s+law)?|esq\.?|counsel(?:or)?)\s*$", re.I)
+# שורה שיש בה פעולה/שלילה/בעלות היא תוכן, לא חתימה («לא משלם | עורך דין», «עורך הדין שלי»)
+_SIG_MINE = re.compile(r"(?<![\w])(?:שלי|שלנו|לא|אני|אתבע|נתבע|תביעה|אשלמ|משלמ\w*|יתקשר|יטפל|פונה|נתראה"
+                       r"|בית משפט)(?![\w])"
+                       r"|\b(?:my|our|not|will|sue|court|i)\b", re.I)
+
+
+def _is_signature_line(s: str) -> bool:
+    if _SIG_DISCLAIMER.search(s):
+        return True
+    s = s.replace("ץ", "צ").replace("ן", "נ").replace("ם", "מ")
+    return len(s) <= 70 and bool(_SIG_TITLE.search(s)) and not _SIG_MINE.search(s)
+
+
 def strip_reply(text: str) -> str:
     """רק מה שהלקוח כתב: בלי הציטוט של ההודעה שלנו ובלי חתימת '-- '."""
     out = []
@@ -251,6 +274,8 @@ def strip_reply(text: str) -> str:
         wrapped = bool(s and nxt and re.match(r"^(?:on\s|בתאריך\s|ב-?\d)", s, re.I)
                        and _QUOTE_HDR_TAIL.search(s + " " + nxt))   # כותרת שנשברה לשתי שורות
         if _is_quote_header(s) or wrapped:
+            break
+        if s and any(o.strip() for o in out) and _is_signature_line(s):   # critic סבב 124: חתימת הלקוח
             break
         out.append(line)
     return "\n".join(out).strip()
