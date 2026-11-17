@@ -201,7 +201,9 @@ _EN_AMT_WORDS_RX = re.compile(
     r"\b((?:" + _EN_NUMTOK + r")(?:(?:\s+|-|\s+and\s+)(?:" + _EN_NUMTOK + r"))*)"
     r"(?=\s*(?P<cur>shekels?|nis|ils|dollars?|bucks)?\s*(?:(?:a|per|each|every)\s+month\b|/\s*(?:month|mo)\b|monthly\b))")
 _HE_ONES = {"אחת": 1, "אחד": 1, "שתיים": 2, "שניים": 2, "שתי": 2, "שני": 2, "שלוש": 3, "שלושה": 3, "ארבע": 4,
-            "ארבעה": 4, "חמש": 5, "חמישה": 5, "שש": 6, "שישה": 6, "שבע": 7, "שבעה": 7, "שמונה": 8, "תשע": 9, "תשעה": 9}
+            "ארבעה": 4, "חמש": 5, "חמישה": 5, "שש": 6, "שישה": 6, "שבע": 7, "שבעה": 7, "שמונה": 8, "תשע": 9, "תשעה": 9,
+            # critic סבב 130: צורת סמיכות («שלושת אלפים») — לפני כן «אלפים» לבד = 1000 ⇒ 2×600 במקום «3000 לחודש»
+            "שלושת": 3, "ארבעת": 4, "חמשת": 5, "ששת": 6, "שבעת": 7, "שמונת": 8, "תשעת": 9}
 _HE_TENS = {"עשר": 10, "עשרה": 10, "עשרים": 20, "שלושים": 30, "ארבעים": 40, "חמישים": 50, "שישים": 60, "שבעים": 70,
             "שמונים": 80, "תשעים": 90}
 _HE_BIG = {"מאה": 100, "מאתיים": 200, "מאות": 100, "אלף": 1000, "אלפיים": 2000, "אלפים": 1000}
@@ -1594,7 +1596,9 @@ _RETRACT_NEG = (r"(?<![\w])(?:לא|אל|אין|בלי)\s+(?:\w+\s+)?(?:מבטל|
 _CNT_EN_NUM = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
            "eleven": 11, "twelve": 12}
 _CNT_TAIL = (r"(?![\d\w]|\s*(?:₪|ש\"ח|שח|שקל|ימימ|יומ|לחודש|בחודש|באותו|ב?(?:ינואר|פברואר|מרצ|אפריל|מאי|יוני|יולי"
-             r"|אוגוסט|ספטמבר|אוקטובר|נובמבר|דצמבר)|[./:%]\d|%|nis|ils|days?|weeks?|st\b|nd\b|rd\b|th\b|of\s+the\s+month))")
+             r"|אוגוסט|ספטמבר|אוקטובר|נובמבר|דצמבר)|[./:%]\d|%|nis|ils|days?|weeks?|st\b|nd\b|rd\b|th\b|of\s+the\s+month)"
+             # critic סבב 130: «can we do two fifty a month?» = 250 לחודש, לא «2 תשלומים» (הצעה של 600 ₪ ללקוח שאמר 250)
+             r"|[\s-]+(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)\b)")
 _CNT_HE = (r"(?:^|[\s,.;!?(])(?:אולי|אפשר|ואמ|ומה אמ|מה עמ|מה לגבי|ואולי)\s+(?:בעצמ\s+|רק\s+|גמ\s+)?(?P<pre>(?:ב|ל)-?\s*)?"
            r"(?P<n>\d{1,2}|" + _NUMW + r")(?:\s*(?:תשלומימ|תשלומי|חלקימ|פעמימ|פעימות))?" + _CNT_TAIL)
 _EN_NW = "|".join(_CNT_EN_NUM)
@@ -1877,8 +1881,10 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
                r"(?:ב-?|ל-?)?(\d{1,2}|" + _NUMW + r"|" + _EN_INW + r")\W*\??", t) or \
                 _s(r"(?:אפשר|ואם|מה עם|רק|אולי) (?:ב-?|ל-?)?(\d{1,2}|" + _NUMW + r")(?![\d\w])", t):
             found.add(Intent.PLAN_REQUEST)
+        # critic סבב 130: «can we do two fifty a month?» (= 250 לחודש) — «two» לפני מילת עשרות אינו מספר תשלומים
         if re.search(r"\b(?:can|could)\s+(?:we|i)\s+(?:do|make\s+it|have\s+it\s+in|go\s+with|split\s+it\s+(?:in|into))\s+"
-                     r"(?:\d{1,2}|two|three|four|five|six|eight|ten|twelve)\b|\bwhat\s+about\s+(?:\d{1,2}|two|three|four|five|six)\b"
+                     r"(?:\d{1,2}|two|three|four|five|six|eight|ten|twelve)\b"
+                     r"(?![\s-]+(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)\b)|\bwhat\s+about\s+(?:\d{1,2}|two|three|four|five|six)\b"
                      r"|\b(?:\d{1,2}|two|three|four|five|six)\s+(?:payments|installments|months)\s+instead\b", t):
             found.add(Intent.PLAN_REQUEST)
     # מנהל 269 (qa15 q15-24/30): «ok then 6 payments» / «אוקי אז 6 תשלומים» כשהוצעו 3 = הצעה נגדית, לא אישור ההצעה
@@ -2710,7 +2716,9 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         # מנהל 268: «אולי 200 בחודש?» ⇒ היה «ביקש/ה 20 תשלומים ⚠️ מעל התקרה» (הספרות הראשונות מתוך 200). יש סכום
         # חודשי ⇒ מספר התשלומים נגזר ממנו; ספרה לבד = מספר שלם של 1–2 ספרות בלבד.
         if requested is None and not monthly and ctx.state == State.AWAITING_PLAN_REPLY and (chg is None or chg[1] == "count"):
-            m = _s(r"(?<![\d.,])(\d{1,2}(?![\d.,]\d?)(?!\s*(?:לחודש|בחודש))|" + _NUMW + r"|\b(?:" + _EN_INW + r")\b)", t)
+            # critic סבב 130: «two fifty a month» = 250, לא «2 תשלומים» — מילת מספר לפני מילת עשרות אינה מספר תשלומים
+            m = _s(r"(?<![\d.,])(\d{1,2}(?![\d.,]\d?)(?!\s*(?:לחודש|בחודש))|" + _NUMW + r"|\b(?:" + _EN_INW + r")\b"
+                   r"(?![\s-]+(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)\b))", t)
             if m:
                 g = m.group(1)
                 requested = int(g) if g.isdigit() else (_NUM_WORDS.get(g) or _EN_INST.get(g.lower()))
