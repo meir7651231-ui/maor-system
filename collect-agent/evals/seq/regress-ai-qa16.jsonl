@@ -1,0 +1,5 @@
+{"id":"ra16-01","channel":"email","critical":true,"turns":[{"text":"אין לי כסף כרגע, סליחה","expect":{"intent":"cant_pay","state":"awaiting_plan_reply","plan_status":"proposed"}},{"text":"אפשר לחלק ל-3 תשלומים?","expect":{"intent":"plan_request","state":"awaiting_plan_reply","plan_status":"proposed","plans":1}}]}
+{"id":"ra16-02","channel":"sms","critical":true,"turns":[{"text":"honestly I have nothing to pay with","expect":{"intent":"cant_pay","not":["opt_out","paid_claim"]}},{"text":"ok can we do 3 payments","expect":{"intent":"plan_request","plan_status":"proposed","plans":1}}]}
+{"id":"ra16-03","channel":"sms","critical":true,"turns":[{"text":"אשלם מחר","expect":{"intent":"promise"}},{"text":"העברתי אתמול 1200 בביט","expect":{"intent":"paid_claim","paid":120000}}]}
+{"id":"ra16-04","channel":"email","critical":true,"turns":[{"text":"I sent you a deposit of 300","expect":{"intent":"paid_claim","paid":30000,"not":["opt_out"]}}]}
+{"id":"ra16-05","channel":"sms","critical":true,"turns":[{"text":"אין לי כסף","expect":{"intent":"cant_pay"}},{"text":"אפשר 4 תשלומים?","expect":{"intent":"plan_request","plan_status":"proposed","plans":2}}]}

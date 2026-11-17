@@ -932,6 +932,14 @@ _extend(Intent.LEGAL,
 _extend(Intent.DISTRESS,
         r"\b(?:i\s+)?feel(?:ing)?\s+(?:so\s+|very\s+|completely\s+|totally\s+)?(?:hopeless|helpless)\b",
         r"\bi\s*(?:'?m|\s+am)\s+(?:really\s+|so\s+|very\s+|seriously\s+)?struggling\b(?!\s+(?:to|with)\b)")
+# qa16 (STATUS «הבא» AI): cant_pay באנגלית — «I have no way to pay», «I have nothing to pay with», «I don't have money»,
+# «I have no money to pay»; ותשלום-מקדמה — «I sent you a deposit of 400», «I made a payment». «can I make a payment?» ≠.
+_extend(Intent.CANT_PAY,
+        r"\bi\s*(?:have|'ve\s+got|got)\s+(?:no\s+(?:way|means|money|cash|funds)\s+to\s+pay|nothing\s+to\s+pay\s+with)\b",
+        r"\bi\s*(?:do\s*n'?t|do\s+not|dont)\s+have\s+(?:any\s+|the\s+)?(?:money|cash|funds)\b(?!\s+(?:issues?|problems?))",
+        r"\bi\s+have\s+no\s+(?:money|cash|funds)\b")
+_extend(Intent.PAID_CLAIM,   # «i made a payment of 250 today», «I made the payment» (לא «payment request/plan», לא שאלה)
+        r"\bi\s+(?:already\s+|just\s+)?made\s+(?:a|the|my)\s+(?:partial\s+|first\s+)?payment\b(?!\s+(?:request|plan|arrangement))")
 # לולאה 17.11 בוקר (המשך לסבב 122): שגיאות כתיב באנגלית בכוונות מגינות — «stop txting», «stpo texting me»,
 # «unsubcribe», «reportin u to the polise», «i feel so hopless». מילת-פעולה של שליחה נדרשת אחרי stop (לא «stop worrying»).
 _extend(Intent.OPT_OUT,
@@ -1191,7 +1199,8 @@ _PAID_AMOUNT_RX = _c(
 # מנהל 271: סכום ששולם באנגלית — «I paid 1000» / «I paid 1500 nis» (חוב 5,000) ⇒ היה «טוען/ת ששילם/ה 5,000 ₪»
 # (מלוא החוב, בלי «חלקי») כי רק הפעלים העבריים נקראו. דולר מפורש ⇒ לא מחולץ (המטבע של החוב שקלי; לא ממירים).
 _PAID_AMOUNT_EN_RX = _c(
-    r"\b(?:paid|payed|transferred|wired|deposited|sent)\s+(?:(?:you|u|it|over|already|just|only|about|around|like|today|yesterday|this\s+morning|earlier)\s+)*"
+    r"\b(?:paid|payed|transferred|wired|deposited|sent|made)\s+(?:(?:you|u|it|over|already|just|only|about|around|like|today|"
+    r"yesterday|this\s+morning|earlier|a\s+deposit\s+of|a\s+payment\s+of|an?\s+(?:partial\s+)?(?:amount|sum)\s+of)\s+)*"
     r"(?:(?:via|by|with|through)\s+(?:bit|paybox|bank\s+transfer|transfer|credit\s+card|card|cash|check|cheque)\s+)?"
     r"(₪|\$|nis\s*|ils\s*)?" + _PAID_NUM + r"(?:\.(\d{1,2}))?\s*(₪|nis|ils|shekels?|dollars?|usd|\$)?")
 # מנהל 272: «העברתי את החצי» / «שילמתי את המקדמה» (ה׳ הידיעה) לא סומנו חלקי ⇒ «שילם/ה 1,200 ₪» (מלוא החוב)
@@ -2740,6 +2749,10 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         state = State.AWAITING_OWNER
     elif primary == Intent.PAID_CLAIM:
         paid = extract_paid_amount(t)
+        if paid is None and ctx.total_agorot and not ctx.mixed_currency and not _PARTIAL_WORDS.search(t) and _s(
+                r"(?<![\w])(?:את\s+)?(?:הכל|הכול)(?![\w])|(?<![\w])(?:את\s+)?כל\s+ה(?:סכומ|חוב|חשבונית|יתרה)(?![\w])"
+                r"|\b(?:in\s+full|the\s+full\s+(?:amount|balance)|everything|the\s+whole\s+(?:amount|thing|bill))\b", t):
+            paid = ctx.total_agorot   # qa16 (q16-21/40): «שילמתי הכל» / «את כל הסכום» = מלוא החוב (לא «לא ידוע»)
         partial = bool(_PARTIAL_WORDS.search(t)) or (
             paid is not None and ctx.total_agorot and paid < ctx.total_agorot)
         if partial:
