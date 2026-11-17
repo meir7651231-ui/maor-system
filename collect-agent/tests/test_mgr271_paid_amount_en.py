@@ -32,7 +32,7 @@ EXTRACT = [("I paid 1000", 100000), ("I paid 1500 nis", 150000), ("I already pai
 
 NOT_EXTRACTED = ["I paid 2 payments", "I paid 3 days ago", "I paid in 2025", "i paid 400$", "I paid 400 dollars",
                  "I paid 200 a month", "I paid 12/11", "I paid at 10:30", "I paid it", "I already paid",
-                 "I paid two hundred", "I sent 3 emails"]
+                 "I sent 3 emails"]  # מנהל 273: «I paid two hundred» מחולץ עכשיו (test_mgr273)
 
 
 @pytest.mark.parametrize(("text", "agorot"), EXTRACT)

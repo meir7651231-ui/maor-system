@@ -255,20 +255,44 @@ def _he_amount_tokens(phrase: str) -> list[int | str]:
     return out
 
 
+# מנהל 273 («הבא» AI מ-272): סכום ששולם במילים — «שילמתי שש מאות» / «I paid six hundred» / «העברתי אלף וחמש מאות»
+# ⇒ היה «טוען/ת ששילם/ה <מלוא החוב>» בלי «חלקי» (ההמרה הייתה רק עם עוגן חודשי). ממירים לספרות רצף מילות-מספר
+# **רק** צמוד לפועל-תשלום (אחרי מילות מילוי / ביט / חצי-מקדמה), ורק ≥100 או עם מטבע ⇒ ההחלטה זהה לצורה בספרות.
+# לא ממירים כשאחרי המספר: תשלומים/פעמים/אחוז/ימים/הודעות («paid two payments», «שילמתי מאה אחוז», «sent a hundred emails»).
+_PAID_WORDS_GUARD = (r"(?!\s*(?:תשלומ|פעמ|אחוז|%|ימימ|יומ|שבוע|שנימ|שנה|הודעו|מיילימ|תמונו|"
+                     r"payments?\b|installments?\b|instalments?\b|times?\b|percent|days?\b|weeks?\b|years?\b|"
+                     r"hours?\b|messages?\b|emails?\b|texts?\b|photos?\b|pictures?\b|screenshots?\b|of\s+(?:them|the|my)\b))")
+_EN_PAID_WORDS_RX = re.compile((
+    r"(\b(?:paid|payed|transferred|wired|deposited|sent)\s+(?:(?:you|u|it|over|already|just|only|about|around|like)\s+)*"
+    r"(?:(?:via|by|with|through)\s+(?:bit|paybox|bank\s+transfer|transfer|credit\s+card|card|cash|check|cheque)\s+)?"
+    r"(?:(?:half|part\s+of\s+it|a\s+deposit|the\s+deposit|a\s+portion|a\s+down\s*payment)\s*[,:\-]?\s*(?:of\s+|about\s+)?)?)"
+    # \b אחרי כל מילה: אחרת «two hundred and fifty» ⇒ «a» מתוך «and» נקרא 1 ⇒ «201nd fifty»
+    r"((?:" + _EN_NUMTOK + r")\b(?:(?:\s+and\s+|\s+|-)(?:" + _EN_NUMTOK + r")\b)*)"
+    r"(?=\s*(?P<cur>shekels?|nis|ils|dollars?|bucks)?)" + _PAID_WORDS_GUARD).translate(_FINALS))
+_HE_PAID_WORDS_RX = re.compile((
+    r"((?<![\w])(?:שילמ\w*|שלמת\w*|העבר\w*|הפקד\w*|שלחת\w*|שולמ\w*|שולם|נתתי|מסרתי)\s*"
+    r"(?:(?:לכמ|לכ|לך|כבר|רק|בינתיימ|את|ב-?ביט|ב-?פייבוקס|ב-?העברה)\s+)*"
+    r"(?:(?:ה?חצי|חלק|ה?מקדמה)\s*[,:\-]?\s*(?:של\s+|בסכ\s+)?)?)"
+    r"((?:" + _HE_NUMTOK + r")(?:\s+ו?(?:" + _HE_NUMTOK + r"))*)(?![\w])"
+    r"(?=\s*(?P<cur>ש\"ח|שח|שקל\w*)?)" + _PAID_WORDS_GUARD).translate(_FINALS))
+
+
 def _amount_words_to_digits(t: str) -> str:
-    def sub(rx: re.Pattern[str], tok: Callable[[str], list[int | str]]) -> str:
+    def sub(rx: re.Pattern[str], tok: Callable[[str], list[int | str]], g: int = 1) -> str:
         def rep(m: re.Match[str]) -> str:
             try:
-                v = _words_value(tok(m.group(1)))
+                v = _words_value(tok(m.group(g)))
             except KeyError:
                 return m.group(0)
             if v is None or (v < 100 and not m.group("cur")):
                 return m.group(0)
-            return str(v)
+            return (m.group(1) if g == 2 else "") + str(v)
         return rx.sub(rep, t)
     if any(c.isascii() and c.isalpha() for c in t):
         t = sub(_EN_AMT_WORDS_RX, _en_amount_tokens)
-    return sub(_HE_AMT_WORDS_RX, _he_amount_tokens)
+        t = sub(_EN_PAID_WORDS_RX, _en_amount_tokens, 2)
+    t = sub(_HE_AMT_WORDS_RX, _he_amount_tokens)
+    return sub(_HE_PAID_WORDS_RX, _he_amount_tokens, 2)
 
 
 def normalize(text: str) -> str:

@@ -35,8 +35,9 @@ WORDS = [("can we do two hundred a month?", "can we do 200 a month?"),
          ("אלף ומאתיים כל חודש", "1200 כל חודש"),
          ("אלפיים בחודש", "2000 בחודש")]
 
+# מנהל 273: «I paid two hundred last month» הוצא — סכום ששולם במילים מומר עכשיו (test_mgr273)
 UNCHANGED = ["two payments a month", "twenty a month", "עד עשרים לחודש", "מאתיים בחודש הבא",
-             "I paid two hundred last month", "two hundred?", "fifty a month", "one fifty a month",
+             "two hundred?", "fifty a month", "one fifty a month",
              "אולי מאתיים?", "שלושה תשלומים בחודש"]
 
 
