@@ -804,6 +804,15 @@ _extend(Intent.DISPUTE,
         r"(?:חייבתמ|חייבו|חייבת|חייבתנ)\s+(?:אותי|אותנו)\s+(?:\w+\s+){0,3}?על\s+(?:\w+\s+){0,2}?"
         r"(?:שבוטל|שבוטלה|שבוטלו|שלא הגעתי|שלא הגענו|שלא קיבלתי|שלא התקיימ|שלא היה|שלא היתה)(?![\w])")
 
+# ═══ critic סבב 122: שגיאות כתיב/סלנג SMS יומיומיים בכוונות מגינות ═══
+_extend(Intent.LEGAL,
+        r"\blaw(?:er|yr|yer)s?\b", r"\ba(?:tt?orn[ae]?y|ttorny)s?\b",
+        r"\b(?:report(?:in'?|ing)?|call(?:in'?|ing)?|go(?:in'?|ing)?\s+to)\s+(?:(?:u|you)\s+to\s+)?the\s+cops\b")
+_extend(Intent.PAID_CLAIM, r"\b(?:al+re?ady\s+|alredy\s+)?payed\b")
+_extend(Intent.DISPUTE,
+        r"\b(?:charg\w*|bill\w*)\s+(?:me|us)\s+for\s+(?:something|smth|stuff|sth)\s+(?:i|we)\s+"
+        r"(?:never|didn'?t|did\s+not)\s+(?:got|get|receive|received|order|ordered|ask\s+for|asked\s+for)\b")
+
 # q12-08/10: «התשלומים» כשם עצם כללי («אני אחראית על התשלומים בבית», «התשלומים של האשראי יורדים ב-10») ≠ בקשת
 # פריסה. הביטויים מוסרים מהטקסט רק לבדיקת PLAN_REQUEST; «אפשר בתשלומים?» לא נוגע.
 _GEN_PAYMENTS = _c(
@@ -1469,7 +1478,7 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     if Intent.PAID_CLAIM in found:
         t_en = re.sub(r"\b(?:have\s*n'?t|have\s+not|has\s*n'?t|has\s+not|had\s*n'?t|did\s*n'?t|did\s+not|not|never|"
                       r"if\s+(?:i|we)(?:'ve|\s+have|\s+already)?|whether\s+(?:i|we)(?:'ve|\s+have|\s+already)?|"
-                      r"did\s+(?:i|we)|have\s+(?:i|we))\s+(?:yet\s+|already\s+|actually\s+)?(?:been\s+)?(?:paid|transferred|wired|sent|deposited)\b(?:\s+(?:it|the\s+(?:money|payment|funds)))?(?:\s+yet)?", " ", t)
+                      r"did\s+(?:i|we)|have\s+(?:i|we))\s+(?:yet\s+|already\s+|actually\s+)?(?:been\s+)?(?:paid|payed|transferred|wired|sent|deposited)\b(?:\s+(?:it|the\s+(?:money|payment|funds)))?(?:\s+yet)?", " ", t)
         if t_en != t and not _hits(RX[Intent.PAID_CLAIM], t_en):
             found.discard(Intent.PAID_CLAIM)
     if not found and "?" in t and _s(r"(?:ה)?(?:קישור|לינק)", t):
