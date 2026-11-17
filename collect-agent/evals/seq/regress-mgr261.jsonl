@@ -1,0 +1,12 @@
+{"id": "rm261-01", "channel": "sms", "critical": true, "turns": [{"text": "תפסיקולשלוחלי", "expect": {"intent": "opt_out", "state": "opted_out", "stop": "permanent"}}, {"text": "אשלם ב-20", "expect": {"state": "opted_out"}}]}
+{"id": "rm261-02", "channel": "sms", "critical": true, "turns": [{"text": "plz stop", "expect": {"intent": "opt_out", "state": "opted_out", "stop": "permanent"}}]}
+{"id": "rm261-03", "channel": "sms", "critical": true, "turns": [{"text": "אני אשלם ב-20 אבל אני על סף התמוטטות, לא ישנה בלילות", "expect": {"intent": "distress", "escalate": "urgent", "promise": null}}]}
+{"id": "rm261-04", "channel": "sms", "critical": true, "turns": [{"text": "החיוב על אוקטובר לא נכון כי לא הגעתי בכלל, אבל את ספטמבר אשלם ב-15", "expect": {"intent": "dispute", "state": "awaiting_owner", "promise": null, "stop": "pause"}}]}
+{"id": "rm261-05", "channel": "sms", "critical": true, "turns": [{"text": "חייבתם אותי גם על שיעור שבוטל, זה לא בסדר", "expect": {"intent": "dispute", "stop": "pause", "not": ["promise"]}}]}
+{"id": "rm261-06", "channel": "sms", "critical": false, "turns": [{"text": "אשלםב20", "expect": {"intent": "promise", "state": "promised", "promise": "2026-11-20"}}]}
+{"id": "rm261-07", "channel": "sms", "critical": true, "turns": [{"text": "הבן שלי לומד אצלכם, הוא בן 12 — אני משלמת ב-20", "expect": {"intent": "promise", "state": "promised", "promise": "2026-11-20", "not": ["minor"]}}]}
+{"id": "rm261-08", "channel": "sms", "critical": true, "turns": [{"text": "הטלפון של הבן שלי, הוא בן 12", "expect": {"intent": "minor"}}]}
+{"id": "rm261-09", "channel": "sms", "critical": true, "turns": [{"text": "היי, עורך הדין שלי אמר שזה בסדר לשלם בתשלומים, אפשר לחלק ל-4?", "expect": {"intent": "plan_request", "not": ["legal"]}}]}
+{"id": "rm261-10", "channel": "sms", "critical": true, "turns": [{"text": "העברתי את זה לעורך דין, מעכשיו תפנו אליו", "expect": {"intent": "legal", "promise": null}}]}
+{"id": "rm261-11", "channel": "sms", "critical": false, "turns": [{"text": "אשלם ב-30 לחודש", "expect": {"state": "awaiting_owner"}}, {"text": "כלומר ב-15", "expect": {"intent": "promise", "state": "promised", "promise": "2026-11-15"}}]}
+{"id": "rm261-12", "channel": "sms", "critical": false, "turns": [{"text": "אני משלמת כל חודש ב-10 את המשכנתא, אין לי כסף לזה עכשיו", "expect": {"not": ["promise"]}}]}
