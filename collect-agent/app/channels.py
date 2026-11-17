@@ -264,10 +264,34 @@ def _is_signature_line(s: str) -> bool:
     return len(s) <= 70 and bool(_SIG_TITLE.search(s)) and not _SIG_MINE.search(s)
 
 
+# critic סבב 128: ספק inbound שמעביר HTML (מייל HTML-only) — הציטוט שלנו ב-<blockquote>/«&gt;»/divRplyFwdMsg
+# לא הוסר ⇒ «השיבו "פריסה"» מהתזכורת שלנו ⇒ «ok» סווג plan_request. מזהים HTML רק לפי תגים מוכרים.
+_HTML_HINT = re.compile(r"<\s*(?:br|div|p|blockquote|html|body|span|b|i|hr|table|font)\b[^>]*>"
+                        r"|&(?:gt|lt|amp|quot|nbsp);", re.I)
+_HTML_QUOTE_START = re.compile(
+    r"<blockquote\b|<div[^>]*\bclass=[\"']?[^\"'>]*\b(?:gmail_quote|yahoo_quoted|moz-cite-prefix)\b"
+    r"|<div[^>]*\bid=[\"']?(?:divRplyFwdMsg|appendonsend|mail-editor-reference-message-container)\b"
+    r"|<hr\b[^>]*>\s*(?=<div[^>]*\bid=[\"']?divRplyFwdMsg)", re.I)
+
+
+def _html_to_text(t: str) -> str:
+    import html as _html
+    m = _HTML_QUOTE_START.search(t)
+    if m:
+        t = t[:m.start()]
+    t = re.sub(r"(?is)<(?:script|style|head)\b.*?</(?:script|style|head)\s*>", " ", t)
+    t = re.sub(r"(?i)<\s*br\s*/?\s*>|</\s*(?:div|p|li|tr|h\d)\s*>|<\s*hr\b[^>]*>", "\n", t)
+    t = re.sub(r"<[^>]*>", "", t)
+    return _html.unescape(t).replace("\xa0", " ")
+
+
 def strip_reply(text: str) -> str:
     """רק מה שהלקוח כתב: בלי הציטוט של ההודעה שלנו ובלי חתימת '-- '."""
     out = []
-    lines = (text or "").replace("\r\n", "\n").split("\n")
+    text = text or ""
+    if _HTML_HINT.search(text):
+        text = _html_to_text(text)
+    lines = text.replace("\r\n", "\n").split("\n")
     for i, line in enumerate(lines):
         s = _BIDI.sub("", line).strip()
         nxt = _BIDI.sub("", lines[i + 1]).strip() if i + 1 < len(lines) else ""
