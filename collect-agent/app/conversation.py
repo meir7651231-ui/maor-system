@@ -976,6 +976,13 @@ def _extract_date_en(t: str, today: date) -> tuple[date | None, bool] | None:
 # (אין לוח עברי במנוע) ⇒ שואלים «עד איזה תאריך בערך?».
 _HOLIDAY_VAGUE = (r"(?:אחרי|לפני|אחר|עד|ב|מיד אחרי|לקראת)\s*-?\s*(?:ה)?(?:חנוכה|פסח|סוכות|פורים|שבועות|ראש השנה"
                   r"|יום כיפור|ט\"?ו בשבט|ל\"?ג בעומר|החגים|החג)(?![\w])")
+# מנהל 257: חודש עברי («אשלם בטבת», «עד שבט», «בסוף כסלו», «ב-10 בטבת») ⇒ מעורפל, לא תאריך (אין המרה עברית⇄לועזית
+# במנוע; עדיף לשאול «עד איזה תאריך?» מאשר לנחש). היה: «בכסלו» כתשובה ל«עד מתי?» ⇒ «לא ברור» וכרטיס לבעלים.
+# «אב» לבד רק אחרי ב/עד (בלי ל — «לאב» = לאבא), ובצורה «מנחם אב».
+_HEB_MONTH_VAGUE = (r"(?:(?:אחרי|לפני|עד|ב|לקראת|בסוף|עד סוף|בתחילת|עד תחילת|באמצע|במהלך)\s*-?\s*(?:ה)?(?:חודש\s+)?"
+                    r"(?:תשרי|חשוון|חשון|מרחשוון|מרחשון|כסלו|כסליו|טבת|שבט|אדר(?:\s*[אב]'?(?![\w]))?|ניסן|אייר|סיוון|סיון"
+                    r"|תמוז|מנחם[- ]?אב|אלול)|(?:ב|עד\s+)אב)(?![\w])")
+_HOLIDAY_VAGUE = r"(?:" + _HOLIDAY_VAGUE + r"|" + _HEB_MONTH_VAGUE + r")"
 
 
 def extract_date(t: str, today: date) -> tuple[date | None, bool]:
@@ -1117,7 +1124,27 @@ def extract_date_ctx(t: str, ctx: Context | None) -> tuple[date | None, bool]:
         bd = _promise_clause_day(t, ctx.today)
         if bd is not None:
             return bd, False
+    if d is None:
+        bd = _owner_correction_day(t, ctx)
+        if bd is not None:
+            return bd, False
     return d, vague
+
+
+# מנהל 257 (qa10 q10-07 #4): «ב-23» (מעל max_defer_days ⇒ AWAITING_OWNER), «תודה», ואז «בעצם ב-25» ⇒ אין מועד:
+# יום לבד נתפס רק ב-AWAITING_DATE/PROMISED. ב-AWAITING_OWNER המצב משותף לכל ההעברות (מחלוקת, מצוקה, לא ברור…),
+# לכן כאן רק **תיקון מפורש**: מילת תיקון בראש ההודעה («בעצם», «תיקון», «רגע», «סליחה», «actually», «sorry») +
+# יום עם מילת יחס, וכל ההודעה היא התאריך. «ב-25» לבד, «17», «שילמתי ב-25» ⇒ לא נתפס.
+_CORRECTION_LEAD = (r"^\W*(?:(?:אז|אה|אהה|טוב|אוקיי|אוקי|לא)\W+)?(?:בעצם|תיקון|רגע|סליחה|טעיתי|התכוונתי)(?![\w])"
+                    r"|^\W*(?:(?:oh|ok|okay|no)\W+)?(?:actually|sorry|correction|i\s+meant)\b")
+
+
+def _owner_correction_day(t: str, ctx: Context) -> date | None:
+    if ctx.state != State.AWAITING_OWNER or not re.search(_c(_CORRECTION_LEAD), t):
+        return None
+    u = re.sub(_c(r"^\W*(?:(?:אז|אה|אהה|טוב|אוקיי|אוקי|לא)\W+)?(?:טעיתי|התכוונתי)(?![\w])\W*"), "", t)
+    u = re.sub(r"^\W*(?:(?:oh|ok|okay|no)\W+)?(?:actually|sorry|correction|i\s+meant)\b\W*", "", u)
+    return _bare_day(u, ctx.today, need_marker=True)
 
 
 # מנהל 256 (qa10 q10-02/14/19/23/27): «קיבלתי תודה. אשלם ב-15», «סליחה, לא הספקתי. אשלם ב-20»,
@@ -1212,6 +1239,8 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         d, _vague = extract_date_ctx(t, ctx)
         if d is not None or (_vague and ctx.state == State.AWAITING_DATE and _s(_HOLIDAY_VAGUE, t)):
             found.add(Intent.PROMISE)
+    if ctx is not None and ctx.state == State.AWAITING_OWNER and _owner_correction_day(t, ctx) is not None:
+        found.add(Intent.PROMISE)   # מנהל 257: «בעצם ב-25» אחרי מועד שהועבר לבעלים = עדכון המועד
     # מנהל 253 (qa9 q9-28/משלים): «אפשר לשלם ב-18 בנובמבר?», «Can I pay next week?» = בקשת דחייה עם מועד, לא «איך משלמים»
     if ctx is not None and (_s(r"(?:אפשר|אוכל|אני יכול\w*|ניתן|מותר)\s+(?:ל)?(?:שלם|לשלם|להעביר|לסדר|לדחות)", t)
                             or re.search(r"\b(?:can|could|may)\s+(?:i|we)\s+(?:pay|transfer|send\s+(?:it|the\s+payment)|settle)\b", t)):
