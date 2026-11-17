@@ -2032,6 +2032,14 @@ _PROTECTIVE = frozenset({Intent.DISTRESS, Intent.MINOR, Intent.OPT_OUT, Intent.W
                          Intent.DISPUTE, Intent.PAID_CLAIM})
 
 
+# מנהל 277: סירוב לפריסה (שלילה צמודה למילת הפריסה). לא: «למה לא בתשלומים?» (שלילה לבד), «בלי ריבית» (לא מילת פריסה).
+_PLAN_DECLINE = (
+    r"(?<![\w])(?:לא\s+(?:צריכ|צריכה|צריכימ|רוצה|רוצימ|מעוניינ|מעוניינת|מעוניינימ|מבקש|מבקשת)|אינ\s+צורכ|בלי|ללא)\s+"
+    r"(?:\w+\s+)?(?:ב|ב-|את\s+)?(?:ה)?(?:פריסה|פריסת|תשלומימ|הסדר|הסדרי)(?![\w])"
+    r"|\b(?:no\s+need\s+(?:for|of)|(?:i\s+|we\s+)?(?:don'?t|do\s+not)\s+(?:want|need)|without|no)\s+(?:a\s+|an\s+|any\s+|the\s+)?"
+    r"(?:payment\s+plan|plan|installments?|instalments?|monthly\s+payments)\b")
+
+
 def _plan_ctx(ctx: Context | None) -> bool:
     """יש הסדר בשיחה (הוצע ללקוח, או שהלקוח אישר/בעל העסק אישר) ⇒ בקשות שינוי מתפרשות מולו."""
     return ctx is not None and bool(ctx.offered_plan) and \
@@ -2370,6 +2378,16 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             not _s(_PROMISE_VERB_HE + r"|(?:ה)?(?:שאר|יתרה)|(?:אשלמ|אעביר|נשלמ|נעביר)", t) and \
             not re.search(_PROMISE_VERB_EN + r"|\b(?:the\s+)?(?:rest|remaining|balance)\b", t):
         found.discard(Intent.PROMISE)
+    # מנהל 277 (סריקת plans.status): סירוב לפריסה — «לא צריך פריסה, אשלם הכל ביום חמישי», «אשלם הכל מחר, בלי תשלומים»,
+    # «no need for installments» ⇒ היה PLAN_REQUEST (המילה «תשלומים/פריסה») ⇒ **הצעת פריסה חדשה** ללקוח שסירב לה, והסדר
+    # proposed חדש ב-DB (גם במצב idle, במקום לרשום את ההבטחה). עכשיו: לא בקשת פריסה; על הצעה פתוחה ⇒ דחייה (המסלול הקיים,
+    # עם המועד בכרטיס). מספר תשלומים / סכום חודשי / שינוי בהסדר בהודעה ⇒ נשאר בקשה («בלי ריבית, ב-3 תשלומים»).
+    if Intent.PLAN_REQUEST in found and _s(_PLAN_DECLINE, t) and extract_installments(t) is None \
+            and extract_monthly_amount(t) is None and not (_plan_ctx(ctx) and plan_change(t) is not None):
+        found.discard(Intent.PLAN_REQUEST)
+        if _plan_ctx(ctx):
+            found.add(Intent.PLAN_REJECT)
+            found -= {Intent.PLAN_ACCEPT, Intent.UNKNOWN}
     if Intent.THANKS in found and len(found) > 1:
         found.discard(Intent.THANKS)
     if Intent.PLAN_ACCEPT in found and (found & {Intent.DISPUTE, Intent.OPT_OUT, Intent.LEGAL}):
