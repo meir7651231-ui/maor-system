@@ -154,6 +154,11 @@ def run_seq(seq: dict) -> list[str]:
                 got = svc.db.one("SELECT COUNT(*) n FROM plans WHERE customer_id=1")["n"]
                 if got != e["plans"]:
                     fails.append(f"{tag} plans {got}≠{e['plans']}")
+            if "plan_n" in e:         # מנהל 268: מספר התשלומים בהסדר האחרון (הצעה נגדית ≠ הצעה זהה)
+                p = svc.db.one("SELECT installments FROM plans WHERE customer_id=1 ORDER BY id DESC LIMIT 1")
+                got = len(json.loads(p["installments"])) if p else None
+                if got != e["plan_n"]:
+                    fails.append(f"{tag} plan_n {got}≠{e['plan_n']}")
             all_i = [out["intent"], *out.get("secondary", [])]
             for n in e.get("not", []):
                 if n in all_i:

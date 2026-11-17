@@ -565,7 +565,9 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"\bpay\s+(?:it\s+|this\s+|the\s+\w+\s+)?(?:in|over)\s+(?:a\s+few\s+|several\s+|\d{1,2}\s+|two\s+|three\s+|four\s+)?(?:monthly\s+)?(?:payments|parts|chunks|months)\b",
         r"\b(?:prefer|want|wanna|would like|'d like|need|can (?:i|we) (?:make|do)|could (?:i|we) (?:make|do))\s+(?:\w+\s+){0,2}?monthly payments\b", r"(?<![\w])ב?תשלומיים(?![\w])", r"(?:\d{1,2}|" + "|".join(_NUM_STEMS) + r") (?:צ'?קים|צ'?יקים|צקים)",
         r"(?:לפצל|לחלק) (?:את )?(?:זה|הסכום|התשלום|החוב|החשבון)", r"פעימות", r"הוראת קבע",
-        r"\d{2,}\s*(?:₪|ש\"ח|שח|שקל\w*)?\s*(?:כל|בכל) חודש", r"\d{3,}\s*(?:₪|ש\"ח|שח|שקל\w*)?\s*(?:לחודש|בחודש)(?! ה)"),
+        r"\d{2,}\s*(?:₪|ש\"ח|שח|שקל\w*)?\s*(?:כל|בכל) חודש", r"\d{3,}\s*(?:₪|ש\"ח|שח|שקל\w*)?\s*(?:לחודש|בחודש)(?! ה)",
+        # מנהל 268: «I can pay 200 a month», «what about ₪150 per month?» — היה «לא ברור»
+        r"(?:₪|\$)?\d{3,}\s*(?:₪|nis|ils|shekels?|dollars?|\$)?\s*(?:(?:a|per|each|every)\s+month\b|/\s*(?:month|mo)\b|monthly\b)"),
     Intent.PLAN_ACCEPT: _rx(
         r"^\W*(?:מאשר|מאשרת|מאשרים|מסכים|מסכימה|מסכימים|כן|סגור|סגרנו|מתאים|מתאים לי|מעולה|אוקיי|אוקי|ok|okay|בסדר|יאללה|דיל|עובד)\b",
         r"(?:מאשר|מאשרת|מאשרים|מסכים|מסכימה|מסכימים) (?:את )?(?:ה)?(?:הצעה|הסדר|פריסה|זה)",
@@ -954,9 +956,21 @@ def extract_installments(t: str) -> int | None:
 _MONTHLY_RX = _c(r"(\d{1,3}(?:,\d{3})+|\d{2,})\s*(?:₪|ש\"ח|שח|שקל\w*)?\s*(?:כל חודש|בכל חודש|לחודש|בחודש(?! ה))")
 
 
+# מנהל 268: סכום חודשי באנגלית — «200 a month», «200 per month», «₪200/month», «200 monthly». היה: לא זוהה בכלל
+# («can we do 200 a month?» ⇒ «לא ברור», גם באמצע הצעת פריסה). רק 3 ספרות ומעלה או מטבע מפורש (כמו בעברית).
+_MONTHLY_EN_RX = _c(r"(?:₪|\$|nis\s*|ils\s*)?(\d{1,3}(?:,\d{3})+|\d{2,})\s*(?:₪|nis|ils|shekels?|dollars?|\$)?\s*"
+                    r"(?:(?:a|per|each|every)\s+month\b|/\s*(?:month|mo)\b|monthly\b)")
+
+
 def extract_monthly_amount(t: str) -> int | None:
-    """"300 כל חודש" ⇒ 30000 אגורות."""
-    m = _MONTHLY_RX.search(t)
+    """"300 כל חודש" ⇒ 30000 אגורות. גם באנגלית: «200 a month» (מנהל 268)."""
+    # «אפשר ב-20 לחודש?» / «עד ה-15 בחודש» = יום בחודש, לא ₪20 לחודש (היה: «ביקש/ה 60 תשלומים»)
+    m = next((x for x in _MONTHLY_RX.finditer(t)
+              if not (int(x.group(1).replace(",", "")) <= 31 and _s(r"(?:(?<![\w])(?:ב|עד|ל)\s*-?\s*(?:ה-?)?)$", t[:x.start()]))),
+             None)
+    e = _MONTHLY_EN_RX.search(t)
+    if e and (not m or e.start() < m.start()):
+        m = e
     if not m:
         return None
     v = int(m.group(1).replace(",", ""))
@@ -1472,10 +1486,55 @@ def plan_counter(t: str, current: int = 0, pending: bool = False) -> int | None:
     return None
 
 
+# מנהל 268 («הבא» AI מ-267): הצעה נגדית בסכום החודשי אחרי שהלקוח אישר הסדר (PLAN_PENDING_OWNER) או באמצע הצעה —
+# «300 בחודש זה הרבה, אולי 200?», «can we do 200 a month instead?», «what about 150 per month?». היה:
+#  · PENDING «300 בחודש זה הרבה, אולי 200?» ⇒ הצעה *זהה* (4×300 — הסכום הראשון בהודעה = ההסדר הקיים), «ביקש/ה פריסה»
+#    בלי שבעל העסק יודע שזה שינוי בהסדר שכבר אושר; «can we do 200 a month?» ⇒ «לא ברור».
+#  · AWAITING «אולי 200 בחודש?» ⇒ «ביקש/ה 20 תשלומים ⚠️ מעל התקרה» (ספרה לבד נקראה מתוך 200).
+# הסכום שאחרי הסמן («אולי / אפשר / מה עם / can we do / what about / how about / maybe»), רק כשיש עוגן חודשי
+# בהודעה (בחודש / לחודש / a month / monthly — ליד הסכום החדש או ליד הישן) ⇒ אחרת «אולי 300?» יכול להיות תשלום חד-פעמי.
+_CTR_AMT = r"(?:₪|\$|nis\s*|ils\s*)?(?P<a>\d{1,3}(?:,\d{3})+|\d{2,5})(?![\d.,/:])"
+_CTR_HE = (r"(?:^|[\s,.;!?(])(?:אולי|אפשר|ואמ|ומה אמ|מה עמ|מה לגבי|ואולי)\s+(?:בעצמ\s+|רק\s+|גמ\s+)?(?:לשלמ\s+)?(?:ב|ל)?-?\s*"
+           + _CTR_AMT)
+_CTR_EN = (r"\b(?:(?:can|could)\s+(?:we|i)\s+(?:do|make\s+it|pay|go\s+with)|what\s+about|how\s+about|make\s+it|maybe)\s+"
+           r"(?:just\s+|only\s+)?" + _CTR_AMT)
+_CTR_EN2 = (r"(?<![\w$₪])" + _CTR_AMT + r"\s*(?:₪|nis|ils|shekels?)?\s*(?:(?:a|per)\s+month\s+|monthly\s+)instead\b")
+_MONTH_ANCHOR = (r"(?:כל חודש|לחודש|בחודש(?! ה)|חודשי|\b(?:a|per|each|every)\s+month\b|/\s*(?:month|mo)\b|\bmonthly\b)")
+
+
+def _plan_monthly(ctx: Context | None) -> int:
+    """התשלום החודשי בהסדר שבשיחה (הגדול מבין התשלומים; 0 אם אין)."""
+    return max((i.amount_agorot for i in ctx.offered_plan), default=0) if ctx is not None and ctx.offered_plan else 0
+
+
+def plan_counter_amount(t: str, current: int = 0) -> int | None:
+    """הצעה נגדית בסכום חודשי בתוך הסדר שבשיחה ⇒ אגורות, או None. `current` = התשלום החודשי בהסדר (אגורות)."""
+    if not _s(_MONTH_ANCHOR, t):
+        return None
+    for rx in (_CTR_HE, _CTR_EN, _CTR_EN2):
+        for m in _c(rx).finditer(t):
+            after = t[m.end():m.end() + 14]
+            # «אולי 6 תשלומים» / «אולי 200 ימים» / «maybe 20 days» — לא סכום
+            if _m(r"\s*(?:תשלומ|פעמימ|פעימות|ימימ|יומ|שבוע|חודשימ|payments|installments|instalments|days?|weeks?|months\b)",
+                  after):
+                continue
+            v = int(m.group("a").replace(",", ""))
+            if not 10 <= v <= 1_000_000:
+                continue
+            # עד 2 ספרות בלי מטבע מפורש = מספר תשלומים או יום בחודש («אפשר ב-20 לחודש?» = תאריך)
+            if v < 100 and not (_m(r"\s*(?:₪|ש\"ח|שח|שקל|nis|ils)", after) or _s(r"[₪$]|nis|ils", m.group(0))):
+                continue
+            if v * 100 == current:
+                continue
+            return v * 100
+    return None
+
+
 def plan_retract(t: str) -> bool:
     """הלקוח חוזר בו מההסדר — בלי בקשה חדשה וממשית (מספר תשלומים / סכום חודשי / שינוי מועד)."""
     return bool(_s(_RETRACT, t)) and not _s(_RETRACT_NEG, t) and extract_installments(t) is None and \
-        extract_monthly_amount(t) is None and plan_change(t) is None and plan_counter(t) is None
+        extract_monthly_amount(t) is None and plan_change(t) is None and plan_counter(t) is None and \
+        plan_counter_amount(t) is None
 
 
 def change_date(t: str, today: date) -> date | None:
@@ -1695,8 +1754,9 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         found.add(Intent.PLAN_ACCEPT)
     # מנהל 267: הצעה נגדית במספר תשלומים («אולי 6?», «can we do 6 instead?») — גם אחרי שהלקוח אישר.
     # גוברת על «לא מסתדר / too much» (שאחרת נקראים דחייה/חזרה מההסדר) ועל אישור/«לא ברור».
-    if _plan_ctx(ctx) and not (found & _PROTECTIVE) and plan_change(t) is None and plan_counter(
-            t, len(ctx.offered_plan), ctx.state == State.PLAN_PENDING_OWNER) is not None:
+    if _plan_ctx(ctx) and not (found & _PROTECTIVE) and plan_change(t) is None and (plan_counter(
+            t, len(ctx.offered_plan), ctx.state == State.PLAN_PENDING_OWNER) is not None
+            or plan_counter_amount(t, _plan_monthly(ctx)) is not None):   # מנהל 268: גם סכום חודשי נגדי
         found.add(Intent.PLAN_REQUEST)
         found -= {Intent.PROMISE, Intent.UNKNOWN, Intent.PLAN_ACCEPT, Intent.THANKS}
         # ב-AWAITING_PLAN_REPLY דחייה+מספר נשארת «דחייה עם הצעה נגדית» (תווית f034, סט קפוא); ההצעה תהיה במספר
@@ -2459,15 +2519,26 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             else None
         if cnt is not None:
             requested = cnt
-        counter_pending = cnt is not None and ctx.state == State.PLAN_PENDING_OWNER
+        # מנהל 268: סכום חודשי נגדי («300 בחודש זה הרבה, אולי 200?») — הסכום שאחרי הסמן, לא הראשון בהודעה
+        camt = plan_counter_amount(t, _plan_monthly(ctx)) \
+            if cnt is None and primary in (Intent.PLAN_REQUEST, Intent.PLAN_REJECT) and _plan_ctx(ctx) and chg is None \
+            else None
+        counter_pending = (cnt is not None or camt is not None) and ctx.state == State.PLAN_PENDING_OWNER
         if counter_pending:
             tags.append("plan_change")
-        if requested is None and ctx.state == State.AWAITING_PLAN_REPLY and (chg is None or chg[1] == "count"):
-            m = _s(r"(\d{1,2}|" + _NUMW + r")", t)
+        monthly = camt or extract_monthly_amount(t)
+        if not counter_pending and ctx.state == State.PLAN_PENDING_OWNER and ctx.offered_plan and chg is None \
+                and primary == Intent.PLAN_REQUEST and monthly and monthly != _plan_monthly(ctx):
+            # «אשלם 200 לחודש» / «I can pay 200 a month» אחרי שהלקוח אישר הסדר אחר — גם זה שינוי בהסדר
+            counter_pending = True
+            tags.append("plan_change")
+        # מנהל 268: «אולי 200 בחודש?» ⇒ היה «ביקש/ה 20 תשלומים ⚠️ מעל התקרה» (הספרות הראשונות מתוך 200). יש סכום
+        # חודשי ⇒ מספר התשלומים נגזר ממנו; ספרה לבד = מספר שלם של 1–2 ספרות בלבד.
+        if requested is None and not monthly and ctx.state == State.AWAITING_PLAN_REPLY and (chg is None or chg[1] == "count"):
+            m = _s(r"(?<![\d.,])(\d{1,2}(?![\d.,]\d?)(?!\s*(?:לחודש|בחודש))|" + _NUMW + r")", t)
             if m:
                 g = m.group(1)
                 requested = int(g) if g.isdigit() else _NUM_WORDS.get(g)
-        monthly = extract_monthly_amount(t)
         chg_card = False
         if chg is not None:
             tags.append("plan_change")
@@ -2497,6 +2568,9 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             dd, _ = extract_date(t, ctx.today)
             if dd and (dd - ctx.today).days <= p.max_defer_days and dd > ctx.today:
                 start = dd
+        if requested is None and start is not None and not monthly and _plan_ctx(ctx) and ctx.offered_plan:
+            # מנהל 268: «אפשר ב-20 לחודש?» באמצע הצעה = רק המועד זז; מספר התשלומים נשאר (היה: ברירת המחדל, 3 במקום 4)
+            requested = len(ctx.offered_plan)
         over = requested is not None and requested > p.max_installments
         sensitive = "reservist" in tags or "sensitive" in tags
         if p.auto_offer_plan and ctx.invoices and not sensitive and not chg_card:
