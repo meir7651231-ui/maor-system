@@ -1009,14 +1009,14 @@ _extend(Intent.DISPUTE,
         r"\b(?:you\s+|they\s+)?(?:charged|billed)\s+(?:me|us)\s+(?:for\s+)?" + _NUMV + r"\s+(?:not|instead\s+of)\s+\d")
 
 # ═══ critic סבב 133: מחלוקות יומיומיות — שירות/מוצר לא סופק, באיחור/חלקי, ביטול שכבר בוקש, מחיר שלא הוסכם ═══
-_extend(Intent.DISPUTE,
+_C133_DISPUTE = _rx(
         r"לא\s+קיבלתי\s+(?:את\s+)?(?:ה)?(?:הזמנה|מוצר|משלוח|חבילה|שירות|סחורה|פריט|ציוד)(?![\w])",
         r"(?:ה)?(?:מוצר|הזמנה|משלוח|חבילה|סחורה|פריט|ציוד)\s+(?:עדיינ\s+|בכלל\s+|עוד\s+)?לא\s+"
         r"(?:הגיע|הגיעה|סופק|סופקה|נמסר|נמסרה)(?![\w])",
         r"(?:ה)?(?:שירות|עבודה|תיקונ|טיפול)\s+(?:עדיינ\s+|בכלל\s+|עוד\s+)?לא\s+(?:סופק|ניתנ|בוצע|בוצעה|הושלמ|הושלמה"
         r"|הסתיימ|הסתיימה|נעשה|נעשתה)(?![\w])",
-        r"(?:ו)?לא\s+(?:סיימו|סיימ|השלימו|תיקנו)(?![\w])", r"(?:עשו|ביצעו|סיימו)\s+רק\s+(?:חצי|חלק)(?![\w])",
-        r"ביקשתי\s+(?:לבטל|ביטול)(?![\w])", r"ביטלתי\s+(?:בזמנ|מראש|לפני|מזמנ|כבר\s+מזמנ)(?![\w])",
+        r"ולא\s+(?:סיימו|סיימ|השלימו|תיקנו)(?![\w])", r"לא\s+(?:סיימו|סיימ|השלימו|תיקנו)\s+(?:את\s+)?(?:ה)?(?:עבודה|תיקונ|שיפוצ|התקנה|פרויקט)(?![\w])", r"(?:עשו|ביצעו|סיימו)\s+רק\s+(?:חצי|חלק)(?![\w])",
+        r"ביקשתי\s+(?:לבטל|ביטול)(?!\s+(?:את\s+)?(?:ה)?(?:הוראת|כרטיס|פגישה|תור|הקבע))(?![\w])", r"ביטלתי\s+(?:בזמנ|מראש|לפני|מזמנ|כבר\s+מזמנ)(?![\w])",
         r"עדיינ\s+(?:מחייבימ|חייבתמ|גובימ|מחייבתמ)(?![\w])",
         r"אמרו\s+(?:לי|לנו)\s+ש(?:זה\s+|זאת\s+)?(?:יעלה|תעלה|עולה|יהיה)\s+\d",
         r"\b(?:still\s+)?(?:have\s*n'?t|haven'?t|havent|did\s*n'?t|didnt|did\s+not|never)\s+(?:received|got|get)\s+"
@@ -1026,11 +1026,24 @@ _extend(Intent.DISPUTE,
         r"\bservice\s+was\s+(?:never|not)\s+(?:provided|delivered|done|performed)\b",
         r"\b(?:technician|tech|plumber|electrician|contractor|worker|cleaner|installer)\s+(?:never|did\s*n'?t|didnt)\s+"
         r"(?:show(?:ed)?\s+up|come|came|arrive|turn(?:ed)?\s+up)\b",
-        r"\b(?:they|he|she|you|and)\s+(?:did\s*n'?t|didnt|did\s+not|never)\s+finish(?:ed)?\b", r"\b(?:only\s+)?half[\s-]+done\b",
+        r"\b(?:they|he|she|you|and)\s+(?:did\s*n'?t|didnt|did\s+not|never)\s+finish(?:ed)?\b(?!\s+yet)", r"\b(?:only\s+)?half[\s-]+done\b",
         r"\b(?:work|job)\s+(?:is\s*n'?t|isnt|is\s+not|was\s*n'?t|wasnt|was\s+not)\s+(?:finished|done|complete|completed)\b",
-        r"\b(?:i|we)\s+asked\s+(?:you\s+)?to\s+cancel\b", r"\b(?:i|we)\s+cancell?ed\s+(?:before|in\s+time|on\s+time|ahead)\b",
+        r"\b(?:i|we)\s+asked\s+(?:you\s+)?to\s+cancel\b(?!\s+(?:my|the|our)\s+(?:card|appointment|meeting|standing\s+order|direct\s+debit))", r"\b(?:i|we)\s+cancell?ed\s+(?:before|in\s+time|on\s+time|ahead)\b",
         r"\b(?:never|did\s*n'?t|didnt|did\s+not)\s+agree(?:d)?\s+(?:on|to)\s+(?:this|that|the|such\s+a)\s+(?:price|amount|fee|charge)\b",
         r"\bnot\s+the\s+price\s+(?:we|i)\s+agreed\b", r"\b(?:you|they)\s+quoted\s+(?:me|us)\s+\d")
+# critic סבב 134: וטו על תבניות 133 — ההודעה אומרת שהיא משלמת / שהכל בסדר / שזה הגיע, או שמדובר בכרטיס/הוראת קבע/מחלה
+# (אחרת: «ביקשתי לבטל את הוראת הקבע ואשלם בהעברה», «they didnt finish yet, will pay» ⇒ מחלוקת-שווא דחופה).
+_C133_VETO = _c(r"(?<![\w])(?:ו|ה|ב|ל|ש)?(?:אשלמ|אעביר|נשלמ|נעביר|הכל בסדר|הכול בסדר|זה בסדר|הגיע בסופ|כבר הגיע|כרטיס|הוראת קבע"
+                r"|חליתי|חלה|חולה)(?![\w])|בדיוק מה ש"
+                r"|\b(?:will|i'?ll|gonna|going\s+to)\s+pay\b|\bpaying\b|\ball\s+good\b|\bit'?s\s+fine\b|\bits\s+fine\b"
+                r"|\bno\s+problem\b|\b(?:just|finally)\s+(?:came|arrived)\b|\bcard\b")
+
+# ═══ critic סבב 134: קטין בסלנג אנגלית («im a teen», «im in high school», «im not even 18», «a 14 yo») ═══
+_extend(Intent.MINOR,
+        r"\bi\s*(?:'?m|\s+am)\s+(?:only\s+|just\s+)?(?:a\s+)?teen(?:ager)?\b",
+        r"\bi\s*(?:'?m|\s+am)\s+(?:still\s+)?in\s+high\s*school\b",
+        r"\bi\s*(?:'?m|\s+am)\s+not\s+(?:even\s+)?(?:18|eighteen)\b",
+        r"\b(?:texted|texting|messaged|messaging|emailing|emailed)\s+a\s+1[0-7]\s*(?:yo|y/o|y\.o\.?|years?\s+old|year\s+old)\b")
 
 # q12-08/10: «התשלומים» כשם עצם כללי («אני אחראית על התשלומים בבית», «התשלומים של האשראי יורדים ב-10») ≠ בקשת
 # פריסה. הביטויים מוסרים מהטקסט רק לבדיקת PLAN_REQUEST; «אפשר בתשלומים?» לא נוגע.
@@ -2037,6 +2050,8 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             continue
         if _hits(rx, t_plan if it == Intent.PLAN_REQUEST else t, negatable=it in NEGATABLE):
             found.add(it)
+    if Intent.DISPUTE not in found and _hits(_C133_DISPUTE, t) and not _C133_VETO.search(t):
+        found.add(Intent.DISPUTE)   # critic סבב 133/134: מחלוקות יומיומיות, עם וטו לשגרתיות
     t_dg = _deglue(_typofix(t))   # מנהל 262: הדבקת מילים · 263: שגיאות כתיב — רק כוונות מגינות
     if t_dg != t:
         for it in _GLUE_INTENTS:
