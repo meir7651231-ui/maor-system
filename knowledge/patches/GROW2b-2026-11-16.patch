@@ -1,0 +1,82 @@
+diff --git a/catalog/grow/grow.mjs b/catalog/grow/grow.mjs
+index f8bc23e..9a98b1b 100644
+--- a/catalog/grow/grow.mjs
++++ b/catalog/grow/grow.mjs
+@@ -192,6 +192,7 @@ export async function grow({ log = () => {}, mode = 'score' } = {}) {
+   const replacements = [];
+   const stressRejected = [];
+   const builtKeys = new Set();
++  const yieldOf = new Map(); // עוגן ⇒ {built, fresh} — רק בחירה לפי ניקוד
+   let nextIdx = 0;
+   const offer = (t, F, changed) => {
+     const cur = shelf.get(t.fp);
+@@ -272,13 +273,18 @@ export async function grow({ log = () => {}, mode = 'score' } = {}) {
+     const jobKey = (name, A, Bt) => name + '(' + A.id + (Bt ? ',' + Bt.id : '') + ')';
+     // תיקון 2 · לפי ניקוד: GUIDED מהתקציב לחיבורים שאחד מהם בין ה-TOP הטובים (גם ישנים — כדי לבנות מעל "משווה")
+     if (mode === 'score') {
+-      const good = cur.filter((t) => (t.score ?? 0) >= SCORE.good).sort((a, b) => b.score - a.score || a.idx - b.idx).slice(0, SCORE.top);
++      // GROW2b · תשואה: עוגן שהחיבורים עליו נותנים רק כפולים/זבל יורד בניקוד (ניקוד × (חדשים+1)/(נבנו+1)) — אחרת
++      // הבחירה נתקעת סביב מעט דברים טובים ומבזבזת את התקציב על אותה התנהגות (GROW2 §3.2: ~1,300 כפולים בקומה)
++      const eff = (t) => { const y = yieldOf.get(t.id); return (t.score ?? 0) * (y ? (y.fresh + 1) / (y.built + 1) : 1); };
++      const good = cur.filter((t) => eff(t) >= SCORE.good).sort((a, b) => eff(b) - eff(a) || a.idx - b.idx).slice(0, SCORE.top);
++      // GROW2b · שותפים: חד-מקומיים קודם, ואז השותפים בסדר-גיבוב — לא "הטובים קודם": השותפים הטובים הם בעצמם
++      // ממיין/מסיר-כפולים וכו׳, וממיין∘ממיין = ממיין ⇒ כפולים (GROW2 §3.2). הטוב נשאר בעוגן, הגיוון בשותף.
+       const gj = [];
+       const push = (name, A, Bt, anchor, partner) => {
+         const f = L.FORMS[name]; const ty = Bt ? f.type(A, Bt) : f.type(A);
+         if (!ty) return;
+         const key = jobKey(name, A, Bt);
+-        if (!builtKeys.has(key)) gj.push({ key, anchor: anchor.id, anchorScore: anchor.score, partnerScore: partner ? partner.score ?? 0 : anchor.score, job: [name, f, A, Bt, ty] });
++        if (!builtKeys.has(key)) gj.push({ key, anchor: anchor.id, anchorScore: eff(anchor), partnerScore: partner ? 0 : 1, job: [name, f, A, Bt, ty, anchor.id] });
+       };
+       for (const G of good) {
+         for (const [name] of ONE) push(name, G, null, G, null);
+@@ -303,10 +309,12 @@ export async function grow({ log = () => {}, mode = 'score' } = {}) {
+     for (const i of L.sampleIdx(unary.length, rest - pairCap, 0x7531 + fl)) jobs.push(unary[i]);
+     F.candidates += pairs + unary.length;
+     changed = [];
+-    for (const [name, f, A, Bt, ty] of jobs) {
++    for (const [name, f, A, Bt, ty, anchorId] of jobs) {
+       const key = jobKey(name, A, Bt);
+       if (builtKeys.has(key)) continue;
+       builtKeys.add(key);
++      let y = null;
++      if (anchorId) { y = yieldOf.get(anchorId) || { built: 0, fresh: 0 }; yieldOf.set(anchorId, y); y.built++; }
+       const g = Bt ? f.graph(A, Bt) : f.graph(A);
+       F.built++;
+       const prob = graphProblem(g);
+@@ -316,7 +324,9 @@ export async function grow({ log = () => {}, mode = 'score' } = {}) {
+       if (m.junk) { junkOf(F, m.junk); continue; }
+       if (m.out !== ty.out) { junkOf(F, 'פלט בסוג אחר מהצפוי'); continue; }
+       Object.assign(t, { out: m.out, fp: m.fp, steps: m.steps, outs: m.outs, ex: exampleOf(samplesOf(t.sig), m.outs) });
++      const before = F.new + F.replaced;
+       offer(t, F, changed);
++      if (y && F.new + F.replaced > before) y.fresh++;
+     }
+     F.budgetCut = F.candidates - F.built;
+     scoreFloor(changed.filter((t) => shelf.get(t.fp) === t), F);
+@@ -461,7 +471,8 @@ function metricsOf({ R, final, all, byKey, floors, improvements, stressRejected,
+   };
+   let top = null;
+   for (const t of final) { const d = ladderOf(t); if (d > 1 && (!top || d > top.d || (d === top.d && t.idx < top.t.idx))) top = { d, t }; }
+-  const chainOf = (t) => { const out = []; let x = t; while (x) { out.push({ id: x.id, floor: x.floor, form: x.form, verbs: verbsOf(x).filter((v) => !GENERIC.has(v)), example: x.ex }); x = x.of.map((id) => byKey.get(id)).find((c) => isSpecial(c)); } return out; };
++  // השרשרת המוצגת הולכת בענף העמוק (מקסימום-סולם) — כדי שאורכה = גובה הסולם
++  const chainOf = (t) => { const out = []; let x = t; while (x) { out.push({ id: x.id, floor: x.floor, form: x.form, verbs: verbsOf(x).filter((v) => !GENERIC.has(v)), example: x.ex }); x = x.of.map((id) => byKey.get(id)).filter((c) => isSpecial(c)).sort((p, q) => ladderOf(q) - ladderOf(p))[0]; } return out; };
+   const best = {}; const grown = {};
+   for (const v of WATCH) {
+     let b = null;
+diff --git a/catalog/grow/lib.mjs b/catalog/grow/lib.mjs
+index d009652..5eb601f 100644
+--- a/catalog/grow/lib.mjs
++++ b/catalog/grow/lib.mjs
+@@ -322,7 +322,9 @@ export function pickGuided(jobs, cap) {
+   const byAnchor = new Map();
+   for (const j of jobs) { if (!byAnchor.has(j.anchor)) byAnchor.set(j.anchor, { score: j.anchorScore, list: [] }); byAnchor.get(j.anchor).list.push(j); }
+   const anchors = [...byAnchor.entries()].sort((a, b) => b[1].score - a[1].score || (a[0] < b[0] ? -1 : 1)).map(([, v]) => v);
+-  for (const a of anchors) a.list.sort((x, y) => y.partnerScore - x.partnerScore || (x.key < y.key ? -1 : x.key > y.key ? 1 : 0));
++  // בתוך עוגן: ניקוד-שותף ואז גיבוב-המפתח (לא סדר-אלפבית — אחרת כל ה-chain לפני ה-pair, וכל שותף לפי מזהה)
++  const h = new Map(jobs.map((j) => [j.key, fnv(j.key)]));
++  for (const a of anchors) a.list.sort((x, y) => y.partnerScore - x.partnerScore || (h.get(x.key) < h.get(y.key) ? -1 : h.get(x.key) > h.get(y.key) ? 1 : x.key < y.key ? -1 : 1));
+   const out = []; const seen = new Set(); const pos = anchors.map(() => 0);
+   const top = anchors.length ? anchors[0].score || 1 : 1;
+   while (out.length < cap) {
