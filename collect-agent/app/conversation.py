@@ -292,6 +292,15 @@ _PHISH = (r"(?<![\w])(?:ה)?(?:ספאם|ספמ|עוקצ|פישינג|הונאה|
 _NUM_STEMS = ("שניים", "שני", "שתי", "שלושה", "שלוש", "ארבעה", "ארבע", "חמישה", "חמש", "שישה", "שש",
               "בשניים", "בשני", "בשתי", "בשלושה", "בשלוש", "בארבעה", "בארבע", "בחמישה", "בחמש", "בשישה", "בשש")
 
+# מנהל 269 (qa15 q15-07/30): מספרי תשלומים במילים באנגלית, גם מעל 12 («fifteen payments») ⇒ היה «לא ברור»
+_EN_INST = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+            "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16, "seventeen": 17,
+            "eighteen": 18, "nineteen": 19, "twenty": 20, "twenty four": 24, "twenty-four": 24}
+_EN_INW = "|".join(sorted(_EN_INST, key=len, reverse=True))
+_EN_INST_RX = re.compile(r"(?<!\bmade )(?<!\bpaid )(?<!\bsent )(?<!\bdid )\b(\d{1,2}|" + _EN_INW
+                         + r")\s+(?:monthly\s+|equal\s+|smaller\s+)?(?:payments|installments|instalments)\b", re.I)
+
+
 RX: dict[Intent, re.Pattern[str]] = {
     Intent.DISTRESS: _rx(
         # critic סבב 115: «לא יכול לחיות ככה» (לא «לחיות בלי הקפה»)
@@ -466,6 +475,8 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"טעות (?:בחשבונית|בסכום|בחיוב)",
         # מנהל הפעלה 239: «טעות קטנה בסכום/במחיר אבל אשלם» ⇒ עדיין מחלוקת על הסכום (לא הבטחה שקטה)
         r"טעות\s+(?:קטנה|קלה|קטנטנה|פצפונת)\s+ב(?:ה)?(?:סכום|מחיר|חיוב|חשבון(?!\w))", r"(?:זה|החשבונית|החוב) לא שלי", r"לא חייב(?:ת|ים)? (?:לכם|לך|כלום|שקל)",
+        # מנהל 269 (qa15 q15-17 🔴): «אני לא חייבת 1200, הבת שלי הפסיקה את החוג» / «אני לא חייבת.» ⇒ היה «לא ברור»
+        r"(?:^|[\s,.;!?(])(?:אני|אנחנו|אבל|ו?הרי)\s+לא\s+(?:חייב|חייבת|חייבימ|חייבים)(?=\s*(?:$|[,.!?;]|₪?\s*\d|את\s+(?:ה)?(?:סכומ|כספ|זה)))",
         r"(?:אני |אנחנו )?(?:חולק|חולקת|חולקים|מערער|מערערת) על", r"ביטלתי (?:את )?(?:ה?הזמנה|ה?עסקה|ה?שירות|ה?מנוי|ה?מינוי|ה?חוזה|ה?הסכם|ה?התקשרות)",
         # מנהל הפעלה 247 (סט מוחזק #6): מחלוקת באנגלית — מוצר פגום / לא התקבל / ביטול / «לא משלם על זה»
         r"\b(?:arrived|came|is|was|it'?s)\s+(?:broken|damaged|defective|faulty)\b", r"\b(?:broken|damaged|defective|faulty)\s+(?:product|item|unit|goods)\b",
@@ -557,7 +568,7 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"(?:לחלק|לפצל) (?:את (?:ה)?(?:סכום|תשלום|חוב|חשבון))?", _w("הסדר", "הסדר תשלומים"),
         r"חצי (?:עכשיו|היום|החודש) ו?(?:חצי|השאר|את השאר)", r"(?:כל|בכל) חודש (?:קצת|סכום|\d)",
         r"(?:בכמה|כמה) (?:תשלומים|פעמים)", r"(?:לשלם|אשלם|לשלם לכם) (?:בחלקים|לאט לאט|בהדרגה|חלק חלק)",
-        r"\binstall?ments?\b", r"payment plan",
+        r"\binstall?ments?\b", r"payment plan", _EN_INST_RX.pattern,
         # מנהל 248 (qa6 x6-26): «split this into a few monthly payments», «pay it in parts»
         r"\bsplit\b(?:\s+\S+){0,6}?\s+(?:monthly\s+)?(?:payments?|parts|chunks)\b",
         # מנהל 251 (qa8): מקבילה ל«חצי עכשיו וחצי…» — «pay half now and the other half next month», «part now, the rest later»
@@ -612,6 +623,8 @@ RX: dict[Intent, re.Pattern[str]] = {
         # מנהל 248 (qa2 xq2-48): «רק צריך עוד שבוע» — בקשת זמן בלי מילה «זמן»
         r"(?:צריך|צריכה|צריכים|נצטרך|אצטרך) (?:רק )?עוד (?:יום|יומיים|כמה ימים|שבוע|שבועיים|חודש|קצת)(?![\w])",
         r"\bi(?:'ll| will| am going to|'m going to)\s+(?:pay|transfer|send|settle|wire)\b",
+        # מנהל 269 (qa15 q15-20 🔴): «I'll stop by the studio on the 20th and pay in cash. thanks!» ⇒ היה «תודה», בלי מועד
+        r"\b(?:i|we)(?:'ll|\s+will|\s+am\s+going\s+to|'m\s+going\s+to)\s+(?:stop|come|drop|swing|pop)\s+(?:by|in|over)\b[^.!?]{0,50}?\b(?:pay|bring\s+(?:the\s+)?(?:cash|money|payment|check|cheque)|settle)\b",
         # מנהל 249 (qa7 x7-28/46): «will transfer… by end of month», «I'll take care of it this week»
         r"(?:^|[.,!]\s*)(?:we\s+)?will\s+(?:transfer|send|wire|settle)\b", r"\b(?:i|we)(?:'ll|\s+will)\s+(?:take\s+care\s+of|handle|sort\s+out)\s+(?:it|this|that)\b", r"\b(?:i|we)(?:'ll|\s+will)\s+sort\s+(?:it|this|that)\s+out\b",
         r"\b(?:paying|pay|will\s+pay)\s+(?:it\s+|you\s+)?(?:on\s+)?(?:sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b", r"\bmoney is coming\b|\bpayment is coming\b",
@@ -944,7 +957,12 @@ def extract_installments(t: str) -> int | None:
         return 2
     m = _INST_RX.search(t)
     if not m:
-        return None
+        e = _EN_INST_RX.search(t)
+        if not e:
+            return None
+        g = e.group(1).lower()
+        n = int(g) if g.isdigit() else _EN_INST.get(g, 0)
+        return n if 1 <= n <= 36 else None
     g = (m.group(1) or m.group(2) or "").strip()
     if g.isdigit():
         n = int(g)
@@ -1437,7 +1455,9 @@ _RETRACT = (
     r"(?<![\w])(?:ש|ו)?(?:מבטל|מבטלת|מבטלים|לבטל|תבטלו|נבטל|ביטול|מוותר|מוותרת|לוותר)\s+(?:על\s+)?(?:\w+\s+){0,2}?"
     r"(?:את\s+)?(?:ה)?(?:הסדר|פריסה|תשלומים|הצעה|עסקה)(?![\w])"
     r"|(?<![\w])(?:חוזר|חוזרת|חוזרים|חזרתי|חזרנו)\s+(?:בי|בו|בה|בנו)(?![\w])"
-    r"|(?<![\w])(?:התחרטתי|התחרטנו|מתחרט|מתחרטת)(?![\w])"
+    r"|(?<![\w])(?:ש|ו|כי)?(?:התחרטתי|התחרטנו|מתחרט|מתחרטת)(?![\w])"
+    # מנהל 269 (qa15 q15-11): «האמת שהתחרטתי לגבי ההסדר, תבטלו אותו בבקשה» ⇒ היה הצעה חדשה (plan_request)
+    r"|(?<![\w])(?:ש|ו)?(?:תבטלו|לבטל|נבטל|מבטלת|מבטל)\s+(?:לי\s+|לנו\s+)?(?:אותו|אותה)(?![\w])"
     r"|לא (?:אוכל|אצליח|נוכל|נצליח|יכול|יכולה|יכולים|מצליח|מצליחה) (?:לעמוד|לשלם)\s+(?:ב|את )?(?:ה)?(?:תשלומים|הסדר|פריסה)(?![\w])"
     r"|^\W*(?:בעצם|בסוף)\s*,?\s*לא(?![\w])"
     r"|לא (?:מתאים|מתאימה|מסתדר|מסתדרת|טוב)(?: לי| לנו)? בסוף"
@@ -1736,14 +1756,40 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             found.add(Intent.PLAN_REJECT)
         elif _hits(RX[Intent.PLAN_ACCEPT], t):
             found.add(Intent.PLAN_ACCEPT)
+        elif _hits(RX[Intent.PLAN_ACCEPT], re.sub(r"^\W*(?:תודה(?:\s+רבה)?|thanks|thank\s+you|thx)\W+", "", t, flags=re.I)):
+            # מנהל 269 (qa15 q15-29): «תודה מתאים» / «thanks, ok» על הצעה פתוחה ⇒ היה «תודה» וההצעה נשארה פתוחה
+            found.add(Intent.PLAN_ACCEPT)
+            found.discard(Intent.THANKS)
         # ספרה לבד או "ב-4" ⇒ הצעה נגדית
-        if _fm(r"\W*(?:אפשר |ו?אם |מה עם )?(?:ב-?|ל-?)?(\d{1,2}|" + _NUMW + r")\W*\??", t) or \
+        # מנהל 269 (qa15 q15-08/30): «טוב אז שישה», «ok six», «ok then 6 payments» ⇒ היה «לא ברור» / אישור ההצעה הקודמת
+        if _fm(r"\W*(?:(?:טוב|אוקי|אוקיי|ok|okay|בסדר|סבבה|יאללה)\W+)?(?:אז\s+|then\s+|so\s+)?(?:אפשר |ו?אם |מה עם )?"
+               r"(?:ב-?|ל-?)?(\d{1,2}|" + _NUMW + r"|" + _EN_INW + r")\W*\??", t) or \
                 _s(r"(?:אפשר|ואם|מה עם|רק|אולי) (?:ב-?|ל-?)?(\d{1,2}|" + _NUMW + r")(?![\d\w])", t):
             found.add(Intent.PLAN_REQUEST)
         if re.search(r"\b(?:can|could)\s+(?:we|i)\s+(?:do|make\s+it|have\s+it\s+in|go\s+with|split\s+it\s+(?:in|into))\s+"
                      r"(?:\d{1,2}|two|three|four|five|six|eight|ten|twelve)\b|\bwhat\s+about\s+(?:\d{1,2}|two|three|four|five|six)\b"
                      r"|\b(?:\d{1,2}|two|three|four|five|six)\s+(?:payments|installments|months)\s+instead\b", t):
             found.add(Intent.PLAN_REQUEST)
+    # מנהל 269 (qa15 q15-24/30): «ok then 6 payments» / «אוקי אז 6 תשלומים» כשהוצעו 3 = הצעה נגדית, לא אישור ההצעה
+    # שנשלחה (היה: plan_accept ⇒ הלקוח «אישר» 3 תשלומים). אותו מספר כמו בהצעה ⇒ נשאר אישור.
+    if awaiting and ctx.offered_plan and Intent.PLAN_REQUEST in found and (
+            Intent.PLAN_ACCEPT in found or (_s(r"(?<![\w])(?:מאשר|מאשרת|מאשרימ|מסכימ|מסכימה|מסכימימ)(?![\w])"
+                                               r"|\b(?:i\s+)?(?:accept|agree|confirm)\b", t)
+                                            and not _hits(RX[Intent.PLAN_REJECT], t) and not _s(_RETRACT_NEG, t)
+                                            and not _s(r"(?<![\w])(?:לא|אל)(?![\w])|\bnot\b|n'?t\b|\bno\b", t))):
+        n_req = extract_installments(t)
+        if n_req is None:
+            mb = _fm(r"\W*(?:(?:טוב|אוקי|אוקיי|ok|okay|בסדר|סבבה|יאללה)\W+)?(?:אז\s+|then\s+|so\s+)?(?:ב-?|ל-?)?(\d{1,2}|"
+                     + _NUMW + r"|" + _EN_INW + r")\W*\??", t)
+            if mb:
+                g = mb.group(1)
+                n_req = int(g) if g.isdigit() else (_NUM_WORDS.get(g) or _EN_INST.get(g.lower()))
+        if n_req is not None and n_req != len(ctx.offered_plan):
+            found.discard(Intent.PLAN_ACCEPT)
+        elif n_req == len(ctx.offered_plan) and extract_monthly_amount(t) is None and plan_change(t) is None \
+                and not _s(r"(?<![\w])(?:לא|אל)(?![\w])|\bnot\b|n'?t\b|\bno\b", t):
+            found.add(Intent.PLAN_ACCEPT)
+            found.discard(Intent.PLAN_REQUEST)   # «סבבה מאשרת 3 תשלומים» על הצעה של 3 = אישור (היה: הסדר זהה חדש)
     # מנהל 265: אישור חוזר במצב PLAN_PENDING_OWNER («מאשרת» אחרי שכבר אישרה, או תשובה ל«השיבו מאשר» אחרי
     # שבעל העסק שלח את ההסדר). היה: «לא ברור» ⇒ כרטיס בלי הקשר. רק כשההודעה היא אישור בלבד (בלי כוונה אחרת);
     # «סגור, תודה רבה» נשאר «תודה» (q11-07, תווית עיוורת) — אותה התנהגות: בלי תשובה ובלי כרטיס.
@@ -1957,6 +2003,24 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     if Intent.LEGAL in found and "?" in t and _s(r"(?:אתם|יש לכם|האם)\W+(?:\w+\W+){0,3}(?:עו\"ד|עורכ\w* ה?דין)", t) \
             and not _s(_KEEPS_LEGAL, t):  # critic סבב 80
         found.discard(Intent.LEGAL)
+    # מנהל 269 (qa15 q15-19 🔴): «החוג של עורכי הדין הצעירים היה מהמם… אפשר ב-3 תשלומים?» = שם החוג, לא איום ⇒ היה legal
+    # דחוף, בלי הצעת פריסה. מוחקים את שם החוג ובודקים שוב; כל אזכור אחר / מילת הליך ⇒ נשאר legal.
+    if Intent.LEGAL in found:
+        t2 = re.sub(r"(?:חוג|קורס|סדנ\w*|שיעור\w*|קייטנ\w*|class|course|workshop|camp)\s+(?:של\s+)?(?:ה|ל)?"
+                    r"(?:עורכי|עורך|עורכת|עו\"ד)(?:\s+(?:ה)?די[נן])?(?:\s+(?:ה)?(?:צעיר|קטנ)\w*)?"
+                    r"|\b(?:young\s+|junior\s+|little\s+)?lawyers?\s+(?:class|course|workshop|camp|club)\b",
+                    " ", t, flags=re.I)
+        if t2 != t and not _hits(RX[Intent.LEGAL], t2) and not _s(_KEEPS_LEGAL, t):
+            found.discard(Intent.LEGAL)
+            if not found:
+                found.add(Intent.UNKNOWN)
+    # מנהל 269 (qa15 q15-26): «אין לי כרגע איך לשלם 😔» = אין כסף (מאיפה לשלם), לא «איך משלמים» ⇒ היה how_to_pay + קישור.
+    # «אין לי מושג איך לשלם» / «אין לי קישור, איך לשלם?» ⇒ נשאר how_to_pay.
+    if _s(r"(?:^|[\s,.;!?(])אינ\s+לי\s+(?:כרגע\s+|עכשיו\s+|בינתיימ\s+|כעת\s+|החודש\s+|באמת\s+)?(?:מ)?(?:איכ|ממה|במה|מאיפה|מאיפו)\s+לשלמ"
+          r"(?![\w])", t) and not _s(r"מושג|קישור|לינק|פרטי|מספר חשבונ", t):
+        found.discard(Intent.HOW_TO_PAY)
+        found.discard(Intent.UNKNOWN)
+        found.add(Intent.CANT_PAY)
     # "אם לא אשלם…?" = שאלה על השלכות, לא סירוב
     if Intent.DISPUTE in found and _s(r"(?:^|\W)(?:ו?אם|מה קורה אם|מה יקרה אם)\s+לא\s+(?:אשלם|נשלם|אעביר)", t) \
             and not _s(_KEEPS_DISPUTE, t):  # critic סבב 80
@@ -2535,10 +2599,10 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         # מנהל 268: «אולי 200 בחודש?» ⇒ היה «ביקש/ה 20 תשלומים ⚠️ מעל התקרה» (הספרות הראשונות מתוך 200). יש סכום
         # חודשי ⇒ מספר התשלומים נגזר ממנו; ספרה לבד = מספר שלם של 1–2 ספרות בלבד.
         if requested is None and not monthly and ctx.state == State.AWAITING_PLAN_REPLY and (chg is None or chg[1] == "count"):
-            m = _s(r"(?<![\d.,])(\d{1,2}(?![\d.,]\d?)(?!\s*(?:לחודש|בחודש))|" + _NUMW + r")", t)
+            m = _s(r"(?<![\d.,])(\d{1,2}(?![\d.,]\d?)(?!\s*(?:לחודש|בחודש))|" + _NUMW + r"|\b(?:" + _EN_INW + r")\b)", t)
             if m:
                 g = m.group(1)
-                requested = int(g) if g.isdigit() else _NUM_WORDS.get(g)
+                requested = int(g) if g.isdigit() else (_NUM_WORDS.get(g) or _EN_INST.get(g.lower()))
         chg_card = False
         if chg is not None:
             tags.append("plan_change")
@@ -2573,9 +2637,37 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             requested = len(ctx.offered_plan)
         over = requested is not None and requested > p.max_installments
         sensitive = "reservist" in tags or "sensitive" in tags
-        if p.auto_offer_plan and ctx.invoices and not sensitive and not chg_card:
+        # מנהל 269: אותו הסדר שכבר בשיחה — «אולי 300 בחודש?» / «can we do 300 a month?» / «אשלם 300 לחודש» כשההסדר
+        # הוא 300 לחודש, או «אפשר 4 תשלומים?» כשהוצעו 4 — היה: הסדר זהה חדש נרשם (plans 2), ואחרי אישור בעל העסק
+        # חזרה ל«ממתין להצעה» עם כפילות ב«הסדרים». עכשיו: בלי הסדר חדש, תשובה שזה בדיוק ההסדר שבשיחה.
+        n_cur = len(ctx.offered_plan) if ctx.offered_plan else 0
+        same_plan = bool(
+            primary == Intent.PLAN_REQUEST and _plan_ctx(ctx) and not sensitive and chg is None
+            and cnt in (None, n_cur) and camt is None and not counter_pending and start is None
+            and ((monthly and monthly == _plan_monthly(ctx) and requested in (None, n_cur))
+                 or (not monthly and requested == n_cur
+                     and _s(r"(?:\d{1,2}|" + _NUMW + r")\s*(?:תשלומ|פעמימ|payments|installments|instalments)", t))))
+        if p.auto_offer_plan and ctx.invoices and not sensitive and not chg_card and not same_plan:
             plan = propose_plan(ctx, requested, start)
-        if chg_card and not sensitive:
+        if same_plan:
+            tags.append("plan_same")
+            cur = plan_lines(ctx.offered_plan, ctx.currency)
+            if ctx.plan_approved:
+                head, tail = f"{hi}זה בדיוק ההסדר שבתוקף", "."
+                what = "זהה להסדר שאישרת ושבתוקף"
+            elif ctx.state == State.PLAN_PENDING_OWNER:
+                head, tail = f"{hi}זה בדיוק ההסדר שאישרתם", ". הוא ממתין לאישור סופי, ונעדכן מיד אחריו."
+                what = "זהה להסדר שאישר/ה וממתין לאישורך"
+            else:
+                head, tail = f"{hi}זה בדיוק מה שהצענו", ". מתאים? השיבו \"מאשר\" או כתבו מה מתאים לכם."
+                what = "זהה להצעה שנשלחה"
+            reply = f"{head}: {cur}{tail}{sig}"
+            if not ctx.fits_sms(reply):
+                reply = f"{head}{tail}{sig}"
+            summary = f"{name} כתב/ה \"{_clip(t)}\" — {what} ({cur}). לא נוצר הסדר חדש."
+            esc = Escalation.NONE
+            state = ctx.state
+        elif chg_card and not sensitive:
             # מנהל 264: שינוי שאי אפשר לחשב בבטחה (תשלום שאינו הראשון, מועד מחוץ לגבולות, «בתחילת החודש»)
             # ⇒ לא מנחשים לוח חדש וגם לא שואלים «עד מתי?» — כרטיס לבעל העסק עם ההסדר הנוכחי והבקשה.
             reply = (f"{hi}קיבלנו את הבקשה לשינוי בהסדר. בעל העסק יבדוק ויחזור אליכם.{sig}")
