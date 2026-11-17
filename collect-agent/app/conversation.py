@@ -942,6 +942,10 @@ def _extract_date_en(t: str, today: date) -> tuple[date | None, bool] | None:
     m = re.search(r"\b(?:on|by|until|till|before)?\s*the\s+(\d{1,2})(?:st|nd|rd|th)\b", t) or \
         re.search(r"\b(?:on|by|until|till|before)\s+(\d{1,2})(?:st|nd|rd|th)\b", t)
     if m and 1 <= int(m.group(1)) <= 31:
+        # מנהל 255: «the 20th of next month» ⇒ היה 20 בחודש *הזה* (חודש מוקדם מדי, בביטחון)
+        if re.match(r"\s+of\s+(?:the\s+)?next\s+month\b|\s+next\s+month\b", t[m.end():]):
+            y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+            return date(y, mo, min(int(m.group(1)), calendar.monthrange(y, mo)[1])), False
         return _month_day(today, int(m.group(1))), False
     if re.search(r"\b(?:by\s+|at\s+|before\s+|until\s+|till\s+)?(?:the\s+)?end\s+of\s+(?:the|this)\s+month\b", t):
         last = date(today.year, today.month, calendar.monthrange(today.year, today.month)[1])
@@ -1022,8 +1026,11 @@ def extract_date(t: str, today: date) -> tuple[date | None, bool]:
             return cand, False
         except ValueError:
             pass
-    m = _s(r"(?:ב|עד ה?)-?(\d{1,2})\s*(?:ל|ב)(?:חודש)", t)
+    m = _s(r"(?:ב|עד ה?)-?(\d{1,2})\s*(?:ל|ב)(?:ה)?(?:חודש)(?:\s+(?:ה)?(הבא))?", t)
     if m and 1 <= int(m.group(1)) <= 31:
+        if m.group(2):   # מנהל 255: «ב-23 לחודש הבא» ⇒ היה 23 בחודש *הזה* (טעות בטוחה-בעצמה, חודש מוקדם מדי)
+            y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+            return date(y, mo, min(int(m.group(1)), calendar.monthrange(y, mo)[1])), False
         return _month_day(today, int(m.group(1))), False
     if _s(r"(?:בתחילת|עד תחילת|בראשית) (?:ה)?חודש (?:ה)?(?:הבא|הקרוב)?|בחודש הבא|חודש הבא", t):
         y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
@@ -1042,6 +1049,65 @@ def extract_date(t: str, today: date) -> tuple[date | None, bool]:
     if he_named is not None:
         return he_named
     return en or (None, False)  # מעורפל באנגלית רק אם אין תאריך עברי מדויק
+
+
+# מנהל 255: יום בחודש לבד כתשובה ל«עד מתי?» — «ב-23», «עד ה-17», «17», «בעשרים», «the 17th» ⇒ היה «לא ברור» וכרטיס
+# לבעלים, אף שהלקוח ענה בדיוק על השאלה. רק בהקשר (AWAITING_DATE; ב-PROMISED רק עם מילת יחס — עדכון מועד), ורק כשכל
+# ההודעה היא התאריך (+ מילות מילוי) ⇒ «ב-3 תשלומים», «שילמתי 17», «ב-500» לא נתפסים. בלי הקשר ⇒ ביט-זהה.
+_EN_ORDW = {"first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5, "sixth": 6, "seventh": 7, "eighth": 8,
+            "ninth": 9, "tenth": 10, "eleventh": 11, "twelfth": 12, "thirteenth": 13, "fourteenth": 14,
+            "fifteenth": 15, "sixteenth": 16, "seventeenth": 17, "eighteenth": 18, "nineteenth": 19, "twentieth": 20,
+            "thirtieth": 30}
+for _w, _v in list(_EN_ORDW.items())[:9]:
+    _EN_ORDW[f"twenty {_w}"] = _EN_ORDW[f"twenty-{_w}"] = 20 + _v
+_EN_ORDW["thirty first"] = _EN_ORDW["thirty-first"] = 31
+_EN_ORDW_RX = "|".join(sorted(_EN_ORDW, key=len, reverse=True))
+_BARE_LEAD_HE = (r"(?:(?:אז|אולי|נגיד|בערך|כנראה|טוב|אוקיי|אוקי|סבבה|בסדר|כן|יאללה|בעצם|רגע|סליחה|תיקון|אני חושב|אני חושבת"
+                 r"|אשלם|אעביר|אסדר|אפקיד|נשלם|נעביר|נסדר|אשתדל|אנסה|עד|כנראה רק|רק|בערך|משהו כמו|נגיד ש)\W*)*")
+_BARE_TAIL_HE = r"(?:\W*(?:בסדר|אוקיי|אוקי|תודה|בערך|בעזרת ה'?|בע\"?ה|אם אפשר|אם זה בסדר|זה בסדר|אפשר|מקווה|נראה לי))*\W*"
+_BARE_DAY_HE = (r"(?:(?:עד|על|ביום|עד יום|לקראת|בסביבות|סביבות|באזור)\s*)?(?P<pre>ב|ה|ל|בה|לה|עד ה)?-?\s*"
+                r"(?P<d>\d{1,2}(?!\d|[.,/:]\d)|(?:" + _HE_DAYW_RX + r")(?![\w]))"
+                r"(?:\s*(?:ב|ל)?(?:ה)?חודש(?:\s+(?:ה)?(?P<nx>הבא|הקרוב|הזה))?)?"
+                r"(?:\s+(?:בערב|בבוקר|בצהריים|בלילה|הקרוב|הזה))?")
+_BARE_DAY_EN = (r"(?:(?:ok|okay|maybe|probably|around|about|um|uhh?|i'?ll\s+pay|i\s+will\s+pay|i'?ll\s+transfer|pay|actually"
+                r"|let'?s\s+say|say|sorry)\W*)*(?P<prep>on|by|until|till|before|around)?\s*(?:the\s+)?"
+                r"(?:(?P<d>\d{1,2})(?P<ord>st|nd|rd|th)?|(?P<w>" + _EN_ORDW_RX + r"))"
+                r"(?:\s+of\s+(?:the\s+)?(?P<nx>next|this)\s+month)?(?:\W*(?:ok|okay|thanks|thank\s+you|if\s+that'?s\s+ok|please))*\W*")
+
+
+def _bare_day(t: str, today: date, need_marker: bool = False) -> date | None:
+    """יום בחודש לבד (כל ההודעה). need_marker: חובה מילת יחס/סיומת סודרת — לא «17» לבד."""
+    m = re.fullmatch(_c(_BARE_LEAD_HE + _BARE_DAY_HE + _BARE_TAIL_HE), t)
+    if m:
+        g = m.group("d")
+        day = int(g) if g.isdigit() else _HE_DAYW.get(g)
+        marked = bool(m.group("pre")) or not g.isdigit() or bool(re.search(_c(r"(?:עד|על|ביום|חודש)"), m.group(0)))
+        nx = m.group("nx")
+    else:
+        m = re.fullmatch(_BARE_DAY_EN, t) if re.search(r"[a-z]", t) else None
+        if not m:
+            return None
+        day = int(m.group("d")) if m.group("d") else _EN_ORDW.get(re.sub(r"\s+", " ", m.group("w") or ""))
+        marked = bool(m.group("prep") or m.group("ord") or m.group("w") or m.group("nx"))
+        nx = {"next": "הבא", "this": "הזה"}.get(m.group("nx") or "")
+    if not day or not 1 <= day <= 31 or (need_marker and not marked):
+        return None
+    if nx in ("הבא",):
+        y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+        return date(y, mo, min(day, calendar.monthrange(y, mo)[1]))
+    return _month_day(today, day)
+
+
+def extract_date_ctx(t: str, ctx: Context | None) -> tuple[date | None, bool]:
+    """extract_date + יום בחודש לבד כשההקשר הוא תשובה ל«עד מתי?» (או עדכון מועד אחרי הבטחה)."""
+    if ctx is None:
+        return None, False
+    d, vague = extract_date(t, ctx.today)
+    if d is None and ctx.state in (State.AWAITING_DATE, State.PROMISED):
+        bd = _bare_day(t, ctx.today, need_marker=ctx.state == State.PROMISED)
+        if bd is not None:
+            return bd, False
+    return d, vague
 
 
 # ═══════════════════════════ סיווג ═══════════════════════════
@@ -1110,7 +1176,7 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     if ctx is not None and ctx.state in (State.AWAITING_DATE, State.PROMISED):
         # מנהל 253 (qa9 q9-26): «בשבוע הבא» ⇒ PROMISED, ואז «ביום שלישי ה-17 בנובמבר» (דיוק המועד) ⇒ «לא ברור».
         # במצב PROMISED תאריך לבד = עדכון המועד. מעורפל לבד (חג) במצב AWAITING_DATE ⇒ הבטחה מעורפלת ⇒ שואלים שוב.
-        d, _vague = extract_date(t, ctx.today)
+        d, _vague = extract_date_ctx(t, ctx)
         if d is not None or (_vague and ctx.state == State.AWAITING_DATE and _s(_HOLIDAY_VAGUE, t)):
             found.add(Intent.PROMISE)
     # מנהל 253 (qa9 q9-28/משלים): «אפשר לשלם ב-18 בנובמבר?», «Can I pay next week?» = בקשת דחייה עם מועד, לא «איך משלמים»
@@ -1228,7 +1294,7 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         found.discard(Intent.LEGAL)
     # "שלחו לינק ואשלם" — בלי תאריך, הדבר המועיל הוא הקישור
     if Intent.PROMISE in found and Intent.HOW_TO_PAY in found and ctx is not None \
-            and extract_date(t, ctx.today)[0] is None:
+            and extract_date_ctx(t, ctx)[0] is None:
         found.discard(Intent.PROMISE)
     # מנהל 248: חשש מהונאה גובר על «איך משלמים/הקישור» — לא דוחפים קישור למי שחושש לפתוח אותו
     if Intent.WHO_IS_THIS in found and _s(_PHISH, t):
@@ -1792,7 +1858,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             actions.append("להציע הסדר")
             state = State.AWAITING_OWNER
     elif primary == Intent.PROMISE:
-        dd, vague = extract_date(t, ctx.today)
+        dd, vague = extract_date_ctx(t, ctx)
         if dd is not None and dd >= ctx.today:
             promise_date = dd
             days = (dd - ctx.today).days
