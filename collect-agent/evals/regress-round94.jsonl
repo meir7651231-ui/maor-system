@@ -34,3 +34,8 @@
 {"id": "c94-t5", "text": "עזבו, אני כבר משלם", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out", "minor"]}, "critical": true}
 {"id": "c94-t6", "text": "stop worrying, I will pay friday", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out", "minor"]}, "critical": true}
 {"id": "c94-t7", "text": "עצרו את החיוב הכפול", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "not": ["opt_out", "minor"]}, "critical": true}
+{"id": "c121-1", "text": "I don't owe you anything", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c121-2", "text": "אני לא מכיר את החוב הזה", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "not": ["wrong_person"]}, "critical": true}
+{"id": "c121-3", "text": "I feel hopeless", "ctx": {"channel": "sms"}, "expect": {"intent": "distress"}, "critical": true}
+{"id": "c121-4", "text": "I'm just a kid", "ctx": {"channel": "sms"}, "expect": {"intent": "minor"}, "critical": true}
+{"id": "c121-5", "text": "i'm struggling with the app", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["distress"]}, "critical": true}

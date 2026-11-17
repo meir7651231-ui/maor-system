@@ -764,6 +764,27 @@ _extend(Intent.CALLBACK,
 _extend(Intent.COPY_REQUEST,
         r"חשבונית\W+(?:\w+\W+){0,8}?(?:לשלוח|תשלחו|שלחו|תשלח|תשלחי)\s+(?:אותה\s+|לי\s+|את זה\s+)?(?:שוב|מחדש|עוד פעמ)")
 
+# ═══ critic סבב 121: ניסוחים יומיומיים בסיסיים (5 לכל כוונה מגינה) שלא נתפסו כלל ═══
+_extend(Intent.DISPUTE,
+        r"\bi\s+(?:don'?t|do\s+not)\s+owe\s+(?:you|u|anything|any\s+money|nothing)\b", r"\bi\s+owe\s+(?:you\s+|u\s+)?nothing\b",
+        r"\b(?:i|we)\s+(?:already\s+)?cancell?ed(?:\s+(?:it|this|that))?\W*$",
+        r"^\W*(?:אבל\s+)?(?:אני\s+)?(?:כבר\s+)?(?:ביטלתי|ביטלנו)(?:\s+(?:את\s+)?(?:זה|זאת|הכל|הכול))?\W*$",
+        r"(?:לא|אינני)\s+(?:מכיר|מכירה|מכירים|יודע|יודעת)\s+(?:את\s+|על\s+)?(?:ה)?(?:חוב|חיוב|חשבונית|חשבון|סכום)(?![\w])",
+        r"אין\s+(?:לי|לנו)\s+(?:שום\s+)?(?:מושג|שמצ)\s+(?:על\s+|ממה\s+|מאיפה\s+)?(?:מה\s+|מאיפה\s+)?(?:ה)?(?:חוב|חיוב|חשבונית|סכום)(?![\w])")
+_extend(Intent.LEGAL,
+        r"\b(?:report(?:ing)?|call(?:ing)?|go(?:ing)?\s+to)\s+(?:you\s+to\s+)?the\s+police\b", r"\bi'?ll\s+call\s+the\s+police\b")
+_extend(Intent.DISTRESS,
+        r"\b(?:i\s+)?feel(?:ing)?\s+(?:so\s+|very\s+|completely\s+|totally\s+)?(?:hopeless|helpless)\b",
+        r"\bi\s*(?:'?m|\s+am)\s+(?:really\s+|so\s+|very\s+|seriously\s+)?struggling\b(?!\s+(?:to|with)\b)")
+_extend(Intent.MINOR,
+        r"\bi\s*(?:'?m|\s+am)\s+(?:just\s+|only\s+)?(?:a\s+)?(?:kid|child|teenager)\b",
+        r"\bi\s*(?:'?m|\s+am)\s+(?:still\s+)?in\s+(?:middle|elementary|primary|junior\s+high)\s+school\b",
+        r"\bi\s*(?:'?m|\s+am)\s+(?:still\s+)?in\s+(?:[1-9]|1[0-2])(?:st|nd|rd|th)\s+grade\b")
+_extend(Intent.PAID_CLAIM,
+        r"\b(?:the\s+)?payment\s+(?:was|has\s+been)\s+(?:already\s+)?(?:made|sent|completed|done)\b(?!\s*\?)",
+        r"\b(?:the\s+)?payment\s+(?:already\s+)?went\s+through\b(?!\s*\?)")
+_extend(Intent.WRONG_PERSON, r"\b(?:i\s+)?(?:don'?t|do\s+not)\s+know\s+who\s+(?:that|she|he)\s+is\b")
+
 # q12-08/10: «התשלומים» כשם עצם כללי («אני אחראית על התשלומים בבית», «התשלומים של האשראי יורדים ב-10») ≠ בקשת
 # פריסה. הביטויים מוסרים מהטקסט רק לבדיקת PLAN_REQUEST; «אפשר בתשלומים?» לא נוגע.
 _GEN_PAYMENTS = _c(
@@ -1405,6 +1426,12 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     # "לא שלי" עם טענה נגד החוב, בלי סימני מספר/כתובת שגויים ⇒ מחלוקת (שומרת את החוב ומסלימה בדחיפות)
     if Intent.WRONG_PERSON in found and Intent.DISPUTE in found and not _s(
             r"מספר|מס'|כתובת|מייל|בטעות|לא מכיר|לא מכירה|אין (?:פה|כאן)|טלפון", t):
+        found.discard(Intent.WRONG_PERSON)
+    # critic סבב 121: «אני לא מכיר את החוב הזה» = מחלוקת על החוב, לא «לא מכיר את האדם» (היה חסימה לצמיתות)
+    if Intent.WRONG_PERSON in found and Intent.DISPUTE in found and \
+            _s(r"(?:לא|אינני)\s+(?:מכיר|מכירה|מכירים)\s+(?:את\s+)?(?:ה)?(?:חוב|חיוב|חשבונית|חשבון|סכום)(?![\w])", t) and not (
+            _s(r"מספר|מס'|כתובת|מייל|בטעות|טעות|אין (?:פה|כאן)|טלפון|מישהו|מישהי|אחר|אחרת|שם", t)
+            or (fn and len(fn) >= 2 and _s(r"(?<![\w])" + re.escape(fn) + r"(?![\w])", t))):
         found.discard(Intent.WRONG_PERSON)
     # ספק/שאלה על תשלום ("לא זוכר אם שילמתי", "האם התשלום התקבל?") ≠ טענת תשלום
     if Intent.PAID_CLAIM in found and (
