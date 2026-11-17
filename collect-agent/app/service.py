@@ -2384,7 +2384,11 @@ class CollectService:
             "trial": self.trial(),
             # critic 2.3.2: בשבת/בלילה/בחג «לא נשלח כלום» נראה כמו תקלה. מציגים מתי מותר ולמה
             "send_window": {"open_now": closed_why is None, "closed_reason": closed_why,
-                            "next_allowed": next_ok},
+                            "next_allowed": next_ok,
+                            # critic סבב 119: הלוח המובנה נגמר ⇒ השליחה נסגרת. אזהרה 120 יום מראש, לא רק אחרי שעצר
+                            "holidays_until": max(self.policy.builtin) if self.policy.builtin else None,
+                            "holidays_expiring": bool(self.policy.builtin) and (
+                                date.fromisoformat(max(self.policy.builtin)) - today).days < 120},
             "totals": {
                 "open_invoices": len(open_rows),
                 "open_agorot": open_amt,
