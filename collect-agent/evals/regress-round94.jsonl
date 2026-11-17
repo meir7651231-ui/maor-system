@@ -47,3 +47,5 @@
 {"id": "c133-1", "text": "המוצר לא הגיע", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
 {"id": "c133-2", "text": "the technician never showed up", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
 {"id": "c133-3", "text": "לא קיבלתי את החשבונית, אפשר לשלוח שוב?", "ctx": {"channel": "sms"}, "expect": {"intent": "copy_request", "not": ["dispute"]}, "critical": true}
+{"id": "c134-1", "text": "ביקשתי לבטל את הוראת הקבע ואשלם בהעברה", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute"]}, "critical": true}
+{"id": "c134-2", "text": "im in high school", "ctx": {"channel": "sms"}, "expect": {"intent": "minor"}, "critical": true}
