@@ -2005,15 +2005,32 @@ class CollectService:
         return d["id"] if d else None
 
     def email_webhook(self, sender: str, text: str, message_id: str = "", *,
-                      auth_results: str = "") -> dict:
+                      auth_results: str = "", subject: str = "") -> dict:
         try:
-            return self._email_webhook(sender, text, message_id, auth_results=auth_results)
+            return self._email_webhook(sender, text, message_id, auth_results=auth_results, subject=subject)
         except Exception:
             self._release_webhook("mail:" + (message_id or hashlib.sha256(f"{sender}|{text}".encode()).hexdigest()))
             raise
 
+    def _email_subject_text(self, subject: str) -> str:
+        """critic סבב 125: נושא מייל ⇒ טקסט לסיווג, רק אם הוא אומר משהו (בלי Re:/Fwd:, בלי שם העסק)."""
+        from .conversation import Intent, detect
+
+        s = (subject or "").replace("\r", " ").replace("\n", " ").strip()
+        prev = None
+        while prev != s:
+            prev = s
+            s = re.sub(r"^\s*(?:re|fwd?|fw|aw|wg|sv|tr|השב|תשובה|הועבר|העבר)\s*(?:\[\d+\])?\s*:\s*", "", s, flags=re.I)
+        name = (self.s.business_name or "").strip()
+        if name:
+            s = s.replace(name, " ")
+        s = re.sub(r"\s+", " ", s).strip(" -–—:|")
+        if not s or detect(s) == [Intent.UNKNOWN]:
+            return ""
+        return s
+
     def _email_webhook(self, sender: str, text: str, message_id: str = "", *,
-                       auth_results: str = "") -> dict:
+                       auth_results: str = "", subject: str = "") -> dict:
         """מייל נכנס (ספק inbound-parse כלשהו, מנורמל ל-from/text/message_id). אידמפוטנטי.
         critic 3.6.7: מייל נכנס לא מאומת יכול להתחזות ללקוח. ההשפעות של מייל נכנס הן רק עצירה
         (השהיה/מחלוקת/הסרה — שמרני), ולכן לא חוסמים; אבל **מתעדים** את פסיקת SPF/DKIM/DMARC של
@@ -2026,6 +2043,8 @@ class CollectService:
         if not self._claim_webhook(key) or self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
             return {"ok": True, "duplicate": True}
         addr, body = parse_address(sender), strip_reply(text)
+        if not body and subject:   # critic סבב 125: «הסר» בשורת הנושא עם גוף ריק/ציטוט בלבד נבלע בשקט
+            body = self._email_subject_text(subject)
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
                   " VALUES(NULL,'webhook','email','inbound',?,?)", (key, _iso(self.clock())))
         if not addr or not body:
