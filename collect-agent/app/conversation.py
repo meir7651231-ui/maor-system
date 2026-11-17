@@ -113,6 +113,7 @@ class Context:
     policy: OwnerPolicy = field(default_factory=OwnerPolicy)
     manual_old: bool = False          # ר-7: יש חשבונית פתוחה מעל 3 שנים ⇒ אין הצעת פריסה אוטומטית
     footer_len: int = 0               # אורך שורת ההסרה שתתווסף ב-SMS (נשמר מקום בתקציב 268)
+    plan_approved: bool = False       # מנהל 265: בעל העסק כבר אישר ושלח את ההסדר (plans.status='approved')
 
     def fits_sms(self, body: str) -> bool:
         """הגוף (לפני שם העסק) + שם העסק + שורת ההסרה ≤ תקרת התשובה ב-SMS."""
@@ -1616,6 +1617,14 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
                      r"(?:\d{1,2}|two|three|four|five|six|eight|ten|twelve)\b|\bwhat\s+about\s+(?:\d{1,2}|two|three|four|five|six)\b"
                      r"|\b(?:\d{1,2}|two|three|four|five|six)\s+(?:payments|installments|months)\s+instead\b", t):
             found.add(Intent.PLAN_REQUEST)
+    # מנהל 265: אישור חוזר במצב PLAN_PENDING_OWNER («מאשרת» אחרי שכבר אישרה, או תשובה ל«השיבו מאשר» אחרי
+    # שבעל העסק שלח את ההסדר). היה: «לא ברור» ⇒ כרטיס בלי הקשר. רק כשההודעה היא אישור בלבד (בלי כוונה אחרת);
+    # «סגור, תודה רבה» נשאר «תודה» (q11-07, תווית עיוורת) — אותה התנהגות: בלי תשובה ובלי כרטיס.
+    if ctx is not None and ctx.state == State.PLAN_PENDING_OWNER and ctx.offered_plan \
+            and not (found - {Intent.THANKS, Intent.UNKNOWN}) \
+            and ("?" in t or not _s(r"(?<![\w])(?:תודה|thanks|thank\s+you|thx|ty)(?![\w])", t)) \
+            and not _hits(RX[Intent.PLAN_REJECT], t) and _hits(RX[Intent.PLAN_ACCEPT], t):
+        found.add(Intent.PLAN_ACCEPT)
     # מנהל 264: בקשת שינוי בהסדר שבשיחה (מועד/סכום/מספר תשלומים) ⇒ פריסה, לא הבטחה/«לא ברור»/אישור/דחייה
     if _plan_ctx(ctx) and plan_change(t) is not None:
         found.add(Intent.PLAN_REQUEST)
@@ -2265,6 +2274,42 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             actions.append("ביקש/ה גם פריסה ליתרה")
         pause_until = ctx.today + timedelta(days=7)
         state = State.AWAITING_OWNER
+    elif primary == Intent.PLAN_ACCEPT and (ctx.plan_approved or ctx.state == State.PLAN_PENDING_OWNER):
+        # מנהל 265: בעל העסק כבר אישר ושלח את ההסדר, או שהלקוח כבר אישר והוא ממתין לבעל העסק.
+        # היה: «ההסדר הועבר לאישור סופי, ואחרי האישור נשלח את פרטי התשלום הראשון» (הבטחה שאף אחד לא מקיים —
+        # האישור כבר ניתן) + כרטיס «נדרש אישור סופי שלך» שאין מה לעשות בו; ואישור חוזר ⇒ «לא ברור».
+        plan = ctx.offered_plan
+        tags.append("plan_confirmed" if ctx.plan_approved else "plan_reconfirm")
+        asks = "?" in t or bool(secondary)
+        # התשלום הקרוב (לא בהכרח הראשון — אישור חוזר יכול להגיע אחרי שמועד הראשון עבר)
+        first = next((i for i in plan if i.due >= ctx.today), None)
+        if ctx.plan_approved and first is not None and (ctx.state != State.PLAN_PENDING_OWNER or asks):
+            # אישור ראשון של הלקוח (או אישור חוזר עם שאלה) ⇒ אישור ללקוח עם התשלום הקרוב. טיוטה לאישור, כרגיל.
+            which = "הראשון" if first is plan[0] else "הבא"
+            base = (f"מעולה, תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! ההסדר בתוקף. "
+                    f"התשלום {which}: {fmt_amount(first.amount_agorot, ctx.currency)} עד {_he_date(first.due)}.")
+            link = f" לתשלום: {ctx.payment_link}" if ctx.payment_link else ""
+            reply = f"{base}{link}{sig}"
+            if link and not ctx.fits_sms(reply):
+                reply = f"{base}{sig}"
+            summary = (f"✅ {name} אישר/ה את ההסדר שאישרת ({plan_lines(plan, ctx.currency)}). ההסדר בתוקף — "
+                       f"נותר רק לשלוח ללקוח אישור עם מועד התשלום הקרוב.")
+            actions.append("לאשר את הודעת האישור ללקוח")
+        elif ctx.plan_approved:
+            reply = None
+            summary = f"✅ {name} אישר/ה שוב את ההסדר שבתוקף ({plan_lines(plan, ctx.currency)}). אין צורך בפעולה."
+        else:
+            reply = None
+            summary = (f"{name} אישר/ה שוב את הצעת הפריסה ({plan_lines(plan, ctx.currency)}). "
+                       f"ההסדר ממתין לאישור הסופי שלך ב«הסדרים».")
+            if asks:
+                actions.append("לקרוא את השאלה ולהשיב אישית")
+        if not secondary:
+            # אין כאן בקשה חדשה ⇒ בלי כרטיס «דרוש טיפול». שאלה על הסדר שעוד לא אושר ⇒ כרטיס רגיל.
+            esc = Escalation.NORMAL if (asks and not ctx.plan_approved) else Escalation.NONE
+            if reply is None:   # אישור חוזר בלבד ⇒ כמו «תודה», בלי השהיה חדשה (אישור ראשון שומר את ההשהיה)
+                stop = Stop.NONE
+        state = State.PLAN_PENDING_OWNER
     elif primary == Intent.PLAN_ACCEPT:
         plan = ctx.offered_plan
         reply = (f"מעולה, תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! ההסדר הועבר לאישור סופי, "
