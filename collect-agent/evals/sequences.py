@@ -82,6 +82,7 @@ def _owner_turn(svc, turn: dict) -> tuple[bool, str]:
                 return False, "אין הסדר מוצע"
             svc.approve_plan(p["id"])
             return True, ""
+        svc.inbox  # noqa: B018 — טבלת הטיוטות נוצרת עם מנוע השיחה (בעל העסק לפני הודעה ראשונה)
         dr = svc.db.one("SELECT id FROM drafts WHERE customer_id=1 AND status IN "
                         "('pending_approval','needs_owner') ORDER BY id DESC LIMIT 1")
         if not dr:
