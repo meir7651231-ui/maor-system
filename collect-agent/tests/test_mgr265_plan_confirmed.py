@@ -120,10 +120,12 @@ def test_traps_after_approval(text, intent):
 
 @pytest.mark.parametrize("text", ["לא מתאים לי בסוף", "לא"])
 def test_reject_after_approval_not_auto(text):
-    """«לא» אחרי שההסדר אושר לא מבטל אותו אוטומטית — כרטיס לבעל העסק."""
+    """«לא» אחרי שההסדר אושר לא מבטל אותו אוטומטית — כרטיס לבעל העסק.
+    מנהל 266: הכרטיס עכשיו עם הקשר (PLAN_REJECT + plan_retract במצב PLAN_PENDING_OWNER); השירות לא מבטל
+    הסדר מאושר (רק דחייה מ-AWAITING_PLAN_REPLY מסמנת rejected) — נבדק ב-test_mgr266_plan_retract."""
     d = respond(text, _ctx())
-    assert Intent.PLAN_ACCEPT not in d.all_intents and Intent.PLAN_REJECT not in d.all_intents
-    assert d.escalate != Escalation.NONE
+    assert Intent.PLAN_ACCEPT not in d.all_intents and "plan_retract" in d.tags and not d.plan
+    assert d.escalate != Escalation.NONE and "לא בוטל אוטומטית" in d.owner_summary
 
 
 def test_idle_accept_words_unchanged():

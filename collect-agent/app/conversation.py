@@ -1415,6 +1415,34 @@ def plan_change(t: str) -> tuple[int | None, str] | None:
     return n, kind
 
 
+# מנהל 266: חזרה מהסדר שהלקוח כבר אישר (או שבעל העסק כבר אישר) — «אני מבטלת את ההסדר», «חזרתי בי»,
+# «לא מתאים לי בסוף», «I changed my mind». רק מילים שמדברות על ההסדר עצמו; ההקשר נבדק אצל הקורא.
+_RETRACT = (
+    r"(?<![\w])(?:ש|ו)?(?:מבטל|מבטלת|מבטלים|לבטל|תבטלו|נבטל|ביטול|מוותר|מוותרת|לוותר)\s+(?:על\s+)?(?:\w+\s+){0,2}?"
+    r"(?:את\s+)?(?:ה)?(?:הסדר|פריסה|תשלומים|הצעה|עסקה)(?![\w])"
+    r"|(?<![\w])(?:חוזר|חוזרת|חוזרים|חזרתי|חזרנו)\s+(?:בי|בו|בה|בנו)(?![\w])"
+    r"|(?<![\w])(?:התחרטתי|התחרטנו|מתחרט|מתחרטת)(?![\w])"
+    r"|לא (?:אוכל|אצליח|נוכל|נצליח|יכול|יכולה|יכולים|מצליח|מצליחה) (?:לעמוד|לשלם)\s+(?:ב|את )?(?:ה)?(?:תשלומים|הסדר|פריסה)(?![\w])"
+    r"|^\W*(?:בעצם|בסוף)\s*,?\s*לא(?![\w])"
+    r"|לא (?:מתאים|מתאימה|מסתדר|מסתדרת|טוב)(?: לי| לנו)? בסוף"
+    r"|לא (?:רוצה|רוצים|מעוניין|מעוניינת) (?:ב|את )?(?:ה)?(?:הסדר|פריסה|תשלומים)(?![\w])"
+    r"|\bchang(?:ed|ing)\s+(?:my|our)\s+minds?\b|\bback(?:ing)?\s+out\b"
+    r"|\bwithdraw\w*\s+(?:from\s+)?(?:the\s+|my\s+)?(?:plan|arrangement|agreement)\b"
+    r"|\bcancel\w*\s+(?:the\s+|my\s+|this\s+|our\s+)?(?:payment\s+)?(?:plan|installments?|instalments?|arrangement|payments)\b"
+    r"|\bnever\s*mind\s+(?:the\s+)?(?:plan|installments?|payments)\b")
+
+
+# «אל תבטלו את ההסדר», «לא מבטלת», «לא חוזרת בי», «don't cancel» — ההפך מחזרה
+_RETRACT_NEG = (r"(?<![\w])(?:לא|אל|אין|בלי)\s+(?:\w+\s+)?(?:מבטל|מבטלת|מבטלים|לבטל|תבטלו|נבטל|ביטול|חוזר|חוזרת|מוותר|מוותרת"
+                r"|מתחרט|מתחרטת|צריך לבטל)(?![\w])|\b(?:don'?t|do\s+not|not|no\s+need\s+to)\s+(?:\w+\s+)?cancel\w*\b")
+
+
+def plan_retract(t: str) -> bool:
+    """הלקוח חוזר בו מההסדר — בלי בקשה חדשה וממשית (מספר תשלומים / סכום חודשי / שינוי מועד)."""
+    return bool(_s(_RETRACT, t)) and not _s(_RETRACT_NEG, t) and extract_installments(t) is None and \
+        extract_monthly_amount(t) is None and plan_change(t) is None
+
+
 def change_date(t: str, today: date) -> date | None:
     """המועד החדש שמבוקש — אחרי הסרת החלופה שנדחית («לא ל-10»)."""
     u = _c(_CHG_NOT).sub(" ", t)
@@ -1629,6 +1657,24 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     if _plan_ctx(ctx) and plan_change(t) is not None:
         found.add(Intent.PLAN_REQUEST)
         found -= {Intent.PROMISE, Intent.UNKNOWN, Intent.PLAN_ACCEPT, Intent.PLAN_REJECT, Intent.THANKS}
+    # מנהל 266: חזרה מההסדר. היה: «אני מבטלת את ההסדר» / «חזרתי בי» ⇒ PLAN_REQUEST ⇒ הצעה *חדשה וזהה*
+    # («בשמחה. הצעה לפריסה…») שנרשמה כהסדר proposed נוסף; «לא מתאים לי בסוף» ⇒ «לא ברור».
+    # ב-AWAITING_PLAN_REPLY ⇒ דחיית ההצעה (המסלול הקיים). ב-PLAN_PENDING_OWNER ⇒ כרטיס עם הקשר, בלי ביטול אוטומטי.
+    if _plan_ctx(ctx) and plan_retract(t):
+        found.add(Intent.PLAN_REJECT)
+        found -= {Intent.PLAN_REQUEST, Intent.PLAN_ACCEPT, Intent.UNKNOWN, Intent.THANKS}
+    elif _plan_ctx(ctx) and _s(_RETRACT_NEG, t) and Intent.PLAN_REQUEST in found and plan_change(t) is None \
+            and extract_installments(t) is None and extract_monthly_amount(t) is None:
+        # «אל תבטלו את ההסדר» — היה: «הסדר» ⇒ PLAN_REQUEST ⇒ הצעה חדשה וזהה. אין כאן בקשה ⇒ כרטיס רגיל.
+        found.discard(Intent.PLAN_REQUEST)
+        if not found:
+            found.add(Intent.UNKNOWN)
+    elif ctx is not None and ctx.state == State.PLAN_PENDING_OWNER and ctx.offered_plan \
+            and not (found - {Intent.UNKNOWN}) and _hits(RX[Intent.PLAN_REJECT], t) and not _s(_RETRACT_NEG, t) \
+            and not _s(r"^\W*לא\s+(?!(?:מתאים|מתאימה|מסתדר|מסתדרת|טוב|מסכים|מסכימה|ממש|זה)(?![\w]))", t):
+        # «לא בסמס, רק במייל», «לא שילמתי עדיין», «לא מעביר מחר», «לא תודה» ⇒ לא דחיית ההסדר (נשארים כקודם)
+        found.add(Intent.PLAN_REJECT)       # «לא» / «לא מתאים לי» לבד אחרי האישור ⇒ כרטיס עם הקשר
+        found.discard(Intent.UNKNOWN)
     # מנהל 251 (qa8): «I'm not Dana», «this isn't Dana», «no Dana here» — שם באותיות לטיניות (שם הלקוח במערכת בעברית).
     # שם פרטי = מילה באות גדולה בטקסט המקורי, לא מילה מרשימת השגרה («I'm not Sure/Home» ≠ טעות במספר).
     _m_name = re.search(r"\b(?:I'?m|I\s+am|Im|i'?m|i\s+am|im|[Tt]his\s+is\s*n'?t|[Tt]his\s+is\s+not|[Ii]t'?s\s+not|[Mm]y\s+name\s+is\s*n'?t"
@@ -2317,6 +2363,30 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         summary = f"✅ {name} אישר/ה את הצעת הפריסה ({plan_lines(plan, ctx.currency)}). נדרש אישור סופי שלך."
         actions.append("לאשר את ההסדר")
         state = State.PLAN_PENDING_OWNER
+    elif primary == Intent.PLAN_REJECT and ctx.state == State.PLAN_PENDING_OWNER and ctx.offered_plan:
+        # מנהל 266: הלקוח חוזר בו מהסדר שכבר אישר. לא מבטלים אוטומטית (בעל העסק מחליט, וההסדר נשאר כפי שהוא
+        # ב«הסדרים»); כרטיס עם ההסדר ועם ההודעה. חזרה מפורשת ⇒ טיוטת «קיבלנו»; «לא» לבד ⇒ בלי תשובה.
+        plan = ()
+        tags.append("plan_retract")
+        explicit = plan_retract(t)
+        if explicit:
+            reply = f"{hi}קיבלנו את ההודעה לגבי ההסדר. בעל העסק יבדוק ויחזור אליכם.{sig}"
+        what = "ההסדר שאישרת" if ctx.plan_approved else "ההסדר שאישר/ה (עדיין ממתין לאישור שלך)"
+        verb = "חוזר/ת בו/ה מ" if explicit else "ייתכן שחוזר/ת בו/ה מ"
+        summary = (f"↩️ {name} {verb}{what} ({plan_lines(ctx.offered_plan, ctx.currency)}): \"{_clip(t)}\". "
+                   f"ההסדר לא בוטל אוטומטית.")
+        if Intent.CANT_PAY in allset:
+            summary += " מספר/ת על קושי לעמוד בתשלומים."
+        dd, _ = extract_date_ctx(t, ctx)
+        if Intent.PROMISE in allset and dd is not None and dd >= ctx.today:
+            promise_date = dd
+            summary += f" מציע/ה במקום לשלם עד {_he_date(dd)} ({(dd - ctx.today).days} ימים)."
+            actions.append(f"לאשר את המועד {_he_date(dd)} או להציע אחר")
+        if ctx.plan_approved:
+            actions.append("לדבר עם הלקוח/ה; אם ההסדר מתבטל — לבטל אותו ב«הסדרים»")
+        else:
+            actions.append("לא לאשר את ההסדר ב«הסדרים» לפני שמדברים עם הלקוח/ה")
+        state = State.AWAITING_OWNER
     elif primary == Intent.PLAN_REJECT and Intent.PLAN_REQUEST not in allset:
         reply = (f"בסדר גמור. נחזור אליכם כדי למצוא יחד פתרון שמתאים לכם.{sig}")
         summary = f"{name} דחה/תה את הצעת הפריסה: \"{_clip(t)}\"."

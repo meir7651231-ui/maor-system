@@ -6,8 +6,8 @@
 כל רצף = לקוח אחד (דנה כהן, 1,200 ₪ פתוח) בשירות טרי (DB בזיכרון, חשבונית ירוקה מדומה, dry-run).
 כל הודעה נכנסת ב-`inbound` ⇒ ההקשר (מצב, הצעה שנשלחה, מונה תורות) נבנה מה-DB כמו בפרודקשן.
 ציפיות לכל הודעה: intent · state (מצב השיחה ב-DB אחרי ההודעה) · promise (ISO / null) · stop ·
-escalate · not (כוונות שאסור שיופיעו) · draft (סטטוס הטיוטה שנוצרה: pending_approval/needs_owner/…;
-null = לא נוצרה). רצף critical חייב לעבור במלואו.
+escalate · not (כוונות שאסור שיופיעו) · plan_status / plans (מנהל 266) ·
+draft (סטטוס הטיוטה שנוצרה: pending_approval/needs_owner/…; null = לא נוצרה). רצף critical חייב לעבור במלואו.
 
 מנהל 256 — רצפים ארוכים עם בעל העסק באמצע:
   {"owner": "approve_plan"}             בעל העסק מאשר את הצעת הפריסה האחרונה (שולחת אותה ללקוח)
@@ -145,6 +145,15 @@ def run_seq(seq: dict) -> list[str]:
                 key = "escalation" if k == "escalate" else k
                 if k in e and out.get(key) != e[k]:
                     fails.append(f"{tag} {k} {out.get(key)}≠{e[k]}")
+            if "plan_status" in e:   # מנהל 266: גם בתור לקוח — ההסדר האחרון (לא נוצר חדש / לא בוטל)
+                p = svc.db.one("SELECT status FROM plans WHERE customer_id=1 ORDER BY id DESC LIMIT 1")
+                got = p["status"] if p else None
+                if got != e["plan_status"]:
+                    fails.append(f"{tag} plan_status {got}≠{e['plan_status']}")
+            if "plans" in e:          # מספר ההסדרים הכולל ללקוח
+                got = svc.db.one("SELECT COUNT(*) n FROM plans WHERE customer_id=1")["n"]
+                if got != e["plans"]:
+                    fails.append(f"{tag} plans {got}≠{e['plans']}")
             all_i = [out["intent"], *out.get("secondary", [])]
             for n in e.get("not", []):
                 if n in all_i:
