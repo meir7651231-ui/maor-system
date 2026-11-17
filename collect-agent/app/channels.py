@@ -285,10 +285,46 @@ def _html_to_text(t: str) -> str:
     return _html.unescape(t).replace("\xa0", " ")
 
 
+# לולאת גבי מנוע 17.11 (המשך לסבב 128): לקוח שעונה **מתחת** לציטוט (bottom-posting — נפוץ בטלפונים ובמייל
+# «מסורתי») ⇒ החיתוך בראש הציטוט השאיר גוף ריק ⇒ «הסר אותי» שנכתב מתחת ל-«> התזכורת שלנו» / ל-<blockquote> נבלע
+# בשקט (ignored). גיבוי — רק כשהחיתוך הרגיל ריק: הטקסט שמחוץ לציטוט **המסומן** (שורות «>» / <blockquote>).
+# מקור לא מסומן (Outlook: «From:», «-----Original Message-----», divRplyFwdMsg) ⇒ אין גיבוי: מה שאחריו הוא
+# ההודעה שלנו בלי סימון (כולל שורת ההסרה), ואסור לסווג אותה כאילו הלקוח כתב.
+_UNMARKED_ORIGINAL = re.compile(r"^(?:-{2,}\s*original message|-{2,}\s*הודעה מקורית|from:\s|מאת:\s)", re.I)
+_HTML_UNMARKED = re.compile(
+    r"<div[^>]*\bid=[\"']?(?:divRplyFwdMsg|appendonsend|mail-editor-reference-message-container)\b", re.I)
+
+
+def _below_quote(text: str) -> str:
+    if _HTML_HINT.search(text):
+        if _HTML_UNMARKED.search(text):
+            return ""
+        import html as _html
+        t = re.sub(r"(?is)<blockquote\b.*?</blockquote\s*>", "\n", text)
+        t = re.sub(r"(?is)<(?:script|style|head)\b.*?</(?:script|style|head)\s*>", " ", t)
+        t = re.sub(r"(?i)<\s*br\s*/?\s*>|</\s*(?:div|p|li|tr|h\d)\s*>|<\s*hr\b[^>]*>", "\n", t)
+        text = _html.unescape(re.sub(r"<[^>]*>", "", t)).replace("\xa0", " ")
+    out: list[str] = []
+    for line in text.replace("\r\n", "\n").split("\n"):
+        s = _BIDI.sub("", line).strip()
+        if _UNMARKED_ORIGINAL.match(s) or s == "--":
+            break
+        if s.startswith(">") or _is_quote_header(s):
+            continue
+        if s and any(o.strip() for o in out) and _is_signature_line(s):
+            break
+        out.append(line)
+    return "\n".join(out).strip()
+
+
 def strip_reply(text: str) -> str:
     """רק מה שהלקוח כתב: בלי הציטוט של ההודעה שלנו ובלי חתימת '-- '."""
+    top = _strip_top(text or "")
+    return top or _below_quote(text or "")
+
+
+def _strip_top(text: str) -> str:
     out = []
-    text = text or ""
     if _HTML_HINT.search(text):
         text = _html_to_text(text)
     lines = text.replace("\r\n", "\n").split("\n")
