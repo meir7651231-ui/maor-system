@@ -52,3 +52,28 @@ def test_real_intent_in_html_body_kept(wrap):
 def test_plain_text_unchanged():
     t = "שילמתי אתמול\nתודה <3 & bye\n\nOn Sun wrote:\n> הסר"
     assert strip_reply(t) == "שילמתי אתמול\nתודה <3 & bye"
+
+
+# ═══ critic סבב 129: מלכודות טקסט רגיל — זיהוי ה-HTML של סבב 128 היה רחב מדי ═══
+# `<\s*(?:…|b|i|p…)\b[^>]*>` תפס «<b אז b>» כתג ⇒ «אם a<b אז b>a» ⇒ «אם aa» (טקסט של הלקוח נמחק), וכל «<…>» אחר
+# בהודעה נמחק אחרי זיהוי-השווא. עכשיו: תג = שם-תג ואחריו מיד «>» / «/>» או מאפיין «x=».
+@pytest.mark.parametrize("text", [
+    "אם a<b אז b>a",
+    "שילמתי <b לא בטוח> כמה",
+    "המחיר <p ולא q> נראה לי שגוי",
+    "i paid <i think> yesterday",
+    "אני אוהבת אתכם <3 אשלם מחר",
+    "שילמתי & תודה",
+])
+def test_plain_text_lookalikes_untouched(text):
+    assert strip_reply(text) == text
+
+
+@pytest.mark.parametrize("html,want", [
+    ('<div dir="rtl">שילמתי</div>', "שילמתי"),
+    ("שילמתי<br/>תודה", "שילמתי\nתודה"),
+    ("<p>שילמתי</p><p>תודה</p>", "שילמתי\nתודה"),
+    ("<b>שילמתי</b> אתמול", "שילמתי אתמול"),
+])
+def test_real_html_still_detected(html, want):
+    assert strip_reply(html) == want
