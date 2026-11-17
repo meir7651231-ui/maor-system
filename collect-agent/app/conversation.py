@@ -1086,15 +1086,30 @@ def extract_monthly_amount(t: str) -> int | None:
 
 
 _AMOUNT_RX = _c(r"(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?\s*(?:₪|ש\"ח|שח|שקלים|שקל|nis|ils)?")
+# critic סבב 131: מפריד אלפים ישראלי — «שילמתי 1.200» ⇒ היה 1.20 ₪ («שילם/ה חלק (1.20 ₪)» גם בטיוטה ללקוח),
+# «1 200» ⇒ 1 ₪. נקודה = אלפים רק בקבוצות של 3 ספרות בדיוק ובלי ספרה אחריהן; רווח רק לפני מטבע / סוף משפט.
+_PAID_NUM = (r"(\d{1,3}(?:,\d{3})+|\d{1,3}(?:\.\d{3})+(?![\d]|[.,]\d)"
+             r"|\d{1,3}(?: \d{3})+(?=\s*(?:₪|ש\"ח|שח|שקל\w*|nis|ils|shekels?)|\s*[.,!?]*\s*$)|\d+)")
+
+
+def _paid_whole(g: str) -> int:
+    return int(re.sub(r"[,. ]", "", g))
+
+
+def _k_mult(t: str, end: int) -> int:
+    """critic סבב 131: «שילמתי 1.5K» / «paid 2k» = אלפים (היה 1.50 ₪ / 2 ₪)."""
+    return 1000 if _m(r"\s*k(?![a-z])", t[end:end + 4]) else 1
+
+
 _PAID_AMOUNT_RX = _c(
     r"(?:שילמ\w*|שלמת\w*|העבר\w*|הפקד\w*|שלחת\w*|שולמ\w*|שולם|נתתי|מסרתי)\s*(?:לכם |לך |כבר |רק |בינתיים |את )*"
-    r"(?:ב-?(?:ביט|פייבוקס|העברה)\s*)?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?\s*(₪|ש\"ח|שח|שקלים|שקל)?")
+    r"(?:ב-?(?:ביט|פייבוקס|העברה)\s*)?" + _PAID_NUM + r"(?:\.(\d{1,2}))?\s*(₪|ש\"ח|שח|שקלים|שקל)?")
 # מנהל 271: סכום ששולם באנגלית — «I paid 1000» / «I paid 1500 nis» (חוב 5,000) ⇒ היה «טוען/ת ששילם/ה 5,000 ₪»
 # (מלוא החוב, בלי «חלקי») כי רק הפעלים העבריים נקראו. דולר מפורש ⇒ לא מחולץ (המטבע של החוב שקלי; לא ממירים).
 _PAID_AMOUNT_EN_RX = _c(
     r"\b(?:paid|payed|transferred|wired|deposited|sent)\s+(?:(?:you|u|it|over|already|just|only|about|around|like)\s+)*"
     r"(?:(?:via|by|with|through)\s+(?:bit|paybox|bank\s+transfer|transfer|credit\s+card|card|cash|check|cheque)\s+)?"
-    r"(₪|\$|nis\s*|ils\s*)?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?\s*(₪|nis|ils|shekels?|dollars?|usd|\$)?")
+    r"(₪|\$|nis\s*|ils\s*)?" + _PAID_NUM + r"(?:\.(\d{1,2}))?\s*(₪|nis|ils|shekels?|dollars?|usd|\$)?")
 # מנהל 272: «העברתי את החצי» / «שילמתי את המקדמה» (ה׳ הידיעה) לא סומנו חלקי ⇒ «שילם/ה 1,200 ₪» (מלוא החוב)
 _PARTIAL_WORDS = _c(r"(?<![\w])(?:חלק|חלקי|ה?חצי|מחצית|ה?מקדמה|רק חלק|את רוב|קצת|חלק מה)"
                     r"|\b(?:half|part\s+of|partial(?:ly)?|a\s+portion|a\s+deposit|down\s*payment|some\s+of\s+it)\b"
@@ -1110,7 +1125,7 @@ _PAID_PARTIAL_AMOUNT_RX = _c(
     r"(?:ה?חצי|חלק|ה?מקדמה|half|part\s+of\s+it|part|a\s+portion|deposit|down\s*payment|some\s+of\s+it)"
     r"(?:\s+(?:מה(?:חוב|סכום|תשלום)|of\s+it|of\s+the\s+(?:amount|bill|debt)))?"
     r"\s*[,:\-–—]?\s*(?:(?:של|of|about|around|כ-?|בסך|that'?s|which\s+is|=)\s*)?"
-    r"(₪|\$|nis\s*|ils\s*)?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d{1,2}))?\s*(₪|ש\"ח|שח|שקלים|שקל|nis|ils|shekels?|dollars?|usd|\$)?")
+    r"(₪|\$|nis\s*|ils\s*)?" + _PAID_NUM + r"(?:\.(\d{1,2}))?\s*(₪|ש\"ח|שח|שקלים|שקל|nis|ils|shekels?|dollars?|usd|\$)?")
 _PAID_AFTER_SKIP_RX = _c(
     r"\s*(?:payments?|installments?|instalments?|days?|weeks?|months?|years?|hours?|times?|messages?|emails?|"
     r"texts?|photos?|pictures?|screenshots?|(?:a|per|each|every)\s+month|monthly|\.\d|/|st\b|nd\b|rd\b|th\b|am\b|pm\b|:|"
@@ -1126,11 +1141,11 @@ def extract_paid_amount(t: str) -> int | None:
         after = t[m.end():m.end() + 12]
         if _m(r"\s*(?:תשלומים|ימים|יום|לחודש|בחודש|\.\d|/)", after):
             continue
-        whole = int(m.group(1).replace(",", ""))
+        whole = _paid_whole(m.group(1))
         frac = int((m.group(2) or "0").ljust(2, "0"))
         if whole == 0 or whole > 10_000_000:
             continue
-        return whole * 100 + frac
+        return (whole * 100 + frac) * _k_mult(t, m.end())
     for m in _PAID_AMOUNT_EN_RX.finditer(t):
         cur = ((m.group(1) or "") + (m.group(4) or "")).strip()
         if cur in ("$", "dollar", "dollars", "usd") or any(c in cur for c in ("$", "dollar", "usd")):
@@ -1142,19 +1157,19 @@ def extract_paid_amount(t: str) -> int | None:
               r"(?:out\s+)?of\s+(?:the\s+|my\s+)?\d{1,2}\s+(?:payments?|installments?|instalments?))",
               after):
             continue
-        whole = int(m.group(2).replace(",", ""))
+        whole = _paid_whole(m.group(2))
         frac = int((m.group(3) or "0").ljust(2, "0"))
         if whole == 0 or whole > 10_000_000 or (not cur and 1990 <= whole <= 2100 and "," not in m.group(2)
                                                   and _s(r"\b(?:in|since|from)\s*$", t[:m.start(2)])):
             continue
-        return whole * 100 + frac
+        return (whole * 100 + frac) * _k_mult(t, m.end())
     for m in _PAID_PARTIAL_AMOUNT_RX.finditer(t):
         cur = ((m.group(1) or "") + (m.group(4) or "")).strip()
         if any(c in cur for c in ("$", "dollar", "usd")):
             continue
         if _PAID_AFTER_SKIP_RX.match(t[m.end():m.end() + 20]) or _s(r"(?:נשאר|נותר|יתרה|left|remaining)\s*$", t[:m.start(2)]):
             continue
-        whole = int(m.group(2).replace(",", ""))
+        whole = _paid_whole(m.group(2))
         frac = int((m.group(3) or "0").ljust(2, "0"))
         # עד 2 ספרות בלי מטבע ⇒ לא סכום («חצי, 15 בחודש», «half, 3rd»)
         if whole == 0 or whole > 10_000_000 or (not cur and whole < 100):
