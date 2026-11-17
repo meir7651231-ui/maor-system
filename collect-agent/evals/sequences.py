@@ -6,7 +6,15 @@
 כל רצף = לקוח אחד (דנה כהן, 1,200 ₪ פתוח) בשירות טרי (DB בזיכרון, חשבונית ירוקה מדומה, dry-run).
 כל הודעה נכנסת ב-`inbound` ⇒ ההקשר (מצב, הצעה שנשלחה, מונה תורות) נבנה מה-DB כמו בפרודקשן.
 ציפיות לכל הודעה: intent · state (מצב השיחה ב-DB אחרי ההודעה) · promise (ISO / null) · stop ·
-escalate · not (כוונות שאסור שיופיעו). רצף critical חייב לעבור במלואו.
+escalate · not (כוונות שאסור שיופיעו) · draft (סטטוס הטיוטה שנוצרה: pending_approval/needs_owner/…;
+null = לא נוצרה). רצף critical חייב לעבור במלואו.
+
+מנהל 256 — רצפים ארוכים עם בעל העסק באמצע:
+  {"owner": "approve_plan"}             בעל העסק מאשר את הצעת הפריסה האחרונה (שולחת אותה ללקוח)
+  {"owner": "approve_draft"[, "body"]}  מאשר את הטיוטה האחרונה שממתינה (needs_owner ⇒ חובה body)
+  {"owner": "reject_draft"}             סוגר את הטיוטה האחרונה בלי מענה
+  ציפיות לתור בעלים: ok (הפעולה הצליחה) · state · plan_status.
+  "advance_days": N בכל תור ⇒ השעון מתקדם N ימים לפני התור (הבטחה שעברה, השהיה שפגה).
 """
 from __future__ import annotations
 
@@ -63,20 +71,71 @@ def _service():
         cfg.OPEN_REVIEW_DEFAULT = old_review
 
 
+def _owner_turn(svc, turn: dict) -> tuple[bool, str]:
+    """פעולת בעל העסק באמצע רצף. מחזיר (הצליח, הודעת שגיאה)."""
+    act = turn["owner"]
+    try:
+        if act == "approve_plan":
+            p = svc.db.one("SELECT id FROM plans WHERE customer_id=1 AND status='proposed' "
+                           "ORDER BY id DESC LIMIT 1")
+            if not p:
+                return False, "אין הסדר מוצע"
+            svc.approve_plan(p["id"])
+            return True, ""
+        dr = svc.db.one("SELECT id FROM drafts WHERE customer_id=1 AND status IN "
+                        "('pending_approval','needs_owner') ORDER BY id DESC LIMIT 1")
+        if not dr:
+            return False, "אין טיוטה ממתינה"
+        if act == "approve_draft":
+            svc.inbox.approve_draft(dr["id"], body=turn.get("body"))
+        elif act == "reject_draft":
+            svc.inbox.reject_draft(dr["id"])
+        else:
+            raise ValueError(f"פעולת בעלים לא מוכרת: {act}")
+        return True, ""
+    except ValueError as e:   # סירוב עסקי (סכום השתנה, טיוטה הוכרעה…) — לא קריסה
+        return False, str(e)
+
+
+def _state(svc) -> str:
+    conv = svc.db.one("SELECT state FROM conversations WHERE customer_id=1")
+    return conv["state"] if conv else "idle"
+
+
 def run_seq(seq: dict) -> list[str]:
+    from datetime import timedelta
     fails: list[str] = []
     with _service() as (svc, seen):
         for i, turn in enumerate(seq["turns"], 1):
             seen.clear()
+            if turn.get("advance_days"):
+                svc.clock.now += timedelta(days=turn["advance_days"])
+            e, tag = turn.get("expect", {}), f"#{i}"
+            if "owner" in turn:
+                ok, err = _owner_turn(svc, turn)
+                if "ok" in e and ok != e["ok"]:
+                    fails.append(f"{tag} owner {turn['owner']} ok={ok}≠{e['ok']} {err}".rstrip())
+                if "state" in e and _state(svc) != e["state"]:
+                    fails.append(f"{tag} state {_state(svc)}≠{e['state']}")
+                if "plan_status" in e:
+                    p = svc.db.one("SELECT status FROM plans WHERE customer_id=1 ORDER BY id DESC LIMIT 1")
+                    got = p["status"] if p else None
+                    if got != e["plan_status"]:
+                        fails.append(f"{tag} plan_status {got}≠{e['plan_status']}")
+                continue
             ch = turn.get("channel", seq["channel"])  # מנהל 254: מעבר ערוץ באמצע רצף (SMS⇄מייל, אותו לקוח)
             out = svc.inbound(ch, ADDR[ch], turn["text"])
             d = seen[-1] if seen else None
-            conv = svc.db.one("SELECT state FROM conversations WHERE customer_id=1")
-            e, tag = turn["expect"], f"#{i}"
             if "intent" in e and out["intent"] != e["intent"]:
                 fails.append(f"{tag} intent {out['intent']}≠{e['intent']}")
-            if "state" in e and (conv["state"] if conv else "idle") != e["state"]:
-                fails.append(f"{tag} state {conv['state'] if conv else 'idle'}≠{e['state']}")
+            if "state" in e and _state(svc) != e["state"]:
+                fails.append(f"{tag} state {_state(svc)}≠{e['state']}")
+            if "draft" in e:
+                dr = (svc.db.one("SELECT status FROM drafts WHERE id=?", (out["draft_id"],))
+                      if out.get("draft_id") else None)
+                got = dr["status"] if dr else None
+                if got != e["draft"]:
+                    fails.append(f"{tag} draft {got}≠{e['draft']}")
             if "promise" in e:
                 got = d.promise_date.isoformat() if d and d.promise_date else None
                 if got != e["promise"]:
@@ -109,7 +168,7 @@ def _run_file(path: Path) -> int:
     ok = crit_ok = crit = turns = 0
     for s in seqs:
         f = run_seq(s)
-        turns += len(s["turns"])
+        turns += sum("owner" not in t for t in s["turns"])
         ok += not f
         crit += bool(s.get("critical"))
         crit_ok += bool(s.get("critical")) and not f
