@@ -776,6 +776,15 @@ _extend(Intent.LEGAL,
 _extend(Intent.DISTRESS,
         r"\b(?:i\s+)?feel(?:ing)?\s+(?:so\s+|very\s+|completely\s+|totally\s+)?(?:hopeless|helpless)\b",
         r"\bi\s*(?:'?m|\s+am)\s+(?:really\s+|so\s+|very\s+|seriously\s+)?struggling\b(?!\s+(?:to|with)\b)")
+# לולאה 17.11 בוקר (המשך לסבב 122): שגיאות כתיב באנגלית בכוונות מגינות — «stop txting», «stpo texting me»,
+# «unsubcribe», «reportin u to the polise», «i feel so hopless». מילת-פעולה של שליחה נדרשת אחרי stop (לא «stop worrying»).
+_extend(Intent.OPT_OUT,
+        r"\b(?:stop|stpo|sotp|stp|stopp)\s+(?:txt\w*|tex\w*|msg\w*|mesag\w*|messag\w*|sms\w*|sending\s+(?:me|us|messages|texts)\b|emai?l\w*|contact\w*|bother\w*|harass\w*|spam\w*)",
+        r"\bun\s?sub\w{2,9}\b")
+_extend(Intent.LEGAL,
+        r"\b(?:report\w*|call\w*|go\w*\s+to)\s+(?:u\s+|you\s+|ur\s+business\s+)?(?:to\s+)?(?:the\s+)?pol+i[cs]e?\b")
+_extend(Intent.DISTRESS,
+        r"\b(?:i\s+)?fe+l(?:ing)?\s+(?:so\s+|very\s+|completely\s+|totally\s+|rly\s+|really\s+)?(?:hop[e]?le?s+|help[e]?le?s+)\b")
 _extend(Intent.MINOR,
         r"\bi\s*(?:'?m|\s+am)\s+(?:just\s+|only\s+)?(?:a\s+)?(?:kid|child|teenager)\b",
         r"\bi\s*(?:'?m|\s+am)\s+(?:still\s+)?in\s+(?:middle|elementary|primary|junior\s+high)\s+school\b",

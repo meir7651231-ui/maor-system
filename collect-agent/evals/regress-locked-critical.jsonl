@@ -39,3 +39,6 @@
 {"id": "lk39", "text": "i cant go on the way things are", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
 {"id": "lk40", "text": "שלום, אני לא האדם הזה", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
 {"id": "lk41", "text": "sorry im not that person", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "lk42", "text": "stop txting me", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk43", "text": "unsubcribe", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk44", "text": "reportin u to the polise", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
