@@ -263,7 +263,7 @@ _PAID_WORDS_GUARD = (r"(?!\s*(?:תשלומ|פעמ|אחוז|%|ימימ|יומ|ש�
                      r"payments?\b|installments?\b|instalments?\b|times?\b|percent|days?\b|weeks?\b|years?\b|"
                      r"hours?\b|messages?\b|emails?\b|texts?\b|photos?\b|pictures?\b|screenshots?\b|of\s+(?:them|the|my)\b))")
 _EN_PAID_WORDS_RX = re.compile((
-    r"(\b(?:paid|payed|transferred|wired|deposited|sent)\s+(?:(?:you|u|it|over|already|just|only|about|around|like)\s+)*"
+    r"(\b(?:paid|payed|transferred|wired|deposited|sent|made(?=\s+(?:a|the)\s+(?:deposit|down\s*payment)\b))\s+(?:(?:you|u|it|over|already|just|only|about|around|like|today|yesterday|this\s+morning|earlier)\s+)*"
     r"(?:(?:via|by|with|through)\s+(?:bit|paybox|bank\s+transfer|transfer|credit\s+card|card|cash|check|cheque)\s+)?"
     r"(?:(?:half|part\s+of\s+it|a\s+deposit|the\s+deposit|a\s+portion|a\s+down\s*payment)\s*[,:\-]?\s*(?:of\s+|about\s+)?)?)"
     # \b אחרי כל מילה: אחרת «two hundred and fifty» ⇒ «a» מתוך «and» נקרא 1 ⇒ «201nd fifty»
@@ -271,7 +271,7 @@ _EN_PAID_WORDS_RX = re.compile((
     r"(?=\s*(?P<cur>shekels?|nis|ils|dollars?|bucks)?)" + _PAID_WORDS_GUARD).translate(_FINALS))
 _HE_PAID_WORDS_RX = re.compile((
     r"((?<![\w])(?:שילמ\w*|שלמת\w*|העבר\w*|הפקד\w*|שלחת\w*|שולמ\w*|שולם|נתתי|מסרתי)\s*"
-    r"(?:(?:לכמ|לכ|לך|כבר|רק|בינתיימ|את|ב-?ביט|ב-?פייבוקס|ב-?העברה)\s+)*"
+    r"(?:(?:לכמ|לכ|לך|כבר|רק|בינתיימ|את|היומ|אתמול|הבוקר|שלשומ|ב-?ביט|ב-?פייבוקס|ב-?העברה)\s+)*"
     r"(?:(?:ה?חצי|חלק|ה?מקדמה)\s*[,:\-]?\s*(?:של\s+|בסכ\s+)?)?)"
     r"((?:" + _HE_NUMTOK + r")(?:\s+ו?(?:" + _HE_NUMTOK + r"))*)(?![\w])"
     r"(?=\s*(?P<cur>ש\"ח|שח|שקל\w*)?)" + _PAID_WORDS_GUARD).translate(_FINALS))
@@ -661,6 +661,9 @@ RX: dict[Intent, re.Pattern[str]] = {
         # מנהל 271: «I transferred 2000 yesterday», «I sent 500 via bit» ⇒ היה «לא ברור» (תזכורות ממשיכות למי ששילם)
         r"\b(?:i|we)\s+(?:already\s+|just\s+)?(?:transferred|wired|deposited|sent)\s+(?:(?:you|u|over|already)\s+)*"
         r"(?:₪|nis\s*|ils\s*)?(?:\d{1,3}(?:,\d{3})+|\d{2,})(?!\s*(?:messages?|emails?|texts?|photos?|pictures?|screenshots?|times?|days?|%))",
+        # מנהל 275 (qa16 q16-17): «I sent you a deposit of four hundred» כהודעה ראשונה ⇒ היה «לא ברור» (התזכורות ממשיכות)
+        r"\b(?:i|we)\s+(?:already\s+|just\s+)?(?:sent|transferred|wired|paid|made|gave)\s+(?:(?:you|u|over)\s+)?(?:a|the|an)\s+"
+        r"(?:deposit|down\s*payment|partial\s+payment|advance(?:\s+payment)?)\b(?!\s+(?:request|invoice|receipt\s+request)\b)",
         r"\b(?:i|we)\s+(?:already\s+|just\s+)?(?:sent|transferred|paid)\s+(?:it\s+|you\s+|the\s+money\s+|\d[\d,]*\s*(?:nis|ils|₪|shekels?)?\s+)?"
         r"(?:via|by|with|through|on)\s+(?:bit|paybox|bank\s+transfer)\b",
         r"(?:יש לי|מצרפ\w*|הנה|שולח\w*) (?:את ה)?אסמכתא", r"(?:בעלי|אשתי|בעלה|אבא שלי|אמא שלי|השותף) (?:כבר )?(?:שילם|שילמה|העביר|העבירה)",
@@ -692,6 +695,12 @@ RX: dict[Intent, re.Pattern[str]] = {
         # מנהל 249 (qa7 x7-22/23/24): אובדן עבודה/יכולת, אבל ואשפוז באנגלית
         r"\b(?:lost|losing)\s+(?:my|our)\s+job\b", r"\blaid\s+off\b", r"\bunemployed\b",
         r"\b(?:can'?t|cannot|can\s+not|unable\s+to)\s+afford\b", r"\b(?:can'?t|cannot|unable\s+to)\s+pay\b(?!\s+(?:by|with|via|through|online|on\s+the|using)\b)",
+        # מנהל 275 (qa16 q16-09/q16-43): «I have no way to pay right now», «nothing to pay with» ⇒ היה «לא ברור».
+        # «no way to pay online/by card» = שאלת אמצעי (לא קושי); «nothing to pay» בלי with = מחלוקת/כבר שולם ⇒ לא כאן.
+        r"\b(?:have|got|there'?s|there\s+is|i\s+see)\s+no\s+(?:way|means|money|funds|cash)\s+(?:right\s+now\s+|now\s+|currently\s+)?"
+        r"(?:to|for)\s+(?:pay|paying|cover|covering)\b(?!\s+(?:it\s+|this\s+)?(?:online|by|with|via|through|on\s+(?:the|your)|using|in\s+cash)\b)",
+        r"\b(?:have|got)\s+nothing\s+(?:left\s+)?(?:to\s+pay\s+(?:it\s+|you\s+)?with|to\s+pay\s+(?:it\s+|you\s+)?from)\b",
+        r"\b(?:don'?t|do\s+not)\s+have\s+(?:anything|any\s+money|the\s+money|enough(?:\s+money)?)\s+(?:right\s+now\s+|now\s+)?(?:to\s+pay|for\s+(?:this|it|the\s+bill))\b",
         r"\bpassed\s+away\b", r"\bfuneral\b", r"\bin\s+mourning\b",
         r"\b(?:in\s+(?:the\s+)?hospital|hospitali[sz]ed|after\s+(?:a\s+|my\s+)?surgery|in\s+the\s+icu)\b"),
     Intent.PLAN_REQUEST: _rx(
@@ -1176,12 +1185,13 @@ def _k_mult(t: str, end: int) -> int:
 
 
 _PAID_AMOUNT_RX = _c(
-    r"(?:שילמ\w*|שלמת\w*|העבר\w*|הפקד\w*|שלחת\w*|שולמ\w*|שולם|נתתי|מסרתי)\s*(?:לכם |לך |כבר |רק |בינתיים |את )*"
+    # מנהל 275 (qa16 q16-38): «שילמתי היום 1200 בביט» — תואר-זמן בין הפועל לסכום (טקסט מנורמל: «היומ»)
+    r"(?:שילמ\w*|שלמת\w*|העבר\w*|הפקד\w*|שלחת\w*|שולמ\w*|שולם|נתתי|מסרתי)\s*(?:לכם |לך |כבר |רק |בינתיים |את |היומ |אתמול |הבוקר |שלשומ |עכשיו |ממש עכשיו )*"
     r"(?:ב-?(?:ביט|פייבוקס|העברה)\s*)?" + _PAID_NUM + r"(?:\.(\d{1,2}))?\s*(₪|ש\"ח|שח|שקלים|שקל)?")
 # מנהל 271: סכום ששולם באנגלית — «I paid 1000» / «I paid 1500 nis» (חוב 5,000) ⇒ היה «טוען/ת ששילם/ה 5,000 ₪»
 # (מלוא החוב, בלי «חלקי») כי רק הפעלים העבריים נקראו. דולר מפורש ⇒ לא מחולץ (המטבע של החוב שקלי; לא ממירים).
 _PAID_AMOUNT_EN_RX = _c(
-    r"\b(?:paid|payed|transferred|wired|deposited|sent)\s+(?:(?:you|u|it|over|already|just|only|about|around|like)\s+)*"
+    r"\b(?:paid|payed|transferred|wired|deposited|sent)\s+(?:(?:you|u|it|over|already|just|only|about|around|like|today|yesterday|this\s+morning|earlier)\s+)*"
     r"(?:(?:via|by|with|through)\s+(?:bit|paybox|bank\s+transfer|transfer|credit\s+card|card|cash|check|cheque)\s+)?"
     r"(₪|\$|nis\s*|ils\s*)?" + _PAID_NUM + r"(?:\.(\d{1,2}))?\s*(₪|nis|ils|shekels?|dollars?|usd|\$)?")
 # מנהל 272: «העברתי את החצי» / «שילמתי את המקדמה» (ה׳ הידיעה) לא סומנו חלקי ⇒ «שילם/ה 1,200 ₪» (מלוא החוב)
@@ -1194,7 +1204,7 @@ _PARTIAL_WORDS = _c(r"(?<![\w])(?:חלק|חלקי|ה?חצי|מחצית|ה?מקד
 # «I paid a deposit of 500» ⇒ היה «חלק» בלי סכום (הסכום נקרא רק צמוד לפועל). עכשיו: פועל ⇒ מילת חלקיות ⇒ סכום.
 # «חצי, 600 נשאר» / «half, 600 left» (יתרה, לא ששולם) ⇒ לא מחולץ.
 _PAID_PARTIAL_AMOUNT_RX = _c(
-    r"(?:(?<![\w])(?:שילמ\w*|העבר\w*|הפקד\w*|שלחת\w*|נתתי|מסרתי)|\b(?:paid|payed|transferred|wired|deposited|sent))"
+    r"(?:(?<![\w])(?:שילמ\w*|העבר\w*|הפקד\w*|שלחת\w*|נתתי|מסרתי)|\b(?:paid|payed|transferred|wired|deposited|sent|made(?=\s+(?:a|the)\s+(?:deposit|down\s*payment)\b)))"
     r"\s*(?:(?:לכם|לך|כבר|רק|בינתיים|את|you|u|already|just|only|about|around|like|a|the)\s+)*"
     r"(?:ה?חצי|חלק|ה?מקדמה|half|part\s+of\s+it|part|a\s+portion|deposit|down\s*payment|some\s+of\s+it)"
     r"(?:\s+(?:מה(?:חוב|סכום|תשלום)|of\s+it|of\s+the\s+(?:amount|bill|debt)))?"

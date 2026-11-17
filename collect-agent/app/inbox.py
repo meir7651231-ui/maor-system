@@ -304,8 +304,11 @@ class ConversationInbox:
             for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cid,)):
                 self.svc._cancel_invoice(inv["id"], d.intent.value)
         plan_id = None
-        if prior == State.AWAITING_PLAN_REPLY and intents & {Intent.PLAN_REJECT.value,
-                                                             Intent.PLAN_REQUEST.value}:
+        # מנהל 275 (qa16 q16-09): הלקוח ביקש **בדיוק** את מה שהוצע («אפשר ב-3 תשלומים?» אחרי הצעת 3) ⇒ התשובה
+        # «זה בדיוק מה שהצענו… מתאים?» אבל ההצעה סומנה rejected ⇒ «מאשרת» אחר כך הוביל ל-plan_pending_owner בלי
+        # הסדר לאישור. בקשה זהה (plan_same) היא לא דחייה — ההצעה נשארת בתוקף.
+        if prior == State.AWAITING_PLAN_REPLY and "plan_same" not in d.tags and intents & {
+                Intent.PLAN_REJECT.value, Intent.PLAN_REQUEST.value}:
             # ההצעה האחרונה כבר נשלחה (status='approved' = בעל העסק אישר לשלוח), והלקוח דחה אותה
             # או ביקש אחרת. בלי זה היא נשארה approved לנצח ⇒ `plan_active` חוסם תזכורות גם אחרי
             # שבעל העסק מחדש (critic 2.3.4). השהיית plan_reject/plan_request עצמה נשארת.
