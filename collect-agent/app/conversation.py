@@ -1372,6 +1372,74 @@ def _date_only(t: str, today: date) -> tuple[date | None, bool] | None:
     return None
 
 
+# מנהל 264 (qa14 q14-19, «הבא» AI): בקשת שינוי בהסדר שכבר הוצע/אושר — «can we move the first payment ל-20? לא ל-10»,
+# «אפשר להזיז את התשלום הראשון ל-20?», «להוריד את התשלום החודשי ל-200». היה: «לא ברור» (כרטיס בלי הקשר),
+# ו«שהתשלום השני יהיה בתחילת החודש» ⇒ הבטחה ⇒ «עד איזה תאריך?» ללקוח שכבר יש לו הסדר.
+# רץ רק כשיש הסדר בשיחה (AWAITING_PLAN_REPLY / PLAN_PENDING_OWNER עם offered_plan).
+_CHG_VERB = (r"(?<![\w])(?:ש|ו|ה)?(?:להזיז|להעביר|לדחות|להקדימ|לשנות|לזוז|להוריד|להפחית|להגדיל|להקטינ|לעדכנ"
+             r"|תזיזו|תעבירו|תדחו|תקדימו|תשנו|תורידו|תעדכנו|נזיז|נעביר|נדחה|נשנה|נוריד|אפשר שה?תשלומ)(?![\w])"
+             r"|\b(?:move|change|shift|push|postpone|reschedule|lower|reduce|delay)\b")
+_CHG_OBJ = (r"(?<![\w])(?:ש|ו|ב|ל|מ|את )?(?:ה)?(?:תשלומ|תשלומימ|הסדר|פריסה|תאריכ|תאריכימ|מועד|מועדימ|סכומ)(?![\w])"
+            r"|\b(?:payments?|installments?|instalments?|plan|dates?|amount)\b")
+_CHG_ORD = (r"(?:ה)?תשלומ (?:ה)?(ראשונ|שני|שלישי|רביעי|חמישי|שישי|אחרונ|הבא|החודשי|הקרוב)(?![\w])"
+            r"|\b(first|second|third|fourth|last|next|monthly) (?:payment|installment|instalment)\b")
+_ORD_N = {"ראשונ": 1, "first": 1, "שני": 2, "second": 2, "שלישי": 3, "third": 3, "רביעי": 4, "fourth": 4,
+          "חמישי": 5, "שישי": 6}
+# חלופה שנדחית: «לא ל-10», «ולא ב-10», «במקום ה-10», «instead of the 10th», «not the 10th»
+_CHG_NOT = (r"(?:(?<![\w])(?:ו?לא|במקומ|ולא כמו)\s+(?:ה|ב|ל|עד)?-?\s*\d{1,2}(?:[./]\d{1,2})?(?:\s*(?:ב|ל)?(?:חודש))?(?![\d\w])"
+            r"|\b(?:not|instead\s+of)\s+(?:on\s+)?(?:the\s+)?\d{1,2}(?:st|nd|rd|th)?\b)")
+
+
+def plan_change(t: str) -> tuple[int | None, str] | None:
+    """בקשת שינוי בהסדר קיים ⇒ (מספר התשלום שמבקשים לשנות או None, סוג: 'date'|'amount'|'count'|'other').
+    None ⇒ לא בקשת שינוי. שואל רק על הטקסט; ההקשר (יש הסדר) נבדק אצל הקורא."""
+    om = _s(_CHG_ORD, t)
+    verb = _s(_CHG_VERB, t)
+    if not (verb and _s(_CHG_OBJ, t)) and not (om and _s(r"(?:ב|ל)-?\s*\d{1,2}(?![\d\w])|במקומ|יהיה|יהיו|תהיה"
+                                                         r"|\b(?:on|to)\s+(?:the\s+)?\d{1,2}", t)):
+        return None
+    n = None
+    kind = "other"
+    if om:
+        w = om.group(1) or om.group(2)
+        n = _ORD_N.get(w)
+        if w in ("החודשי", "monthly"):
+            kind = "amount"
+    if _s(r"(?:להוריד|להפחית|להגדיל|להקטינ|תורידו|נוריד|lower|reduce)", t) or extract_monthly_amount(t):
+        kind = "amount"
+    elif extract_installments(t) and _s(r"\d{1,2}\s*תשלומימ|\d{1,2}\s+(?:payments|installments)", t):
+        kind = "count"
+    elif kind == "other" and change_date(t, date(2000, 1, 1)) is not None:
+        kind = "date"
+    return n, kind
+
+
+def change_date(t: str, today: date) -> date | None:
+    """המועד החדש שמבוקש — אחרי הסרת החלופה שנדחית («לא ל-10»)."""
+    u = _c(_CHG_NOT).sub(" ", t)
+    d, vague = extract_date_ctx(u, Context(today=today, business="", state=State.PROMISED))
+    if d is not None and not vague:
+        return d
+    m = _s(r"(?<![\w])(?:ה)?(?:ב|ל|עד)-?\s*(?:ה-?)?(\d{1,2})(?![\d\w./])|\b(?:on|to)\s+(?:the\s+)?(\d{1,2})(?:st|nd|rd|th)?\b", u)
+    if m:
+        day = int(m.group(1) or m.group(2))
+        if 1 <= day <= 31:
+            return _month_day(today, day)
+    return None
+
+
+def plan_change_amount(t: str) -> int | None:
+    """סכום חודשי חדש: «להוריד את התשלום החודשי ל-200», «lower the monthly payment to 200»."""
+    a = extract_monthly_amount(t)
+    if a:
+        return a
+    m = _s(r"(?:ל|to)\s*-?\s*(\d{1,3}(?:,\d{3})+|\d{2,})\s*(?:₪|ש\"ח|שח|שקל\w*|nis|ils)?(?![\d\w])", _c(_CHG_NOT).sub(" ", t))
+    if m:
+        v = int(m.group(1).replace(",", ""))
+        return v * 100 if 10 <= v <= 1_000_000 else None
+    return None
+
+
 def extract_date_ctx(t: str, ctx: Context | None) -> tuple[date | None, bool]:
     """extract_date + יום בחודש לבד כשההקשר הוא תשובה ל«עד מתי?» (או עדכון מועד אחרי הבטחה)."""
     if ctx is None:
@@ -1511,6 +1579,12 @@ _KEEPS_LEGAL = (r"תביע|אתבע|לתבוע|נתבע|משטרה|בית ה?מ�
                 r"|\bcourt\b|\bsue\b|\blawsuit|\bsmall claims|\bcomplaint|\bhandling (?:it|this)|\bbe in touch|\bcontact (?:him|her|them|my)|\brepresent")
 
 
+def _plan_ctx(ctx: Context | None) -> bool:
+    """יש הסדר בשיחה (הוצע ללקוח, או שהלקוח אישר/בעל העסק אישר) ⇒ בקשות שינוי מתפרשות מולו."""
+    return ctx is not None and bool(ctx.offered_plan) and \
+        ctx.state in (State.AWAITING_PLAN_REPLY, State.PLAN_PENDING_OWNER)
+
+
 def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     """כל הכוונות שזוהו, לפי סדר העדיפות."""
     t = normalize(text)
@@ -1542,6 +1616,10 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
                      r"(?:\d{1,2}|two|three|four|five|six|eight|ten|twelve)\b|\bwhat\s+about\s+(?:\d{1,2}|two|three|four|five|six)\b"
                      r"|\b(?:\d{1,2}|two|three|four|five|six)\s+(?:payments|installments|months)\s+instead\b", t):
             found.add(Intent.PLAN_REQUEST)
+    # מנהל 264: בקשת שינוי בהסדר שבשיחה (מועד/סכום/מספר תשלומים) ⇒ פריסה, לא הבטחה/«לא ברור»/אישור/דחייה
+    if _plan_ctx(ctx) and plan_change(t) is not None:
+        found.add(Intent.PLAN_REQUEST)
+        found -= {Intent.PROMISE, Intent.UNKNOWN, Intent.PLAN_ACCEPT, Intent.PLAN_REJECT, Intent.THANKS}
     # מנהל 251 (qa8): «I'm not Dana», «this isn't Dana», «no Dana here» — שם באותיות לטיניות (שם הלקוח במערכת בעברית).
     # שם פרטי = מילה באות גדולה בטקסט המקורי, לא מילה מרשימת השגרה («I'm not Sure/Home» ≠ טעות במספר).
     _m_name = re.search(r"\b(?:I'?m|I\s+am|Im|i'?m|i\s+am|im|[Tt]his\s+is\s*n'?t|[Tt]his\s+is\s+not|[Ii]t'?s\s+not|[Mm]y\s+name\s+is\s*n'?t"
@@ -2207,27 +2285,63 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         state = State.AWAITING_OWNER
     elif primary in (Intent.PLAN_REQUEST, Intent.PLAN_REJECT, Intent.CANT_PAY):
         requested = extract_installments(t)
-        if requested is None and ctx.state == State.AWAITING_PLAN_REPLY:
+        # מנהל 264: שינוי בהסדר שבשיחה — אותו מספר תשלומים, רק מה שביקשו משתנה. נבדק לפני «ספרה לבד = מספר
+        # תשלומים»: אחרת «להזיז את התשלום הראשון ל-20» ב-AWAITING_PLAN_REPLY נקרא «20 תשלומים».
+        chg = plan_change(t) if primary == Intent.PLAN_REQUEST and _plan_ctx(ctx) else None
+        if requested is None and ctx.state == State.AWAITING_PLAN_REPLY and (chg is None or chg[1] == "count"):
             m = _s(r"(\d{1,2}|" + _NUMW + r")", t)
             if m:
                 g = m.group(1)
                 requested = int(g) if g.isdigit() else _NUM_WORDS.get(g)
         monthly = extract_monthly_amount(t)
+        chg_card = False
+        if chg is not None:
+            tags.append("plan_change")
+            ch_n, ch_kind = chg
+            if ch_kind == "amount":
+                monthly = monthly or plan_change_amount(t)
+                chg_card = not monthly
+            elif ch_kind == "date":
+                # רק מועד התשלום הראשון ניתן להזזה בהצעה מחושבת (השאר נגזרים ממנו); תשלום אחר ⇒ בעל העסק
+                chg_card = ch_n not in (None, 1)
+            elif ch_kind == "other":
+                chg_card = True
+            if requested is None and ch_kind != "count" and not (ch_kind == "amount" and monthly):
+                requested = len(ctx.offered_plan)
         if requested is None and monthly and ctx.total_agorot:
             requested = -(-ctx.total_agorot // monthly)  # עיגול למעלה
         start = None
-        dd, _ = extract_date(t, ctx.today)
-        if dd and (dd - ctx.today).days <= p.max_defer_days and dd > ctx.today:
-            start = dd
+        if chg is not None and chg[1] == "date" and not chg_card:
+            dd = change_date(t, ctx.today)
+            # גבול: המועד הרגיל של התשלום הראשון + הדחייה המותרת (מדיניות בעל העסק). מעבר ⇒ בעל העסק מחליט
+            if dd is None or dd <= ctx.today or \
+                    (dd - ctx.today).days > p.first_installment_in_days + p.max_defer_days:
+                chg_card = True
+            else:
+                start = dd
+        else:
+            dd, _ = extract_date(t, ctx.today)
+            if dd and (dd - ctx.today).days <= p.max_defer_days and dd > ctx.today:
+                start = dd
         over = requested is not None and requested > p.max_installments
         sensitive = "reservist" in tags or "sensitive" in tags
-        if p.auto_offer_plan and ctx.invoices and not sensitive:
+        if p.auto_offer_plan and ctx.invoices and not sensitive and not chg_card:
             plan = propose_plan(ctx, requested, start)
-        if plan:
+        if chg_card and not sensitive:
+            # מנהל 264: שינוי שאי אפשר לחשב בבטחה (תשלום שאינו הראשון, מועד מחוץ לגבולות, «בתחילת החודש»)
+            # ⇒ לא מנחשים לוח חדש וגם לא שואלים «עד מתי?» — כרטיס לבעל העסק עם ההסדר הנוכחי והבקשה.
+            reply = (f"{hi}קיבלנו את הבקשה לשינוי בהסדר. בעל העסק יבדוק ויחזור אליכם.{sig}")
+            summary = (f"🔁 {name} מבקש/ת שינוי בהסדר ({plan_lines(ctx.offered_plan, ctx.currency)}): "
+                       f"\"{_clip(t)}\".")
+            actions.append("לעדכן את ההסדר (הצעה חדשה ב«הסדרים») או לענות אישית")
+            state = State.AWAITING_OWNER
+        elif plan:
             intro = {Intent.CANT_PAY: f"{hi}תודה ששיתפתם, אנחנו מבינים. אפשר לפרוס את {total} בלי תוספת: ",
                      }.get(primary, f"{hi}בשמחה. הצעה לפריסת {total} בלי תוספת: ")
             if over:
                 intro = f"{hi}אפשר לפרוס עד {p.max_installments} תשלומים בלי תוספת: "
+            elif chg is not None:
+                intro = f"{hi}בשמחה. הצעה מעודכנת לפריסת {total} בלי תוספת: "
             reply = (intro + plan_lines(plan, ctx.currency) + ". "
                      f"בכפוף לאישור סופי. מתאים? השיבו \"מאשר\" או כתבו מה מתאים לכם.{sig}")
             if not ctx.fits_sms(reply):
@@ -2236,7 +2350,8 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                 reply = (f"{hi}אפשר לפרוס את {total} בלי תוספת: {plan_lines(plan, ctx.currency)}. "
                          f"בכפוף לאישור. מתאים? השיבו \"מאשר\".{sig}")
             state = State.AWAITING_PLAN_REPLY
-            summary = f"{name} " + ("סיפר/ה על קושי" if primary == Intent.CANT_PAY else "ביקש/ה פריסה") + \
+            summary = f"{name} " + ("סיפר/ה על קושי" if primary == Intent.CANT_PAY else
+                                    "ביקש/ה שינוי בהסדר" if chg is not None else "ביקש/ה פריסה") + \
                       (f" ל-{requested} תשלומים" if requested else "") + \
                       f". טיוטת הצעה: {plan_lines(plan, ctx.currency)}."
             if over:

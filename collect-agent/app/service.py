@@ -2596,6 +2596,15 @@ class CollectService:
         dr = self.db.one("SELECT status, message_id FROM drafts WHERE id=?", (did,))
         if dr["status"] == "rejected":            # לא יצא (שגיאת ספק/כתובת) ⇒ ההסדר לא נעול
             self.db.x("UPDATE plans SET status='proposed' WHERE id=?", (plan_id,))
+        else:
+            # מנהל 264: הצעה מעודכנת (הלקוח ביקש להזיז מועד/לשנות סכום אחרי שהסדר אושר) מחליפה את ההסדר
+            # הקודם. היה: שני הסדרים 'approved' לאותו לקוח ⇒ ברשימת ההסדרים לא ברור איזה לוח בתוקף.
+            old = [r["id"] for r in self.db.q("SELECT id FROM plans WHERE customer_id=? AND status='approved' "
+                                              "AND id!=?", (cust["id"], plan_id))]
+            if old:
+                self.db.x("UPDATE plans SET status='superseded' WHERE customer_id=? AND status='approved' "
+                          "AND id!=?", (cust["id"], plan_id))
+                self.audit("system", "plan_replaced", {"plan": plan_id, "replaced": old})
         self.audit(actor, "plan_approved", {"plan": plan_id, "draft": did,
                                             "message_id": dr["message_id"]})
         return {"plan_id": plan_id, "message_id": dr["message_id"], "channel": channel,
