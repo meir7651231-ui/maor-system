@@ -266,7 +266,9 @@ def _is_signature_line(s: str) -> bool:
 
 # critic סבב 128: ספק inbound שמעביר HTML (מייל HTML-only) — הציטוט שלנו ב-<blockquote>/«&gt;»/divRplyFwdMsg
 # לא הוסר ⇒ «השיבו "פריסה"» מהתזכורת שלנו ⇒ «ok» סווג plan_request. מזהים HTML רק לפי תגים מוכרים.
-_HTML_HINT = re.compile(r"<\s*(?:br|div|p|blockquote|html|body|span|b|i|hr|table|font)\b[^>]*>"
+# critic סבב 129: תג אמיתי = שם-תג ואחריו מיד «>» / «/>» או מאפיין (x=) — אחרת «אם a<b אז b>a» זוהה כ-HTML
+# והטקסט שבין «<b» ל-«>» נמחק.
+_HTML_HINT = re.compile(r"</?\s*(?:br|div|p|blockquote|html|body|span|b|i|hr|table|font)(?:\s*/?>|\s+[a-z-]+\s*=)"
                         r"|&(?:gt|lt|amp|quot|nbsp);", re.I)
 _HTML_QUOTE_START = re.compile(
     r"<blockquote\b|<div[^>]*\bclass=[\"']?[^\"'>]*\b(?:gmail_quote|yahoo_quoted|moz-cite-prefix)\b"

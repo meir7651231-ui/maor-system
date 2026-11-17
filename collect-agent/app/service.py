@@ -2014,7 +2014,7 @@ class CollectService:
         try:
             return self._email_webhook(sender, text, message_id, auth_results=auth_results, subject=subject)
         except Exception:
-            self._release_webhook("mail:" + (message_id or hashlib.sha256(f"{sender}|{text}".encode()).hexdigest()))
+            self._release_webhook(self._email_key(sender, text, message_id, subject))
             raise
 
     def _subject_protective_with_empty_body(self, subject: str, body: str) -> str:
@@ -2029,6 +2029,13 @@ class CollectService:
         if not s or not set(detect(s)) & set(_FLOOR_INTENTS):
             return body
         return s + "\n" + body
+
+    @staticmethod
+    def _email_key(sender: str, text: str, message_id: str, subject: str) -> str:
+        """critic סבב 129: בלי message_id — הנושא נכנס למפתח (רק כשקיים ⇒ מפתח בלי נושא ביט-זהה לקודם).
+        אחרת שני מיילים עם גוף ריק ונושא שונה («שילמתי» ואז «הסר») ⇒ השני «duplicate» ⇒ ההסרה נבלעה."""
+        raw = f"{sender}|{text}" + (f"|{subject}" if subject else "")
+        return "mail:" + (message_id or hashlib.sha256(raw.encode()).hexdigest())
 
     def _email_subject_text(self, subject: str) -> str:
         """critic סבב 125: נושא מייל ⇒ טקסט לסיווג, רק אם הוא אומר משהו (בלי Re:/Fwd:, בלי שם העסק)."""
@@ -2053,11 +2060,10 @@ class CollectService:
         critic 3.6.7: מייל נכנס לא מאומת יכול להתחזות ללקוח. ההשפעות של מייל נכנס הן רק עצירה
         (השהיה/מחלוקת/הסרה — שמרני), ולכן לא חוסמים; אבל **מתעדים** את פסיקת SPF/DKIM/DMARC של
         הספק (`email_auth` ב-audit, בלי כתובות), ומייל שלא עבר אימות מסומן לבעל העסק."""
-        import hashlib
 
         from .channels import parse_address, strip_reply
 
-        key = "mail:" + (message_id or hashlib.sha256(f"{sender}|{text}".encode()).hexdigest())
+        key = self._email_key(sender, text, message_id, subject)
         if not self._claim_webhook(key) or self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
             return {"ok": True, "duplicate": True}
         addr, body = parse_address(sender), strip_reply(text)
