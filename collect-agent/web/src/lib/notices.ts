@@ -28,10 +28,12 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   orbit_billing: { icon: '💳', title: 'המנוי לגבי — נדרשת פעולה באורביט', tone: 'warn' },
   // critic סבב 33: הודעות **נכנסות** בלי לקוח — אין להן טיוטה ב«תשובות לקוחות», וזה המקום היחיד שבו הן נראות
   unknown_sender: { icon: '❔', title: 'הודעה ממספר/כתובת לא מוכרים', tone: 'warn' },
+  // critic סבב 127: מצוקה/קטין/משפטי/מחלוקת משולח לא משויך — המייל הדחוף מוביל לכאן ⇒ ראשונה ומסומנת
+  unknown_sender_urgent: { icon: '🚨', title: 'פנייה דחופה ממספר/כתובת לא מוכרים — לבדיקתך עכשיו', tone: 'warn' },
   shared_contact_ambiguous: { icon: '👥', title: 'הודעה ממספר/כתובת של כמה לקוחות — לא שויכה, לבדיקתך', tone: 'warn' },
 };
 /** נכנסות שמוצגות כאן: רק בלי לקוח מזוהה (ללקוח מזוהה יש טיוטה/כרטיס ב«תשובות לקוחות»). */
-const INBOUND_ORPHANS = new Set(['unknown_sender', 'shared_contact_ambiguous']);
+const INBOUND_ORPHANS = new Set(['unknown_sender', 'unknown_sender_urgent', 'shared_contact_ambiguous']);
 
 /** מסנן ומתרגם. intent לא מוכר ⇒ מוצג עם כותרת כללית (לא נבלע בשקט). סדר: trial_ending ראשון, ואז החדש ביותר. */
 export function systemNotices(rows: OwnerMsg[]): Notice[] {
@@ -42,5 +44,6 @@ export function systemNotices(rows: OwnerMsg[]): Notice[] {
       const k = KIND[r.intent ?? ''] ?? { icon: 'ℹ️', title: 'הודעה מגבי', tone: 'info' as const };
       return { id: r.id, icon: k.icon, title: k.title, body: r.body, tone: k.tone, intent: r.intent ?? '' };
     })
-    .sort((a, b) => Number(b.intent === 'trial_ending') - Number(a.intent === 'trial_ending') || b.id - a.id);
+    .sort((a, b) => Number(b.intent === 'unknown_sender_urgent') - Number(a.intent === 'unknown_sender_urgent')
+      || Number(b.intent === 'trial_ending') - Number(a.intent === 'trial_ending') || b.id - a.id);
 }

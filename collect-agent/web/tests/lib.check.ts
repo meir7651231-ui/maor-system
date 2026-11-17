@@ -1230,3 +1230,18 @@ test('הפעלה 174: hasPausedCustomer — רק חשבונית פתוחה של 
   const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
   assert.match(dash, /href="#\/invoices\?f=paused"/);
 });
+
+// critic סבב 127: פנייה דחופה משולח לא משויך (מצוקה/קטין/משפטי) הוצגה כמו כל «הודעה ממספר לא מוכר» —
+// בלי סימון דחיפות ובסדר כרונולוגי. בעל העסק שנכנס מהמייל הדחוף לא ידע איזו מהן.
+test('critic 127: unknown_sender_urgent מוצגת, מסומנת דחופה וראשונה', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const n = systemNotices([
+    { id: 9, customer_id: null, direction: 'system', channel: 'owner', body: 'x', intent: 'trial_ending', created_at: '2026-11-17T10:00:00+02:00' },
+    { id: 8, customer_id: null, direction: 'in', channel: 'sms', body: 'מי אתם?', intent: 'unknown_sender', created_at: '2026-11-17T10:00:00+02:00' },
+    { id: 3, customer_id: null, direction: 'in', channel: 'email', body: 'help', intent: 'unknown_sender_urgent', created_at: '2026-11-17T09:00:00+02:00' },
+  ]);
+  assert.equal(n.length, 3);
+  assert.equal(n[0].intent, 'unknown_sender_urgent');
+  assert.match(n[0].title, /דחופה/);
+  assert.equal(n[0].tone, 'warn');
+});

@@ -400,7 +400,8 @@ class CollectService:
                           "כדאי לבדוק למי היא שייכת.\n" if unmatched else
                           "התזכורות האוטומטיות ללקוח הזה כבר נעצרו. התשובה ממתינה לכם, ואף הודעה לא נשלחת בלי "
                           "אישורכם.\n")
-                      + f"לכניסה: {self.s.public_base_url}/ui\n\n"
+                      # critic סבב 127: /ui לא מציג הודעות משולח לא משויך — רק /app/ (הודעות מערכת)
+                      + f"לכניסה: {self.s.public_base_url}{'/app/' if unmatched else '/ui'}\n\n"
                       "מטעמי פרטיות, המייל לא כולל את תוכן ההודעה ולא פרטי לקוח.",
                       subject=f"גבי: פנייה דחופה ממתינה לטיפולכם ({self.s.business_name})")
         send = getattr(self.sender, "send_owner", None) or self.sender.send

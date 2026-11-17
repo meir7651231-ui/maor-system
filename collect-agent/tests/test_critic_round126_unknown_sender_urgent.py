@@ -34,3 +34,22 @@ def test_unknown_sender_routine_stays_normal(svc, text):
     svc.sync()
     r = svc.inbound("email", "stranger@else.example", text)
     assert r["escalation"] == "normal" and _owner_mails(svc) == []
+
+
+# ═══ critic סבב 127: מה בעל העסק רואה ═══
+# המייל הדחוף מקשר ל-/ui — אבל /ui לא מציג בכלל הודעות משולח לא משויך (רק טיוטות), ו-/app/ מציג אותן כ«הודעה
+# ממספר/כתובת לא מוכרים» רגילה, בלי סימון דחיפות, ממוינת לפי זמן. ⇒ בעל העסק נכנס מהמייל הדחוף ולא מוצא כלום.
+def test_unmatched_urgent_is_marked_and_links_to_app(svc):
+    svc.sync()
+    svc.inbound("email", "spouse@else.example", "I want to die, please stop")
+    row = svc.db.one("SELECT intent FROM messages WHERE direction='in' AND customer_id IS NULL ORDER BY id DESC")
+    assert row["intent"] == "unknown_sender_urgent", row["intent"]
+    body = _owner_mails(svc)[0]["body"]
+    assert "/app/" in body and "/ui" not in body, body
+
+
+def test_unmatched_routine_keeps_old_intent(svc):
+    svc.sync()
+    svc.inbound("email", "stranger@else.example", "איך משלמים?")
+    row = svc.db.one("SELECT intent FROM messages WHERE direction='in' AND customer_id IS NULL ORDER BY id DESC")
+    assert row["intent"] == "unknown_sender"

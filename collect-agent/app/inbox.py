@@ -176,8 +176,9 @@ class ConversationInbox:
                            if i in found), None)
             # לא חושפים כלום לשולח לא מזוהה; רק לבעל העסק
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
-                      "created_at) VALUES(NULL,'in',?,?, 'unknown_sender', 1, ?)",
-                      (channel, text, _iso(now)))
+                      "created_at) VALUES(NULL,'in',?,?,?, 1, ?)",
+                      # critic סבב 127: דחופה מסומנת בנפרד ⇒ /app/ מציג אותה ראשונה ומסומנת
+                      (channel, text, "unknown_sender_urgent" if urgent else "unknown_sender", _iso(now)))
             if urgent:
                 self.svc.email_owner_urgent(urgent, unmatched=True)
             return {"intent": "unknown_sender", "escalate": True, "escalation": "urgent" if urgent else "normal",
