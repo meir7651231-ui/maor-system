@@ -954,6 +954,15 @@ _extend(Intent.DISPUTE,
         r"\b(?:charg\w*|bill\w*)\s+(?:me|us)\s+for\s+(?:something|smth|stuff|sth)\s+(?:i|we)\s+"
         r"(?:never|didn'?t|did\s+not)\s+(?:got|get|receive|received|order|ordered|ask\s+for|asked\s+for)\b")
 
+# ═══ critic סבב 132: תיקון סכום = מחלוקת («חייבתם אותי 1,500 במקומ 1,200», «the bill should be 1,000 not 1,200») ═══
+_NUMV = r"\d(?:[\d,. ]*\d)?\s*(?:₪|ש\"ח|שח|שקל\w*|nis|ils|shekels?)?"
+_extend(Intent.DISPUTE,
+        r"(?:ה)?(?:סכומ|חיוב|חשבונית|מחיר)\s+(?:\S+\s+){0,3}?" + _NUMV + r"\s+(?:ו?לא|במקומ)\s+\d",
+        r"(?:חייבתמ|חייבו|גביתמ|גבו|לקחתמ|חויבתי|חויבנו)\s+(?:אותי\s+|אותנו\s+|ממני\s+|מאיתנו\s+)?(?:\S+\s+){0,2}?"
+        + _NUMV + r"\s+(?:ו?לא|במקומ)\s+\d",
+        r"\b(?:bill|amount|charge|invoice|price|total)\s+(?:\S+\s+){0,3}?" + _NUMV + r"\s+(?:not|instead\s+of)\s+\d",
+        r"\b(?:you\s+|they\s+)?(?:charged|billed)\s+(?:me|us)\s+(?:for\s+)?" + _NUMV + r"\s+(?:not|instead\s+of)\s+\d")
+
 # q12-08/10: «התשלומים» כשם עצם כללי («אני אחראית על התשלומים בבית», «התשלומים של האשראי יורדים ב-10») ≠ בקשת
 # פריסה. הביטויים מוסרים מהטקסט רק לבדיקת PLAN_REQUEST; «אפשר בתשלומים?» לא נוגע.
 _GEN_PAYMENTS = _c(
@@ -1085,12 +1094,12 @@ def extract_installments(t: str) -> int | None:
     return n if 1 <= n <= 36 else None
 
 
-_MONTHLY_RX = _c(r"(\d{1,3}(?:,\d{3})+|\d{2,})\s*(?:₪|ש\"ח|שח|שקל\w*)?\s*(?:כל חודש|בכל חודש|לחודש|בחודש(?! ה))")
+_MONTHLY_RX = _c(r"(\d{1,3}(?:,\d{3})+|\d{1,3}(?:[. ]\d{3})+(?![\d]|[.,]\d)|\d{2,})\s*(?:₪|ש\"ח|שח|שקל\w*)?\s*(?:כל חודש|בכל חודש|לחודש|בחודש(?! ה))")
 
 
 # מנהל 268: סכום חודשי באנגלית — «200 a month», «200 per month», «₪200/month», «200 monthly». היה: לא זוהה בכלל
 # («can we do 200 a month?» ⇒ «לא ברור», גם באמצע הצעת פריסה). רק 3 ספרות ומעלה או מטבע מפורש (כמו בעברית).
-_MONTHLY_EN_RX = _c(r"(?:₪|\$|nis\s*|ils\s*)?(\d{1,3}(?:,\d{3})+|\d{2,})\s*(?:₪|nis|ils|shekels?|dollars?|\$)?\s*"
+_MONTHLY_EN_RX = _c(r"(?:₪|\$|nis\s*|ils\s*)?(\d{1,3}(?:,\d{3})+|\d{1,3}(?:[. ]\d{3})+(?![\d]|[.,]\d)|\d{2,})\s*(?:₪|nis|ils|shekels?|dollars?|\$)?\s*"
                     r"(?:(?:a|per|each|every)\s+month\b|/\s*(?:month|mo)\b|monthly\b)")
 
 
@@ -1098,14 +1107,14 @@ def extract_monthly_amount(t: str) -> int | None:
     """"300 כל חודש" ⇒ 30000 אגורות. גם באנגלית: «200 a month» (מנהל 268)."""
     # «אפשר ב-20 לחודש?» / «עד ה-15 בחודש» = יום בחודש, לא ₪20 לחודש (היה: «ביקש/ה 60 תשלומים»)
     m = next((x for x in _MONTHLY_RX.finditer(t)
-              if not (int(x.group(1).replace(",", "")) <= 31 and _s(r"(?:(?<![\w])(?:ב|עד|ל)\s*-?\s*(?:ה-?)?)$", t[:x.start()]))),
+              if not (int(re.sub(r"[,. ]", "", x.group(1))) <= 31 and _s(r"(?:(?<![\w])(?:ב|עד|ל)\s*-?\s*(?:ה-?)?)$", t[:x.start()]))),
              None)
     e = _MONTHLY_EN_RX.search(t)
     if e and (not m or e.start() < m.start()):
         m = e
     if not m:
         return None
-    v = int(m.group(1).replace(",", ""))
+    v = int(re.sub(r"[,. ]", "", m.group(1)))   # critic סבב 132: «1.000 לחודש» / «1 000 בחודש»
     return v * 100 if 10 <= v <= 1_000_000 else None
 
 

@@ -42,3 +42,5 @@
 {"id": "c122-1", "text": "my lawer will call u", "ctx": {"channel": "sms"}, "expect": {"intent": "legal"}, "critical": true}
 {"id": "c122-2", "text": "i allready payed", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim"}, "critical": true}
 {"id": "c122-3", "text": "i never payed this", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["paid_claim"]}, "critical": true}
+{"id": "c132-1", "text": "חייבתם אותי 1,500 במקום 1,200", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c132-2", "text": "the bill should be 1,000 not 1,200", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
