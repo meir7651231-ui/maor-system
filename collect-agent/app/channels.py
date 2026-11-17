@@ -227,12 +227,30 @@ def parse_address(raw: str) -> str:
     return (m.group(1) or m.group(2)).strip().lower() if m else ""
 
 
+# critic סבב 123: כותרת ציטוט של Gmail עברית («בתאריך … מאת שם <mail>:», עם תווי כיווניות, בלי «כתב»),
+# Apple Mail עברית («ב-17 בנוב׳ 2026, בשעה 10:00, שם <mail> כתב/ה:») וכותרת שנשברה לשתי שורות — נשארו בגוף
+# ההודעה: שם העסק («משרד עורכי דין») ⇒ legal, תאריך הכותרת ⇒ תאריך הבטחה. שורה של הלקוח שמסתיימת ב«כתב:» בלי
+# מייל/שנה — נשמרת.
+_BIDI = re.compile(r"[\u200e\u200f\u202a-\u202e\u2066-\u2069]")
+_QUOTE_HDR_TAIL = re.compile(
+    r"<\s*[^<>@\s]+@[^<>\s]+\s*>\s*(?:wrote|כתב(?:/ה|ה)?)?\s*:\s*$"
+    r"|^(?:on|ב-?)\s.*\b(?:19|20)\d\d\b.*(?:wrote|כתב(?:/ה|ה)?)\s*:\s*$", re.I)
+
+
+def _is_quote_header(s: str) -> bool:
+    return bool(s.startswith(">") or _QUOTE_HDR.match(s) or s == "--" or _QUOTE_HDR_TAIL.search(s))
+
+
 def strip_reply(text: str) -> str:
     """רק מה שהלקוח כתב: בלי הציטוט של ההודעה שלנו ובלי חתימת '-- '."""
     out = []
-    for line in (text or "").replace("\r\n", "\n").split("\n"):
-        s = line.strip()
-        if s.startswith(">") or _QUOTE_HDR.match(s) or s == "--":
+    lines = (text or "").replace("\r\n", "\n").split("\n")
+    for i, line in enumerate(lines):
+        s = _BIDI.sub("", line).strip()
+        nxt = _BIDI.sub("", lines[i + 1]).strip() if i + 1 < len(lines) else ""
+        wrapped = bool(s and nxt and re.match(r"^(?:on\s|בתאריך\s|ב-?\d)", s, re.I)
+                       and _QUOTE_HDR_TAIL.search(s + " " + nxt))   # כותרת שנשברה לשתי שורות
+        if _is_quote_header(s) or wrapped:
             break
         out.append(line)
     return "\n".join(out).strip()
