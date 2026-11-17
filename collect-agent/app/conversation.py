@@ -721,6 +721,52 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"thx|thnx|tnx|thanx|ty|10x|tks|got it|noted|received|perfect|great|awesome|אוקיי|אוקי|ok|בסדר|בסדר גמור|מעולה|יופי|👍|🙏|רשמתי|ראיתי|טוב|רבה|גמור|לכם|לך|יום טוב|שבוע טוב)\W*)+$"),
 }
 
+
+# ═══ מנהל 260 (סט QA #12, עיוור — סוכן נפרד שלא קרא את app/) ═══
+# ניסוחים עקיפים בלי מילות המפתח הקיימות. מתווספים כחלופות לתבניות הקיימות (אותו שער תחילת-מילה).
+def _extend(it: Intent, *parts: str) -> None:
+    RX[it] = _c(RX[it].pattern + "|" + "|".join(_guard(p) for p in parts))
+
+
+# 🔴 q12-01/11/26: מצוקה עקיפה — «אף אחד לא ישים לב אם פשוט אעלם», «נזקקת לעמותה בשביל סלי מזון»,
+# «nothing in the fridge», «don't know how we're going to get through» ⇒ היו «לא ברור» בלי הסלמה דחופה.
+_extend(Intent.DISTRESS,
+        r"(?:אמ|ש)\s+(?:פשוט\s+)?(?:אני\s+)?(?:אעלמ|איעלמ|אסתלק)(?![\w])",
+        r"(?:ישימ לב|יתגעגע|ירגיש)\W+(?:\w+\W+){0,2}?(?:אמ|ש)\s+(?:פשוט\s+)?(?:אני\s+)?(?:אעלמ|איעלמ|אמות|לא אהיה)(?![\w])",
+        r"לא בטוח\w* שיש (?:טעמ|סיבה) (?:לחיות|בחיימ|להמשיכ)",
+        r"(?:נזקק|נזקקת|נזקקימ|נזקקות|תלוי|תלויה|תלויימ)\s+(?:\w+\s+){0,2}?(?:ל|ב)(?:ה)?(?:עמותה|עמותות|סלי מזונ|סל מזונ|תלושי מזונ|בנק (?:ה)?מזונ|חלוקת מזונ)",
+        r"(?:סל|סלי) מזונ(?![\w])", r"תלושי מזונ(?![\w])", r"בנק (?:ה)?מזונ(?![\w])",
+        r"\bnothing\s+(?:left\s+)?in\s+the\s+fridge\b",
+        r"\bno\s+food\s+(?:in\s+the\s+(?:house|fridge)|at\s+home|for\s+(?:the\s+|my\s+)?(?:kids|children))\b",
+        r"\b(?:don'?t|do\s+not)\s+know\s+how\s+(?:we|i)(?:'re|'m|\s+are|\s+am)?\s+(?:going\s+to|gonna)\s+(?:get\s+through|survive|make\s+it)\b",
+        r"\bfood\s+banks?\b")
+# 🔴 q12-02/07/14/22: מחלוקת עקיפה — ביטול מנוי, מחיר שסוכם אחר, שירות שלא סופק ⇒ היו «לא ברור» (בלי השהיה).
+_extend(Intent.DISPUTE,
+        r"(?:ביטלנו|ביטלתי|ביטלה|ביטל)\s+(?:את\s+)?(?:ה)?(?:מנוי|הזמנה|שירות|עסקה|חוזה|הסכמ|הרשמה|מינוי)",
+        r"(?:המחיר|הסכומ)\s+(?:ש)?(?:סגרנו|סיכמנו|הוסכמ|דיברנו|קבענו)\w*\s+(?:עליו\s+)?(?:היה\s+)?(?:\w+\s+)?(?:אחר|שונה|נמוכ|פחות)",
+        r"\b(?:we|i)\s+(?:cancell?ed|terminated)\s+(?:the|our|my)\s+(?:membership|subscription|order|service|contract|booking)\b",
+        r"\b(?:supposed|meant)\s+to\s+(?:get|receive|have)\b.{0,60}\bstill\s+waiting\b",
+        r"\b(?:not|n'?t)\s+(?:really\s+)?sure\s+what\s+(?:exactly\s+)?(?:we'?re|i'?m|we\s+are|i\s+am)\s+paying\s+for\b",
+        r"\bwhat\s+(?:exactly\s+)?(?:are\s+we|am\s+i)\s+paying\s+for\b")
+# q12-05: «מה זאת ההודעה הזאת?» = מי שולח
+_extend(Intent.WHO_IS_THIS, r"^\W*מה (?:זאת|זו|זה) (?:ה)?(?:הודעה|מייל|סמס)(?: (?:ה)?(?:זאת|זו|זה))?\W*$")
+# q12-06/19: «תתקשרו למספר שלי אחרי 5», «Could someone give me a call? I'd rather talk this over by phone»
+_extend(Intent.CALLBACK,
+        r"(?:תתקשרו|תתקשר|תתקשרי|התקשרו|חייגו|תחייגו|תצלצלו)\s+(?:אליי\s+|אלי\s+)?(?:ל|אל\s+)(?:ה)?(?:מספר|טלפונ|נייד|פלאפונ)",
+        r"\bgive\s+(?:me|us)\s+a\s+(?:call|ring)\b",
+        r"\b(?:talk|discuss|go\s+over)\s+(?:this|it)\s+(?:over\s+)?(?:by|on|over\s+the)\s+(?:phone|telephone)\b",
+        r"\b(?:rather|prefer\s+to)\s+(?:talk|speak)\s+(?:by|on|over\s+the)\s+phone\b")
+# q12-13: «את החשבונית שלחתם לכתובת הישנה שלי, אפשר לשלוח שוב?» = שליחה חוזרת, לא מחלוקת
+_extend(Intent.COPY_REQUEST,
+        r"חשבונית\W+(?:\w+\W+){0,8}?(?:לשלוח|תשלחו|שלחו|תשלח|תשלחי)\s+(?:אותה\s+|לי\s+|את זה\s+)?(?:שוב|מחדש|עוד פעמ)")
+
+# q12-08/10: «התשלומים» כשם עצם כללי («אני אחראית על התשלומים בבית», «התשלומים של האשראי יורדים ב-10») ≠ בקשת
+# פריסה. הביטויים מוסרים מהטקסט רק לבדיקת PLAN_REQUEST; «אפשר בתשלומים?» לא נוגע.
+_GEN_PAYMENTS = _c(
+    r"(?<![\w])(?:אחראי|אחראית|אחראימ|מטפל|מטפלת|מטפלימ|מנהל|מנהלת)\s+(?:על|ב|את)\s*(?:כל\s+)?(?:ה)?תשלומימ(?![\w])"
+    r"|(?<![\w])(?:ה)?תשלומימ\s+(?:של|על|ל)\s*(?:ה)?(?:אשראי|כרטיס|משכנתא|בית|בנק|הלוואה|הלוואות|רכב|ארנונה|חשמל|גנ|ביטוח)\w*"
+    r"|(?<![\w])(?:ה)?תשלומימ\s+(?:\w+\s+)?(?:יורדימ|נגבימ|יוצאימ|יורדות)(?![\w])")
+
 # כוונות שמבוססות על הקשר (מגיבות להצעה שנשלחה)
 STATEFUL = {Intent.PLAN_ACCEPT, Intent.PLAN_REJECT}
 
@@ -1016,7 +1062,9 @@ def extract_date(t: str, today: date) -> tuple[date | None, bool]:
         return today + timedelta(days=2), False
     if _s(r"(?<![\w])(?:עד |כבר )?מחר(?![\w])", t):
         return today + timedelta(days=1), False
-    if _s(r"(?<![\w])(?:עכשיו|מיד|תיכף|בדקות הקרובות)(?![\w])", t):
+    # מנהל 260: «אני בעבודה עכשיו» / «עסוקה כרגע» = למה לא עכשיו, לא מועד תשלום (היה promise=היום ב-AWAITING_DATE)
+    if _s(r"(?<![\w])(?:עכשיו|מיד|תיכף|בדקות הקרובות)(?![\w])",
+          re.sub(_c(r"(?:בעבודה|עסוק\w*|בפגישה|בנהיגה|נוהג\w*|בדרכ|בחוצ לארצ|לא (?:יכול|יכולה|זמין|זמינה) (?:לדבר|לענות))\s+(?:\w+\s+)?עכשיו(?![\w])"), " ", t)):
         return today, False
     if _s(r"(?<![\w])(?:עוד |עד |כבר )?היום(?![\w])|(?<![\w])עוד מעט|בשעות הקרובות|הערב(?![\w])", t):
         return today, False
@@ -1137,8 +1185,15 @@ def extract_date_ctx(t: str, ctx: Context | None) -> tuple[date | None, bool]:
     """extract_date + יום בחודש לבד כשההקשר הוא תשובה ל«עד מתי?» (או עדכון מועד אחרי הבטחה)."""
     if ctx is None:
         return None, False
+    pc = _promise_clause_date(t, ctx.today)   # מנהל 260: תאריך של משפט ההבטחה גובר
+    if pc is not None:
+        return pc, False
     d, vague = extract_date(t, ctx.today)
     if d is None and ctx.state in (State.AWAITING_DATE, State.PROMISED):
+        # מנהל 260 (q12-16): «שלישי הבא» / «יום חמישי» לבד כתשובה ל«עד מתי?» (בלי «ב»/«ביום»)
+        wm = _fm(r"\W*(?:יום\s+)?(ראשון|שני|שלישי|רביעי|חמישי|שישי)(?:\s+(?:ה)?(?:הבא|הקרוב))?\W*", t)
+        if wm:
+            return _next_weekday(ctx.today, _WEEKDAYS[wm.group(1)]), False
         bd = _bare_day(t, ctx.today, need_marker=ctx.state == State.PROMISED)
         if bd is not None:
             return bd, False
@@ -1163,8 +1218,11 @@ _CORRECTION_LEAD = (r"^\W*(?:(?:אז|אה|אהה|טוב|אוקיי|אוקי|לא
                     # «אם זה בעיה אז ב-19 לחודש הזה», «אוקיי אוקיי, ב-13». עדיין חובה מילה מובילה + יום עם מילת יחס;
                     # «ב-25» לבד (rm257-03) ⇒ לא נתפס.
                     r"|^\W*(?:טוב|אוקיי|אוקי|בסדר|סבבה|יאללה)(?![\w])"
+                    # מנהל 260 (q12-25): «אם זה מסבך אותכם אני יכולה גם ב-20 לחודש הזה»
+                    r"|^\W*(?:אמ (?:זה|זאת) (?:\w+\W+){0,3}?)?(?:אני |אנחנו )?(?:יכול|יכולה|יכולימ|אוכל|נוכל) (?:גמ )?(?=(?:ב|עד)\s*-?\s*(?:ה)?\d)"
                     r"|^\W*(?:(?:טוב|אוקיי|אוקי|אז)\W+)?(?:אמ (?:זה|זאת) (?:\w+\W+){0,2}?אז|(?:אני |אנחנו )?(?:יכול|יכולה|יכולימ|אוכל|נוכל) להקדימ|אקדימ|נקדימ)(?![\w])")
-_CORRECTION_STRIP = (r"^\W*(?:(?:אז|אה|אהה|טוב|אוקיי|אוקי|לא|בסדר|סבבה|יאללה|כנ|בעצמ|תיקונ|רגע|סליחה|טעיתי|התכוונתי|אקדימ|נקדימ)(?![\w])\W*"
+_CORRECTION_STRIP = (r"^\W*(?:אמ (?:זה|זאת) (?:\w+\W+){0,3}?(?=(?:אני |אנחנו )?(?:יכול|יכולה|יכולימ|אוכל|נוכל) )"
+                     r"|(?:אני |אנחנו )?(?:יכול|יכולה|יכולימ|אוכל|נוכל) (?:גמ )?(?=(?:ב|עד)\s*-?\s*(?:ה)?\d)|(?:אז|אה|אהה|טוב|אוקיי|אוקי|לא|בסדר|סבבה|יאללה|כנ|בעצמ|תיקונ|רגע|סליחה|טעיתי|התכוונתי|אקדימ|נקדימ)(?![\w])\W*"
                      r"|אמ (?:זה|זאת) (?:\w+\W+){0,2}?אז(?![\w])\W*|(?:אני |אנחנו )?(?:יכול|יכולה|יכולימ|אוכל|נוכל) להקדימ(?![\w])\W*)*")
 
 
@@ -1188,12 +1246,17 @@ def _owner_correction_day(t: str, ctx: Context) -> date | None:
 # «לא, זה לא מתאים לי. אשלם הכל ב-20» ⇒ אין תאריך: יום בחודש לבד נתפס רק כשכל ההודעה היא התאריך,
 # ורק ב-AWAITING_DATE/PROMISED. כאן: משפט אחד בהודעה (מופרד בנקודה/פסיק/סימן) שהוא *פועל הבטחה* + מילת
 # יחס + יום, ובכל מצב. בלי פועל הבטחה («תתקשרו ב-5», «שילמתי 17», «ב-3 תשלומים») ⇒ לא נתפס.
-_PROMISE_VERB_HE = r"(?:אשלם|נשלם|אעביר|נעביר|אסדר|נסדר|אסדיר|נסדיר|אפקיד|נפקיד)"
+_PROMISE_VERB_HE = (r"(?:אשלם|נשלם|אעביר|נעביר|אסדר|נסדר|אסדיר|נסדיר|אפקיד|נפקיד"
+                    # מנהל 260 (q12-10/17): «אז אוכל לשלם לכם ב-11», «אני אסגור את זה ביום שישי»
+                    r"|(?:אוכל|נוכל|אני יכול\w*|אנחנו יכולים) (?:לשלם|להעביר|לסדר|לסגור)"
+                    r"|(?:אסגור|נסגור) (?:את )?(?:זה|החוב|החשבון|הכל|הכול|העניין|התשלום|היתרה))(?![\w])")
+# מנהל 260 (q12-27): «הן עוזרות לי לזכור :) אשלם ב-16» — סמיילי מפריד משפטים
+_CLAUSE_SPLIT = r"(?:[.!?;\n]|,(?!\d)|[:;]-?[()](?![\w])|[\u2600-\u27BF\U0001F300-\U0001FAFF])+"
 _PROMISE_VERB_EN = r"(?:i'?ll|i\s+will|we'?ll|we\s+will|i\s+can|can\s+i)\s+(?:pay|transfer|settle)"
 
 
 def _promise_clause_day(t: str, today: date) -> date | None:
-    for clause in re.split(r"(?:[.!?;\n]|,(?!\d))+", t):
+    for clause in re.split(_CLAUSE_SPLIT, t):
         c = clause.strip()
         if not c:
             continue
@@ -1206,6 +1269,34 @@ def _promise_clause_day(t: str, today: date) -> date | None:
             return bd
     return None
 
+
+
+# מנהל 260 (q12-10/21 — טעויות בטוחות-בעצמן): «המספר שלי יהיה כבוי מחר כל היום, אז אשלם ביום שלישי» ⇒ נרשם «מחר»;
+# «התשלומים של האשראי יורדים לי ב-10 לחודש, אז אוכל לשלם לכם ב-11» ⇒ נרשם 10. התאריך הראשון בהודעה ניצח גם כשהוא
+# שייך למשפט אחר. כאן: התאריך שאחרי פועל ההבטחה, במשפט של הפועל. min_clauses=2 ⇒ רק כשיש כמה משפטים (אחרת ביט-זהה).
+_AFTER_VERB_FILL = r"^\W*(?:(?:לכם|לכן|לך|את זה|את הכל|את הכול|הכל|הכול|את החוב|את היתרה|את הסכום|את התשלום|כבר|רק|גם)\W+)*"
+
+
+def _promise_clause_date(t: str, today: date, min_clauses: int = 2) -> date | None:
+    clauses = [c.strip() for c in re.split(_CLAUSE_SPLIT, t) if c.strip()]
+    if len(clauses) < min_clauses:
+        return None
+    for c in clauses:
+        m = re.search(_c(_PROMISE_VERB_HE), c)
+        if m is None and re.search(r"[a-z]", c):
+            m = re.search(_PROMISE_VERB_EN, c)
+        if m is None:
+            continue
+        u = re.sub(_c(_AFTER_VERB_FILL), "", c[m.end():])
+        if not u.strip() or re.search(_c(r"\d\s*(?:תשלומ|payments|installments)"), u):
+            continue
+        d, vague = extract_date(u, today)
+        if d is not None and not vague and d >= today:
+            return d
+        bd = _bare_day(u, today, need_marker=True)
+        if bd is not None:
+            return bd
+    return None
 
 # ═══════════════════════════ סיווג ═══════════════════════════
 # critic סבב 79–80: סמני הגנה משותפים. כל חוק discard שמוריד dispute/legal מכבד אותם — אחרת כל חוק חדש מגיע עם
@@ -1225,10 +1316,11 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     if not t:
         return [Intent.UNKNOWN]
     found: set[Intent] = set()
+    t_plan = _GEN_PAYMENTS.sub(" ", t)   # מנהל 260: «התשלומים» כשם עצם כללי
     for it, rx in RX.items():
         if it in STATEFUL:
             continue
-        if _hits(rx, t, negatable=it in NEGATABLE):
+        if _hits(rx, t_plan if it == Intent.PLAN_REQUEST else t, negatable=it in NEGATABLE):
             found.add(it)
     awaiting = ctx is not None and ctx.state == State.AWAITING_PLAN_REPLY
     if awaiting:
@@ -1269,6 +1361,10 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     if ctx is not None and Intent.PROMISE not in found and \
             _hits(_c(_ws("מסדר", "מעביר", "משלמ", "מטפל", "מפקיד", "סוגר")), _t_noq, negatable=True) and \
             (extract_date(t, ctx.today)[0] or _s(r"(?:עכשיו|כרגע|מיד|תיכף|בדקות הקרובות)", t)):
+        found.add(Intent.PROMISE)
+    # מנהל 260 (q12-17): «אני אסגור את זה ביום שישי בבוקר», «אוכל לשלם לכם ב-11» — פועל הבטחה (לא מוכחש) + מועד במשפט שלו
+    if ctx is not None and Intent.PROMISE not in found and _hits(_c(_PROMISE_VERB_HE), t, negatable=True) and \
+            _promise_clause_date(t, ctx.today, min_clauses=1) is not None:
         found.add(Intent.PROMISE)
     if ctx is not None and ctx.state in (State.AWAITING_DATE, State.PROMISED):
         # מנהל 253 (qa9 q9-26): «בשבוע הבא» ⇒ PROMISED, ואז «ביום שלישי ה-17 בנובמבר» (דיוק המועד) ⇒ «לא ברור».
