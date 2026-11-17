@@ -371,7 +371,7 @@ class CollectService:
                     "insolvency": "הליך חדלות פירעון / פשיטת רגל", "deceased": "דיווח על פטירה",
                     "sensitive": "מצב רגיש (מחלה/אשפוז/אבל)"}
 
-    def email_owner_urgent(self, intent: str) -> str:
+    def email_owner_urgent(self, intent: str, *, unmatched: bool = False) -> str:
         """כרטיס דחוף (מצוקה/קטין/מחלוקת/משפטי/הסרה) ⇒ מייל קצר לבעל העסק מחוץ לאפליקציה, כדי שאדם במצוקה
         יקבל מענה אנושי גם אם בעל העסק לא נכנס היום. **בלי טקסט הלקוח, בלי שם, בלי טלפון, בלי סכום** — רק
         סוג הפנייה, כמה כרטיסים דחופים ממתינים, וקישור כניסה. throttle: 30 דק׳ + 8 ביום; פנייה שנבלעה
@@ -391,12 +391,16 @@ class CollectService:
         if (sent and now - sent[0] < self.URGENT_EMAIL_MIN_GAP) or len(sent) >= self.URGENT_EMAIL_DAY_MAX:
             self.audit("system", "urgent_owner_email_throttled", {"intent": intent})
             return "throttled"
-        waiting = self._open_urgent_count()
+        waiting = self._open_urgent_count() + (1 if unmatched else 0)   # שולח לא משויך — לא טיוטה
         msg = Message("email", to,
                       f"שלום,\n\nבמערכת גבי של {self.s.business_name} מחכה פנייה דחופה של לקוח ({kind}).\n"
                       f"כרטיסים דחופים שממתינים לכם עכשיו: {waiting}.\n\n"
-                      "התזכורות האוטומטיות ללקוח הזה כבר נעצרו. התשובה ממתינה לכם, ואף הודעה לא נשלחת בלי "
-                      f"אישורכם.\nלכניסה: {self.s.public_base_url}/ui\n\n"
+                      + (  # critic סבב 126: שולח שלא משויך ללקוח ⇒ אין תזכורות שנעצרו
+                          "הפנייה הגיעה מכתובת/מספר שלא משויכים לאף לקוח, ולכן התזכורות לא נעצרו אוטומטית — "
+                          "כדאי לבדוק למי היא שייכת.\n" if unmatched else
+                          "התזכורות האוטומטיות ללקוח הזה כבר נעצרו. התשובה ממתינה לכם, ואף הודעה לא נשלחת בלי "
+                          "אישורכם.\n")
+                      + f"לכניסה: {self.s.public_base_url}/ui\n\n"
                       "מטעמי פרטיות, המייל לא כולל את תוכן ההודעה ולא פרטי לקוח.",
                       subject=f"גבי: פנייה דחופה ממתינה לטיפולכם ({self.s.business_name})")
         send = getattr(self.sender, "send_owner", None) or self.sender.send

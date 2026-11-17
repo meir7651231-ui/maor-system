@@ -167,14 +167,20 @@ class ConversationInbox:
             return {"intent": "shared_contact_ambiguous", "escalate": True, "escalation": "normal",
                     "draft_id": None, "auto_reply": None, "plan_id": None}
         if cust is None:
+            found = set(detect(text))
             # מבקר סבב 3: «הסר» ממספר/כתובת שעוד לא ב-DB ⇒ רשימת ההסרה (גם ללקוח עתידי)
-            if Intent.OPT_OUT in detect(text):
+            if Intent.OPT_OUT in found:
                 self.svc.suppress(channel, sender, "unknown_sender_opt_out")
+            # critic סבב 126: מצוקה/קטין/משפטי/מחלוקת משולח לא משויך (בן זוג, מייל מהעבודה) ⇒ דחוף + מייל לבעלים
+            urgent = next((i.value for i in (Intent.DISTRESS, Intent.MINOR, Intent.LEGAL, Intent.DISPUTE)
+                           if i in found), None)
             # לא חושפים כלום לשולח לא מזוהה; רק לבעל העסק
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                       "created_at) VALUES(NULL,'in',?,?, 'unknown_sender', 1, ?)",
                       (channel, text, _iso(now)))
-            return {"intent": "unknown_sender", "escalate": True, "escalation": "normal",
+            if urgent:
+                self.svc.email_owner_urgent(urgent, unmatched=True)
+            return {"intent": "unknown_sender", "escalate": True, "escalation": "urgent" if urgent else "normal",
                     "draft_id": None, "auto_reply": None, "plan_id": None}
         return self.handle_customer(cust, channel, text)
 
