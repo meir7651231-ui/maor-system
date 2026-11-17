@@ -20,6 +20,7 @@ from __future__ import annotations
 import calendar
 import logging
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from datetime import date, timedelta
 from enum import Enum
@@ -187,12 +188,94 @@ _QUOTES = str.maketrans({"״": '"', "”": '"', "“": '"', "׳": "'", "’": "'
 _FINALS = str.maketrans("ךםןףץ", "כמנפצ")
 
 
+# מנהל 270 («הבא» AI מ-269): סכום חודשי במילים — «can we do two hundred a month?» ⇒ היה «ביקש/ה 2 תשלומים» (two נקרא
+# מספר תשלומים); «I can pay two hundred a month» / «אולי מאתיים בחודש?» ⇒ «לא ברור»; «אשלם שלוש מאות לחודש» ⇒ הבטחה בלי תאריך.
+# ממירים לספרות **רק** רצף מילות-מספר שצמוד לעוגן חודשי (מטבע אופציונלי), ורק ≥100 או עם מטבע מפורש
+# («עשרים לחודש» = כנראה יום בחודש; «two payments a month» לא נוגע — payments מפריד).
+_EN_ONES = {"a": 1, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
+            "ten": 10, "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16,
+            "seventeen": 17, "eighteen": 18, "nineteen": 19}
+_EN_TENS = {"twenty": 20, "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90}
+_EN_NUMTOK = "|".join(sorted([*_EN_ONES, *_EN_TENS, "hundred", "thousand"], key=len, reverse=True))
+_EN_AMT_WORDS_RX = re.compile(
+    r"\b((?:" + _EN_NUMTOK + r")(?:(?:\s+|-|\s+and\s+)(?:" + _EN_NUMTOK + r"))*)"
+    r"(?=\s*(?P<cur>shekels?|nis|ils|dollars?|bucks)?\s*(?:(?:a|per|each|every)\s+month\b|/\s*(?:month|mo)\b|monthly\b))")
+_HE_ONES = {"אחת": 1, "אחד": 1, "שתיים": 2, "שניים": 2, "שתי": 2, "שני": 2, "שלוש": 3, "שלושה": 3, "ארבע": 4,
+            "ארבעה": 4, "חמש": 5, "חמישה": 5, "שש": 6, "שישה": 6, "שבע": 7, "שבעה": 7, "שמונה": 8, "תשע": 9, "תשעה": 9}
+_HE_TENS = {"עשר": 10, "עשרה": 10, "עשרים": 20, "שלושים": 30, "ארבעים": 40, "חמישים": 50, "שישים": 60, "שבעים": 70,
+            "שמונים": 80, "תשעים": 90}
+_HE_BIG = {"מאה": 100, "מאתיים": 200, "מאות": 100, "אלף": 1000, "אלפיים": 2000, "אלפים": 1000}
+_HE_NUM = {k.translate(_FINALS): v for d in (_HE_ONES, _HE_TENS, _HE_BIG) for k, v in d.items()}
+_HE_NUMTOK = "|".join(sorted(_HE_NUM, key=len, reverse=True))
+_HE_AMT_WORDS_RX = re.compile(
+    r"(?<![\w])((?:" + _HE_NUMTOK + r")(?:\s+ו?(?:" + _HE_NUMTOK + r"))*)"
+    r"(?=\s*(?P<cur>ש\"ח|שח|שקל\w*)?\s*(?:(?:ב)?כל חודש|לחודש|בחודש(?! ה))(?![\w]))")
+
+
+def _words_value(tokens: list[int | str]) -> int | None:
+    """[2, 'hundred', 50] ⇒ 250 · [15, 'hundred'] ⇒ 1500 · [1, 'thousand', 2, 'hundred'] ⇒ 1200."""
+    total = cur = 0
+    for tk in tokens:
+        if tk == "hundred":
+            cur = (cur or 1) * 100
+        elif tk == "thousand":
+            total += (cur or 1) * 1000
+            cur = 0
+        elif isinstance(tk, int):
+            cur += tk
+        else:
+            return None
+    v = total + cur
+    return v or None
+
+
+def _en_amount_tokens(phrase: str) -> list[int | str]:
+    out: list[int | str] = []
+    for w in re.split(r"[\s-]+", phrase):
+        if w in ("and", ""):
+            continue
+        out.append(w if w in ("hundred", "thousand") else _EN_ONES.get(w) or _EN_TENS[w])
+    return out
+
+
+def _he_amount_tokens(phrase: str) -> list[int | str]:
+    out: list[int | str] = []
+    for w in phrase.split():
+        w = w[1:] if w.startswith("ו") and w[1:] in _HE_NUM else w
+        if w == "מאות":
+            out.append("hundred")
+        elif w in ("אלפ", "אלפימ"):
+            out.append("thousand")
+        elif w == "אלפיימ":
+            out += [2, "thousand"]
+        else:
+            out.append(_HE_NUM[w])
+    return out
+
+
+def _amount_words_to_digits(t: str) -> str:
+    def sub(rx: re.Pattern[str], tok: Callable[[str], list[int | str]]) -> str:
+        def rep(m: re.Match[str]) -> str:
+            try:
+                v = _words_value(tok(m.group(1)))
+            except KeyError:
+                return m.group(0)
+            if v is None or (v < 100 and not m.group("cur")):
+                return m.group(0)
+            return str(v)
+        return rx.sub(rep, t)
+    if any(c.isascii() and c.isalpha() for c in t):
+        t = sub(_EN_AMT_WORDS_RX, _en_amount_tokens)
+    return sub(_HE_AMT_WORDS_RX, _he_amount_tokens)
+
+
 def normalize(text: str) -> str:
     t = _NIKUD.sub("", text or "").translate(_QUOTES).lower()
     t = t.replace("''", '"').translate(_FINALS)  # אותיות סופיות ⇒ רגילות (גם בתבניות)
-    t = re.sub(r"(.)\1{2,}", r"\1\1", t)        # "תודההההה" ⇒ "תודהה"
+    # "תודההההה" ⇒ "תודהה". מנהל 270: לא ספרות — «שילמתי 1000» נקרא 100 ₪, «אשלם 1000 לחודש» ⇒ ₪100 (50 תשלומים)
+    t = re.sub(r"([^\d])\1{2,}", r"\1\1", t)
     t = re.sub(r"\s+", " ", t)
-    return t.strip()
+    return _amount_words_to_digits(t.strip())
 
 
 @cache
