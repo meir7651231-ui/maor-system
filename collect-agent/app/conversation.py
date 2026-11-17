@@ -342,6 +342,23 @@ _NEG_BEFORE = _c(r"(?:(?<![\w])(?:לא|טרם|עוד לא|עדיין לא|אף �
                          r"לא\s+\w+\s+ש)\s*$)")
 
 
+# מנהל 269/274: שם חוג/קורס או נושא שיעור שנשמע מפחיד («החוג של עורכי הדין הצעירים», «קורס עורך דין צעיר»,
+# «החוג של המשטרה הקהילתית», «שיעור על חובות ונכסים», «police class») ⇒ מוחקים לפני בדיקה חוזרת של כוונה מגינה.
+# הטקסט כבר מנורמל (אותיות סופיות ⇒ רגילות: «עורכ», «דינ») — 274: 269 לא תפס «עורך» לבד מסיבה זו.
+_CLASS_WORD = r"(?:ב|ה|ל|ו|מ|ש|בה|לה|שה|וה){0,1}(?:חוג|קורס|סדנ\w*|שיעור\w*|קייטנ\w*|הרצא\w*)"
+_CLASS_NAME_RX = re.compile(
+    _CLASS_WORD + r"\s+(?:(?:של|על|בנושא|ל)\s+)?(?:ה|ל)?"
+    r"(?:(?:עורכי|עורכ|עורכת|עו\"ד)(?:\s+(?:ה)?די[נן])?|משטר\w*|שוטר\w*|משפט\w*|חובות(?:\s+ו(?:ה)?נכסי\w*)?)"
+    r"(?:\s+(?:ה)?(?:צעיר|קטנ|קהילתי|ילדי)\w*)?"
+    r"|\b(?:young\s+|junior\s+|little\s+)?(?:lawyers?|police|cops?|court\s*yard|mock\s+trial|debt[-\s]free)\s+"
+    r"(?:dance\s+)?(?:class|course|workshop|camp|club)\b",
+    re.I)
+
+
+def _strip_class_names(t: str) -> str:
+    return _CLASS_NAME_RX.sub(" ", t)
+
+
 def _hits(pattern: re.Pattern[str], t: str, *, negatable: bool = False) -> bool:
     for m in pattern.finditer(t):
         if negatable and _NEG_BEFORE.search(t[max(0, m.start() - 22):m.start()]):
@@ -2206,12 +2223,26 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     # מנהל 269 (qa15 q15-19 🔴): «החוג של עורכי הדין הצעירים היה מהמם… אפשר ב-3 תשלומים?» = שם החוג, לא איום ⇒ היה legal
     # דחוף, בלי הצעת פריסה. מוחקים את שם החוג ובודקים שוב; כל אזכור אחר / מילת הליך ⇒ נשאר legal.
     if Intent.LEGAL in found:
-        t2 = re.sub(r"(?:חוג|קורס|סדנ\w*|שיעור\w*|קייטנ\w*|class|course|workshop|camp)\s+(?:של\s+)?(?:ה|ל)?"
-                    r"(?:עורכי|עורך|עורכת|עו\"ד)(?:\s+(?:ה)?די[נן])?(?:\s+(?:ה)?(?:צעיר|קטנ)\w*)?"
-                    r"|\b(?:young\s+|junior\s+|little\s+)?lawyers?\s+(?:class|course|workshop|camp|club)\b",
-                    " ", t, flags=re.I)
-        if t2 != t and not _hits(RX[Intent.LEGAL], t2) and not _s(_KEEPS_LEGAL, t):
+        t2 = _strip_class_names(t)
+        if t2 != t and not _hits(RX[Intent.LEGAL], t2) and not _s(_KEEPS_LEGAL, t2):
             found.discard(Intent.LEGAL)
+            if not found:
+                found.add(Intent.UNKNOWN)
+    # מנהל 274 (qa16 q16-06 🔴): «שיעור על חובות ונכסים היה מעניין. אשלם ביום רביעי» ⇒ «חובות» = נושא השיעור,
+    # לא «אין לי כסף» ⇒ היה cant_pay + הצעת פריסה למי שהבטיח תאריך. מוחקים את שם החוג/נושאו ובודקים שוב.
+    if Intent.CANT_PAY in found:
+        t2 = _strip_class_names(t)
+        if t2 != t and not _hits(RX[Intent.CANT_PAY], t2):
+            found.discard(Intent.CANT_PAY)
+            if not found:
+                found.add(Intent.UNKNOWN)
+    # מנהל 274 (qa16 q16-25 🔴 מלכודת): «I paid a hundred percent attention in class» = ביטוי, לא טענת תשלום
+    # ⇒ היה paid_claim (השהיית תזכורות). «paid attention» / «pay attention» נמחק ובודקים שוב.
+    if Intent.PAID_CLAIM in found:
+        t2 = re.sub(r"\b(?:paid|pay|paying|pays)\s+(?:(?:a|no|more|close|full|much|little|extra|special|"
+                    r"careful|zero|any|real|hundred|one|percent|%|\d+)\s*){0,4}attention\b", " ", t, flags=re.I)
+        if t2 != t and not _hits(RX[Intent.PAID_CLAIM], t2):
+            found.discard(Intent.PAID_CLAIM)
             if not found:
                 found.add(Intent.UNKNOWN)
     # מנהל 269 (qa15 q15-26): «אין לי כרגע איך לשלם 😔» = אין כסף (מאיפה לשלם), לא «איך משלמים» ⇒ היה how_to_pay + קישור.
