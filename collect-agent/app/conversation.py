@@ -3298,14 +3298,22 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         # הוא 300 לחודש, או «אפשר 4 תשלומים?» כשהוצעו 4 — היה: הסדר זהה חדש נרשם (plans 2), ואחרי אישור בעל העסק
         # חזרה ל«ממתין להצעה» עם כפילות ב«הסדרים». עכשיו: בלי הסדר חדש, תשובה שזה בדיוק ההסדר שבשיחה.
         n_cur = len(ctx.offered_plan) if ctx.offered_plan else 0
+        # מנהל 290 («הבא» פיתוח מ-288 (א)): השיחה אצל בעל העסק (AWAITING_OWNER) וההסדר שבשיחה כבר **אושר ונשלח**.
+        # «אפשר 6 תשלומים?» ⇒ היה: הצעה רגילה («ביקש/ה פריסה»), בלי plan_change ובלי שבעל העסק יודע שיש הסדר
+        # בתוקף; «אפשר 3 תשלומים?» כשבתוקף 3 ⇒ proposed זהה ליד ה-approved. עכשיו: כמו 267 — שינוי בהסדר,
+        # «הצעה מעודכנת», ובכרטיס ההסדר שבתוקף «נשאר בתוקף עד שתאשר/י את החדש»; זהה ⇒ «זה בדיוק ההסדר שבתוקף».
+        approved_owner = bool(ctx.state == State.AWAITING_OWNER and ctx.offered_plan and ctx.plan_approved)
         same_plan = bool(
-            primary == Intent.PLAN_REQUEST and _plan_ctx(ctx) and not sensitive and chg is None
+            primary == Intent.PLAN_REQUEST and (_plan_ctx(ctx) or approved_owner) and not sensitive and chg is None
             and cnt in (None, n_cur) and camt is None and not counter_pending and start is None
             and ((monthly and monthly == _plan_monthly(ctx) and requested in (None, n_cur))
                  or (not monthly and requested == n_cur
                      and _s(r"(?:\d{1,2}|" + _NUMW + r")\s*(?:תשלומ|פעמימ|payments|installments|instalments)", t))))
         if p.auto_offer_plan and ctx.invoices and not sensitive and not chg_card and not same_plan:
             plan = propose_plan(ctx, requested, start)
+            if plan and approved_owner and not counter_pending:
+                counter_pending = True
+                tags.append("plan_change")
         if same_plan:
             tags.append("plan_same")
             cur = plan_lines(ctx.offered_plan, ctx.currency)
@@ -3353,7 +3361,8 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                       f". טיוטת הצעה: {plan_lines(plan, ctx.currency)}."
             if counter_pending:
                 # מנהל 267: אחרי שהלקוח כבר אישר — בעל העסק צריך לדעת שזה שינוי, ומה ההסדר הקודם
-                summary += (f" 🔁 ההסדר שהלקוח/ה אישר/ה קודם: {plan_lines(ctx.offered_plan, ctx.currency)}"
+                summary += (f" 🔁 {'ההסדר שבתוקף' if approved_owner else 'ההסדר שהלקוח/ה אישר/ה קודם'}: "
+                            f"{plan_lines(ctx.offered_plan, ctx.currency)}"
                             + (" (אושר על ידך; נשאר בתוקף עד שתאשר/י את החדש)." if ctx.plan_approved
                                else " (ממתין לאישורך — לא לאשר את הקודם אם שולחים את החדש)."))
             if over:

@@ -261,8 +261,12 @@ class ConversationInbox:
             # critic סבב 25: מקום לשורת ההסרה (`_with_footer`, טוקן של 22 תווים) בתקציב ה-SMS
             footer_len=len("\nלהפסקה: " + self.svc.unsub_url("x" * 22)),
             # מנהל 265: ההסדר שבשיחה כבר אושר ונשלח ע״י בעל העסק ⇒ «מאשרת» של הלקוח לא מבקש אישור שני
-            plan_approved=bool(offered) and self.db.one(
-                "SELECT 1 FROM plans WHERE customer_id=? AND status='approved'", (cust["id"],)) is not None)
+            # מנהל 290: רק אם ההסדר **האחרון** (הפעיל) הוא המאושר. היה: «יש ללקוח הסדר approved כלשהו» ⇒ הצעה
+            # מעודכנת (267/290) ליד הסדר שבתוקף, ואז «מאשרת» ⇒ plan_confirmed: «ההסדר בתוקף, התשלום הראשון…» על
+            # הצעה שבעל העסק לא אישר, וכרטיס «אישר/ה את ההסדר שאישרת» על לוח שלא אושר.
+            plan_approved=bool(offered) and (self.db.one(
+                "SELECT status FROM plans WHERE customer_id=? AND status IN ('proposed','approving','approved') "
+                "ORDER BY id DESC LIMIT 1", (cust["id"],)) or {"status": ""})["status"] == "approved")
 
     def _hold_reply_if_opted_out(self, cust, channel: str, d: Decision) -> Decision:
         """לקוח שכבר הוסר (או שהכתובת שלו ברשימת ההסרה): שער השליחה (`_can_message`) יחסום כל
