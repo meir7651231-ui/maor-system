@@ -424,6 +424,18 @@ def _guard(part: str) -> str:
     return _WSG + "(?:" + part + ")" if _HEB_START.match(part) else part
 
 
+# מנהל 285: פשיטת רגל בפועל, גוף ראשון בלבד («הלקוח שלי פשט רגל» = לקוח שלא שילם לו, לא חדלות של הלקוח שלנו)
+_INSOLVENT_ME = (r"(?<![\w])(?:פשטתי|פשטנו)\s+רגל(?![\w])|(?<![\w])(?:אני|אנחנו)\s+(?:כבר\s+|עכשיו\s+)?(?:פושט|פושטת|פושטי)\s+רגל(?![\w])"
+                 r"|(?<![\w])הכריזו\s+(?:עלי|עליי|עלינו)\s+(?:כ)?(?:פושט|פושטת|פושטי)\s+רגל(?![\w])")
+# מצב רגיש בתוך cant_pay (מחלה/אשפוז/אבל) — משותף לתגית sensitive ולסדר הכוונות מול הצעה שנשלחה
+_SENSITIVE_ILL = (r"חולה|מחלה|מאושפז|אשפוז|ניתוח|כימו|שבעה|(?:(?:אני|אנחנו|אנו|אנחנו עדיין|עדיין) ב?אבל|ימי (?:ה)?אבל|בתקופת (?:ה)?אבל|שנת (?:ה)?אבל|באבל)|נפטר|לעולמ|לוויה|בבית ה?חולימ|בבי\"?ח|בטיפול נמרצ"
+                  r"|\bpassed away\b|\bfuneral\b|\bmourning\b|\bhospital|\bsurgery\b|\bicu\b")
+# ר-6: חדלות פירעון (תגית insolvency)
+_INSOLVENCY_TAG = (r"פשיטת רגל|חדלות פירעון|צו כינוס|צו פתיחת הליכים|הליך חדלות|נאמן (?:בתיק|שמונה)|כונס נכסים"
+                   r"|(?:תיק|תיקי) איחוד|איחוד תיקים|מעוקל|עיקול|דרך (?:ה)?לשכה|" + _INSOLVENT_ME)
+_RESERVIST_NOW = r"מילואים|צו 8|צו שמונה"
+
+
 def _rx(*parts: str) -> re.Pattern[str]:
     return _c("|".join(_guard(p) for p in parts))
 
@@ -709,6 +721,8 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"(?:מצב|מצבי|מצבנו) (?:ה)?כלכלי", r"תקופה (?:קשה|לא פשוטה|מאתגרת)",
         _ws("פוטרתי", "פוטרנו", "פיטרו אותי"), _w("מובטל", "מובטלת", "אבטלה", "דמי אבטלה"),
         _w("מילואים", "במילואים", "צו 8", "צו שמונה"), r"(?:חולה|מחלה|מאושפז\w*|אשפוז|ניתוח|כימו|שבעה|(?:(?:אני|אנחנו|אנו|אנחנו עדיין|עדיין) ב?אבל|ימי (?:ה)?אבל|בתקופת (?:ה)?אבל|שנת (?:ה)?אבל|באבל)|בבית ה?חולים|בבי\"?ח|בטיפול נמרץ)",  # critic סבב 18: «בבית חולים» נפל ל-promise ושוחרר אוטומטית
+        # מנהל 285: «פשטתי רגל» (פועל, גוף ראשון) ⇒ היה «לא ברור» / הצעת פריסה במקום כרטיס חדלות-פירעון דחוף
+        _INSOLVENT_ME,
         r"(?:במינוס|מינוס בבנק|בפשיטת רגל|פשיטת רגל|חובות|הוצאה לפועל נגדי|העיקול|עיקול|מעוקל|תיק איחוד|איחוד תיקים)",
         r"(?:חדלות פירעון|צו כינוס|צו פתיחת הליכים|הליך חדלות|נאמן (?:בתיק|שמונה)|כונס נכסים)",
         r"(?:עוד )?לא (?:קיבלתי|נכנסה|נכנס|הגיעה|הגיע) (?:את )?ה?(?:משכורת|כסף|תשלום מלקוח)",
@@ -2496,6 +2510,15 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
                r"|לא\s+(?:ה)?(?:מספר|טלפון|נייד)\s+שלי", t):  # critic סבב 120
         found.discard(Intent.DISPUTE)
     # "פיטרו... ואני מבקש תשלומים" — שני האותות נשמרים; הבטחה בלי תאריך מעל כוונת פריסה ⇒ פריסה עיקרית
+    # מנהל 285 (פתוח מ-277 (א)): «אין לי כסף» על הצעה **שכבר נשלחה** ⇒ היה cant_pay ראשי ⇒ המנוע הציע ללקוח **שוב
+    # את אותו הסדר** («אפשר לפרוס… 3 תשלומים של 400») ונרשם proposed זהה ליד ה-approved (שני הסדרים חיים). באנגלית
+    # «I can't afford it» כבר נקרא דחייה (RX PLAN_REJECT). קושי בלי הצעה נגדית/אישור = תגובה להצעה שנשלחה ⇒ דחייה
+    # (ההסדר נסגר, כרטיס לבעל העסק), cant_pay נשאר משני. מצב רגיש (אשפוז/אבל/חדלות/מילואים) ≠ דחיית ההצעה
+    # (rm276-13: ההסדר נשאר) — שם המנוע ממילא לא מציע הסדר, אז אין כפילות.
+    if ctx is not None and ctx.state == State.AWAITING_PLAN_REPLY and ctx.offered_plan and Intent.CANT_PAY in found \
+            and not found & {Intent.PLAN_REQUEST, Intent.PLAN_ACCEPT, Intent.PLAN_REJECT} \
+            and not (_s(_SENSITIVE_ILL, t) or _s(_INSOLVENCY_TAG, t) or _s(_RESERVIST_NOW, t)):
+        found.add(Intent.PLAN_REJECT)
     if not found:
         found.add(Intent.UNKNOWN)
     out = [i for i in PRIORITY if i in found]
@@ -2522,6 +2545,11 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         if dd is not None and dd >= ctx.today:
             out.remove(Intent.PROMISE)
             out.insert(0, Intent.PROMISE)
+    # מנהל 285: אשפוז/אבל/חדלות/מילואים + דחיית ההצעה ⇒ cant_pay ראשי (תשובה אמפתית, השהיה, דחוף), PLAN_REJECT
+    # משני ⇒ ההסדר שנשלח עדיין נסגר (inbox). היה: «בסדר גמור. נחזור אליכם» ללקוח שכתב שהוא בבית חולים.
+    if out[:2] == [Intent.PLAN_REJECT, Intent.CANT_PAY] and (
+            _s(_SENSITIVE_ILL, t) or _s(_INSOLVENCY_TAG, t) or _s(_RESERVIST_NOW, t)):
+        out[0], out[1] = Intent.CANT_PAY, Intent.PLAN_REJECT
     return out
 
 
@@ -2890,15 +2918,13 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         bump(Escalation.NORMAL, Stop.PAUSE)
     if Intent.CANT_PAY in allset:
         bump(Escalation.NORMAL, Stop.PAUSE)
-        if _s(r"מילואים|צו 8|צו שמונה", t):
+        if _s(_RESERVIST_NOW, t):
             tags.append("reservist")
-        if _s(r"חולה|מחלה|מאושפז|אשפוז|ניתוח|כימו|שבעה|(?:(?:אני|אנחנו|אנו|אנחנו עדיין|עדיין) ב?אבל|ימי (?:ה)?אבל|בתקופת (?:ה)?אבל|שנת (?:ה)?אבל|באבל)|נפטר|לעולמ|לוויה|בבית ה?חולימ|בבי\"?ח|בטיפול נמרצ"
-              r"|\bpassed away\b|\bfuneral\b|\bmourning\b|\bhospital|\bsurgery\b|\bicu\b", t):
+        if _s(_SENSITIVE_ILL, t):
             tags.append("sensitive")
             bump(Escalation.URGENT)  # מחלה/אשפוז/אבל — בעל העסק צריך לראות מיד (qa2)
         # ר-6: חדלות פירעון ⇒ אסור לגבות בעצמנו; נפטר ⇒ עזבון — שניהם לבעל העסק בדחיפות
-        if _s(r"פשיטת רגל|חדלות פירעון|צו כינוס|צו פתיחת הליכים|הליך חדלות|נאמן (?:בתיק|שמונה)|כונס נכסים"
-              r"|(?:תיק|תיקי) איחוד|איחוד תיקים|מעוקל|עיקול|דרך (?:ה)?לשכה", t):
+        if _s(_INSOLVENCY_TAG, t):
             tags += ["insolvency", "sensitive"]
             bump(Escalation.URGENT)
         if _s(r"(?:נפטר|נפטרה|הלך לעולמו|הלכה לעולמה) לי (?:ה)?(?:אבא|אמא|בעל|בעלי|אשתי|אישה|בן|בת|אח|אחות)", t) or \
