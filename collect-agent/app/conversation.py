@@ -2133,8 +2133,17 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     # critic סבב 140: «תודה\nהסר» — normalize מאחד שורות לרווח, ו«הסר» באמצע ההודעה לא נתפס ⇒ ההסרה אבדה (thanks).
     # שורה שכולה מילת הסרה = בקשת הסרה (המפריד הנפוץ במייל וב-SMS רב-שורתי).
     if Intent.OPT_OUT not in found and "\n" in (text or "") and any(
-            _fm(r"\W*(?:הסר|הסירו|הסירי|תסירו|תסיר|הסר אותי|תסירו אותי|הסירו אותי|stop|unsubscribe|remove me)\W*", normalize(ln))
+            _fm(r"\W*(?:הסר|הסירו|הסירי|תסירו|תסיר|הסר אותי|תסירו אותי|הסירו אותי|הפסיקו|תפסיקו|הפסק|stop|unsubscribe|remove me)"
+                # לולאה 18.11: «הסר בבקשה», «stop please», «הסירו אותי תודה» בשורה נפרדת
+                r"(?:\W+(?:בבקשה|תודה|please|pls|plz|thanks|now|עכשיו|מיד))*\W*", normalize(ln))
             for ln in (text or "").splitlines()):
+        found.add(Intent.OPT_OUT)
+    # «די» / «מספיק» לבד בשורה — רק כשאין בהודעה שום תוכן אחר («תודה\nמספיק», «שלום\n\nדי»); «די\nאני משלמת מחר» ≠
+    if Intent.OPT_OUT not in found and "\n" in (text or "") and found <= {Intent.THANKS, Intent.UNKNOWN} and any(
+            _fm(r"\W*(?:די|די כבר|מספיק|enough)(?:\W+(?:בבקשה|תודה|please))*\W*", normalize(ln))
+            for ln in (text or "").splitlines()):
+        found.discard(Intent.THANKS)
+        found.discard(Intent.UNKNOWN)
         found.add(Intent.OPT_OUT)
     if Intent.DISPUTE not in found and _hits(_C133_DISPUTE, t) and not _C133_VETO.search(t):
         found.add(Intent.DISPUTE)   # critic סבב 133/134: מחלוקות יומיומיות, עם וטו לשגרתיות
