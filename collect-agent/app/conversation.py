@@ -1868,6 +1868,32 @@ _CHG_ORD = (r"(?:ה)?תשלומ (?:ה)?(ראשונ|שני|שלישי|רביעי|
             r"|\b(first|second|third|fourth|last|next|monthly) (?:payment|installment|instalment)\b")
 _ORD_N = {"ראשונ": 1, "first": 1, "שני": 2, "second": 2, "שלישי": 3, "third": 3, "רביעי": 4, "fourth": 4,
           "חמישי": 5, "שישי": 6}
+# מנהל 292 («הבא» פיתוח מ-291 (א)): «שילמתי את התשלום הראשון» כשיש הסדר שבעל העסק אישר ⇒ היה כרטיס «טוען/ת
+# ששילם/ה 1,200 ₪» (כל החוב) — מטעה: הלקוח טוען לתשלום אחד מההסדר. מזהים תשלום מסוים לפי סדר (ראשון…שישי, אחרון,
+# first…fourth, last) או מספר («תשלום 2», «installment #2»). «הבא»/«החודשי» לא מזוהים — לא ברור לאיזה תשלום הכוונה.
+# כמה תשלומים («שני התשלומים הראשונים», «2 payments») ⇒ None, נשאר כמו קודם.
+_PAID_INST_NUM = (r"(?<![\w])(?:ה)?תשלומ (?:מס(?:פר)?'?\s*|#\s*)?(\d)(?![\d\w])"
+                  r"|\b(?:payment|installment|instalment)\s*(?:no\.?\s*|number\s*|#\s*)?(\d)\b")
+
+
+def paid_installment(t: str, plan: tuple[Installment, ...]) -> Installment | None:
+    """התשלום מתוך ההסדר שהלקוח טוען ששילם, או None כשלא צוין תשלום אחד ברור (או מחוץ להסדר)."""
+    if not plan or _s(r"(?<![\w])(?:שני|שלושת|כל) ה?תשלומימ|תשלומימ|\b(?:payments|installments|instalments|both)\b", t):
+        return None
+    n = None
+    om = _s(_CHG_ORD, t)
+    if om:
+        w = om.group(1) or om.group(2)
+        n = len(plan) if w in ("אחרונ", "last") else _ORD_N.get(w)
+    else:
+        nm = _s(_PAID_INST_NUM, t)
+        if nm:
+            n = int(nm.group(1) or nm.group(2))
+    if not n or n > len(plan):
+        return None
+    return plan[n - 1]
+
+
 # חלופה שנדחית: «לא ל-10», «ולא ב-10», «במקום ה-10», «instead of the 10th», «not the 10th»
 _CHG_NOT = (r"(?:(?<![\w])(?:ו?לא|במקומ|ולא כמו)\s+(?:ה|ב|ל|עד)?-?\s*\d{1,2}(?:[./]\d{1,2})?(?:\s*(?:ב|ל)?(?:חודש))?(?![\d\w])"
             r"|\b(?:not|instead\s+of)\s+(?:on\s+)?(?:the\s+)?\d{1,2}(?:st|nd|rd|th)?\b)")
@@ -3140,7 +3166,20 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             paid = ctx.total_agorot   # qa16 (q16-21/40): «שילמתי הכל» / «את כל הסכום» = מלוא החוב (לא «לא ידוע»)
         partial = bool(_PARTIAL_WORDS.search(t)) or (bool(hedged) and paid is None) or (
             paid is not None and ctx.total_agorot and paid < ctx.total_agorot)
-        if partial:
+        inst = paid_installment(t, ctx.offered_plan) if (ctx.plan_approved and ctx.offered_plan) else None
+        if inst is not None and paid not in (None, inst.amount_agorot):
+            inst = None   # סכום מפורש אחר מהתשלום בהסדר ⇒ נשאר כמו קודם (חלקי עם הסכום שנאמר)
+        if inst is not None:
+            # מנהל 292: תשלום אחד מההסדר שבתוקף — לא «חלק מהסכום» ולא «שילם/ה כל החוב».
+            tags.append("plan_installment_paid")
+            paid = inst.amount_agorot   # הסכום שהלקוח טוען ששילם = התשלום מההסדר (לא None ⇒ «כל החוב»)
+            amt = fmt_amount(inst.amount_agorot, ctx.currency)
+            reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! רשמנו שהעברתם את תשלום {inst.n} "
+                     f"מתוך {len(ctx.offered_plan)} בהסדר ({amt}). נבדוק מול הרישומים, וההסדר ממשיך כרגיל. "
+                     f"אם יש אסמכתא — אפשר לשלוח כאן.{sig}")
+            summary = (f"{name} טוען/ת ששילם/ה את תשלום {inst.n} מתוך {len(ctx.offered_plan)} בהסדר שבתוקף "
+                       f"({amt}, מועד {inst.due.day}.{inst.due.month}). יתרת החוב {total}. התזכורות הושהו עד שתבדקו — לבדוק ולסמן את התשלום.")
+        elif partial:
             tags.append("partial")
             got = f" ({fmt_amount(paid, ctx.currency)})" if paid else ""
             reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! רשמנו שהעברתם חלק מהסכום{got}. "
