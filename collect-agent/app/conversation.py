@@ -1159,6 +1159,22 @@ _extend(Intent.WRONG_PERSON,
         r"(?:number|phone|cell|mobile)\b(?!\s+on\b)",
         r"\b(?:this|that)\s+(?:phone\s+)?(?:number|phone|cell)\s+(?:is\s*n'?t|isnt|is\s+not|aint)\s+mine\b")
 
+# ═══ critic סבב 146: סלנג/קיצורים באנגלית בכוונות מגינות ═══
+_extend(Intent.DISPUTE,
+        r"\bi\s*(?:ain'?t|aint|am\s+not|'?m\s+not|won'?t\s+be|wont\s+be|will\s+not\s+be)\s+paying\b"
+        r"(?!.{0,20}\b(?:today|now|until|till|before|this\s+week|yet|tonight|tomorrow|friday|monday|next)\b)",
+        r"\b(?:u|you)\s+(?:can'?t|cant|cannot)\s+(?:charge|bill)\s+me\b",
+        r"\bi\s+never\s+ordered\s+(?:nothin'?g?|nothing|anything)\b", r"\b(?:ain'?t\s+|aint\s+)?nobody\s+ordered\s+(?:this|that|it)\b")
+_extend(Intent.WRONG_PERSON,
+        r"\bi\s+(?:ain'?t|aint)\s+(?:the|that)\s+(?:guy|person|one|lady|woman|man|dude)\b", r"\bwrong\s*#",
+        r"^\W*(?:i\s+)?(?:don'?t|dont|do\s+not)\s+know\s+(?:u|you|ya)\W*$", r"\bidk\s+who\s+(?:u|you)\s+(?:r|are)\b")
+_extend(Intent.OPT_OUT,
+        r"\b(?:don'?t|dont|do\s+not)\s+(?:txt|msg|message|sms)\s+(?:me|us)\b(?!\s+the\b)", r"\brmv\s+me\b",
+        r"\b(?:ur|your)\s+number\s+(?:is\s+)?blocked\b|\bi\s*(?:'?ve|\s+have)?\s*blocked\s+(?:ur|your|this)\s+number\b")
+_extend(Intent.DISTRESS, r"^\W*(?:i\s+)?can'?t\s+take\s+it\s+(?:no\s+more|anymore|any\s+more)\W*$")
+_extend(Intent.CANT_PAY, r"^\W*(?:i\s+have\s+|i\s+got\s+)?no\s+money\s+(?:rn|right\s+now|atm)\b")
+_extend(Intent.WHO_IS_THIS, r"^\W*who\s+(?:dis|dat|this)\W*$")
+
 # q12-08/10: «התשלומים» כשם עצם כללי («אני אחראית על התשלומים בבית», «התשלומים של האשראי יורדים ב-10») ≠ בקשת
 # פריסה. הביטויים מוסרים מהטקסט רק לבדיקת PLAN_REQUEST; «אפשר בתשלומים?» לא נוגע.
 _GEN_PAYMENTS = _c(

@@ -2,6 +2,14 @@
 
 > הסבב העדכני למעלה, וסבבים קודמים מתחת. **דירוג:** 🔴 חוסם לפני פיילוט או הדגמה ללקוח · 🟠 חשוב · 🟡 שיפור. **[מאומת]** = שוחזר בהרצה מקומית (בלי רשת, הסקריפטים מחוץ לריפו). לא נבדקה שום מערכת חיצונית, ולא נשלח ולא פורסם דבר.
 
+# סבב 146 · 18.11.2026 (לולאה) · בסיס `7278ea7f`
+
+**ביקורת commits (695cdabc «לא באמת שילמתי» ⇒ paid_claim / «לא הבטחתי שאשלם מחר» ⇒ הבטחה — תוקן; a609fae4 «not my bill» / «this isnt my debt» ⇒ מחלוקת דחופה במקום מספר שגוי לצמיתות — עקבי עם «החוב לא שלי»):** ✓. ruff/bandit נקיים; web 90/90; רצפים 100%.
+
+**🟡 סלנג/קיצורים באנגלית — 40 הודעות, 16 פערים ⇒ unknown:** מחלוקת «i aint paying», «i wont be paying», «u cant charge me for this», «i never ordered nothin», «aint nobody ordered this» · מספר שגוי «i aint the guy u want», «wrong # buddy», «i dont know u», «idk who u r» · הסרה «dont txt me no more», «pls dont msg me», «rmv me», «ur number is blocked» · מצוקה «cant take it no more» · קושי «no money rn» · «who dis». **תוקן** (critic 146). מלכודות: «im not paying today, ill pay tomorrow», «i aint paying till friday sorry» (⇒ unknown, לא מחלוקת), «i dont know u had a new number, here is the payment», «dont txt me the link, email it», «no money rn, can i pay next week?». **לא תוקן במכוון:** «this aint mine» (דו-משמעי; הצוות הכריע ש«isnt my debt» = מחלוקת), «ur scamming me» ⇒ abusive. `tests/test_critic_round146_english_slang.py` (16 נכשלו לפני ⇒ 21/21); +2 ב-`evals/regress-round94.jsonl`; heldout: אפס שינוי.
+
+**נושא 5:** כתובת משותפת דחופה — דווח. **נשאר פתוח:** `holidays_expiring` ב-/app/ ו-/ui.
+
 # סבב 145 · 18.11.2026 (לולאה) · בסיס `06b2acc9`
 
 **ביקורת commit (06b2acc9 «אין לי כסף» שוב כשהשיחה אצל בעל העסק אחרי הסדר ⇒ הוצע שוב אותו הסדר ⇒ תוקן):** ✓. ruff/bandit נקיים; web 90/90; רצפים 100%.
@@ -1763,6 +1771,7 @@ commit אחד (QA, `23ad1de4`): שומר העץ רץ גם אחרי evals, demo, 
 - **סבב 143 · 18.11.2026 (לולאה):** אימוג׳י + תמלול קולי ✓. 🟡 «תפסיקו כבר» / «מספיק כבר» / «תפסיקו כבר עם ההודעות» ⇒ unknown (ההסרה אבדה) ⇒ תוקן + 3 מלכודות.
 - **סבב 144 · 18.11.2026 (לולאה):** «אין לי כסף» אחרי אישור (צוות) ✓. 🟡 מילות מילוי («יאללה די», «אחי תפסיקו», «די נו», «just stop already») ⇒ unknown ⇒ הכללה: הסרת מילוי בהודעה קצרה + 7 מלכודות.
 - **סבב 145 · 18.11.2026 (לולאה):** `_FILLERS` מול 30 תמימים — נקי. 🟡 «this isn't my number» / «this number isnt mine» ⇒ unknown ⇒ תוקן + 3 מלכודות.
+- **סבב 146 · 18.11.2026 (לולאה):** «not my bill» ⇒ מחלוקת (צוות) ✓. 🟡 16 פערי סלנג באנגלית («i aint paying», «pls dont msg me», «cant take it no more», «wrong # buddy») ⇒ unknown ⇒ תוקן + 5 מלכודות.
 - **סבב 49 · 11.11.2026 (מתוזמן):** 3 commits של הצוות עקביים. 🟡 אישור הסדר מהדשבורד עם סכום חריג נתקע ⇒ תיבה; 🟡 התראת amount_check בלי כותרת ⇒ תוקן. שניהם צולמו.
 - **סבב 48 · 11.11.2026 (מתוזמן):** 3 commits של הצוות תקינים (amount_check משולב נכון עם 32.1). 🟠 תשובות שיחה עקפו את בדיקת הסכום החריג ⇒ confirm_amount גם בטיוטות ובהסדר + תיבה בממשק.
 - **סבב 47 · 11.11.2026 (מתוזמן):** 4 commits של הצוות (מייל/תאריכים) תקינים; מטבע זר תקין. 🟡 מספר ריק ⇒ קישור תשלום עם invoice= ריק ועמוד חייב עם רווח ⇒ תוקן.
