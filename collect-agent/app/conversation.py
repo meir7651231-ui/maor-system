@@ -1181,6 +1181,15 @@ _extend(Intent.DISTRESS, r"^\W*(?:i\s+)?can'?t\s+take\s+it\s+(?:no\s+more|anymor
 _extend(Intent.CANT_PAY, r"^\W*(?:i\s+have\s+|i\s+got\s+)?no\s+money\s+(?:rn|right\s+now|atm)\b")
 _extend(Intent.WHO_IS_THIS, r"^\W*who\s+(?:dis|dat|this)\W*$")
 
+# ═══ critic סבב 147: סלנג צ׳אט בעברית — סירוב/הסרה/קטין בהודעה קצרה ═══
+_extend(Intent.DISPUTE, r"^\W*(?:אני\s+)?לא\s+(?:משלמ|משלמת|משלמימ)(?:\s+(?:וזהו|וזהו זה|בכלל|על זה|לכמ|כלומ|שקל|אגורה))*\W*$")
+_extend(Intent.OPT_OUT,
+        r"^\W*(?:עזוב|עזבי|תעזוב|תעזבי)\s+אותי(?:\s+בשקט)?\W*$", r"^\W*(?:תשכחו|תשכח|תשכחי|שכחו)\s+ממני\W*$",
+        r"^\W*(?:זה\s+)?לא\s+מעניינ\s+אותי\W*$", r"^\W*חלאס(?:\s+(?:כבר|עמ\s+(?:זה|ה?הודעות|ה?סמסימ)))?\W*$",
+        r"^\W*נמאס(?:\s+(?:לי|כבר|לי\s+כבר))?\W*$",
+        r"^\W*אל\s+(?:תכתבו|תכתוב|תכתבי|תשלחו|תשלח|תשלחי|תפנו)\s+(?:לי|אלי|אליי)(?:\s+(?:כלומ|יותר|שוב|עוד|הודעות))*\W*$")
+_extend(Intent.MINOR, r"^\W*(?:בנ|בת)\s+(?:1[0-7]|[5-9])(?![\d])\W*$")
+
 # q12-08/10: «התשלומים» כשם עצם כללי («אני אחראית על התשלומים בבית», «התשלומים של האשראי יורדים ב-10») ≠ בקשת
 # פריסה. הביטויים מוסרים מהטקסט רק לבדיקת PLAN_REQUEST; «אפשר בתשלומים?» לא נוגע.
 _GEN_PAYMENTS = _c(
@@ -2262,10 +2271,10 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         found.add(Intent.OPT_OUT)
     # critic סבב 144: מילות מילוי סביב פועל ההסרה («יאללה די», «אחי תפסיקו», «די נו», «just stop already») שברו את
     # התבנית «המילה לבדה» ⇒ unknown. בהודעה קצרה: מסירים מילות מילוי ומסווגים שוב (רק הסרה/מחלוקת מצטרפות).
-    if not (found & {Intent.OPT_OUT, Intent.DISPUTE}) and len(t.split()) <= 7:
+    if not (found & {Intent.OPT_OUT, Intent.DISPUTE, Intent.MINOR}) and len(t.split()) <= 7:
         core = re.sub(r"\s+", " ", _FILLERS.sub(" ", t)).strip(" ,.!?")
         if core and core != t.strip(" ,.!?"):
-            found |= set(detect(core)) & {Intent.OPT_OUT, Intent.DISPUTE}
+            found |= set(detect(core)) & {Intent.OPT_OUT, Intent.DISPUTE, Intent.MINOR}   # 147: «בן 15 אחי»
     if Intent.DISPUTE not in found and _hits(_C133_DISPUTE, t) and not _C133_VETO.search(t):
         found.add(Intent.DISPUTE)   # critic סבב 133/134: מחלוקות יומיומיות, עם וטו לשגרתיות
     t_dg = _deglue(_typofix(t))   # מנהל 262: הדבקת מילים · 263: שגיאות כתיב — רק כוונות מגינות

@@ -65,3 +65,5 @@
 {"id": "c145-1", "text": "this isn't my number", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person"}, "critical": true}
 {"id": "c146-1", "text": "pls dont msg me", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out"}, "critical": true}
 {"id": "c146-2", "text": "i aint paying till friday sorry", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["dispute"]}, "critical": true}
+{"id": "c147-1", "text": "חלאס", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out"}, "critical": true}
+{"id": "c147-2", "text": "אל תשלחו לי קישור, אני אעביר בבנק", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out"]}, "critical": true}
