@@ -1036,8 +1036,8 @@ class CollectService:
             self.db.x("UPDATE invoices SET open_reviewed_at=? WHERE id=?", (now, iid))
             done["confirmed"].append(iid)
         for iid in paid:
-            self.db.x("UPDATE invoices SET status='closed', open_reviewed_at=?, owner_paid_at=? "
-                      "WHERE id=?", (now, now, iid))
+            self.db.x("UPDATE invoices SET status='closed', open_reviewed_at=?, owner_paid_at=?, "
+                      "closed_at=? WHERE id=?", (now, now, now, iid))   # critic 157: closed_at ⇒ ר-10
             self._cancel_invoice(iid, "owner_marked_paid")
             done["paid"].append(iid)
         self.audit(actor, "open_list_confirmed", done)
@@ -1053,7 +1053,7 @@ class CollectService:
             raise ValueError("החשבונית כבר לא פתוחה")
         now = _iso(self.clock())
         self.db.x("UPDATE invoices SET status='closed', open_reviewed_at=COALESCE(open_reviewed_at,?), "
-                  "owner_paid_at=? WHERE id=?", (now, now, iid))
+                  "owner_paid_at=?, closed_at=? WHERE id=?", (now, now, now, iid))   # critic 157
         self._cancel_invoice(iid, "owner_marked_paid")
         self.audit(actor, "invoice_marked_paid", {"invoice": iid, "number": inv["number"],
                                                   "amount_agorot": inv["amount_agorot"]})
@@ -1438,6 +1438,10 @@ class CollectService:
         cutoff = _iso(self.clock() - timedelta(days=RETENTION_DAYS))
         now = _iso(self.clock())
         inv_n = cust_n = 0
+        # critic 157: ריפוי — חשבונית סגורה בלי closed_at (מסלולי סגירה ישנים) לא נמחקה לעולם.
+        # owner_paid_at = מועד מדויק; אחרת «עכשיו» — שמרני: 90 הימים נספרים מהיום, אף פעם לא מחיקה מוקדמת
+        self.db.x("UPDATE invoices SET closed_at=COALESCE(owner_paid_at, ?) "
+                  "WHERE status='closed' AND closed_at IS NULL AND purged_at IS NULL", (now,))
         for r in self.db.q("SELECT i.id FROM invoices i JOIN customers c ON c.id=i.customer_id "
                            "WHERE i.status='closed' AND i.purged_at IS NULL AND i.closed_at "
                            "IS NOT NULL AND i.closed_at<=? AND c.legal_hold IS NULL", (cutoff,)):
@@ -1804,7 +1808,8 @@ class CollectService:
             self._mark_refresh_failed(r, "refresh_failed", str(e))
             return "failed"
         if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
-            self.db.x("UPDATE invoices SET status='closed' WHERE id=?", (inv["id"],))
+            self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?",
+                      (_iso(self.clock()), inv["id"]))   # critic 157
             self.audit("system", "refresh_closed", {"invoice": inv["id"]})
             return "closed"
         self.db.x("UPDATE invoices SET synced_at=? WHERE id=?", (_iso(self.clock()), inv["id"]))
@@ -1877,7 +1882,8 @@ class CollectService:
                 self.audit("system", "refresh_failed", {"invoice": inv["id"], "error": str(e)[:200]})
                 return False
             if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
-                self.db.x("UPDATE invoices SET status='closed' WHERE id=?", (inv["id"],))
+                self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?",
+                          (_iso(self.clock()), inv["id"]))   # critic 157
                 self._cancel_invoice(inv["id"], "invoice_closed")
             elif doc.amount_agorot != inv["amount_agorot"]:
                 self.db.x("UPDATE invoices SET amount_agorot=?, synced_at=? WHERE id=?",
