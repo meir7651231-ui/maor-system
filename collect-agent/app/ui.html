@@ -98,6 +98,8 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 <div class="err loaderr" id="acterr" role="alert" hidden><span id="actMsg"></span><button id="btnAct">הבנתי</button></div>
 <div class="err loaderr" id="locked" role="alert" hidden><span id="lockMsg"></span><button id="btnLogin" class="primary">כניסה</button></div>
 <div id="dash">
+  <!-- critic סבב 150: פקיעת לוח החגים (גם ב-/app/). אחרי התאריך גבי עוצרת את כל השליחות -->
+  <div class="note" id="holWarn" role="status" hidden></div>
   <div class="kpis" id="kpis"></div>
   <section class="card" id="ol" hidden aria-labelledby="olH"><h2 id="olH"></h2>
     <p class="slogan">לפני תזכורת ראשונה: מה עדיין פתוח, ומה כבר שולם בביט, במזומן או בהעברה? על מה שלא סימנתם לא תצא תזכורת.</p>
@@ -221,6 +223,13 @@ function failed(e,show){if(e.auth)return;if(!e.unknown)return show(e.message);
 async function loadDash(ask){
   const d=await api("/dashboard?view=list",{},ask);if(locked)return;const t=d.totals;
   const tr=d.trial||{};
+  {const h=d.holidays||{},w=$("#holWarn"),ok=/^\d{4}-\d{2}-\d{2}$/;
+   if(h.until&&ok.test(h.until)&&ok.test(d.today||"")&&(h.expiring||h.until<d.today)){
+     const left=Math.round((Date.parse(h.until)-Date.parse(d.today))/864e5),gone=left<0;
+     w.setAttribute("role",gone?"alert":"status");
+     w.textContent=gone?`⛔ לוח החגים פג ב-${h.until} — גבי לא שולחת תזכורות עד שהלוח יתעדכן (בעדכון גרסה).`
+       :`📅 לוח החגים בתוקף עד ${h.until} (עוד ${left} ימים). אחרי התאריך גבי תעצור את כל השליחות עד העדכון.`;
+     w.hidden=false}else w.hidden=true}
   $("#today").textContent="נכון ל-"+d.today+(tr.on_trial?(tr.active
     ?` · ניסיון חינם: נותרו ${tr.days_left} ימים, אחר כך ₪${tr.price_ils_month} לחודש, כולל מע״מ ככל שחל`
     :` · תקופת הניסיון הסתיימה: התזכורות נעצרו (הנתונים נשמרו). ₪${tr.price_ils_month} לחודש להמשך, כולל מע״מ ככל שחל`):"");

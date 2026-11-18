@@ -44,7 +44,7 @@ def test_list_has_only_ui_fields_with_same_values_as_full(api, fake_gi):
     api.post("/sync")
     full = api.get("/dashboard").json()
     lst = api.get("/dashboard?view=list").json()
-    assert set(lst) == {"today", "trial", "totals", "invoices"}
+    assert set(lst) == {"today", "trial", "totals", "invoices", "holidays"}   # critic סבב 150: holidays ל-/ui
     assert {k: full[k] for k in ("today", "trial", "totals")} == {k: lst[k] for k in ("today", "trial", "totals")}
     assert [x["invoice_id"] for x in lst["invoices"]] == [x["invoice_id"] for x in full["invoices"]]
     assert {x["status"] for x in lst["invoices"]} == {"open", "closed"}

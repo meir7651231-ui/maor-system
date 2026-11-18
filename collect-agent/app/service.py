@@ -2335,7 +2335,10 @@ class CollectService:
             for x in inv:
                 if x["last_reminder"]:
                     x["last_reminder"] = {k: x["last_reminder"][k] for k in self.DASH_LIST_LAST}
-            return {"today": full["today"], "trial": full["trial"], "totals": full["totals"], "invoices": inv}
+            # critic סבב 150: /ui לא ראה את פקיעת לוח החגים (send_window הושמט) — שני שדות בלבד
+            sw = full["send_window"]
+            return {"today": full["today"], "trial": full["trial"], "totals": full["totals"], "invoices": inv,
+                    "holidays": {"until": sw["holidays_until"], "expiring": sw["holidays_expiring"]}}
         today = self.clock().date()
         rows = []
         # הפעלה 175: היו 3 שאילתות לכל חשבונית (תזכורת אחרונה / ספירת יוצאות / אחרונה שיצאה) + שאילתות

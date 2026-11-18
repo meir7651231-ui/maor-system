@@ -203,6 +203,10 @@ class ConversationInbox:
         ids = [x["id"] for x in info.get("linked_customers", [])]
         if customer_id is not None and customer_id not in ids:
             raise ValueError("הלקוח לא מקושר לכתובת הזו")
+        cust = self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)) if customer_id is not None else None
+        if customer_id is not None and cust is None:
+            # critic סבב 150: נמחק בינתיים (purge) — היה TypeError/500 אחרי שהכרטיס כבר נסגר וההשהיות שוחררו
+            raise ValueError("הלקוח הזה כבר לא קיים במערכת — בחרו לקוח אחר או «אף אחד מהם»")
         self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (card_id,))
         for cid in ids:
             self.db.x("UPDATE customers SET paused_reason=NULL WHERE id=? AND paused_reason=?",
@@ -210,7 +214,6 @@ class ConversationInbox:
         self.svc.audit(actor, "shared_contact_assigned", {"card": card_id, "customer": customer_id})
         if customer_id is None:
             return {"card_id": card_id, "assigned": None}
-        cust = self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,))
         res = self.handle_customer(cust, m["channel"], m["body"])
         return {"card_id": card_id, "assigned": customer_id, **res}
 
