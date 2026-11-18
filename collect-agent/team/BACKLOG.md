@@ -37,6 +37,10 @@
 - [x] ✅ `4b86cf88` (+ `555b9175` כרטיס ב-`web/`, `b7e4d6fc` ב-`/ui`): מסך «אישור רשימת הפתוחות» מעל `GET /open-list` + `POST /open-list/confirm`; מובייל 390px נבדק ב-`live.mjs` (live-07b) וב-`ui-openlist.mjs` (ui-13).
 - [x] ✅ `dbb041de` צבעי סטטוס: ניגודיות AA לכל תגית סטטוס — `web/tests/contrast.check.ts` מחושב מה-tokens; נמצאו ותוקנו 3 גווני-טקסט שנכשלו (due/late/critical ⇒ *-ink).
 - [x] ✅ `34457f7c` לוגו לרקע כהה (`web/public/logo-dark.svg`) מאותו מקור (`brand/logo.ts`) + בדיקה ב-`tests/lib.check.ts`.
+- [x] ✅ התראת פקיעת לוח החגים בבית ובהגדרות (`f9a5f94e`, e2e `app-holidays.mjs` ב-CI, AA נמדד בדפדפן).
+- [x] ✅ `14bbc7ac` ניגודיות AA ב-/ui: --muted/--warn נכשלו (4.23–4.49) ⇒ תוקנו + `tests/test_ui_contrast.py` (40 צירופים, בהיר+כהה).
+- [x] ✅ `2bfd5eef` /ui הציג את הלוגו הישן ⇒ הלוגו הסופי מ-`brand/logo.ts` (בהיר/כהה) + בדיקת סנכרון.
+- [x] ✅ `1c326592` דף-הנחיתה + 4 דפי הענף (גם הפאביקון) הציגו את הלוגו הישן ⇒ מאותו מקור + בדיקה.
 - 🧱 אישור הלוגו הסופי (מאיר).
 
 ## גבי משפט
