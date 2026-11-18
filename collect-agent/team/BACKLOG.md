@@ -45,7 +45,7 @@
 - [x] ✅ `2bfd5eef` /ui הציג את הלוגו הישן ⇒ הלוגו הסופי מ-`brand/logo.ts` (בהיר/כהה) + בדיקת סנכרון.
 - [x] ✅ `1c326592` דף-הנחיתה + 4 דפי הענף (גם הפאביקון) הציגו את הלוגו הישן ⇒ מאותו מקור + בדיקה.
 - 🧱 אישור הלוגו הסופי (מאיר).
-- [x] ✅ (תוקן מנהל 300 — xfail הוסרו, +3 בדיקות, מוטציה 15/16) 🟡 (מבקר סבב 155) **`web/src/pages/Dashboard.tsx` → `PAUSE_LABEL` + `app/ui.html` → `PAUSE`**: (1) minor/deceased/insolvency מוצגים «סימנתם: …» גם כשהמנוע קבע אותם מהודעת הלקוח («אני בן 14») — ליד «↻ חידוש תזכורות» בלי אזהרה ⇒ ניסוח ניטרלי + אזהרה בחידוש לסיבות מגינות (קטין ⇒ לפנות להורה); (2) תוויות חסרות ל-`shared_contact_urgent`, `shared_contact_paid_claim`, `sensitive` (היום «מושהה עד שתבדקו»). הוכחה: `tests/test_critic_round155_pause_labels.py` (12× `xfail(strict=True)` — אחרי התיקון להסיר xfail).
+- [x] ✅ `93a82f0f` (תוקן מנהל 300 — xfail הוסרו, +3 בדיקות, מוטציה 15/16) 🟡 (מבקר סבב 155) **`web/src/pages/Dashboard.tsx` → `PAUSE_LABEL` + `app/ui.html` → `PAUSE`**: (1) minor/deceased/insolvency מוצגים «סימנתם: …» גם כשהמנוע קבע אותם מהודעת הלקוח («אני בן 14») — ליד «↻ חידוש תזכורות» בלי אזהרה ⇒ ניסוח ניטרלי + אזהרה בחידוש לסיבות מגינות (קטין ⇒ לפנות להורה); (2) תוויות חסרות ל-`shared_contact_urgent`, `shared_contact_paid_claim`, `sensitive` (היום «מושהה עד שתבדקו»). הוכחה: `tests/test_critic_round155_pause_labels.py` (12× `xfail(strict=True)` — אחרי התיקון להסיר xfail).
 
 ## גבי משפט
 - ✅ `3d63716` טבלת «כל placeholder של החברה המפעילה» — איפה הוא מופיע (`/p`, `/u`, נגישות, תנאים) + בדיקה שנכשלת אם placeholder נשאר כשמוגדר `OPERATOR_NAME`.
