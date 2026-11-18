@@ -97,3 +97,12 @@ def test_cleanup_fast_when_server_exits_on_sigterm(tmp_path):
     with pytest.raises(ProcessLookupError):
         os.kill(pid, 0)
     assert not log.exists()
+
+
+def test_http_gi_run_is_seeded_and_strict():
+    """ריצת ה-HTTP של חשבונית ירוקה מוכנת כמו sandbox (זיכוי מקושר · תשלום חלקי · קבלה) ונכשלת על GAP —
+    אחרת היא חלשה מהריצה בתוך התהליך (היה: 16/1 GAP/5 SKIP; עכשיו 19/0/3 — רק בדיקות כתיבה)."""
+    for seed in ('"type":330', "/partial", "/demo5/pay"):
+        assert seed in SRC, seed
+    assert '--json "$GI_REPORT"' in SRC and '"GAP", "FAIL"' in SRC
+    assert SRC.index("curl -sf -o /dev/null -X POST \"$A/documents\"") < SRC.index("gi_contract_check.py")
