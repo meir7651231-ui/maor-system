@@ -59,3 +59,4 @@
 {"id": "c140-2", "text": "תודה\nהסרתי את החסימה, אשלם מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out"]}, "critical": true}
 {"id": "c141-1", "text": "תודה\nתפסיקו", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out"}, "critical": true}
 {"id": "c141-2", "text": "שלום\nדי מהר אשלם", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out"]}, "critical": true}
+{"id": "c143-1", "text": "תפסיקו כבר", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out"}, "critical": true}
