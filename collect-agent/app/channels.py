@@ -248,7 +248,7 @@ _SIG_DISCLAIMER = re.compile(
     r"|מיועד\w*\s+(?:\S+\s+){0,2}?לנמען|\bconfidentiality\s+notice\b|\bprivileged\s+and\s+confidential\b"
     r"|\bif\s+you\s+(?:have\s+)?received\s+this\s+(?:e-?mail|message|communication)\s+in\s+error\b", re.I)
 _SIG_TITLE = re.compile(
-    r"^[^.!?]{0,40}(?:\||–)\s*(?:עו\"?ד|עורכ\S*\s+דינ?|משרד\s+עורכי\s+דינ?|י?יעוצ\s+משפטי"
+    r"^[^.!?]{0,40}(?:\||–)\s*(?:עו\"?ד|עורכ[^\s-]*[\s-]+דינ?|משרד\s+עורכי[\s-]+דינ?|י?יעוצ\s+משפטי|יועצ\S*\s+משפטי\S*"
     r"|attorney(?:\s+at\s+law)?|esq\.?|lawyer|counsel(?:or)?|law\s+(?:office|firm))(?:\s+\S+){0,3}\s*$"
     r"|^[^.!?,]{0,40},\s*(?:עו\"?ד|attorney(?:\s+at\s+law)?|esq\.?|counsel(?:or)?)\s*$", re.I)
 # שורה שיש בה פעולה/שלילה/בעלות היא תוכן, לא חתימה («לא משלם | עורך דין», «עורך הדין שלי»)
@@ -257,10 +257,13 @@ _SIG_MINE = re.compile(r"(?<![\w])(?:שלי|שלנו|לא|אני|אתבע|נתב
                        r"|\b(?:my|our|not|will|sue|court|i)\b", re.I)
 
 
+_SIG_FINALS = str.maketrans("ךםןףץ", "כמנפצ")
+
+
 def _is_signature_line(s: str) -> bool:
     if _SIG_DISCLAIMER.search(s):
         return True
-    s = s.replace("ץ", "צ").replace("ן", "נ").replace("ם", "מ")
+    s = s.translate(_SIG_FINALS)   # מנהל 280: כל האותיות הסופיות — ה-ך חסר ⇒ «| עורך דין» לא נחתך ⇒ legal
     return len(s) <= 70 and bool(_SIG_TITLE.search(s)) and not _SIG_MINE.search(s)
 
 
