@@ -131,9 +131,15 @@ const PAUSE={paid_claim:"כתב/ה ששילם/ה. בדקו בחשבון ואז �
   plan_accept:"הסכים/ה להצעת הפריסה",plan_reject:"דחה/תה את הצעת הפריסה",cant_pay:"כתב/ה שאין אפשרות לשלם כרגע",
   dispute:"יש מחלוקת על החשבונית",legal:"הוזכר עניין משפטי",distress:"נראה שהלקוח/ה במצוקה. כדאי לפנות אישית",
   callback:"ביקש/ה שתחזרו אליו/ה",wrong_person:"כתב/ה שזה לא המספר הנכון",abusive:"תגובה פוגענית. כדאי לטפל אישית",
-  credit_review:"יש זיכוי שלא שויך לחשבונית. בדקו ואז חדשו",minor:"סימנתם: קטין/ה",deceased:"סימנתם: נפטר/ה",
-  insolvency:"סימנתם: הליך חדלות פירעון",channel_pref:"ביקש/ה ערוץ אחר (מייל/SMS). עדכנו ערוץ ואז חדשו",
+  credit_review:"יש זיכוי שלא שויך לחשבונית. בדקו ואז חדשו",minor:"קטין/ה (לפי הודעת הלקוח או סימון שלכם). פנו להורה, לא ללקוח",
+  deceased:"נפטר/ה (לפי הודעה או סימון שלכם). אין לשלוח תזכורות",
+  insolvency:"הליך חדלות פירעון (לפי הודעה או סימון שלכם). בדקו עם עו״ד לפני חידוש",
+  shared_contact_urgent:"הודעה דחופה מכתובת של כמה לקוחות. שייכו בכרטיס «כתובת משותפת»",
+  shared_contact_paid_claim:"כתבו ששילמו מכתובת של כמה לקוחות. שייכו בכרטיס «כתובת משותפת»",
+  sensitive:"כתב/ה על מצב רגיש (מחלה, אשפוז, אבל). כדאי לפנות אישית",channel_pref:"ביקש/ה ערוץ אחר (מייל/SMS). עדכנו ערוץ ואז חדשו",
   foreign_language:"כתב/ה בשפה זרה. כדאי לענות אישית"};
+// critic סבב 155: חידוש בסיבה מגינה (קטין/נפטר/חדלות/מצוקה/רגיש/משפטי) ⇒ אזהרה מפורשת. זהה ל-PROTECTIVE ב-/app/.
+const PROTECT=new Set(["minor","deceased","insolvency","distress","sensitive","legal"]);
 const pause=r=>{const [b,u]=String(r).split(":until=");const t=BLOCK[b]||PAUSE[b]||"מושהה עד שתבדקו";
   return u?t+" · עד "+u.split("-").reverse().join("."):t};
 const BLOCK={no_contact:"אין נייד או מייל תקין",compliance:"נחסם במסנן הניסוח",plan_active:"בהסדר תשלומים",disputed:"מחלוקת",no_payment_link:"אין קישור תשלום",
@@ -368,7 +374,7 @@ function drawDebts(){
       :L?chipOf(L):"טרם הוכנה";
     return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}${
     x.status==="open"&&x.paused_reason&&(x.customer_block===x.paused_reason||x.customer_block==="disputed")
-      ?` <button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""} title="בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו">↻ חידוש תזכורות</button>`:""}</td><td>${esc(x.number)}${
+      ?` <button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""}${PROTECT.has(String(x.paused_reason).split(":until=")[0])?' data-protect="1"':""} title="${PROTECT.has(String(x.paused_reason).split(":until=")[0])?"שימו לב: חידוש ישלח שוב תזכורות תשלום לאותו נייד/מייל. חדשו רק אחרי שבדקתם":"בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו"}">↻ חידוש תזכורות</button>`:""}</td><td>${esc(x.number)}${
     x.status==="open"?` <button class="markpaid" data-iid="${x.invoice_id}"${busy?" disabled":""} title="הלקוח שילם בביט/העברה/מזומן? החשבונית תיסגר כאן ולא יישלחו עליה תזכורות">✓ שולם מחוץ למערכת</button>`:""}</td>
     <td class="num">${esc(fmtCur(x.amount_agorot,x.currency))}</td><td>${esc(x.due||"")}</td>
     <td class="${x.days_overdue>0?"late":""}">${x.days_overdue>0?x.days_overdue+" ימים":"—"}</td>
@@ -377,12 +383,12 @@ function drawDebts(){
 $("#dFind").addEventListener("input",e=>{dQ=e.target.value;dLim=DPAGE;drawDebts()});
 // חידוש ללקוח מושהה (למשל אחרי «שילמתי» שלא אומת): לחיצה ראשונה מחמשת, השנייה מבצעת
 $("#debts").addEventListener("click",async e=>{const b=e.target.closest("button.resume");if(!b||busy)return;
-  if(!b.dataset.armed){b.dataset.armed="1";b.textContent="בטוח? לחצו שוב";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="↻ חידוש תזכורות"}},4000);return}
+  if(!b.dataset.armed){b.dataset.armed="1";b.textContent=b.dataset.protect?"סיבה מגינה! בדקתם? לחצו שוב":"בטוח? לחצו שוב";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="↻ חידוש תזכורות"}},4000);return}
   b.disabled=true;b.dataset.going="1";try{await api(`/customers/${b.dataset.cid}/resume`,{method:"POST"});await load()}
   catch(err){failed(err,m=>{delete b.dataset.going;b.disabled=busy;b.textContent="שגיאה: "+m})}});
 // «שולם מחוץ למערכת» (BACKLOG גבייה סוכן #3): לחיצה ראשונה מחמשת, השנייה סוגרת ומתעדת ב-audit
 $("#debts").addEventListener("click",async e=>{const b=e.target.closest("button.markpaid");if(!b||busy)return;
-  if(!b.dataset.armed){b.dataset.armed="1";b.textContent="בטוח? לחצו שוב";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="✓ שולם מחוץ למערכת"}},4000);return}
+  if(!b.dataset.armed){b.dataset.armed="1";b.textContent=b.dataset.protect?"סיבה מגינה! בדקתם? לחצו שוב":"בטוח? לחצו שוב";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="✓ שולם מחוץ למערכת"}},4000);return}
   b.disabled=true;b.dataset.going="1";try{await api(`/invoices/${b.dataset.iid}/mark-paid`,{method:"POST"});await load()}
   catch(err){failed(err,m=>{delete b.dataset.going;b.disabled=busy;b.textContent="שגיאה: "+m})}});
 // הפעלה 142: כשל ב-/dashboard נבלע בשקט (הטבלה נשארה ריקה או ישנה), וכשל ב-/reminders השאיר תור ריק בלי הסבר.
