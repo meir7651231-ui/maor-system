@@ -1295,7 +1295,7 @@ class CollectService:
         row = self.db.one("SELECT intent, message_id FROM messages WHERE id=? AND needs_owner=1", (mid,))
         if not row:
             raise KeyError(mid)
-        if row["intent"] == "shared_contact_urgent":
+        if row["intent"] in ("shared_contact_urgent", "shared_contact_paid_claim"):
             # critic סבב 149: «טופל» על כרטיס כתובת משותפת = «אף אחד מהם» — אחרת ההשהיה נשארה על כל המקושרים לתמיד
             return {"id": mid, "done": True, **self.inbox.assign_shared_card(mid, None, actor=actor)}
         if self._self_dismiss_blocked(row, actor):

@@ -51,7 +51,17 @@ def _slots():
     msg = (ROOT / "team/messaging.md").read_text(encoding="utf-8")
     slots["messaging · משפט אחד"] = re.search(r"^\| \*\*משפט אחד\*\* \| (.+?) \|$", msg, re.M).group(1)
     slots["messaging · משפט (§5)"] = re.search(r"^- \*\*משפט:\*\* (.+)$", msg, re.M).group(1)
+    mk = (ROOT / "team/marketing.md").read_text(encoding="utf-8")
+    slots["marketing.md · meta (§2.11)"] = re.search(r"`meta description` \(≤155\): (.+)$", mk, re.M).group(1)
+    for n, label in re.findall(r"^(\d)\. \*\*(.+?)\*\*", _section_15(mk), re.M):
+        slots[f"marketing.md §1.5 · בידול {n}"] = label
     return slots
+
+
+def _section_15(mk: str) -> str:
+    """team/marketing.md §1.5 «בידול מול morning» — עד «כללי עבודה» (שם SMS/שבת מותרים כמידע)."""
+    sec = mk[mk.index("### 1.5 בידול"):mk.index("### 1.6")]
+    return sec.split("**כללי עבודה")[0]
 
 
 @pytest.mark.parametrize("name", list(_slots()))
@@ -61,7 +71,7 @@ def test_positioning_slot_does_not_sell_sms_or_shabbat(name):
 
 
 @pytest.mark.parametrize("name", ["דף סטטי · תיאור", "דף סטטי · פתיחה", "דף מעוצב /app/ · פתיחה",
-                                  "messaging · משפט אחד", "messaging · משפט (§5)"])
+                                  "messaging · משפט אחד", "messaging · משפט (§5)", "marketing.md · meta (§2.11)"])
 def test_landing_openers_carry_the_three_differentiators(name):
     text = _slots()[name]
     missing = [k for k, rx in DIFF.items() if not rx.search(text)]
@@ -85,3 +95,15 @@ def test_no_exclusivity_claim_about_sms_or_shabbat_anywhere():
     bad = [f"{p.relative_to(ROOT)}: {m.group(0)}" for p in files
            for m in rx.finditer(p.read_text(encoding="utf-8", errors="ignore"))]
     assert not bad, bad
+
+
+def test_marketing_md_15_lists_the_three_differentiators_and_work_rules_as_info():
+    """ממצא גבי מחקר (94d374a): §1.5 הציג «כללים ישראליים: לא בשבת…» כבידול ו«אישור כל הודעה ראשונה»
+    (ההכרעה: כל הודעה), בלי «עצירה אחרי 3»."""
+    mk = (ROOT / "team/marketing.md").read_text(encoding="utf-8")
+    sec = _section_15(mk)
+    missing = [k for k, rx in DIFF.items() if not rx.search(sec)]
+    assert not missing, f"§1.5 חסר {missing}"
+    assert "כל הודעה ראשונה" not in sec and "כללים ישראליים" not in sec
+    full = mk[mk.index("### 1.5 בידול"):mk.index("### 1.6")]
+    assert "**כללי עבודה (מידע, לא בידול):**" in full and "שבת" in full.split("**כללי עבודה")[1]

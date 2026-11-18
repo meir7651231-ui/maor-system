@@ -1065,6 +1065,18 @@ _extend(Intent.HOW_TO_PAY,
         r"^\W*(?:אני\s+|אנחנו\s+)?(?:רוצה|רוצים|רוצָה|מעוניינ\w*|מבקש\w*)\s+(?:ל)?שלם(?:\s+(?:את\s+)?(?:זה|החוב|החשבונית|הכל|הכול))?"
         r"(?:\W+(?:איכ|איך|תודה|בבקשה))?\W*$",
         r"^\W*i\s+(?:want|wanna|would\s+like|'d\s+like)\s+to\s+pay(?:\s+(?:it|this|the\s+bill|now|today))?(?:\W+(?:how|thanks|please))?\W*$")
+# STATUS 297 «הבא» AI: עתיד של העברה = הבטחה — «I'll make the transfer tomorrow», «I will do the bank transfer on Sunday»,
+# «ill send the transfer friday», «אעשה את ההעברה מחר», «אבצע העברה ביום ראשון» ⇒ היו UNKNOWN (בלי השהיה, בלי מועד).
+_extend(Intent.PROMISE,
+        r"\b(?:i'?ll|i\s+will|ill|will|gonna|going\s+to|i'?m\s+going\s+to)\s+(?:make|do|send|complete|process)\s+(?:the|a|my)\s+"
+        r"(?:bank\s+)?(?:transfer|wire|payment)\b",
+        r"(?<![\w])(?:אעשה|אבצע|נעשה|נבצע|אשלח|נשלח)\s+(?:את\s+)?(?:ה)?(?:העברה|העברה\s+הבנקאית|תשלומ)(?![\w])")
+# וסירוב לעשות אותה = כמו «לא אשלם» ⇒ מחלוקת: «I won't make the transfer», «לא אעשה את ההעברה»
+_extend(Intent.DISPUTE,
+        r"\b(?:won'?t|will\s+not|refuse\s+to|not\s+gonna|not\s+going\s+to)\s+(?:make|do|send|complete)\s+(?:the|a|any)\s+"
+        r"(?:bank\s+)?(?:transfer|wire|payment)\b(?!\s*(?:today|tonight|now|this\s+week|tomorrow|yet)\b)",
+        r"(?<![\w])(?:לא|לעולמ\s+לא)\s+(?:אעשה|אבצע|נעשה|נבצע|אשלח|נשלח)\s+(?:את\s+)?(?:ה)?(?:העברה|תשלומ)(?![\w])"
+        r"(?!\s*(?:היומ|הערב|עכשיו|השבוע|מחר|עדיינ))")   # «לא אעשה את ההעברה מחר, רק ביום ראשון» = דחייה, לא סירוב
 # לולאה 17.11 בוקר (המשך לסבב 122): שגיאות כתיב באנגלית בכוונות מגינות — «stop txting», «stpo texting me»,
 # «unsubcribe», «reportin u to the polise», «i feel so hopless». מילת-פעולה של שליחה נדרשת אחרי stop (לא «stop worrying»).
 _extend(Intent.OPT_OUT,

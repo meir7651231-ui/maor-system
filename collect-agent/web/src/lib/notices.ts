@@ -32,10 +32,14 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   unknown_sender_urgent: { icon: '🚨', title: 'פנייה דחופה ממספר/כתובת לא מוכרים — לבדיקתך עכשיו', tone: 'warn' },
   // החלטה 5 (18.11.2026): פנייה דחופה מכתובת המשותפת לכמה לקוחות — כרטיס אחד, בלי שיוך אוטומטי, בעל העסק בוחר
   shared_contact_urgent: { icon: '🚨', title: 'פנייה דחופה ממספר/כתובת של כמה לקוחות — לא שויכה, בחרו למי היא שייכת', tone: 'warn' },
+  // גבייה סוכן 18.11: «שילמתי» מכתובת משותפת בלי שיוך — כל המקושרים מושהים עד שבעל העסק בוחר
+  shared_contact_paid_claim: { icon: '👥', title: '«שילמתי» ממספר/כתובת של כמה לקוחות — התזכורות לכולם נעצרו, בחרו מי שילם', tone: 'warn' },
   shared_contact_ambiguous: { icon: '👥', title: 'הודעה ממספר/כתובת של כמה לקוחות — לא שויכה, לבדיקתך', tone: 'warn' },
 };
 /** נכנסות שמוצגות כאן: רק בלי לקוח מזוהה (ללקוח מזוהה יש טיוטה/כרטיס ב«תשובות לקוחות»). */
-const INBOUND_ORPHANS = new Set(['unknown_sender', 'unknown_sender_urgent', 'shared_contact_ambiguous', 'shared_contact_urgent']);
+const INBOUND_ORPHANS = new Set(['unknown_sender', 'unknown_sender_urgent', 'shared_contact_ambiguous', 'shared_contact_urgent', 'shared_contact_paid_claim']);
+/** כרטיסי כתובת משותפת עם בחירת לקוח (POST /owner/shared-cards/{id}/assign). */
+const SHARED_CARDS = new Set(['shared_contact_urgent', 'shared_contact_paid_claim']);
 const URGENT_ORPHANS = new Set(['unknown_sender_urgent', 'shared_contact_urgent']);
 
 /** החלטה 5: הלקוחות המקושרים מה-payload (id+שם; בעל העסק בוחר — critic סבב 149) — בלי לזרוק על JSON פגום. */
@@ -54,7 +58,7 @@ export function systemNotices(rows: OwnerMsg[]): Notice[] {
       || (r.direction === 'in' && r.customer_id == null && INBOUND_ORPHANS.has(r.intent ?? '')))
     .map(r => {
       const k = KIND[r.intent ?? ''] ?? { icon: 'ℹ️', title: 'הודעה מגבי', tone: 'info' as const };
-      const linked = r.intent === 'shared_contact_urgent' ? linkedCustomers(r.payload) : [];
+      const linked = SHARED_CARDS.has(r.intent ?? '') ? linkedCustomers(r.payload) : [];
       const body = linked.length ? `${r.body}\n\nלקוחות מקושרים: ${linked.map(c => c.name).join(' · ')}` : r.body;
       return { id: r.id, icon: k.icon, title: k.title, body, tone: k.tone, intent: r.intent ?? '', ...(linked.length ? { linked } : {}) };
     })
