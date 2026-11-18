@@ -254,11 +254,14 @@ _SIG_TITLE = re.compile(
     r"|^[^.!?,]{0,40},\s*(?:עוה?[\"״'׳”“„″]?ד|attorney(?:\s+at\s+law)?|esq\.?|counsel(?:or)?)\s*$"
     # critic סבב 139: «דנה לוי, עו״ד ונוטריון/ומגשרת», «לוי ושות׳, עורכי דין», «עו״ד דנה לוי» (תואר לפני השם)
     r"|^[^.!?]{0,40},\s*(?:עוה?[\"״'׳”“„″]?ד|עורכי[\s-]+דינ?|משרד\s+עורכי[\s-]+דינ?)(?:\s+ו\S+){0,2}\s*$"
-    r"|^עוה?[\"״'׳”“„″]?ד\s+[^\s\d.!?,]{2,}(?:\s+[^\s\d.!?,]{2,}){0,2}\s*$", re.I)
+    r"|^עוה?[\"״'׳”“„″]?ד\s+[^\s\d.!?,]{2,}(?:\s+[^\s\d.!?,]{2,}){0,2}\s*$"
+    # critic סבב 140: שורת שם-משרד בלי מפריד («לוי ושות׳ משרד עורכי דין», «Levi & Co. Law Offices»)
+    r"|^[^.!?]{0,60}(?:משרד\s+עורכי[\s-]+דינ?|law\s+offices?|law\s+firm|attorneys\s+at\s+law)[^.!?]{0,30}$", re.I)
 # מנהל 281: «| עו״ד» בגרשיים עבריים (״, מקלדת טלפון/Word) / ״ חכם לא זוהה ⇒ «קיבלתי תודה» סווג legal
 # שורה שיש בה פעולה/שלילה/בעלות היא תוכן, לא חתימה («לא משלם | עורך דין», «עורך הדין שלי»)
 _SIG_MINE = re.compile(r"(?<![\w])(?:שלי|שלנו|לא|אני|אתבע|נתבע|תביעה|אשלמ|משלמ\w*|יתקשר|יטפל|יטפלו|פונה|נתראה"
-                       r"|בית משפט|בדרכ|אליכמ|לכמ|מעביר|מעבירה|יפנה|ישלח|מכתב|התראה)(?![\w])"
+                       r"|בית משפט|בדרכ|אליכמ|לכמ|מעביר|מעבירה|יפנה|ישלח|מכתב|התראה"
+                       r"|העברתי|העברנו|פניתי|פנינו|נפנה)(?![\w])"
                        r"|\b(?:my|our|not|will|sue|court|i)\b", re.I)
 
 
@@ -366,5 +369,8 @@ def _protective_tail(rest: list[str]) -> list[str]:
         if s and not _is_signature_line(s):
             tail.append(line)
     text = "\n".join(tail).strip()
-    # בלי LEGAL: שורות החתימה («משרד עורכי דין…», «ושות׳») הן בדיוק מקור ה-legal-שווא שסבבים 124/139 סגרו
-    return tail if text and set(detect(text)) & (set(_FLOOR_INTENTS) - {Intent.LEGAL}) else []
+    # בלי LEGAL: שורות החתימה («משרד עורכי דין…», «ושות׳») הן בדיוק מקור ה-legal-שווא שסבבים 124/139 סגרו.
+    # critic סבב 140: LEGAL כן — כשבשורה יש פועל/בעלות («נ.ב. אני פונה לעורך דין», «העו״ד שלי יתקשר»)
+    found = set(detect(text)) if text else set()
+    legal_threat = Intent.LEGAL in found and any(_SIG_MINE.search(x.translate(_SIG_FINALS)) for x in tail)
+    return tail if text and (found & (set(_FLOOR_INTENTS) - {Intent.LEGAL}) or legal_threat) else []

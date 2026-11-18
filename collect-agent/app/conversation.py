@@ -2126,6 +2126,12 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
                    r"|(?<![\w])(?:נחזור|תחזור|יחזור|נבוא|תבוא)(?![\w])", t) \
             and not _s(r"כספ|לשלמ|תשלומ|אשלמ|קשה|כלכלי|אינ לי|אינ לנו|מאושפז|אשפוז|בית חולימ|בבי\"?ח|ניתוח|כימו", t):
         found.discard(Intent.CANT_PAY)
+    # critic סבב 140: «תודה\nהסר» — normalize מאחד שורות לרווח, ו«הסר» באמצע ההודעה לא נתפס ⇒ ההסרה אבדה (thanks).
+    # שורה שכולה מילת הסרה = בקשת הסרה (המפריד הנפוץ במייל וב-SMS רב-שורתי).
+    if Intent.OPT_OUT not in found and "\n" in (text or "") and any(
+            _fm(r"\W*(?:הסר|הסירו|הסירי|תסירו|תסיר|הסר אותי|תסירו אותי|הסירו אותי|stop|unsubscribe|remove me)\W*", normalize(ln))
+            for ln in (text or "").splitlines()):
+        found.add(Intent.OPT_OUT)
     if Intent.DISPUTE not in found and _hits(_C133_DISPUTE, t) and not _C133_VETO.search(t):
         found.add(Intent.DISPUTE)   # critic סבב 133/134: מחלוקות יומיומיות, עם וטו לשגרתיות
     t_dg = _deglue(_typofix(t))   # מנהל 262: הדבקת מילים · 263: שגיאות כתיב — רק כוונות מגינות
