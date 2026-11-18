@@ -2554,6 +2554,17 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             and not found & {Intent.PLAN_REQUEST, Intent.PLAN_ACCEPT, Intent.PLAN_REJECT} \
             and not (_s(_SENSITIVE_ILL, t) or _s(_INSOLVENCY_TAG, t) or _s(_RESERVIST_NOW, t)):
         found.add(Intent.PLAN_REJECT)
+    # מנהל 287 (הבא מ-285/286): אותו באג אחרי שהלקוח **כבר אישר** (PLAN_PENDING_OWNER, גם כשבעל העסק אישר ושלח).
+    # היה: «אין לי כסף» / «I can't pay» / «אין לי כסף אבל מאשרת» ⇒ cant_pay ראשי ⇒ הצעה זהה חדשה ללקוח, המצב חזר
+    # ל-AWAITING_PLAN_REPLY, ו-inbox רשם proposed חדש שהחליף את ההסדר שממתין לבעל העסק (וסגר את הכרטיס שלו), או
+    # נרשם ליד ה-approved. «אין לי כסף, אשלם ב-1 לחודש הבא» ⇒ אותה הצעה, והמועד נבלע. עכשיו: מסלול 266 (כרטיס עם
+    # ההסדר וההודעה, בלי ביטול אוטומטי), cant_pay משני. גם עם «מאשרת» באותה הודעה: לא מאשרים מחדש בלי בעל העסק.
+    # הצעה נגדית מזוהה (PLAN_REQUEST, «אולי 6 תשלומים?») ומצב רגיש — כמו קודם.
+    if ctx is not None and ctx.state == State.PLAN_PENDING_OWNER and ctx.offered_plan and Intent.CANT_PAY in found \
+            and not found & {Intent.PLAN_REQUEST, Intent.PLAN_REJECT} \
+            and not (_s(_SENSITIVE_ILL, t) or _s(_INSOLVENCY_TAG, t) or _s(_RESERVIST_NOW, t)):
+        found.add(Intent.PLAN_REJECT)
+        found -= {Intent.PLAN_ACCEPT, Intent.UNKNOWN, Intent.THANKS}
     if not found:
         found.add(Intent.UNKNOWN)
     out = [i for i in PRIORITY if i in found]
@@ -3110,14 +3121,24 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         plan = ()
         tags.append("plan_retract")
         explicit = plan_retract(t)
+        # מנהל 287: קושי בלי חזרה מפורשת («אין לי כסף») ⇒ לא «ייתכן שחוזר/ת בו», אלא קושי מול ההסדר; ללקוח — אמפתיה
+        hardship = Intent.CANT_PAY in allset and not explicit
         if explicit:
             reply = f"{hi}קיבלנו את ההודעה לגבי ההסדר. בעל העסק יבדוק ויחזור אליכם.{sig}"
+        elif hardship:
+            reply = f"{hi}תודה ששיתפתם, אנחנו מבינים. בעל העסק יבדוק ויחזור אליכם.{sig}"
+            tags.append("plan_hardship")
         what = "ההסדר שאישרת" if ctx.plan_approved else "ההסדר שאישר/ה (עדיין ממתין לאישור שלך)"
-        verb = "חוזר/ת בו/ה מ" if explicit else "ייתכן שחוזר/ת בו/ה מ"
-        summary = (f"↩️ {name} {verb}{what} ({plan_lines(ctx.offered_plan, ctx.currency)}): \"{_clip(t)}\". "
-                   f"ההסדר לא בוטל אוטומטית.")
-        if Intent.CANT_PAY in allset:
-            summary += " מספר/ת על קושי לעמוד בתשלומים."
+        if hardship:
+            what = "ההסדר שבתוקף" if ctx.plan_approved else "ההסדר שאישר/ה (עדיין ממתין לאישור שלך)"
+            summary = (f"💬 {name} כותב/ת על קושי לעמוד ב{what} ({plan_lines(ctx.offered_plan, ctx.currency)}): "
+                       f"\"{_clip(t)}\". ההסדר לא בוטל אוטומטית.")
+        else:
+            verb = "חוזר/ת בו/ה מ" if explicit else "ייתכן שחוזר/ת בו/ה מ"
+            summary = (f"↩️ {name} {verb}{what} ({plan_lines(ctx.offered_plan, ctx.currency)}): \"{_clip(t)}\". "
+                       f"ההסדר לא בוטל אוטומטית.")
+            if Intent.CANT_PAY in allset:
+                summary += " מספר/ת על קושי לעמוד בתשלומים."
         dd, _ = extract_date_ctx(t, ctx)
         if Intent.PROMISE in allset and dd is not None and dd >= ctx.today:
             promise_date = dd
