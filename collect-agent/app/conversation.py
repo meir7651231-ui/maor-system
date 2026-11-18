@@ -1143,6 +1143,12 @@ _extend(Intent.OPT_OUT,
         r"(?:\s+עמ\s+(?:זה|זאת|ה?הודעות(?:\s+האלה)?|ה?סמסימ|ה?מיילימ|ה?הצקות|ה?תזכורות))?\W*$",
         r"(?:תפסיקו|הפסיקו|תפסיק|תפסיקי)\s+(?:כבר\s+)?עמ\s+(?:ה)?(?:הודעות|סמסימ|מיילימ|הצקות)(?![\w])")
 
+# ═══ critic סבב 145: «this isn't my number» / «this number isnt mine» (המשך לסבב 120 — הצורה המקוצרת) ═══
+_extend(Intent.WRONG_PERSON,
+        r"\b(?:this|that|it)\s*(?:is\s*n'?t|isnt|is\s+not|aint|ain'?t|'?s\s+not)\s+my\s+(?:phone\s+)?"
+        r"(?:number|phone|cell|mobile)\b(?!\s+on\b)",
+        r"\b(?:this|that)\s+(?:phone\s+)?(?:number|phone|cell)\s+(?:is\s*n'?t|isnt|is\s+not|aint)\s+mine\b")
+
 # q12-08/10: «התשלומים» כשם עצם כללי («אני אחראית על התשלומים בבית», «התשלומים של האשראי יורדים ב-10») ≠ בקשת
 # פריסה. הביטויים מוסרים מהטקסט רק לבדיקת PLAN_REQUEST; «אפשר בתשלומים?» לא נוגע.
 _GEN_PAYMENTS = _c(
