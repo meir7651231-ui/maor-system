@@ -3168,6 +3168,26 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             summary += f" מציע/ה במקום לשלם עד {_he_date(dd)} ({(dd - ctx.today).days} ימים)."
             actions.append(f"לאשר את המועד {_he_date(dd)} או להציע אחר")
         state = State.AWAITING_OWNER
+    elif primary == Intent.CANT_PAY and ctx.state == State.AWAITING_OWNER and ctx.offered_plan \
+            and Intent.PLAN_REQUEST not in allset and "sensitive" not in tags and "reservist" not in tags:
+        # מנהל 288 («הבא» פיתוח מ-287): השיחה כבר אצל בעל העסק אחרי הסדר (כרטיס קושי 287 / דחייה / חזרה 266),
+        # והלקוח כותב שוב «אין לי כסף» / «קשה לי לשלם» / «I can't afford it». היה: cant_pay ⇒ הצעה זהה חדשה
+        # («אפשר לפרוס… 3 תשלומים של 400», אותו הסדר שהלקוח כבר דחה או שבתוקף), המצב חזר ל-AWAITING_PLAN_REPLY,
+        # ו-inbox רשם proposed שני ליד ה-approved/rejected. עכשיו: בלי הסדר חדש, תוספת לכרטיס, טיוטה אמפתית.
+        # בקשת פריסה מפורשת («אפשר 6 תשלומים?») ומצב רגיש — כמו קודם.
+        plan = ()
+        tags.append("plan_hardship")
+        reply = f"{hi}תודה ששיתפתם, אנחנו מבינים. בעל העסק יבדוק ויחזור אליכם.{sig}"
+        what = "ההסדר שבתוקף" if ctx.plan_approved else "ההסדר שהוצע"
+        summary = (f"💬 {name} כותב/ת שוב על קושי ({what}: {plan_lines(ctx.offered_plan, ctx.currency)}): "
+                   f"\"{_clip(t)}\". לא נשלחה הצעה חדשה — השיחה ממתינה לך.")
+        dd, _ = extract_date_ctx(t, ctx)
+        if Intent.PROMISE in allset and dd is not None and dd >= ctx.today:
+            promise_date = dd
+            summary += f" מציע/ה לשלם עד {_he_date(dd)} ({(dd - ctx.today).days} ימים)."
+            actions.append(f"לאשר את המועד {_he_date(dd)} או להציע אחר")
+        actions.append("לדבר עם הלקוח/ה או להציע הסדר אחר ב«הסדרים»")
+        state = State.AWAITING_OWNER
     elif primary in (Intent.PLAN_REQUEST, Intent.PLAN_REJECT, Intent.CANT_PAY):
         requested = extract_installments(t)
         # מנהל 264: שינוי בהסדר שבשיחה — אותו מספר תשלומים, רק מה שביקשו משתנה. נבדק לפני «ספרה לבד = מספר
