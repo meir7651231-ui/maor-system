@@ -945,6 +945,18 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                                                  actor=request.state.actor,
                                                  confirm_amount=bool(e and e.confirm_amount)))
 
+    # נושא 5: כרטיס דחוף מכתובת משותפת ⇒ בעל העסק בוחר למי ההודעה שייכת (customer_id=null ⇒ «אף אחד מהם»)
+    @app.post("/owner/shared-cards/{card_id}/assign", dependencies=auth)
+    async def shared_card_assign(card_id: int, request: Request):
+        try:
+            body = await request.json()
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        cid = body.get("customer_id") if isinstance(body, dict) else "bad"
+        if cid is not None and (not isinstance(cid, int) or isinstance(cid, bool)):
+            raise HTTPException(422, "customer_id: מספר לקוח או null")
+        return guard(lambda: inbox.assign_shared_card(card_id, cid, actor=request.state.actor))
+
     @app.post("/conversation/drafts/{did}/reject", dependencies=auth)
     def conversation_reject(did: int, request: Request):
         return guard(lambda: inbox.reject_draft(did, actor=request.state.actor))

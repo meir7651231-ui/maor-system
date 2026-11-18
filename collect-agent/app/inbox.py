@@ -134,6 +134,11 @@ def _alert_kind(d: Decision) -> str:
     return d.intent.value
 
 
+# כוונות שהופכות הודעה מכתובת משותפת לכרטיס דחוף אחד (נושא 5)
+_SHARED_URGENT = (Intent.DISTRESS, Intent.MINOR, Intent.LEGAL, Intent.DISPUTE, Intent.OPT_OUT,
+                  Intent.WRONG_PERSON)
+
+
 class ConversationInbox:
     def __init__(self, svc: Any, policy: OwnerPolicy | None = None, llm: Any = "env") -> None:
         self.svc = svc
@@ -149,6 +154,61 @@ class ConversationInbox:
             if "claimed_at" not in cols:    # critic סבב 40: תפיסה לשליחה (כמו reminders, 39.1)
                 self.db.conn.execute("ALTER TABLE drafts ADD COLUMN claimed_at TEXT")
             self.db.conn.commit()
+
+    # ---------- כתובת משותפת + דחוף (נושא 5) ----------
+    SHARED_URGENT = "shared_contact_urgent"
+
+    def _shared_urgent_card(self, channel: str, sender: str, text: str, linked: list, intent: str,
+                            now) -> dict:
+        ids = [c["id"] for c in linked]
+        # הסרה / מספר שגוי ⇒ רשימת ההסרה לפי הכתובת (חל על כולם; זה לא שיוך — זו הכתובת עצמה)
+        if intent in ("opt_out", "wrong_person"):
+            self.svc.suppress(channel, sender, "shared_contact_opt_out")
+        if intent == "opt_out":
+            # review חור 1 (הכרעה שמרנית קודמת, נשמרת): «הסר» מכתובת משותפת ⇒ כל הערוצים של כל המקושרים
+            # נעצרים. זו לא שיוך — עוצרים את כולם; בעל העסק יכול לחדש את מי שלא ביקש
+            for c in linked:
+                self.svc._opt_out(c["id"], "shared_contact_opt_out")
+        # עד שבעל העסק בוחר: אף לקוח מקושר לא מקבל תזכורת או תשובה בכתובת הזו
+        for c in linked:
+            if not c["paused_reason"]:
+                self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (self.SHARED_URGENT, c["id"]))
+            for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (c["id"],)):
+                self.svc._cancel_invoice(inv["id"], self.SHARED_URGENT)
+        payload = json.dumps({"linked": [{"id": c["id"], "name": c["name"]} for c in linked],
+                              "intent": intent, "sender": sender}, ensure_ascii=False)
+        mid = self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,payload,"
+                        "created_at) VALUES(NULL,'in',?,?,?,1,?,?)",
+                        (channel, text, self.SHARED_URGENT, payload, _iso(now)))
+        self.svc.audit("customer", "shared_contact_urgent", {"message": mid, "customers": ids,
+                                                             "intent": intent})
+        self.svc.email_owner_urgent(intent)
+        return {"intent": self.SHARED_URGENT, "detected": intent, "escalate": True,
+                "escalation": "urgent", "draft_id": None, "auto_reply": None, "plan_id": None,
+                "card_id": mid, "linked_customers": ids}
+
+    def assign_shared_card(self, card_id: int, customer_id: int | None, actor: str = "owner") -> dict:
+        """בעל העסק בחר למי ההודעה שייכת (או None = «אף אחד מהם»). רק אז המנוע מטפל בה כרגיל עבור הלקוח
+        הנבחר (השפעות + טיוטה לאישור); שאר הלקוחות המקושרים משתחררים מההשהיה של הכרטיס הזה."""
+        m = self.db.one("SELECT * FROM messages WHERE id=? AND intent=?", (card_id, self.SHARED_URGENT))
+        if m is None:
+            raise KeyError(card_id)
+        if not m["needs_owner"]:
+            raise ValueError("הכרטיס כבר טופל")
+        info = json.loads(m["payload"] or "{}")
+        ids = [x["id"] for x in info.get("linked", [])]
+        if customer_id is not None and customer_id not in ids:
+            raise ValueError("הלקוח לא מקושר לכתובת הזו")
+        self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (card_id,))
+        for cid in ids:
+            self.db.x("UPDATE customers SET paused_reason=NULL WHERE id=? AND paused_reason=?",
+                      (cid, self.SHARED_URGENT))
+        self.svc.audit(actor, "shared_contact_assigned", {"card": card_id, "customer": customer_id})
+        if customer_id is None:
+            return {"card_id": card_id, "assigned": None}
+        cust = self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,))
+        res = self.handle_customer(cust, m["channel"], m["body"])
+        return {"card_id": card_id, "assigned": customer_id, **res}
 
     # ---------- קלט ----------
     def handle(self, channel: str, sender: str, text: str) -> dict:
@@ -178,6 +238,14 @@ class ConversationInbox:
                         "draft_id": None, "auto_reply": None, "plan_id": None,
                         "linked_customers": [c["id"] for c in linked]}
         cust, ambiguous = self.svc._resolve_sender(channel, sender)
+        # החלטת ראש צוות (סבב ביקורת, נושא 5): הודעה **דחופה** מכתובת שמשותפת לכמה לקוחות ⇒ תמיד דחופה,
+        # כרטיס בעל עסק **אחד** עם כל הלקוחות המקושרים, בלי שיוך אוטומטי (גם אם אפשר היה לנחש לפי ההודעה
+        # היוצאת האחרונה) ובלי תשובה ללקוח עד שבעל העסק בוחר (assign_shared_card).
+        linked = self.svc._find_customers(channel, sender)
+        shared_urgent = next((i.value for i in _SHARED_URGENT if i in set(detect(text))), None) \
+            if len(linked) > 1 else None
+        if shared_urgent:
+            return self._shared_urgent_card(channel, sender, text, linked, shared_urgent, now)
         if cust is None and ambiguous:
             # critic סבב 27: כתובת של כמה לקוחות ואף אחד מהם לא קיבל הודעה ⇒ לא משייכים ולא מנסחים
             # (אין טיוטה עם חוב של אדם אחר). «הסר» ⇒ רשימת ההסרה לפי הכתובת ⇒ חל על כולם.
