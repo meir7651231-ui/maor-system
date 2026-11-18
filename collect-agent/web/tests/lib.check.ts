@@ -1304,3 +1304,13 @@ test('critic 149: shared_contact_urgent חושף linked (id+שם) לכפתורי
   const { api } = await import('../src/api.ts');
   assert.equal(typeof api.assignShared, 'function');
 });
+
+test('גבייה סוכן 18.11: shared_contact_paid_claim מוצג עם linked לכפתורי שיוך', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const n = systemNotices([{ id: 9, customer_id: null, direction: 'in', channel: 'sms', body: 'שילמתי',
+    intent: 'shared_contact_paid_claim', created_at: '2026-11-18T09:00:00+02:00',
+    payload: JSON.stringify({ linked_customers: [{ id: 1, name: 'רונית' }, { id: 2, name: 'משה' }] }) }]);
+  assert.equal(n.length, 1);
+  assert.equal(n[0].icon, '👥');
+  assert.deepEqual((n[0] as { linked?: unknown }).linked, [{ id: 1, name: 'רונית' }, { id: 2, name: 'משה' }]);
+});

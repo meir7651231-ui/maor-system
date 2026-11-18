@@ -1,0 +1,3 @@
+{"id":"ft-01","channel":"sms","critical":true,"turns":[{"text":"I'll make the transfer tomorrow","expect":{"intent":"promise","promise":"2026-11-09","state":"promised"}}]}
+{"id":"ft-02","channel":"email","critical":true,"turns":[{"text":"אעשה את ההעברה מחר","expect":{"intent":"promise","promise":"2026-11-09","state":"promised"}}]}
+{"id":"ft-03","channel":"sms","critical":true,"turns":[{"text":"I won't make the transfer","expect":{"intent":"dispute","state":"awaiting_owner","not":["promise"]}}]}

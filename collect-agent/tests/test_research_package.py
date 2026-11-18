@@ -55,3 +55,14 @@ def test_beta_profiles_30_are_profiles_only():
         slot = r.split("|")[2].strip().rsplit(" ", 1)[0]
         counts[slot] = counts.get(slot, 0) + 1
     assert counts == {"מספרה": 9, "מוסך": 6, "קליניקה": 6, "לקוח רו\"ח": 9}
+
+
+def test_market_differentiation_consistent_with_competitor_table():
+    """§1.6 קבע: SMS ושבת אינם בידול (iCount «נודניק» ₪29 שולח SMS; morning דוחה תזכורת אחרי שבת).
+    שומר שה-TL;DR וההוכחות למסרים לא חוזרים להציג אותם כבידול המוביל."""
+    tldr = MARKET.split("## 1.")[0]
+    assert "iCount" in tldr and "SMS ושבת אינם בידול" in tldr
+    proofs = next(ln for ln in MARKET.splitlines() if ln.startswith("- **שלוש הוכחות"))
+    lead = proofs.split("**גם:**")[0]
+    assert "SMS" not in lead and "שבת" not in lead, "SMS/שבת שוב בראש ההוכחות"
+    assert "מאשר כל הודעה" in lead

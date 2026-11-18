@@ -8,7 +8,7 @@ cd "$(dirname "$0")/.."
 GI_PORT="${GI_PORT:-18791}"; SMS_PORT="${SMS_PORT:-18795}"
 # אתחול לריק ⇒ cleanup ⇒ trap ⇒ mktemp (הפעלה 221): כשל/אות בין היצירה לרישום לא משאיר קובץ, ולא מוחקים ערך
 # שירשנו מהסביבה. INT/TERM ⇒ יציאה עם קוד-אות (cleanup עם rc=0 היה מסיים 0 אחרי Ctrl+C).
-GI_LOG=""; SMS_LOG=""; GI=""; SMS=""
+GI_LOG=""; SMS_LOG=""; GI_REPORT=""; GI=""; SMS=""
 cleanup() {
   local rc=$?
   [[ -n "$GI" ]] && kill "$GI" 2>/dev/null || true
@@ -28,7 +28,7 @@ cleanup() {
     echo "--- לוג gi_mock ---"; tail -n 30 "${GI_LOG:-/dev/null}" 2>/dev/null || true
     echo "--- לוג sms019_mock ---"; tail -n 30 "${SMS_LOG:-/dev/null}" 2>/dev/null || true
   fi
-  rm -f "${GI_LOG:-}" "${SMS_LOG:-}"
+  rm -f "${GI_LOG:-}" "${SMS_LOG:-}" "${GI_REPORT:-}"
   exit "$rc"
 }
 trap cleanup EXIT
@@ -36,13 +36,31 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 GI_LOG="$(mktemp)"
 SMS_LOG="$(mktemp)"
+GI_REPORT="$(mktemp)"
 python3 -m app.gi_mock --port "$GI_PORT" --seed demo >"$GI_LOG" 2>&1 & GI=$!
 python3 -m app.sms019_mock --port "$SMS_PORT" >"$SMS_LOG" 2>&1 & SMS=$!
 up() { curl -s -o /dev/null "http://127.0.0.1:$GI_PORT/api/v1/users/me" \
        && curl -s -o /dev/null -X POST "http://127.0.0.1:$SMS_PORT/api/test"; }
 for _ in $(seq 60); do up && break; sleep 0.5; done
 up || { echo "❌ שרתי ה-mock לא עלו"; exit 1; }
-python3 -I scripts/gi_contract_check.py --mock-url "http://127.0.0.1:$GI_PORT/api/v1"
+# אותה הכנה שנדרשת ב-sandbox (docs/SANDBOX-CONTRACT-CHECK.md): זיכוי מקושר, תשלום חלקי, קבלה שסוגרת.
+# בלעדיה doc_links/receipts_link מדולגים ו-doc_fields מסמן GAP — ריצת HTTP חלשה מזו שבתוך התהליך.
+A="http://127.0.0.1:$GI_PORT/api/v1/_mock"
+curl -sf -o /dev/null -X POST "$A/documents" -H 'Content-Type: application/json' \
+  -d '{"type":330,"amount":"200.00","currency":"ILS","linkedDocumentIds":["demo1"],"client":{"id":"dcl1","name":"דנה לוי (דמו)"}}'
+curl -sf -o /dev/null -X POST "$A/documents/demo2/partial" -H 'Content-Type: application/json' -d '{"paid":450}'
+curl -sf -o /dev/null -X POST "$A/documents/demo5/pay"
+python3 -I scripts/gi_contract_check.py --mock-url "http://127.0.0.1:$GI_PORT/api/v1" --json "$GI_REPORT"
+# מול mock מוכן אין סיבה לפער: GAP = ה-mock או הקוד זזו זה מזה (SKIP מותר רק לבדיקות כתיבה)
+python3 -I - "$GI_REPORT" <<'PY'
+import json, sys
+rep = json.load(open(sys.argv[1], encoding="utf-8"))
+bad = [(c["id"], c["status"]) for c in rep["checks"]
+       if c["status"] in ("GAP", "FAIL") or (c["status"] == "SKIP"
+                                             and c["id"] not in ("payments_form", "clients_crud", "webhook"))]
+if bad:
+    sys.exit(f"❌ חוזה GI ב-HTTP: {bad}")
+PY
 python3 -I scripts/sms019_contract_check.py --mock-url "http://127.0.0.1:$SMS_PORT"
 python3 -I scripts/inforu_contract_check.py
 echo "✅ בדיקות החוזה מול mock ב-HTTP: אין FAIL"
