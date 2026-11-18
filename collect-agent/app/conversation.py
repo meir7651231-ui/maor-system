@@ -2176,6 +2176,11 @@ def _plan_ctx(ctx: Context | None) -> bool:
         ctx.state in (State.AWAITING_PLAN_REPLY, State.PLAN_PENDING_OWNER)
 
 
+def _approved_owner(ctx: Context | None) -> bool:
+    """השיחה אצל בעל העסק (AWAITING_OWNER) וההסדר שבשיחה אושר ונשלח (ההסדר האחרון הפעיל = המאושר)."""
+    return ctx is not None and ctx.state == State.AWAITING_OWNER and bool(ctx.offered_plan) and ctx.plan_approved
+
+
 _FILLERS = _c(r"(?<![\w])(?:אחי|אחותי|יאללה|בחייאת|בחיאת|נו|באמת|פשוט|כבר|ממש|עמ זה|עמ זאת|כאילו|וואלה)(?![\w])"
               r"|\b(?:please|pls|plz|just|already|bro|omg|seriously|literally|honestly|really|dude|man)\b")
 _SPACED_LETTERS = re.compile(r"[א-תa-zA-Z0-9](?:[\s.\-_*·]+[א-תa-zA-Z0-9]){2,}\W*")
@@ -2324,7 +2329,9 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         if ctx.state == State.PLAN_PENDING_OWNER:
             found.discard(Intent.PLAN_REJECT)
     # מנהל 264: בקשת שינוי בהסדר שבשיחה (מועד/סכום/מספר תשלומים) ⇒ פריסה, לא הבטחה/«לא ברור»/אישור/דחייה
-    if _plan_ctx(ctx) and plan_change(t) is not None:
+    # מנהל 291 («הבא» פיתוח מ-290): גם כשהשיחה אצל בעל העסק עם הסדר שבתוקף. היה: «אפשר להזיז את התשלום הראשון
+    # ל-20?» ⇒ «לא זיהיתי», ו«אפשר שהתשלום השני יהיה בתחילת החודש?» ⇒ הבטחה ⇒ «עד איזה תאריך?» למי שיש לו הסדר.
+    if (_plan_ctx(ctx) or (_approved_owner(ctx) and not (found & _PROTECTIVE))) and plan_change(t) is not None:
         found.add(Intent.PLAN_REQUEST)
         found -= {Intent.PROMISE, Intent.UNKNOWN, Intent.PLAN_ACCEPT, Intent.PLAN_REJECT, Intent.THANKS}
     # מנהל 266: חזרה מההסדר. היה: «אני מבטלת את ההסדר» / «חזרתי בי» ⇒ PLAN_REQUEST ⇒ הצעה *חדשה וזהה*
@@ -3247,7 +3254,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         requested = extract_installments(t)
         # מנהל 264: שינוי בהסדר שבשיחה — אותו מספר תשלומים, רק מה שביקשו משתנה. נבדק לפני «ספרה לבד = מספר
         # תשלומים»: אחרת «להזיז את התשלום הראשון ל-20» ב-AWAITING_PLAN_REPLY נקרא «20 תשלומים».
-        chg = plan_change(t) if primary == Intent.PLAN_REQUEST and _plan_ctx(ctx) else None
+        chg = plan_change(t) if primary == Intent.PLAN_REQUEST and (_plan_ctx(ctx) or _approved_owner(ctx)) else None
         # מנהל 267: המספר שאחרי סמן ההצעה הנגדית קודם למספר הראשון בהודעה («3 תשלומים זה הרבה, אולי 6?» = 6)
         cnt = plan_counter(t, len(ctx.offered_plan), ctx.state == State.PLAN_PENDING_OWNER) \
             if primary in (Intent.PLAN_REQUEST, Intent.PLAN_REJECT) and _plan_ctx(ctx) and (chg is None or chg[1] == "count") \
@@ -3288,6 +3295,10 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                 chg_card = ch_n not in (None, 1)
             elif ch_kind == "other":
                 chg_card = True
+            if _approved_owner(ctx):
+                # מנהל 291: ההסדר כבר אושר ונשלח (ואולי חלק מהתשלומים עברו) ⇒ לא מחשבים לוח חדש מעליו. בעל העסק
+                # מחליט; בכרטיס ההסדר שבתוקף והבקשה. מספר תשלומים אחר ממשיך במסלול 290 (הצעה מעודכנת).
+                chg_card = ch_kind != "count"
             if requested is None and ch_kind != "count" and not (ch_kind == "amount" and monthly):
                 requested = len(ctx.offered_plan)
         if requested is None and monthly and ctx.total_agorot:
@@ -3352,8 +3363,12 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             # מנהל 264: שינוי שאי אפשר לחשב בבטחה (תשלום שאינו הראשון, מועד מחוץ לגבולות, «בתחילת החודש»)
             # ⇒ לא מנחשים לוח חדש וגם לא שואלים «עד מתי?» — כרטיס לבעל העסק עם ההסדר הנוכחי והבקשה.
             reply = (f"{hi}קיבלנו את הבקשה לשינוי בהסדר. בעל העסק יבדוק ויחזור אליכם.{sig}")
-            summary = (f"🔁 {name} מבקש/ת שינוי בהסדר ({plan_lines(ctx.offered_plan, ctx.currency)}): "
-                       f"\"{_clip(t)}\".")
+            summary = (f"🔁 {name} מבקש/ת שינוי בהסדר"
+                       + (" שבתוקף (אושר על ידך" if _approved_owner(ctx) else " (")
+                       + (f"; {plan_lines(ctx.offered_plan, ctx.currency)}" if _approved_owner(ctx)
+                          else plan_lines(ctx.offered_plan, ctx.currency))
+                       + f"): \"{_clip(t)}\"."
+                       + (" ההסדר נשאר בתוקף עד שתעדכן/י." if _approved_owner(ctx) else ""))
             actions.append("לעדכן את ההסדר (הצעה חדשה ב«הסדרים») או לענות אישית")
             state = State.AWAITING_OWNER
         elif plan:
