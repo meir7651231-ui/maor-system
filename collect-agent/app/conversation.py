@@ -28,6 +28,8 @@ from functools import cache
 from typing import Protocol
 
 from . import compliance
+from .confusables import fold as _fold
+from .confusables import skeleton as _skeleton
 from .plans import Installment, _add_months
 from .templates import fmt_amount
 
@@ -314,6 +316,7 @@ _INVIS = re.compile("[\u00ad\u200b-\u200d\u202a-\u202e\u2060-\u2064\ufeff]")
 
 
 def normalize(text: str) -> str:
+    text = _fold(text)   # מנהל 284: רוחב-מלא/מודגש-מתמטי/מילה מעורבת קירילית-לטינית
     t = _INVIS.sub("", _NIKUD.sub("", text or "")).translate(_QUOTES).lower()
     t = _ACRO_1Q.sub(_acro_1q, t.replace("''", '"')).translate(_FINALS)  # אותיות סופיות ⇒ רגילות (גם בתבניות)
     # "תודההההה" ⇒ "תודהה". מנהל 270: לא ספרות — «שילמתי 1000» נקרא 100 ₪, «אשלם 1000 לחודש» ⇒ ₪100 (50 תשלומים)
@@ -2110,6 +2113,7 @@ def _plan_ctx(ctx: Context | None) -> bool:
 
 def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     """כל הכוונות שזוהו, לפי סדר העדיפות."""
+    text = _fold(text)
     t = normalize(text)
     if not t:
         return [Intent.UNKNOWN]
@@ -2657,6 +2661,11 @@ def _numbers(ctx: Context) -> str:
 # ═══════════════════════════ ההחלטה ═══════════════════════════
 def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
             drafter: LLMDrafter | None = None) -> Decision:
+    text = _fold(text)
+    sk = _skeleton(_INVIS.sub("", text or ""))
+    if sk != text and _BARE_STOP_SK.fullmatch(sk):
+        # מנהל 284: הודעה שכולה «СТОР» (אותיות רוסיות שנראות לטיניות) — רק מחמיר: מתייחסים כ-STOP
+        text = sk
     t = normalize(text)
     lang = foreign_language(text)
     if lang:
@@ -2731,6 +2740,7 @@ _HEB = re.compile("[\u05D0-\u05EA]")
 
 def foreign_language(text: str) -> str | None:
     """'ar' / 'ru' כשרוב האותיות בכתב ערבי/קירילי, אחרת None."""
+    text = _fold(text)
     ar, ru = len(_ARABIC.findall(text or "")), len(_CYRILLIC.findall(text or ""))
     he = len(_HEB.findall(text or ""))
     if max(ar, ru) == 0 or max(ar, ru) < he:
@@ -2738,16 +2748,19 @@ def foreign_language(text: str) -> str | None:
     return "ar" if ar >= ru else "ru"
 
 
+_BARE_STOP_SK = re.compile(r"\W*(?:stop|unsubscribe|remove(?: me)?)\W*", re.IGNORECASE)
+
+
 # בקשת הסרה בשפה זרה — רשימה קצרה ושמרנית. אין כאן "תמיכה" בשפה: רק לא ממשיכים לשלוח למי שביקש.
 _FOREIGN_STOP = re.compile(
-    r"не\s+(?:пиш|присыла|отправля|беспоко)|перестаньте|прекратите|отпиш|больше\s+не\s+(?:пиш|присыла)|stop"
+    r"не\s+(?:пиш|присыла|отправля|беспоко)|(?<!\w)стоп(?!\w)|перестаньте|прекратите|отпиш|больше\s+не\s+(?:пиш|присыла)|stop"
     r"|توقف|لا\s*ترسل|عدم\s+(?:مراسلت|إرسال|الإرسال)|إلغاء\s+الاشتراك|كفى", re.IGNORECASE)
 
 
 def _foreign(lang: str, text: str, ctx: Context) -> Decision:
     name = ctx.customer_name or "הלקוח/ה"
     label = {"ar": "ערבית", "ru": "רוסית"}[lang]
-    if _FOREIGN_STOP.search(_INVIS.sub("", text or "")):   # מנהל 283: רוחב-אפס בתוך המילה
+    if _FOREIGN_STOP.search(_INVIS.sub("", _fold(text or ""))):   # מנהל 283: רוחב-אפס בתוך המילה
         return Decision(
             intent=Intent.OPT_OUT, secondary=(), reply=None, auto_send=False,
             escalate=Escalation.NORMAL, stop=Stop.PERMANENT, pause_until=None, next_state=State.OPTED_OUT,

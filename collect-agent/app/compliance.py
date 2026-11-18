@@ -16,6 +16,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from .confusables import skeleton
+
 LEGAL_BLACKLIST: tuple[tuple[str, str], ...] = (
     ("enforcement", r"הוצאה לפועל|הוצל[\"']?פ"),
     ("lawyer", r"עו[\"״']ד|עוה[\"״']ד|עור[כך]\w*[\s\-]+ה?דין|משרד עורכי|פרקליט"),   # "עוד" ≠ עו"ד
@@ -129,7 +131,8 @@ def _qnorm(t: str) -> str:
 
 def _variants(t: str) -> tuple[str, ...]:
     n = _qnorm(t)
-    return (t,) if n == t else (t, n)
+    k = _qnorm(skeleton(t))   # מנהל 284: «！！», «‼», «ＵＲＧＥＮＴ», «ВDI», «Ваnk Lеumi»
+    return tuple(dict.fromkeys((t, n, k)))
 
 
 def _hit(pat: str, t: str) -> bool:
