@@ -32,6 +32,8 @@ jobs:
         python: ["3.11", "3.13"]
     steps:
       - uses: actions/checkout@v4
+        # מנהל 274: ריצה 833 — checkout נתקע 15 דק׳ ובלע את כל ה-timeout של הג׳וב. ⇒ נכשל מהר (3 דק׳).
+        timeout-minutes: 3
         with:
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -48,12 +50,21 @@ jobs:
         run: ruff check .
       - name: צילום העץ לפני pytest (שומר-עץ, כולל קבצים מתעלמים)
         run: python3 -I scripts/tree_guard.py snapshot "$RUNNER_TEMP/tree-before.txt"
+      # הפעלה 225 (QA): TMPDIR ייעודי לכל צעדי הבדיקה (pytest, evals, demo.sh, smoke, חוזים, sandbox) + צילום לפני
+      # ⇒ fs-check בסוף. ה-basetemp של pytest (pytest-of-*, נשמר בכוונה 3 ריצות) מחוץ לתיקייה הנבדקת.
+      - name: TMPDIR ייעודי לצעדי הבדיקה + צילום לפני
+        run: |
+          mkdir -p "$RUNNER_TEMP/test-tmp"
+          echo "TMPDIR=$RUNNER_TEMP/test-tmp" >> "$GITHUB_ENV"
+          python3 -I scripts/tree_guard.py fs-snapshot "$RUNNER_TEMP/test-tmp-before.txt" "$RUNNER_TEMP/test-tmp"
       - name: pytest (יחידה + אבטחה + E2E + סימולציית 60 יום)
-        run: python -m pytest -q
+        run: python -m pytest -q --basetemp="$RUNNER_TEMP/pytest-base"
       - name: שומר-עץ — הבדיקות לא השאירו קבצים בפרויקט (.venv/sqlite/demo-output…)
         run: python3 -I scripts/tree_guard.py check "$RUNNER_TEMP/tree-before.txt"
       - name: evals של מנוע השיחה (315 מקרים, נכשל על הפרת מעקה)
         run: python -m evals.harness
+      - name: רצפי רגרסיה רב-הודעתיים דרך svc.inbound (evals/seq/, כולל מעבר SMS⇄מייל) — נכשל על כל רצף
+        run: python -m evals.sequences
       - name: הדגמה מקצה לקצה (שרת + נתוני דמו + דשבורד, dry-run)
         run: ./demo.sh --check
       - name: smoke — מעקות השרת (טוקן, 401, docs, webhook 019, DB 0600, אין דליפה ללוג)
@@ -68,6 +79,8 @@ jobs:
           ! python3 -I scripts/sandbox_day1_paid_check.py --mock no-status
       - name: שומר-עץ — גם evals, demo.sh --check, smoke וחוזים לא השאירו קבצים בפרויקט (QA, הפעלה 217)
         run: python3 -I scripts/tree_guard.py check "$RUNNER_TEMP/tree-before.txt"
+      - name: שומר TMPDIR — צעדי הבדיקה לא השאירו קבצים זמניים (חוץ ממטמון node-compile-cache)
+        run: python3 -I scripts/tree_guard.py fs-check "$RUNNER_TEMP/test-tmp-before.txt" "$RUNNER_TEMP/test-tmp"
 
   # שער 5 · SQLCipher (ADR שלב 2, מאחורי DB_ENCRYPTION=sqlcipher). ג'וב נפרד: ה-test למעלה רץ בלי המודול
   # (ההתקנה וברירת המחדל לא משתנות; בדיקות SQLCipher מדלגות שם בנקיות) — כאן הן רצות באמת על 3.11/3.13.
@@ -80,6 +93,8 @@ jobs:
         python: ["3.11", "3.13"]
     steps:
       - uses: actions/checkout@v4
+        # מנהל 274: ריצה 833 — checkout נתקע 15 דק׳ ובלע את כל ה-timeout של הג׳וב. ⇒ נכשל מהר (3 דק׳).
+        timeout-minutes: 3
         with:
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -96,10 +111,17 @@ jobs:
           python -c "import sqlcipher3; print(sqlcipher3.connect(':memory:').execute('PRAGMA cipher_version').fetchone())"
       - name: צילום העץ לפני הבדיקות (שומר-עץ, כולל קבצים מתעלמים — QA הפעלה 218)
         run: python3 -I scripts/tree_guard.py snapshot "$RUNNER_TEMP/tree-before.txt"
+      # הפעלה 226 (QA): TMPDIR ייעודי גם כאן (pytest מוצפן, demo.sh ו-smoke מוצפנים, מפתח חד-פעמי) + צילום לפני
+      # ⇒ fs-check בסוף. כל ג׳וב שמריץ קוד מכוסה (test · sqlcipher · web). basetemp מחוץ לתיקייה הנבדקת.
+      - name: TMPDIR ייעודי לצעדי SQLCipher + צילום לפני
+        run: |
+          mkdir -p "$RUNNER_TEMP/cipher-tmp"
+          echo "TMPDIR=$RUNNER_TEMP/cipher-tmp" >> "$GITHUB_ENV"
+          python3 -I scripts/tree_guard.py fs-snapshot "$RUNNER_TEMP/cipher-tmp-before.txt" "$RUNNER_TEMP/cipher-tmp"
       - name: בדיקות SQLCipher אמיתיות (המודול מותקן ⇒ אין skip)
-        run: python -m pytest -q -rs tests/test_db_encryption.py tests/test_backup.py tests/test_wipe.py tests/test_bench_dashboard.py tests/test_dashboard_sent_channels.py tests/test_messages_history_indexes.py tests/test_reminders_batched.py
+        run: python -m pytest -q -rs --basetemp="$RUNNER_TEMP/pytest-base-cipher" tests/test_db_encryption.py tests/test_backup.py tests/test_wipe.py tests/test_bench_dashboard.py tests/test_dashboard_sent_channels.py tests/test_messages_history_indexes.py tests/test_reminders_batched.py
       - name: pytest מלא (הדגל כבוי — התקנת המודול לבדה לא משנה התנהגות)
-        run: python -m pytest -q
+        run: python -m pytest -q --basetemp="$RUNNER_TEMP/pytest-base-full"
       - name: שומר-עץ — pytest עם המודול לא השאיר קבצים בפרויקט
         run: python3 -I scripts/tree_guard.py check "$RUNNER_TEMP/tree-before.txt"
       - name: הדגמה מקצה לקצה עם DB_ENCRYPTION=sqlcipher
@@ -108,6 +130,8 @@ jobs:
         run: DB_ENCRYPTION=sqlcipher COLLECT_MASTER_KEYS="$(python -m app.secretbox)" bash scripts/smoke_server.sh
       - name: שומר-עץ — demo/smoke המוצפנים לא השאירו קבצים (DB מוצפן, מפתח, demo-output) בפרויקט
         run: python3 -I scripts/tree_guard.py check "$RUNNER_TEMP/tree-before.txt"
+      - name: שומר TMPDIR — SQLCipher (pytest/demo/smoke מוצפנים) לא השאיר קבצים זמניים (חוץ מ-node-compile-cache)
+        run: python3 -I scripts/tree_guard.py fs-check "$RUNNER_TEMP/cipher-tmp-before.txt" "$RUNNER_TEMP/cipher-tmp"
 
   # הממשק המעוצב (web/): typecheck+build, בדיקות יחידה, e2e מוק (בלי שרת) ו-e2e חי מול שרת DEMO=1 אמיתי (dry-run).
   # ה-e2e החי אוכף: 409/401 רק צפויים ומאומתים, סגירת טיוטת plan_request מול השרת, בלי גלילה רוחבית בדסקטופ/מובייל.
@@ -119,6 +143,8 @@ jobs:
         working-directory: collect-agent/web
     steps:
       - uses: actions/checkout@v4
+        # מנהל 274: ריצה 833 — checkout נתקע 15 דק׳ ובלע את כל ה-timeout של הג׳וב. ⇒ נכשל מהר (3 דק׳).
+        timeout-minutes: 3
         with:
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -148,6 +174,12 @@ jobs:
       - name: לוג השרתים של בדיקות הדפדפן ⇒ תיקיית הצילומים (עולה כ-artifact בכישלון)
         # ההקשר runner לא זמין ב-env ברמת הג'וב (ריצה 479 נפסלה על זה) ⇒ דרך GITHUB_ENV. e2e/lib.mjs srvStdio
         run: echo "E2E_LOG_DIR=$RUNNER_TEMP/shots" >> "$GITHUB_ENV"
+      # הפעלה 224 (QA): TMPDIR ייעודי לכל צעדי הדפדפן + צילום לפני ⇒ fs-check אחרי (רואים גם .org.chromium.* / sqlite / סוד TOTP)
+      - name: TMPDIR ייעודי לבדיקות הדפדפן + צילום לפני
+        run: |
+          mkdir -p "$RUNNER_TEMP/e2e-tmp"
+          echo "TMPDIR=$RUNNER_TEMP/e2e-tmp" >> "$GITHUB_ENV"
+          python3 -I ../scripts/tree_guard.py fs-snapshot "$RUNNER_TEMP/e2e-tmp-before.txt" "$RUNNER_TEMP/e2e-tmp"
       - name: e2e מוק — 6 מסכים, דסקטופ+מובייל, 0 בקשות חיצוניות
         run: mkdir -p "$RUNNER_TEMP/shots" && TZ=Asia/Jerusalem node e2e/shots.mjs "$RUNNER_TEMP/shots"
       - name: נגישות (ת״י 5568 / WCAG 2.1 AA) — 7 דפי שיווק + 3 עמודי לקוח (/p /pay /u, DEMO=1), axe-core מקומי, נכשל על serious/critical
@@ -164,12 +196,25 @@ jobs:
         run: TZ=UTC node e2e/ui.mjs "$RUNNER_TEMP/shots"
       - name: e2e הדשבורד הפשוט (/ui) — אישור רשימת הפתוחות (CSV ⇒ כרטיס ⇒ «כבר שולם»/«עדיין פתוח» ⇒ השרת) מול DEMO=1
         run: TZ=UTC node e2e/ui-openlist.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e הדשבורד הפשוט (/ui) — הודעות מלקוחות: ציטוט, עריכה ⇒ אישור, סגירה בלי מענה (critic 95), «הסר» של בעל העסק ⇒ אין תזכורות אחרי (critic 97) מול DEMO=1"
+        run: TZ=UTC node e2e/ui-messages.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e הדשבורד הפשוט (/ui) — «טעות בשם בחשבונית, תתקנו ואשלם» ⇒ פעולת תיקון-חשבונית בכרטיס, מחלוקת סכום דחופה, מלכודת בלי התראת שווא מול DEMO=1"
+        run: TZ=UTC node e2e/ui-invoice-fix.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e המסך המעוצב (/app/#/inbox) — פעולת תיקון-חשבונית (SMS+מייל), «השם שלי בחשבונית שגוי» = דחוף+תיקון, מחלוקת סכום בלי תיקון, מלכודת, אישור, מובייל מול DEMO=1"
+        run: TZ=UTC node e2e/app-invoice-fix.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e המסך המעוצב (/app/) — רשימת הפתוחות: אין תזכורת לפני אישור, «כבר שולם» לא נפתח בייבוא חוזר, מובייל"
+        run: TZ=UTC node e2e/app-openlist.mjs "$RUNNER_TEMP/shots"
+      - name: e2e — התראת פקיעת לוח החגים (בית+הגדרות, AA, מובייל)
+        run: TZ=UTC node e2e/app-holidays.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
         run: TZ=UTC node e2e/rebuild.mjs "$RUNNER_TEMP/shots"
       - name: e2e CSP — 7 עמודי HTML (/p, /p-404, /ui, /app, /pay, /connect/orbit) בלי הפרות, וסקריפט מוזרק נחסם
         run: TZ=UTC node e2e/csp.mjs
       - name: e2e מצבי הטעינה של /app/ (דסקטופ+מובייל) — שלד לפי מסך, תצוגה מקדימה בטעינה ובכשל, ערוץ בלי הודעה, תזכורת שהוחלפה
         run: TZ=UTC node e2e/preview.mjs "$RUNNER_TEMP/shots"
+      - name: שומר TMPDIR — בדיקות הדפדפן לא השאירו קבצים (חוץ ממטמון node-compile-cache)
+        if: success()
+        run: python3 -I ../scripts/tree_guard.py fs-check "$RUNNER_TEMP/e2e-tmp-before.txt" "$RUNNER_TEMP/e2e-tmp"
       - name: לוג השרתים של בדיקות הדפדפן (רק בכישלון, 200 שורות אחרונות לכל קובץ)
         if: failure()
         run: |
@@ -196,6 +241,8 @@ jobs:
     container: ${{ matrix.image }}
     steps:
       - uses: actions/checkout@v4
+        # מנהל 274: ריצה 833 — checkout נתקע 15 דק׳ ובלע את כל ה-timeout של הג׳וב. ⇒ נכשל מהר (3 דק׳).
+        timeout-minutes: 3
         with:
           persist-credentials: false
       - name: ./demo.sh --check במכונה נקייה (פעמיים)
@@ -206,6 +253,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        # מנהל 274: ריצה 833 — checkout נתקע 15 דק׳ ובלע את כל ה-timeout של הג׳וב. ⇒ נכשל מהר (3 דק׳).
+        timeout-minutes: 3
         with:
           persist-credentials: false
       - uses: actions/setup-python@v5

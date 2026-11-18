@@ -22,6 +22,11 @@
   --color-due: #F59E0B;
   --color-late: #F97316;
   --color-critical: #EF4444;
+  /* טקסט בצבעי-סטטוס: הגוונים למעלה הם למילוי (פסים/נקודות) — כטקסט על לבן הם 2.1–3.8:1 ⇒ נכשלים AA.
+     לטקסט רק ה-*-ink (≥4.5:1 על לבן ועל השמנת; נבדק ב-tests/contrast.check.ts). גבי עיצוב, 15.11 */
+  --color-due-ink: #B45309;
+  --color-late-ink: #C2410C;
+  --color-critical-ink: #B91C1C;
   --color-info: #0EA5E9;
 
   --color-wa-bg: #EFEAE2;

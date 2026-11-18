@@ -1,4 +1,5 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { launchChromium } from '../e2e/lib.mjs';
 import { createRequire } from 'node:module';
 import * as M from './concepts-r23.mjs';
 const { R23, C, VARIANTS, svgR23, lockupSvg, tileSvg, favPixel, fav32, fav48 } = M; const favBig = px => px >= 48 ? fav48(px) : fav32(px);
@@ -39,7 +40,7 @@ ${CHROME.map(bg => `<div class="theme" style="background:${bg};color:${['#202124
 </div></section><section><b>איפה החייב פוגש את המותג</b> ${sms}</section></html>`;
 w('board.html', html);
 const { chromium } = createRequire(import.meta.url)('playwright');
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 const p = await b.newPage({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 2 });
 await p.goto(new URL('board.html', out).href); await p.screenshot({ path: new URL('board.png', out).pathname, fullPage: true });
 // פאביקונים בפיקסלים אמיתיים על כרום

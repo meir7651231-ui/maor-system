@@ -13,7 +13,7 @@
 | `GET /api/pay/{code}` → `/pay/{code}` ב-web | `legal.privacy_points` (בלי HTML) |
 | `app/golive.py` | חוסם המעבר לשליחה אמיתית כל עוד placeholder |
 
-## ב. סטטי — לעדכן ידנית (16 קבצים, נכון להיום)
+## ב. סטטי — לעדכן ידנית (18 קבצים, נכון להיום)
 | קובץ | איפה בקובץ |
 |---|---|
 | `legal/DPA.md` | צדדים בראש ההסכם |
@@ -21,6 +21,8 @@
 | `legal/TERMS.md` | §1 הצדדים, §18 קשר |
 | `marketing/accessibility.html` | הצהרת נגישות — רכז נגישות |
 | `marketing/emails-trial.md` | חתימת מיילי הניסיון |
+| `marketing/faq/build.py` | תבנית פוטר דף «שאלות נפוצות» (מקור) |
+| `marketing/faq/index.html` | פוטר (נבנה מ-build.py) |
 | `marketing/landing/for/accountants-clients.html` | פוטר (נבנה מ-build.py) |
 | `marketing/landing/for/barbers.html` | פוטר (נבנה מ-build.py) |
 | `marketing/landing/for/build.py` | תבנית פוטר דפי הענפים (מקור) |

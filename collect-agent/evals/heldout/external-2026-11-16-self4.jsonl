@@ -1,0 +1,48 @@
+{"id": "x4-01", "text": "אמרתם לי בטלפון סכום אחר לגמרי", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "x4-02", "text": "החשבון שלכם לא מסתדר, משהו פה לא בסדר", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "x4-03", "text": "זה בכלל לא הדגם שביקשתי", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "x4-04", "text": "החזרתי לכם את הסחורה כבר לפני שבועיים", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "x4-05", "text": "אני רוצה זיכוי על זה", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "x4-06", "text": "איפה ההנחה שסיכמנו עליה?", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "x4-07", "text": "הוא בא והלך והבעיה נשארה בדיוק כמו שהיתה", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "x4-08", "text": "זה מחיר של שוד לאור היום", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "x4-09", "text": "the price on the invoice doesnt match the quote", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "x4-10", "text": "nobody ever showed up, why am i paying", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "x4-11", "text": "you charged me way too much bro", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "x4-12", "text": "יאללה תורידו אותי מהליסט", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "x4-13", "text": "סטופ סטופ סטופ", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "x4-14", "text": "pls stop sending me sms", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "x4-15", "text": "תפסיקו כבר עם הספאם הזה", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "x4-16", "text": "אני לא רוצה יותר הודעות ממכם, ביי", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "x4-17", "text": "תסרו אותי בבקשה", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "x4-18", "text": "unsubscribe pls", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "x4-19", "text": "אחי טעית במספר", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "x4-20", "text": "לא מכיר שום עסק כזה, wrong num", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "x4-21", "text": "קנו לי את המספר הזה חדש, הקודם כבר לא פה", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "x4-22", "text": "אני הולך לתבוע אתכם על הטרדה", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "x4-23", "text": "my lawyer will contact you", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "x4-24", "text": "אני על הפנים, לא רוצה כבר כלום", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "x4-25", "text": "i just want everything to end", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "x4-26", "text": "אני לא מחזיקה מעמד יותר", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "x4-27", "text": "זה הפלאפון של הבן שלי, הוא בכיתה ה", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent"}, "critical": true}
+{"id": "x4-28", "text": "im 15 this isnt my phone", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent"}, "critical": true}
+{"id": "x4-29", "text": "שילמתי כבר אתמול בביט", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "x4-30", "text": "כבר שלמתי לפני שבוע", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "x4-31", "text": "already paid via bank transfer", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "x4-32", "text": "העברתי לכם אתמול, תבדקו", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "x4-33", "text": "אפשר לפרוס ל3?", "ctx": {"channel": "sms"}, "expect": {"intent": "plan_request", "plan_n": 3}, "critical": false}
+{"id": "x4-34", "text": "אשלם בראשון", "ctx": {"channel": "sms"}, "expect": {"intent": "promise"}, "critical": false}
+{"id": "x4-35", "text": "תזרקו לי לינק לתשלום", "ctx": {"channel": "sms"}, "expect": {"intent": "how_to_pay"}, "critical": false}
+{"id": "x4-36", "text": "תודה אחי, סגור", "ctx": {"channel": "sms"}, "expect": {"intent": "thanks"}, "critical": false}
+{"id": "x4-37", "text": "כמה זה עולה בסך הכל?", "ctx": {"channel": "sms"}, "expect": {"intent": "how_to_pay", "not": ["opt_out", "dispute", "legal", "distress", "minor", "wrong_person"]}, "critical": true}
+{"id": "x4-38", "text": "יש טעות בשם על החשבונית אבל זה בסדר, אשלם", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute", "opt_out"]}, "critical": true}
+{"id": "x4-39", "text": "הטכנאי היה מעולה, אשלם היום", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out", "dispute", "legal", "distress", "minor", "wrong_person"]}, "critical": true}
+{"id": "x4-40", "text": "the amount is correct, paying now", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out", "dispute", "legal", "distress", "minor", "wrong_person"]}, "critical": true}
+{"id": "x4-41", "text": "stop calling me sir lol, paying tomorrow", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out"]}, "critical": true}
+{"id": "x4-42", "text": "הבן שלי בן 20 ישלם", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["minor"]}, "critical": true}
+{"id": "x4-43", "text": "אני בן 45 אשלם השבוע", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["minor"]}, "critical": true}
+{"id": "x4-44", "text": "נמאס לי מהפקקים, אשלם בערב", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["distress", "opt_out"]}, "critical": true}
+{"id": "x4-45", "text": "הזמנתי בדיוק את זה, מעולה, תשלחו קישור", "ctx": {"channel": "sms"}, "expect": {"intent": "how_to_pay", "not": ["dispute"]}, "critical": true}
+{"id": "x4-46", "text": "החזרתי לכם טלפון, מתי נוח לדבר?", "ctx": {"channel": "sms"}, "expect": {"intent": "callback", "not": ["dispute"]}, "critical": true}
+{"id": "x4-47", "text": "זיכרון שלי חלש, כמה אני חייב?", "ctx": {"channel": "sms"}, "expect": {"intent": "how_to_pay", "not": ["dispute"]}, "critical": true}
+{"id": "x4-48", "text": "לא מכיר את המספר הזה, זה ממי?", "ctx": {"channel": "sms"}, "expect": {"intent": "who_is_this", "not": ["opt_out"]}, "critical": true}

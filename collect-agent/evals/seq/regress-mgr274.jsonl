@@ -1,0 +1,7 @@
+{"id": "rm274-01", "channel": "sms", "critical": true, "turns": [{"text": "הבן שלי בקורס עורך דין צעיר אצלכם, אפשר לשלם ב-3 תשלומים?", "expect": {"intent": "plan_request", "plan_n": 3, "not": ["legal"]}}]}
+{"id": "rm274-02", "channel": "sms", "critical": true, "turns": [{"text": "החוג של המשטרה הקהילתית היה מעולה! אני אשלם ביום שלישי", "expect": {"intent": "promise", "promise": "2026-11-10", "not": ["legal"]}}]}
+{"id": "rm274-03", "channel": "sms", "critical": true, "turns": [{"text": "שיעור על חובות ונכסים היה מעניין. אשלם ביום רביעי", "expect": {"intent": "promise", "state": "promised", "promise": "2026-11-11", "not": ["cant_pay"]}}]}
+{"id": "rm274-04", "channel": "email", "critical": true, "turns": [{"text": "I paid a hundred percent attention in class lol", "expect": {"stop": "none", "paid": null, "not": ["paid_claim"]}}]}
+{"id": "rm274-05", "channel": "sms", "critical": true, "turns": [{"text": "החוג של המשטרה הקהילתית היה מעולה, אבל אני אפנה למשטרה", "expect": {"intent": "legal", "state": "awaiting_owner"}}]}
+{"id": "rm274-06", "channel": "sms", "critical": true, "turns": [{"text": "יש לי חובות, אין לי ממה לשלם", "expect": {"intent": "cant_pay", "promise": null}}]}
+{"id": "rm274-07", "channel": "email", "critical": true, "turns": [{"text": "I paid attention to your email and I paid 500 yesterday", "expect": {"intent": "paid_claim", "stop": "pause", "paid": 50000}}]}

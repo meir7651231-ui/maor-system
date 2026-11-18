@@ -1,0 +1,14 @@
+{"id": "m239-01", "text": "טעות קטנה בסכום אבל אשלם", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "m239-02", "text": "טעות קטנה בסכום אבל אשלם", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "m239-03", "text": "טעות קטנה במחיר אבל אשלם מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "m239-04", "text": "טעות קטנה במחיר אבל אשלם מחר", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "m239-05", "text": "טעות בשם בחשבונית, תתקנו ואשלם", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "escalate": "normal", "stop": "pause"}, "critical": true}
+{"id": "m239-06", "text": "טעות בשם בחשבונית, תתקנו ואשלם", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "escalate": "normal", "stop": "pause"}, "critical": true}
+{"id": "m239-07", "text": "יש טעות קטנה בשם שלי בחשבונית, אבל אשלם מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "escalate": "normal", "stop": "pause"}, "critical": true}
+{"id": "m239-08", "text": "יש טעות קטנה בשם שלי בחשבונית, אבל אשלם מחר", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "escalate": "normal", "stop": "pause"}, "critical": true}
+{"id": "m239-09", "text": "צריך חשבונית מתוקנת", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "escalate": "normal", "stop": "none"}, "critical": true}
+{"id": "m239-10", "text": "צריך חשבונית מתוקנת", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "escalate": "normal", "stop": "none"}, "critical": true}
+{"id": "m239-11", "text": "wrong name on the invoice, please fix", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "escalate": "normal", "stop": "none"}, "critical": true}
+{"id": "m239-12", "text": "wrong name on the invoice, please fix", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "escalate": "normal", "stop": "none"}, "critical": true}
+{"id": "m239-13", "text": "שם הטכנאי היה נחמד, אשלם מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "escalate": "none", "stop": "pause"}, "critical": true}
+{"id": "m239-14", "text": "שם הטכנאי היה נחמד, אשלם מחר", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "escalate": "none", "stop": "pause"}, "critical": true}

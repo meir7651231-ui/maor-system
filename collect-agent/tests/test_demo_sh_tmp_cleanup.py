@@ -31,7 +31,9 @@ def test_every_mktemp_dir_is_removed_in_cleanup():
 
 
 def test_cleanup_is_registered_on_exit():
-    assert re.search(r"^trap cleanup EXIT INT TERM$", DEMO, re.M)
+    assert re.search(r"^trap cleanup EXIT$", DEMO, re.M)
+    assert re.search(r"^trap 'exit 130' INT$", DEMO, re.M)
+    assert re.search(r"^trap 'exit 143' TERM$", DEMO, re.M)
 
 
 @pytest.mark.skipif(BASH is None, reason="אין bash")
@@ -40,7 +42,7 @@ def test_failure_midway_leaves_no_tmp_dirs(tmp_path):
     script = (
         "set -euo pipefail\nPID=''; GI_PID=''; LOG=''; GI_LOG=''; DEMO_USER_SECRET_FILE=''\n"
         + _cleanup_fn()
-        + "trap cleanup EXIT INT TERM\n"
+        + "trap cleanup EXIT\n"
         'BK="$(mktemp -d)"; WP="$(mktemp -d)"; EN="$(mktemp -d)"\n'
         'for d in "$BK" "$WP" "$EN"; do echo "$d" >> "$OUT"; : > "$d/live.sqlite3"; done\n'
         "exit 1\n"

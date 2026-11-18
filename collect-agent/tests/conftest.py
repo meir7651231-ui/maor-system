@@ -150,3 +150,8 @@ def _open_review_off_by_default(monkeypatch, request):
     כאן כבוי כברירת מחדל. בדיקה שמסומנת `@pytest.mark.open_review` רצה עם השער דלוק."""
     if request.node.get_closest_marker("open_review") is None:
         monkeypatch.setattr("app.config.OPEN_REVIEW_DEFAULT", "0")
+
+
+def customer_sent(svc) -> list:
+    """מה שיצא **ללקוחות** (בלי התראות לבעל העסק, audience='owner' — למשל מייל על כרטיס דחוף, מבקר סבב 99)."""
+    return [m for m in svc.sender.sent if m.get("audience") != "owner"]

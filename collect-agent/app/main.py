@@ -78,6 +78,8 @@ class EmailIn(BaseModel):
     message_id: str = ""
     # critic 3.6.7: כותרת Authentication-Results כפי שספק ה-inbound-parse מעביר (שם השדה לאמת לכל ספק)
     auth_results: str = Field(default="", max_length=4000)
+    # critic סבב 125: נושא המייל — משמש רק כשהגוף ריק אחרי הסרת הציטוט («הסר» בשורת הנושא)
+    subject: str = Field(default="", max_length=998)
 
 
 class DraftEdit(BaseModel):
@@ -496,6 +498,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def resume(cid: int, request: Request):
         return guard(svc.resume_customer, cid, request.state.actor)
 
+    @app.post("/customers/{cid}/opt-out", dependencies=auth)
+    def customer_opt_out(cid: int, request: Request):                  # critic סבב 97
+        return guard(svc.owner_opt_out, cid, request.state.actor)
+
     @app.post("/customers/{cid}/hold", dependencies=auth)
     def customer_hold(cid: int, b: HoldIn, request: Request):          # ר-6
         return guard(svc.set_hold, cid, b.reason, b.note, request.state.actor)
@@ -531,7 +537,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         if not svc.s.email_webhook_key or not hmac.compare_digest(
                 k.encode("utf-8"), svc.s.email_webhook_key.encode("utf-8")):
             raise HTTPException(403, "forbidden")
-        return svc.email_webhook(m.sender, m.text, m.message_id, auth_results=m.auth_results)
+        return svc.email_webhook(m.sender, m.text, m.message_id, auth_results=m.auth_results,
+                                 subject=m.subject)
 
     @app.post("/webhooks/greeninvoice")
     async def gi_webhook(request: Request, k: str = ""):
@@ -937,6 +944,18 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return guard(lambda: inbox.approve_draft(did, body=e.body if e else None,
                                                  actor=request.state.actor,
                                                  confirm_amount=bool(e and e.confirm_amount)))
+
+    # נושא 5: כרטיס דחוף מכתובת משותפת ⇒ בעל העסק בוחר למי ההודעה שייכת (customer_id=null ⇒ «אף אחד מהם»)
+    @app.post("/owner/shared-cards/{card_id}/assign", dependencies=auth)
+    async def shared_card_assign(card_id: int, request: Request):
+        try:
+            body = await request.json()
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        cid = body.get("customer_id") if isinstance(body, dict) else "bad"
+        if cid is not None and (not isinstance(cid, int) or isinstance(cid, bool)):
+            raise HTTPException(422, "customer_id: מספר לקוח או null")
+        return guard(lambda: inbox.assign_shared_card(card_id, cid, actor=request.state.actor))
 
     @app.post("/conversation/drafts/{did}/reject", dependencies=auth)
     def conversation_reject(did: int, request: Request):

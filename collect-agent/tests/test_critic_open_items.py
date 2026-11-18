@@ -107,7 +107,8 @@ def test_demo_data_keeps_mock_link():
 # ---------- 2.3.2: הדשבורד לא אמר מתי מותר לשלוח ----------
 def test_dashboard_shows_send_window(svc, clock):
     w = svc.dashboard()["send_window"]
-    assert w == {"open_now": True, "closed_reason": None, "next_allowed": "2026-11-08T10:00:00+02:00"}
+    assert {k: w[k] for k in ("open_now", "closed_reason", "next_allowed")} == \
+        {"open_now": True, "closed_reason": None, "next_allowed": "2026-11-08T10:00:00+02:00"}  # סבב 119: +holidays_*
     clock.now += timedelta(days=6)                 # שבת 14.11 10:00
     w = svc.dashboard()["send_window"]
     assert w["open_now"] is False and w["closed_reason"] == "שבת"

@@ -1,11 +1,12 @@
 // מיטוב רווח מטבע↔ארנק פר-נכס: הרווח הקטן ביותר (≥ ערך-הבעלים 1.6) שבו בעמודת-המטבע יש לפחות שורת-פיקסל אחת
 // שניגודיותה ≥3:1 גם מול המטבע וגם מול הארנק — בכל הגדלים שהנכס מוצג בהם. מריצים לפני concepts-final-board.mjs.
 import { writeFileSync } from 'node:fs'; import { createRequire } from 'node:module';
+import { launchChromium } from '../e2e/lib.mjs';
 import * as M from './concepts-final.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const lum = (r, g, b) => { const q = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }; return 0.2126 * q(r) + 0.7152 * q(g) + 0.0722 * q(b); };
 const cr = (a, b) => { const x = lum(...a), y = lum(...b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
-const b = await chromium.launch(); const p = await b.newPage({ deviceScaleFactor: 1 });
+const b = await launchChromium(chromium); const p = await b.newPage({ deviceScaleFactor: 1 });
 async function ok(svgFn, sizes, bg, coinRGB, walletRGB) {
   for (const [w, h] of sizes) {
     await p.setViewportSize({ width: Math.ceil(w), height: h });

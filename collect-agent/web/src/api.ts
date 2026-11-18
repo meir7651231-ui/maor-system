@@ -99,6 +99,7 @@ export interface DashRow {
 }
 /** סיכום למטבע שאינו ₪ (app/service.py _other_currency). הסכומים ב-totals הם ₪ בלבד. */
 export interface OtherCurrency { currency: string; open_invoices: number; open_agorot: number; overdue_agorot: number; at_risk_agorot: number; collected_agorot: number }
+import type { SendWindow } from './lib/holidays.ts';
 export interface Dashboard {
   today: string;
   totals: { open_invoices: number; open_agorot: number; overdue_agorot: number; closed_invoices: number; pending_approval: number; sent_sms: number; sent_email: number; sent_owner?: number; owner_inbox: number;
@@ -109,6 +110,8 @@ export interface Dashboard {
     /** critic סבב 79: חשבוניות פתוחות שממתינות לאישור בעל העסק (שער רשימת הפתוחות). חסר בשרת ישן. */ open_unreviewed?: number };
   series?: WeekPoint[];
   invoices: DashRow[];
+  /** חלון השליחה + פקיעת לוח החגים (critic סבב 119). חסר בשרת ישן. */
+  send_window?: SendWindow;
 }
 export interface PreviewMsg {
   channel: 'sms' | 'email'; provider: string; to: string; body: string;
@@ -164,12 +167,17 @@ export const api = {
   plans: () => j<Plan[]>('/plans'),
   ownerInbox: () => j<OwnerMsg[]>('/owner/inbox'),
   ownerDone: (id: number) => j<unknown>(`/owner/inbox/${id}/done`, { method: 'POST' }),
+  // critic סבב 149: שיוך כרטיס כתובת משותפת (החלטה 5) — לקוח נבחר, או null = «אף אחד מהם»
+  assignShared: (cardId: number, customerId: number | null) => j<unknown>(`/owner/shared-cards/${cardId}/assign`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customer_id: customerId }) }),
   /** confirmAmount (critic סבב 49): הסדר על סכום חריג — אישור מפורש (השרת מחייב). */
   approvePlan: (pid: number, confirmAmount = false) => j<{ text: string }>(`/plans/${pid}/approve`, { method: 'POST', ...(confirmAmount ? { body: JSON.stringify({ confirm_amount: true }) } : {}) }),
   drafts: () => j<Draft[]>('/conversation/drafts'),
   /** confirmAmount (critic סבב 48): טיוטה עם כסף ללקוח עם סכום חריג — אישור מפורש (השרת מחייב). */
   approveDraft: (id: number, body?: string, confirmAmount = false) => j<{ status: string }>(`/conversation/drafts/${id}/approve`, { method: 'POST', body: JSON.stringify({ ...(body === undefined ? {} : { body }), ...(confirmAmount ? { confirm_amount: true } : {}) }) }),
   rejectDraft: (id: number) => j<unknown>(`/conversation/drafts/${id}/reject`, { method: 'POST' }),
+  /** critic סבב 97: בעל העסק קרא בקשת הסרה שהמנוע לא זיהה ⇒ מסיר את הלקוח (סופי, כמו קישור ההסרה). */
+  optOut: (cid: number) => j<unknown>(`/customers/${cid}/opt-out`, { method: 'POST' }),
   settings: () => j<DesignSettings>('/settings'),
   saveSettings: (patch: Record<string, unknown>) => j<DesignSettings>('/settings', { method: 'PUT', body: JSON.stringify(patch) }),
   importCsv: (csv: string) => j<{ imported: number; credits?: number; date_order?: string; amount_check?: AmountCheck[]; rejected: { row: number; reason: string }[] }>('/settings/source/csv',

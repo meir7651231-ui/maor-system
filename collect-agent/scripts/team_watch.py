@@ -16,6 +16,11 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+GIT_TIMEOUT = 60  # שניות. git תקוע (נעילה, דיסק) לא תוקע את המקשר לנצח
+
+
+class GitError(RuntimeError):
+    """git נכשל או נתקע. בלי זה פלט ריק נקרא כ«אין commits» ⇒ כולם «להעיר» והחלון אובד."""
 
 
 def open_rows(backlog: str, worker: str) -> int:
@@ -26,9 +31,14 @@ def open_rows(backlog: str, worker: str) -> int:
 def commits_since(session: str, since: str) -> list[dict]:
     git = shutil.which("git") or "git"
     # ארגומנטים קבועים בלבד (since מעוצב כ-ISO ע"י המקשר); בלי shell
-    out = subprocess.run([git, "log", "--all", f"--since={since}",  # noqa: S603  # nosec B603
-                          "--format=%h|%cI|%s|%b%x00", "--", "collect-agent/"],
-                         cwd=ROOT.parent, capture_output=True, text=True).stdout
+    try:
+        out = subprocess.run([git, "log", "--all", f"--since={since}",  # noqa: S603  # nosec B603
+                              "--format=%h|%cI|%s|%b%x00", "--", "collect-agent/"],
+                             cwd=ROOT.parent, capture_output=True, text=True,
+                             check=True, timeout=GIT_TIMEOUT).stdout
+    except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
+        err = getattr(e, "stderr", None) or ""
+        raise GitError(f"git log נכשל: {type(e).__name__} {str(err).strip()[:200]}") from e
     rows = []
     for e in out.split("\0"):
         if session in e:
@@ -49,8 +59,14 @@ def main() -> None:
     workers = json.loads((ROOT / "team/workers.json").read_text(encoding="utf-8"))["workers"]
     backlog = (ROOT / "team/BACKLOG.md").read_text(encoding="utf-8")
     report, wake = {}, []
+    try:
+        commits = {name: commits_since(w["session"], since) for name, w in workers.items()}
+    except GitError as e:
+        # לא כותבים state: החלון נשאר, והבדיקה הבאה תכסה אותו
+        print(json.dumps({"error": str(e), "since": since}, ensure_ascii=False))
+        raise SystemExit(2) from e
     for name, w in workers.items():
-        c = commits_since(w["session"], since)
+        c = commits[name]
         rows = open_rows(backlog, name)
         need = bool(rows) and not w.get("wall") and not c
         report[name] = {"commits": len(c), "last": c[0] if c else None, "open_rows": rows,

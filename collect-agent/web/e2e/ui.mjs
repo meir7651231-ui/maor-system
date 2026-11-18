@@ -2,18 +2,16 @@
 // נתקעה שם: «אישור ושליחה» נשלח בלי confirm_amount והשרת דחה תמיד. כאן: התיבה מופיעה, הכפתור נעול
 // עד הסימון, והאישור עובר. הרצה: node e2e/ui.mjs [תיקיית-צילומים]
 import { createRequire } from 'node:module';
-import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, makeInject, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
+import { assertPortFree, makeInject, srvStdio, srvLogLevel, waitHealthy, launchChromium, spawnServer } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8143, base = `http://127.0.0.1:${PORT}`;
 const TOKEN = randomBytes(32).toString('base64url');
 const ROOT = new URL('../..', import.meta.url).pathname;
 await assertPortFree(PORT);
-const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
+const srv = spawnServer('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
   { cwd: ROOT, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN }, stdio: srvStdio('server-ui') });
-process.on('exit', () => srv.kill());   // גם ביציאה על חריגה שלא נתפסה — לא משאירים שרת על הפורט
 const ok = (c, m) => { if (!c) throw new Error(m); };
 const routeErrors = [];
 const inject = makeInject(routeErrors);
@@ -25,7 +23,7 @@ const H = { Authorization: `Bearer ${TOKEN}` };
 await waitHealthy(base, srv);
 const errors = [];
 let mocked138 = [];
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 try {
   const ctx = await b.newContext();
   await ctx.addInitScript(t => { try { sessionStorage.setItem('gabi_owner_token', t); } catch { /* */ } }, TOKEN);

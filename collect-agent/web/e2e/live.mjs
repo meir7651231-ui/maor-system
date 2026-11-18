@@ -1,28 +1,26 @@
 // דמו מקצה לקצה בדפדפן: שרת גבי אמיתי (DEMO=1, dry-run) + הממשק המעוצב מ-/app/.
 // דרישה: npm run build. הרצה: node e2e/live.mjs [תיקיית-צילומים]
 import { createRequire } from 'node:module';
-import { spawn, execFileSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { mkdtempSync, existsSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { assertPortFree, makeInject, smallTargets, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
+import { assertPortFree, tempDir, makeInject, smallTargets, srvStdio, srvLogLevel, waitHealthy, launchChromium, spawnServer } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8141, base = `http://127.0.0.1:${PORT}`;
 const TOKEN = randomBytes(32).toString('base64url'); // קוד גישה חד-פעמי לבדיקה (השרת דורש 32+ תווים)
 const ROOT = new URL('../..', import.meta.url).pathname;
 // שער 6: עובד דמו אמיתי (מייל+סיסמה+סוד TOTP בקובץ זמני) — כמו demo.sh --check, רק דרך הדפדפן
-const STAFF = { email: 'dana@example.co.il', password: 'demo-pass-12345', secretFile: join(mkdtempSync(join(tmpdir(), 'gabi-e2e-')), 'totp') };
+const STAFF = { email: 'dana@example.co.il', password: 'demo-pass-12345', secretFile: join(tempDir('gabi-e2e-'), 'totp') }; // נמחק ביציאה (lib.mjs)
 await assertPortFree(PORT);
-const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
+const srv = spawnServer('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
   { cwd: ROOT, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN,
     DEMO_USER_EMAIL: STAFF.email, DEMO_USER_PASSWORD: STAFF.password, DEMO_USER_SECRET_FILE: STAFF.secretFile }, stdio: srvStdio('server-live') });
 // קוד ה-TOTP נגזר משעון הדמו הקבוע (app/demo.py DEMO_NOW) ומאותו מימוש בשרת (app/totp.py)
 const totpCode = () => execFileSync('python3', ['-c',
   'import sys; from app import totp; from app.demo import DEMO_NOW; print(totp.code_at(open(sys.argv[1]).read().strip(), DEMO_NOW.timestamp()))',
   STAFF.secretFile], { cwd: ROOT }).toString().trim();
-process.on('exit', () => srv.kill());   // גם ביציאה על חריגה שלא נתפסה — לא משאירים שרת על הפורט
 const ok = (c, m) => { if (!c) throw new Error(m); };
 // כל שגיאה בתוך יירוט נרשמת כאן ומכשילה את הריצה בסוף (e2e/lib.mjs)
 const routeErrors = [];
@@ -54,7 +52,7 @@ const allowed401 = [];
 const allowed429 = [];        // 429 מותר רק בבדיקת הנעילה של מסך הכניסה (שלב השער)
 const allowed409 = [];        // תגובות 409 שאומתו
 const errors = [];
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 try {
   const ctx = await b.newContext();
   const p = await ctx.newPage();
@@ -399,6 +397,14 @@ try {
   ok((await api('/dashboard')).totals.open_unreviewed >= 1, '/dashboard לא מספר את הממתינות');
   await noHScroll(p, 'רשימת הפתוחות');
   if (out) await fullShot(p, `${out}/live-07a-open-list.png`);
+  // גבייה עיצוב (BACKLOG): אותו כרטיס במובייל 390px — בלי גלילה רוחבית, כל כפתור ≥40px, הכפתורים לא חורגים מהכרטיס
+  await p.setViewportSize({ width: 390, height: 844 });
+  await olItem.scrollIntoViewIfNeeded();
+  await noHScroll(p, 'רשימת הפתוחות במובייל');
+  const olBtns = await p.getByTestId('open-list').locator('button').evaluateAll(bs => bs.map(b => { const r = b.getBoundingClientRect(); return { t: b.textContent.trim(), h: r.height, l: r.left, r: r.right }; }));
+  ok(olBtns.length >= 4 && olBtns.every(x => x.h >= 40 && x.l >= 0 && x.r <= 390), 'מובייל: כפתור ברשימת הפתוחות קטן מ-40px או חורג: ' + JSON.stringify(olBtns));
+  if (out) await p.getByTestId('open-list').screenshot({ path: `${out}/live-07b-open-list-mobile.png` });
+  await p.setViewportSize({ width: 1280, height: 900 });
   await olItem.getByRole('button', { name: 'עדיין פתוח' }).click();
   await p.getByTestId('open-list-confirm').click();
   await olItem.waitFor({ state: 'detached' });

@@ -1,0 +1,9 @@
+{"id": "rm273-01", "channel": "sms", "critical": true, "turns": [{"text": "שילמתי שש מאות", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": 60000}}]}
+{"id": "rm273-02", "channel": "sms", "critical": true, "turns": [{"text": "I paid six hundred", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": 60000}}]}
+{"id": "rm273-03", "channel": "email", "critical": true, "turns": [{"text": "I sent you five hundred via bit", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": 50000}}]}
+{"id": "rm273-04", "channel": "sms", "critical": true, "turns": [{"text": "I transferred two thousand yesterday", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": 200000}}]}
+{"id": "rm273-05", "channel": "sms", "critical": true, "turns": [{"text": "שילמתי חצי, שש מאות", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": 60000}}]}
+{"id": "rm273-06", "channel": "email", "critical": false, "turns": [{"text": "העברתי לך אלף וחמש מאות שקל", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": 150000}}]}
+{"id": "rm273-07", "channel": "sms", "critical": false, "turns": [{"text": "I paid two payments", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": null}}]}
+{"id": "rm273-08", "channel": "sms", "critical": false, "turns": [{"text": "שילמתי מאה אחוז", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": null}}]}
+{"id": "rm273-09", "channel": "sms", "critical": true, "turns": [{"text": "אפשר לחלק ל-3 תשלומים?", "expect": {"intent": "plan_request", "state": "awaiting_plan_reply"}}, {"text": "I paid a deposit of four hundred", "advance_days": 2, "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": 40000}}]}

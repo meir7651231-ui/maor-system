@@ -5,6 +5,7 @@
 מוני `total`/`sent_mark` נשארים נכונים)."""
 from __future__ import annotations
 
+import re
 from datetime import timedelta
 
 from fastapi.testclient import TestClient
@@ -30,7 +31,9 @@ def test_purge_scrubs_dryrun_outbox(svc, clock, fake_gi):
     clock.now += timedelta(days=91)
     api.post("/maintenance/purge")
     assert svc.db.one("SELECT name FROM customers WHERE id=1")["name"] is None   # הלקוח הותמם
-    out = api.get("/outbox").text
+    # Message-ID של הספק אקראי (<…digits…@domain>) ולא מכיל מידע של הלקוח — אבל ספרות אקראיות יכולות
+    # להכיל «1001» במקרה (CI 769, 3.13 2cda454b: …9073887384620561001@example.com). מסירים אותו לפני הבדיקה.
+    out = re.sub(r"<\d+(?:\.\d+)+@[^<>\s\"]+>", "<msgid>", api.get("/outbox").text)
     for pii in (PHONE, MAIL, NAME, "1001"):
         assert pii not in out, f"«{pii}» נשאר ב-/outbox אחרי מחיקת ר-10"
     assert api.get("/outbox", params={"limit": 50}).json()["total"] == total     # המונים לא נפגעו

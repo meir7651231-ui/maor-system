@@ -1,0 +1,71 @@
+{"id": "c94-01", "text": "leave me alone", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-02", "text": "leave me alone", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-03", "text": "dont text me", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-04", "text": "dont text me", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-05", "text": "don't text me again", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-06", "text": "don't text me again", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-07", "text": "no more texts", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-08", "text": "no more texts", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-09", "text": "unsub", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-10", "text": "unsub", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-11", "text": "שחררו אותי", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-12", "text": "שחררו אותי", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-13", "text": "לא רוצה שום קשר איתכם", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-14", "text": "לא רוצה שום קשר איתכם", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-15", "text": "בלי הודעות יותר", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-16", "text": "בלי הודעות יותר", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-17", "text": "מה אתם רוצים ממני, תפסיקו", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-18", "text": "מה אתם רוצים ממני, תפסיקו", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "c94-19", "text": "זה לא החוב שלי", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-20", "text": "I can't go on anymore", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-21", "text": "I can't go on anymore", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-22", "text": "I want to die", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-23", "text": "I want to die", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-24", "text": "I want to end my life", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-25", "text": "I want to end my life", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-26", "text": "I am 14", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-27", "text": "I am 14", "ctx": {"channel": "email"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-28", "text": "im 15 my mom pays", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-29", "text": "im 15 my mom pays", "ctx": {"channel": "email"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "c94-t1", "text": "I am 14 days late, sorry, paying tomorrow", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out", "minor"]}, "critical": true}
+{"id": "c94-t2", "text": "leave me alone for a week, I'll pay on the 1st", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out", "minor"]}, "critical": true}
+{"id": "c94-t3", "text": "תפסיקו לחייב אותי כפול", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "not": ["opt_out", "minor"]}, "critical": true}
+{"id": "c94-t4", "text": "נמאס לי מהמצב, אשלם כשאוכל", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out", "minor"]}, "critical": true}
+{"id": "c94-t5", "text": "עזבו, אני כבר משלם", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out", "minor"]}, "critical": true}
+{"id": "c94-t6", "text": "stop worrying, I will pay friday", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out", "minor"]}, "critical": true}
+{"id": "c94-t7", "text": "עצרו את החיוב הכפול", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "not": ["opt_out", "minor"]}, "critical": true}
+{"id": "c121-1", "text": "I don't owe you anything", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c121-2", "text": "אני לא מכיר את החוב הזה", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "not": ["wrong_person"]}, "critical": true}
+{"id": "c121-3", "text": "I feel hopeless", "ctx": {"channel": "sms"}, "expect": {"intent": "distress"}, "critical": true}
+{"id": "c121-4", "text": "I'm just a kid", "ctx": {"channel": "sms"}, "expect": {"intent": "minor"}, "critical": true}
+{"id": "c121-5", "text": "i'm struggling with the app", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["distress"]}, "critical": true}
+{"id": "c122-1", "text": "my lawer will call u", "ctx": {"channel": "sms"}, "expect": {"intent": "legal"}, "critical": true}
+{"id": "c122-2", "text": "i allready payed", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim"}, "critical": true}
+{"id": "c122-3", "text": "i never payed this", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["paid_claim"]}, "critical": true}
+{"id": "c132-1", "text": "חייבתם אותי 1,500 במקום 1,200", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c132-2", "text": "the bill should be 1,000 not 1,200", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c133-1", "text": "המוצר לא הגיע", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c133-2", "text": "the technician never showed up", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c133-3", "text": "לא קיבלתי את החשבונית, אפשר לשלוח שוב?", "ctx": {"channel": "sms"}, "expect": {"intent": "copy_request", "not": ["dispute"]}, "critical": true}
+{"id": "c134-1", "text": "ביקשתי לבטל את הוראת הקבע ואשלם בהעברה", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute"]}, "critical": true}
+{"id": "c134-2", "text": "im in high school", "ctx": {"channel": "sms"}, "expect": {"intent": "minor"}, "critical": true}
+{"id": "c136-1", "text": "ירד לי פעמיים מהכרטיס", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c136-2", "text": "הילד חולה היום ולא יגיע לשיעור", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["cant_pay"]}, "critical": true}
+{"id": "c137-1", "text": "חייבתם על חודש שהחוג לא התקיים", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c137-2", "text": "המורה לא הגיעה היום, יש שיעור מחר?", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["dispute"]}, "critical": true}
+{"id": "c138-1", "text": "הרכב חזר עם אותה תקלה", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c138-2", "text": "I missed the deadline for the payment, sorry, paying now", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute"]}, "critical": true}
+{"id": "c140-1", "text": "תודה\nהסר", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out"}, "critical": true}
+{"id": "c140-2", "text": "תודה\nהסרתי את החסימה, אשלם מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out"]}, "critical": true}
+{"id": "c141-1", "text": "תודה\nתפסיקו", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out"}, "critical": true}
+{"id": "c141-2", "text": "שלום\nדי מהר אשלם", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out"]}, "critical": true}
+{"id": "c143-1", "text": "תפסיקו כבר", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out"}, "critical": true}
+{"id": "c144-1", "text": "אחי תפסיקו", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out"}, "critical": true}
+{"id": "c144-2", "text": "אחי אשלם מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out"]}, "critical": true}
+{"id": "c145-1", "text": "this isn't my number", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person"}, "critical": true}
+{"id": "c146-1", "text": "pls dont msg me", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out"}, "critical": true}
+{"id": "c146-2", "text": "i aint paying till friday sorry", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["dispute"]}, "critical": true}
+{"id": "c147-1", "text": "חלאס", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out"}, "critical": true}
+{"id": "c147-2", "text": "אל תשלחו לי קישור, אני אעביר בבנק", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out"]}, "critical": true}
+{"id": "c148-1", "text": "הטלפון שלי נשבר, אשלם כשאתקן", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute"]}, "critical": true}
+{"id": "c148-2", "text": "זה הגיע שבור", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}

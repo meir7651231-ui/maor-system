@@ -62,7 +62,7 @@ export function Login() {
             <input className={`${inputCls} num text-center text-lg tracking-[0.4em]`} dir="ltr" inputMode="numeric" autoComplete="one-time-code"
               value={f.code} onChange={e => setF({ ...f, code: cleanCode(e.target.value) })} placeholder="000000" />
           </Field>
-          {err && <p role="alert" className="rounded-xl bg-red-50 text-critical text-sm font-bold p-3" data-testid="login-error">{err}</p>}
+          {err && <p role="alert" className="rounded-xl bg-red-50 text-critical-ink text-sm font-bold p-3" data-testid="login-error">{err}</p>}
           <Button className="w-full" disabled={busy}>{busy ? 'נכנסים…' : 'כניסה'}</Button>
           <p className="text-xs text-ink-500 text-center">🔒 הכניסה נשמרת רק בלשונית הזו. סגירת הלשונית, «יציאה» או 12 שעות מבטלות אותה.</p>
         </form>
@@ -92,7 +92,7 @@ function CodeGate() {
       <p className="text-ink-500">ב-<code>./demo.sh</code> הקוד מודפס בהפעלה. בבטא אמיתית האפשרות הזו כבויה, וכל עובד נכנס עם משתמש משלו.</p>
       <input value={v} onChange={e => setV(e.target.value)} type="password" autoComplete="off" aria-label="קוד גישה"
         className={`${inputCls} num`} placeholder="הדביקו כאן" />
-      {err && <p role="alert" className="text-critical font-bold" data-testid="token-error">{err}</p>}
+      {err && <p role="alert" className="text-critical-ink font-bold" data-testid="token-error">{err}</p>}
       <Button variant="dark" className="w-full" disabled={v.trim().length < 32}>כניסה</Button>
     </form>
   );

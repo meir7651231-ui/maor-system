@@ -1,0 +1,10 @@
+{"id": "rm260-01", "channel": "sms", "critical": true, "turns": [{"text": "אני אשלם", "expect": {"intent": "promise", "state": "awaiting_date"}}, {"text": "תכלס כבר לא אכפת לי, אף אחד לא יתגעגע אם פשוט אעלם", "expect": {"intent": "distress", "escalate": "urgent", "promise": null}}]}
+{"id": "rm260-02", "channel": "email", "critical": true, "turns": [{"text": "We cancelled our subscription in September, this must be a mistake", "expect": {"intent": "dispute", "stop": "pause", "not": ["promise", "paid_claim"]}}]}
+{"id": "rm260-03", "channel": "sms", "critical": true, "turns": [{"text": "מחר אני בחתונה, אז אעביר ביום רביעי", "expect": {"intent": "promise", "promise": "2026-11-11", "state": "promised"}}]}
+{"id": "rm260-04", "channel": "sms", "critical": true, "turns": [{"text": "התשלומים של המשכנתא יורדים ב-10, אשלם לכם ב-12", "expect": {"intent": "promise", "promise": "2026-11-12", "not": ["plan_request"]}}]}
+{"id": "rm260-05", "channel": "sms", "critical": true, "turns": [{"text": "אפשר לפרוס את התשלומים?", "expect": {"intent": "plan_request"}}]}
+{"id": "rm260-06", "channel": "sms", "critical": true, "turns": [{"text": "אשלם", "expect": {"intent": "promise", "state": "awaiting_date"}}, {"text": "תחזרו אליי אחרי 6, אני בפגישה עכשיו", "expect": {"intent": "callback", "promise": null, "not": ["promise"]}}]}
+{"id": "rm260-07", "channel": "sms", "critical": false, "turns": [{"text": "אשלם", "expect": {"intent": "promise", "state": "awaiting_date"}}, {"text": "חמישי הקרוב", "expect": {"intent": "promise", "promise": "2026-11-12", "state": "promised"}}]}
+{"id": "rm260-08", "channel": "sms", "critical": true, "turns": [{"text": "נזקקתי לקישור שוב, תודה", "expect": {"not": ["distress", "dispute", "opt_out"]}}]}
+{"id": "rm260-09", "channel": "sms", "critical": false, "turns": [{"text": "מה זו ההודעה הזו?", "expect": {"intent": "who_is_this"}}]}
+{"id": "rm260-10", "channel": "sms", "critical": false, "turns": [{"text": "אני אסגור את החוב ביום חמישי", "expect": {"intent": "promise", "promise": "2026-11-12"}}, {"text": "תודה :)", "expect": {"intent": "thanks", "not": ["opt_out"]}}]}

@@ -11,6 +11,12 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 MODE=(); TARGET="gi_mock בתוך התהליך (הדמיה)"
+# אתחול ⇒ cleanup ⇒ trap ⇒ mktemp (הפעלה 221): התיקייה הזמנית מכוסה מרגע היצירה; INT/TERM ⇒ קוד-אות.
+OUT=""; KEEP=1
+cleanup() { local rc=$?; if [[ "$KEEP" == 0 && -n "$OUT" ]]; then rm -rf "$OUT"; fi; exit "$rc"; }
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 if [[ "${1:-}" == "--sandbox" ]]; then
   if [[ -z "${GREENINVOICE_API_ID:-}" || -z "${GREENINVOICE_API_SECRET:-}" ]]; then
     echo "חסרים GREENINVOICE_API_ID / GREENINVOICE_API_SECRET — לא נשלחה אף בקשה." >&2
@@ -18,16 +24,14 @@ if [[ "${1:-}" == "--sandbox" ]]; then
   fi
   MODE=(--sandbox); TARGET="ה-sandbox האמיתי"; OUT="sandbox-reports"; mkdir -p "$OUT"; KEEP=1
 else
-  OUT="$(mktemp -d)"; KEEP=0
+  KEEP=0; OUT="$(mktemp -d)"
 fi
-cleanup() { local rc=$?; [[ "$KEEP" == 0 ]] && rm -rf "$OUT"; exit "$rc"; }
-trap cleanup EXIT INT TERM
 
 echo "══ יום ה-sandbox · יעד: $TARGET ══"
 echo; echo "① בדיקת החוזה (scripts/gi_contract_check.py)"
-python -I scripts/gi_contract_check.py "${MODE[@]}" --json "$OUT/gi-contract.json"; GI_RC=$?
+python3 -I scripts/gi_contract_check.py "${MODE[@]}" --json "$OUT/gi-contract.json"; GI_RC=$?
 echo; echo "② «פתוח = לא שולם» (scripts/sandbox_day1_paid_check.py)"
-python -I scripts/sandbox_day1_paid_check.py "${MODE[@]}" --json "$OUT/paid-check.json"; PAID_RC=$?
+python3 -I scripts/sandbox_day1_paid_check.py "${MODE[@]}" --json "$OUT/paid-check.json"; PAID_RC=$?
 
 echo; echo "══ החלטה ══"
 REASONS=()

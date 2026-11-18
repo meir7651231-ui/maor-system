@@ -1,15 +1,45 @@
 {
   "_doc": "מיפוי עובדי גבי ⇒ סשן. משמש את scripts/team_watch.py (בדיקת המקשר כל שעתיים). wall=true ⇒ העובד מול קיר של מאיר ולא מעירים אותו.",
   "workers": {
-    "גבי חיבורים":  {"session": "session_01DUoepFNLbjcutrURQX4f13", "wall": false},
-    "גבי מבקר":     {"session": "session_01DUoepGDTamyUfrAJEzAfW3", "wall": false},
-    "גבי מחקר":     {"session": "session_01DUoepCpgnX97aWZG5e3iD6", "wall": false},
-    "גבי מכירות":   {"session": "session_01DUoepG6kkdtpKGK2wafRJm", "wall": false},
-    "גבי שיווק":    {"session": "session_01DUoepEKhaA3apqS51avurB", "wall": false},
-    "גבייה עיצוב":  {"session": "session_01DUoepFMyWh2GQ6Tir1EZmV", "wall": false},
-    "גבי משפט":     {"session": "session_01DUoepEkjxRdLfhc2cSW6RS", "wall": false},
-    "גבי מנוע":     {"session": "session_01DUoepDYyzzMSRY5Uhjk6Le", "wall": false},
-    "גבי בדיקות":   {"session": "session_01DUoepEtpsdWaMgEdiykYNs", "wall": false},
-    "גבייה סוכן":   {"session": "session_01DUoepGhGQhewGzrsRcPyYw", "wall": false}
+    "גבי חיבורים": {
+      "session": "session_01DUoepFNLbjcutrURQX4f13",
+      "wall": false
+    },
+    "גבי מבקר": {
+      "session": "session_01DUoepGDTamyUfrAJEzAfW3",
+      "wall": false
+    },
+    "גבי מחקר": {
+      "session": "session_01DUoepCpgnX97aWZG5e3iD6",
+      "wall": false
+    },
+    "גבי מכירות": {
+      "session": "session_01DUoepG6kkdtpKGK2wafRJm",
+      "wall": false
+    },
+    "גבי שיווק": {
+      "session": "session_01DUoepEKhaA3apqS51avurB",
+      "wall": false
+    },
+    "גבייה עיצוב": {
+      "session": "session_01DUoepFMyWh2GQ6Tir1EZmV",
+      "wall": false
+    },
+    "גבי משפט": {
+      "session": "session_01DUoepEkjxRdLfhc2cSW6RS",
+      "wall": false
+    },
+    "גבי מנוע": {
+      "session": "session_01DUoepDYyzzMSRY5Uhjk6Le",
+      "wall": false
+    },
+    "גבי בדיקות": {
+      "session": "session_01DUoepEtpsdWaMgEdiykYNs",
+      "wall": false
+    },
+    "גבייה סוכן": {
+      "session": "session_01DUoepGhGQhewGzrsRcPyYw",
+      "wall": false
+    }
   }
 }

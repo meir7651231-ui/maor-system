@@ -140,10 +140,10 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
               {live && <div>🧪 <b>מצב:</b> dry-run · ספק {liveSms?.provider ?? business.smsProvider} · שום הודעה לא יוצאת באמת</div>}
               <div>🛑 כולל קישור הסרה · מזהה את העסק · ללא תוכן שיווקי (סעיף 30א)</div>
               {!readOnly && (live || requiresApproval(step, business, invoice.reminders.length === 0)) && <div className="text-amber-700">✋ שלב זה דורש את אישורך</div>}
-              {blockKind(block) === 'hard' && <div className="text-critical font-bold">⛔ חסום: {BLOCK_LABEL[block!] ?? block}</div>}
+              {blockKind(block) === 'hard' && <div className="text-critical-ink font-bold">⛔ חסום: {BLOCK_LABEL[block!] ?? block}</div>}
               {/* הפעלה 163: כמו /ui (157) — «לאשר מחדש» שנשאר מבנייה קודמת לא מוצג על תזכורת שכבר אושרה */}
               {!readOnly && blockKind(block) === 'reapprove' && <div data-testid="mp-reapprove" className="text-amber-700 font-bold">⏳ {REAPPROVE_LABEL[block!]}</div>}
-              {err && <div className="text-critical">שגיאה: {err}</div>}
+              {err && <div className="text-critical-ink">שגיאה: {err}</div>}
             </div>
           </div>
 
@@ -181,9 +181,9 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
                   <textarea value={smsText} onChange={e => setSmsText(e.target.value)} rows={4} readOnly={live} title={live ? 'בחי: הנוסח מגיע מהשרת (templates.py). עריכה — בשלב הבא' : undefined}
                     className="mt-1 w-full rounded-xl border border-ink-200 p-3 text-sm focus:border-brand focus:ring-2 focus:ring-brand/30 outline-none" />
                 </label>
-                <div className={`text-xs mt-1 ${seg.segments > 3 ? 'text-critical font-bold' : 'text-ink-500'}`}>
+                <div className={`text-xs mt-1 ${seg.segments > 3 ? 'text-critical-ink font-bold' : 'text-ink-500'}`}>
                   <span className="num">{seg.chars}</span> תווים · <span className="num">{seg.segments}</span> מקטעי SMS {seg.unicode && '(עברית: 70/67 תווים למקטע)'}
-                  {!!payUrl && !smsText.includes(live ? payUrl : demoShortUrl(invoice)) && <span className="text-critical font-bold"> · ⚠️ חסר קישור תשלום</span>}
+                  {!!payUrl && !smsText.includes(live ? payUrl : demoShortUrl(invoice)) && <span className="text-critical-ink font-bold"> · ⚠️ חסר קישור תשלום</span>}
                 </div>
               </div>
             ) : (
@@ -212,7 +212,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
         )}
 
         <footer className="sticky bottom-0 bg-white border-t border-ink-200 p-4 flex flex-wrap items-center gap-3 justify-end">
-          {c.optedOut && <span className="text-critical text-sm font-bold me-auto">הלקוח ביקש הסרה — אין שליחה</span>}
+          {c.optedOut && <span className="text-critical-ink text-sm font-bold me-auto">הלקוח ביקש הסרה — אין שליחה</span>}
           {readOnly && <span data-testid="mp-readonly" className="me-auto text-sm text-ink-500">{pv?.status === 'approved' ? 'התזכורת כבר אושרה' : 'התזכורת לא ממתינה לאישור'} — לקריאה בלבד.</span>}
           {!readOnly && live && !!pv && isCsv && (
             <label className="me-auto flex items-start gap-2 text-sm rounded-xl bg-amber-50 text-amber-900 px-3 py-2 max-w-md" data-testid="confirm-open">

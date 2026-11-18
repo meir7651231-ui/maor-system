@@ -1,0 +1,8 @@
+{"id": "rm272-01", "channel": "sms", "critical": true, "turns": [{"text": "I paid half, 600 nis", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": 60000}}]}
+{"id": "rm272-02", "channel": "sms", "critical": true, "turns": [{"text": "שילמתי חצי, 600", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": 60000}}]}
+{"id": "rm272-03", "channel": "email", "critical": true, "turns": [{"text": "העברתי מקדמה של 500", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": 50000}}]}
+{"id": "rm272-04", "channel": "sms", "critical": true, "turns": [{"text": "paid 2 of the 4 payments", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": null}}]}
+{"id": "rm272-05", "channel": "sms", "critical": false, "turns": [{"text": "I paid half, 600 left", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": null}}]}
+{"id": "rm272-06", "channel": "sms", "critical": false, "turns": [{"text": "שילמתי חצי, 600 דולר", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": null}}]}
+{"id": "rm272-07", "channel": "sms", "critical": true, "turns": [{"text": "אפשר לחלק ל-3 תשלומים?", "expect": {"intent": "plan_request", "state": "awaiting_plan_reply"}}, {"text": "I paid a deposit of 400", "advance_days": 2, "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause", "paid": 40000}}]}
+{"id": "rm272-08", "channel": "sms", "critical": false, "turns": [{"text": "שילמתי חצי, 15 בחודש", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "paid": null}}]}

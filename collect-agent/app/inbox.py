@@ -118,6 +118,27 @@ def _draft_decided(status: str, action: str) -> ValueError:
         return AlreadyDecided(he, "rejected")
     return ValueError(he + (". אי אפשר לאשר אותה" if action == "approve" else ". אי אפשר לדחות אותה"))
 
+# כוונות שמודיעות לבעל העסק במייל גם אם המנוע לא סימן אותן urgent (הסרה = חובה לכבד; קטין/מצוקה = אדם)
+_URGENT_OWNER_ALERT = {"opt_out", "minor", "distress", "dispute", "legal"}
+# מנהל 243: סוג הפנייה במייל הדחוף — תג המצב גובר על הכוונה. חדלות פירעון/פטירה/אשפוז מסווגים cant_pay+תג
+# (עקבי עם evals), ולכן לפי הכוונה בלבד המייל אמר «הודעה דחופה» במקום «הליך חדלות פירעון» / «פטירה».
+_ALERT_TAGS = ("minor", "insolvency", "deceased")
+
+
+def _alert_kind(d: Decision) -> str:
+    tag = next((t for t in _ALERT_TAGS if t in d.tags), None)
+    if tag:
+        return tag
+    if d.intent == Intent.CANT_PAY and "sensitive" in d.tags:
+        return "sensitive"
+    return d.intent.value
+
+
+# כוונות שהופכות הודעה מכתובת משותפת לכרטיס דחוף אחד (נושא 5)
+_SHARED_URGENT = (Intent.DISTRESS, Intent.MINOR, Intent.LEGAL, Intent.DISPUTE, Intent.OPT_OUT,
+                  Intent.WRONG_PERSON)
+
+
 class ConversationInbox:
     def __init__(self, svc: Any, policy: OwnerPolicy | None = None, llm: Any = "env") -> None:
         self.svc = svc
@@ -134,12 +155,82 @@ class ConversationInbox:
                 self.db.conn.execute("ALTER TABLE drafts ADD COLUMN claimed_at TEXT")
             self.db.conn.commit()
 
+    # ---------- כתובת משותפת + דחוף (נושא 5) ----------
+    SHARED_URGENT = "shared_contact_urgent"
+
+    def _shared_urgent_card(self, channel: str, sender: str, text: str, linked: list, intent: str,
+                            found: set, now) -> dict:
+        """החלטת ראש הצוות לנושא 5 (18.11.2026): פנייה דחופה מכתובת/מספר המשותפים לכמה לקוחות ⇒ דחופה בכל מקרה,
+        כרטיס בעל עסק אחד עם כל הלקוחות המקושרים, בלי שיוך אוטומטי (גם אם אחד קיבל את ההודעה האחרונה) ובלי
+        תשובה ללקוח עד שבעל העסק בוחר (`assign_shared_card`). לא-דחוף ⇒ כמו קודם (סבב 27)."""
+        ids = [c["id"] for c in linked]
+        # הסרה / מספר שגוי ⇒ רשימת ההסרה לפי הכתובת (חל על כולם; זה לא שיוך — זו הכתובת עצמה)
+        if {Intent.OPT_OUT, Intent.WRONG_PERSON} & found:
+            self.svc.suppress(channel, sender, "shared_contact_opt_out")
+        if Intent.OPT_OUT in found:
+            # review חור 1 (הכרעה שמרנית קודמת, נשמרת): «הסר» מכתובת משותפת ⇒ כל הערוצים של כל המקושרים
+            # נעצרים. זו לא שיוך — עוצרים את כולם; בעל העסק יכול לחדש את מי שלא ביקש
+            for c in linked:
+                self.svc._opt_out(c["id"], "shared_contact_opt_out")
+        # עד שבעל העסק בוחר: אף לקוח מקושר לא מקבל תזכורת או תשובה בכתובת הזו
+        for c in linked:
+            if not c["paused_reason"]:
+                self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (self.SHARED_URGENT, c["id"]))
+            for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (c["id"],)):
+                self.svc._cancel_invoice(inv["id"], self.SHARED_URGENT)
+        # מבנה ה-payload נקרא ב-web (notices.ts: linked_customers[].name) — לא לשנות שמות שדות
+        payload = json.dumps({"linked_customers": [{"id": c["id"], "name": c["name"]} for c in linked],
+                              "urgent": intent}, ensure_ascii=False)
+        mid = self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,payload,"
+                        "created_at) VALUES(NULL,'in',?,?,?,1,?,?)",
+                        (channel, text, self.SHARED_URGENT, payload, _iso(now)))
+        self.svc.audit("customer", "shared_contact_urgent", {"message": mid, "customers": ids,
+                                                             "intent": intent})
+        self.svc.email_owner_urgent(intent, unmatched="shared")
+        return {"intent": self.SHARED_URGENT, "detected": intent, "escalate": True,
+                "escalation": "urgent", "draft_id": None, "auto_reply": None, "plan_id": None,
+                "card_id": mid, "linked_customers": ids}
+
+    def assign_shared_card(self, card_id: int, customer_id: int | None, actor: str = "owner") -> dict:
+        """בעל העסק בחר למי ההודעה שייכת (או None = «אף אחד מהם»). רק אז המנוע מטפל בה כרגיל עבור הלקוח
+        הנבחר (השפעות + טיוטה לאישור); שאר הלקוחות המקושרים משתחררים מההשהיה של הכרטיס הזה."""
+        m = self.db.one("SELECT * FROM messages WHERE id=? AND intent=?", (card_id, self.SHARED_URGENT))
+        if m is None:
+            raise KeyError(card_id)
+        if not m["needs_owner"]:
+            raise ValueError("הכרטיס כבר טופל")
+        info = json.loads(m["payload"] or "{}")
+        ids = [x["id"] for x in info.get("linked_customers", [])]
+        if customer_id is not None and customer_id not in ids:
+            raise ValueError("הלקוח לא מקושר לכתובת הזו")
+        cust = self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)) if customer_id is not None else None
+        if customer_id is not None and cust is None:
+            # critic סבב 150: נמחק בינתיים (purge) — היה TypeError/500 אחרי שהכרטיס כבר נסגר וההשהיות שוחררו
+            raise ValueError("הלקוח הזה כבר לא קיים במערכת — בחרו לקוח אחר או «אף אחד מהם»")
+        self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (card_id,))
+        for cid in ids:
+            self.db.x("UPDATE customers SET paused_reason=NULL WHERE id=? AND paused_reason=?",
+                      (cid, self.SHARED_URGENT))
+        self.svc.audit(actor, "shared_contact_assigned", {"card": card_id, "customer": customer_id})
+        if customer_id is None:
+            return {"card_id": card_id, "assigned": None}
+        res = self.handle_customer(cust, m["channel"], m["body"])
+        return {"card_id": card_id, "assigned": customer_id, **res}
+
     # ---------- קלט ----------
     def handle(self, channel: str, sender: str, text: str) -> dict:
         if channel not in ("sms", "email"):
             raise ValueError("ערוץ לא נתמך")
         now = self.svc.clock()
         cust, ambiguous = self.svc._resolve_sender(channel, sender)
+        # החלטת ראש צוות (סבב ביקורת, נושא 5): הודעה **דחופה** מכתובת שמשותפת לכמה לקוחות ⇒ תמיד דחופה,
+        # כרטיס בעל עסק **אחד** עם כל הלקוחות המקושרים, בלי שיוך אוטומטי (גם אם אפשר היה לנחש לפי ההודעה
+        # היוצאת האחרונה) ובלי תשובה ללקוח עד שבעל העסק בוחר (assign_shared_card).
+        linked = self.svc._find_customers(channel, sender)
+        found = set(detect(text)) if len(linked) > 1 else set()
+        shared_urgent = next((i.value for i in _SHARED_URGENT if i in found), None)
+        if shared_urgent:
+            return self._shared_urgent_card(channel, sender, text, linked, shared_urgent, found, now)
         if cust is None and ambiguous:
             # critic סבב 27: כתובת של כמה לקוחות ואף אחד מהם לא קיבל הודעה ⇒ לא משייכים ולא מנסחים
             # (אין טיוטה עם חוב של אדם אחר). «הסר» ⇒ רשימת ההסרה לפי הכתובת ⇒ חל על כולם.
@@ -151,14 +242,21 @@ class ConversationInbox:
             return {"intent": "shared_contact_ambiguous", "escalate": True, "escalation": "normal",
                     "draft_id": None, "auto_reply": None, "plan_id": None}
         if cust is None:
+            found = set(detect(text))
             # מבקר סבב 3: «הסר» ממספר/כתובת שעוד לא ב-DB ⇒ רשימת ההסרה (גם ללקוח עתידי)
-            if Intent.OPT_OUT in detect(text):
+            if Intent.OPT_OUT in found:
                 self.svc.suppress(channel, sender, "unknown_sender_opt_out")
+            # critic סבב 126: מצוקה/קטין/משפטי/מחלוקת משולח לא משויך (בן זוג, מייל מהעבודה) ⇒ דחוף + מייל לבעלים
+            urgent = next((i.value for i in (Intent.DISTRESS, Intent.MINOR, Intent.LEGAL, Intent.DISPUTE)
+                           if i in found), None)
             # לא חושפים כלום לשולח לא מזוהה; רק לבעל העסק
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
-                      "created_at) VALUES(NULL,'in',?,?, 'unknown_sender', 1, ?)",
-                      (channel, text, _iso(now)))
-            return {"intent": "unknown_sender", "escalate": True, "escalation": "normal",
+                      "created_at) VALUES(NULL,'in',?,?,?, 1, ?)",
+                      # critic סבב 127: דחופה מסומנת בנפרד ⇒ /app/ מציג אותה ראשונה ומסומנת
+                      (channel, text, "unknown_sender_urgent" if urgent else "unknown_sender", _iso(now)))
+            if urgent:
+                self.svc.email_owner_urgent(urgent, unmatched=True)
+            return {"intent": "unknown_sender", "escalate": True, "escalation": "urgent" if urgent else "normal",
                     "draft_id": None, "auto_reply": None, "plan_id": None}
         return self.handle_customer(cust, channel, text)
 
@@ -195,6 +293,9 @@ class ConversationInbox:
             self.db.x(sql, (cust["id"],))
             self._wrong_number = False
         self._save_state(cust["id"], d, bump_turn=bool(d.reply))
+        # מבקר סבב 99: כרטיס דחוף לא הודיע לבעלים מחוץ לאפליקציה ⇒ מייל קצר (בלי טקסט הלקוח, עם throttle)
+        if d.escalate == Escalation.URGENT or d.intent.value in _URGENT_OWNER_ALERT:
+            self.svc.email_owner_urgent(_alert_kind(d), auto_replied=bool(d.auto_send and d.reply))
         self.svc.audit("customer", "conversation", {
             "customer": cust["id"], "intent": d.intent.value,
             "secondary": [i.value for i in d.secondary], "escalate": d.escalate.value,
@@ -233,7 +334,14 @@ class ConversationInbox:
             bot_turns=conv["bot_turns"] if conv else 0, policy=self.policy,
             manual_old=any(invoice_too_old(r, self.svc.clock().date()) for r in invs),
             # critic סבב 25: מקום לשורת ההסרה (`_with_footer`, טוקן של 22 תווים) בתקציב ה-SMS
-            footer_len=len("\nלהפסקה: " + self.svc.unsub_url("x" * 22)))
+            footer_len=len("\nלהפסקה: " + self.svc.unsub_url("x" * 22)),
+            # מנהל 265: ההסדר שבשיחה כבר אושר ונשלח ע״י בעל העסק ⇒ «מאשרת» של הלקוח לא מבקש אישור שני
+            # מנהל 290: רק אם ההסדר **האחרון** (הפעיל) הוא המאושר. היה: «יש ללקוח הסדר approved כלשהו» ⇒ הצעה
+            # מעודכנת (267/290) ליד הסדר שבתוקף, ואז «מאשרת» ⇒ plan_confirmed: «ההסדר בתוקף, התשלום הראשון…» על
+            # הצעה שבעל העסק לא אישר, וכרטיס «אישר/ה את ההסדר שאישרת» על לוח שלא אושר.
+            plan_approved=bool(offered) and (self.db.one(
+                "SELECT status FROM plans WHERE customer_id=? AND status IN ('proposed','approving','approved') "
+                "ORDER BY id DESC LIMIT 1", (cust["id"],)) or {"status": ""})["status"] == "approved")
 
     def _hold_reply_if_opted_out(self, cust, channel: str, d: Decision) -> Decision:
         """לקוח שכבר הוסר (או שהכתובת שלו ברשימת ההסרה): שער השליחה (`_can_message`) יחסום כל
@@ -264,7 +372,8 @@ class ConversationInbox:
         if d.stop == Stop.PAUSE:
             # רק הבטחה משתחררת לבד ⇒ רק לה יש תאריך בסיבה; השאר נקי לדשבורד ("paid_claim")
             auto_release = d.intent == Intent.PROMISE and d.pause_until
-            base = next((t for t in ("minor", "deceased", "insolvency") if t in d.tags), d.intent.value)
+            base = next((t for t in ("minor", "deceased", "insolvency", "channel_pref", "foreign_language")
+                         if t in d.tags), d.intent.value)
             reason = base + (f":until={d.pause_until.isoformat()}" if auto_release else "")
             old = (self.db.one("SELECT paused_reason FROM customers WHERE id=?", (cid,))["paused_reason"]
                    or "")
@@ -274,8 +383,14 @@ class ConversationInbox:
             for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cid,)):
                 self.svc._cancel_invoice(inv["id"], d.intent.value)
         plan_id = None
-        if prior == State.AWAITING_PLAN_REPLY and intents & {Intent.PLAN_REJECT.value,
-                                                             Intent.PLAN_REQUEST.value}:
+        # מנהל 275 (qa16 q16-09): הלקוח ביקש **בדיוק** את מה שהוצע («אפשר ב-3 תשלומים?» אחרי הצעת 3) ⇒ התשובה
+        # «זה בדיוק מה שהצענו… מתאים?» אבל ההצעה סומנה rejected ⇒ «מאשרת» אחר כך הוביל ל-plan_pending_owner בלי
+        # הסדר לאישור. בקשה זהה (plan_same) היא לא דחייה — ההצעה נשארת בתוקף.
+        # מנהל 276 (qa17 q17-10): «So 400 a month for 3 months, right? Ok I'm in» ⇒ plan_accept + plan_request משני
+        # (חזרה על ההצעה) ⇒ ההצעה סומנה rejected **לפני** שהאישור נקשר אליה ⇒ בעל העסק: «אין הסדר מוצע». אישור
+        # הוא לעולם לא דחייה של ההצעה שהוא מאשר.
+        if prior == State.AWAITING_PLAN_REPLY and "plan_same" not in d.tags and d.intent != Intent.PLAN_ACCEPT \
+                and intents & {Intent.PLAN_REJECT.value, Intent.PLAN_REQUEST.value}:
             # ההצעה האחרונה כבר נשלחה (status='approved' = בעל העסק אישר לשלוח), והלקוח דחה אותה
             # או ביקש אחרת. בלי זה היא נשארה approved לנצח ⇒ `plan_active` חוסם תזכורות גם אחרי
             # שבעל העסק מחדש (critic 2.3.4). השהיית plan_reject/plan_request עצמה נשארת.

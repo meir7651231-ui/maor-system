@@ -227,7 +227,7 @@ test('סיבת השהיה מוצגת בעברית, לעולם לא כקוד גו
   assert.doesNotMatch(src, /מושהה: \$\{/, 'נפילה לקוד גולמי');
 });
 
-import { BRAND as LOGO_BRAND, P as LOGO_P, PUBLIC_FILES, markInner } from '../src/brand/logo.ts';
+import { BRAND as LOGO_BRAND, P as LOGO_P, PUBLIC_FILES, markInner, SLOGAN_INK } from '../src/brand/logo.ts';
 import { readdirSync } from 'node:fs';
 test('לוגו: מקור יחיד (עיצוב מאיר), ירוק רק במטבע, דיו לפי רקע, מזהים ייחודיים, קבצים ציבוריים מסונכרנים', () => {
   const light = markInner({ id: 'a' }), dark = markInner({ onDark: true, id: 'b' });
@@ -243,6 +243,15 @@ test('לוגו: מקור יחיד (עיצוב מאיר), ירוק רק במטב�
   // הקבצים ב-public = מה שהמקור מייצר (npm run logo)
   for (const [name, svg] of Object.entries(PUBLIC_FILES))
     assert.equal(readFileSync(new URL(`../public/${name}`, import.meta.url), 'utf8'), svg, `public/${name} סטה מ-brand/logo.ts — הריצו npm run logo`);
+  // logo-dark.svg (גבי עיצוב, BACKLOG): אותו מקור, לרקע כהה — דיו קרם, מטבע #10B981, בלי נייבי, תיאור ≥4.5:1 על נייבי
+  const ld = PUBLIC_FILES['logo-dark.svg'];
+  assert.ok(ld, 'חסר logo-dark.svg');
+  assert.ok(ld.includes(`fill="${LOGO_BRAND.cream}"`) && !ld.includes(`fill="${LOGO_BRAND.navy}"`), 'logo-dark: דיו קרם בלבד');
+  assert.match(ld, new RegExp(`<circle[^>]*fill="${LOGO_BRAND.green}"`));
+  assert.ok(ld.includes(SLOGAN_INK.dark) && !ld.includes(SLOGAN_INK.light));
+  const L = (h: string) => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+  const cr = (a: string, b: string) => { const [x, y] = [L(a), L(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  assert.ok(cr(SLOGAN_INK.dark, LOGO_BRAND.navy) >= 4.5 && cr(SLOGAN_INK.light, '#FFFFFF') >= 4.5 && cr(LOGO_BRAND.cream, LOGO_BRAND.navy) >= 4.5, 'ניגודיות טקסט-הלוגו');
   // אין עותק שני של הצורה בקוד
   const walk = (d: URL): string[] => readdirSync(d, { withFileTypes: true }).flatMap(e =>
     e.isDirectory() ? walk(new URL(`${e.name}/`, d)) : [new URL(e.name, d).pathname]);
@@ -1220,4 +1229,60 @@ test('הפעלה 174: hasPausedCustomer — רק חשבונית פתוחה של 
   assert.match(inv, /h === 'drift' \|\| h === 'paused'/, '#/invoices?f=paused נקרא');
   const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
   assert.match(dash, /href="#\/invoices\?f=paused"/);
+});
+
+// critic סבב 127: פנייה דחופה משולח לא משויך (מצוקה/קטין/משפטי) הוצגה כמו כל «הודעה ממספר לא מוכר» —
+// בלי סימון דחיפות ובסדר כרונולוגי. בעל העסק שנכנס מהמייל הדחוף לא ידע איזו מהן.
+test('critic 127: unknown_sender_urgent מוצגת, מסומנת דחופה וראשונה', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const n = systemNotices([
+    { id: 9, customer_id: null, direction: 'system', channel: 'owner', body: 'x', intent: 'trial_ending', created_at: '2026-11-17T10:00:00+02:00' },
+    { id: 8, customer_id: null, direction: 'in', channel: 'sms', body: 'מי אתם?', intent: 'unknown_sender', created_at: '2026-11-17T10:00:00+02:00' },
+    { id: 3, customer_id: null, direction: 'in', channel: 'email', body: 'help', intent: 'unknown_sender_urgent', created_at: '2026-11-17T09:00:00+02:00' },
+  ]);
+  assert.equal(n.length, 3);
+  assert.equal(n[0].intent, 'unknown_sender_urgent');
+  assert.match(n[0].title, /דחופה/);
+  assert.equal(n[0].tone, 'warn');
+});
+
+test('לוח החגים: באנר פקיעה — 120 יום מראש לפי השרת, פג ⇒ expired, בלי נתון ⇒ כלום', async () => {
+  const { holidayNotice } = await import('../src/lib/holidays.ts');
+  const sw = (until: string | null, expiring?: boolean) => ({ open_now: true, closed_reason: null, next_allowed: null, holidays_until: until, holidays_expiring: expiring });
+  assert.equal(holidayNotice(sw('2029-08-31', false), '2026-11-18'), null, 'בתוקף לאורך זמן ⇒ אין באנר');
+  assert.deepEqual(holidayNotice(sw('2029-08-31', true), '2029-06-01'), { level: 'expiring', until: '2029-08-31', daysLeft: 91 });
+  assert.deepEqual(holidayNotice(sw('2029-08-31', true), '2029-09-01'), { level: 'expired', until: '2029-08-31', daysLeft: -1 });
+  // השרת אומר expiring=false אבל התאריך עבר ⇒ עדיין expired (fail-closed גם בתצוגה)
+  assert.equal(holidayNotice(sw('2029-08-31', false), '2029-09-02')?.level, 'expired');
+  // שרת ישן בלי הדגל ⇒ חישוב מקומי <120
+  assert.equal(holidayNotice(sw('2029-08-31'), '2029-05-10')?.level, 'expiring');
+  assert.equal(holidayNotice(sw('2029-08-31'), '2029-04-01'), null);
+  for (const bad of [null, undefined, sw(null), sw('31/08/2029', true)]) assert.equal(holidayNotice(bad as never, '2029-06-01'), null);
+});
+
+// החלטה 5 (18.11.2026): פנייה דחופה מכתובת משותפת לכמה לקוחות ⇒ כרטיס אחד, דחוף, ראשון, עם כל הלקוחות המקושרים.
+test('החלטה 5: shared_contact_urgent מוצג ראשון, דחוף, עם הלקוחות המקושרים', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const n = systemNotices([
+    { id: 9, customer_id: null, direction: 'system', channel: 'owner', body: 'x', intent: 'trial_ending', created_at: '2026-11-18T10:00:00+02:00' },
+    { id: 4, customer_id: null, direction: 'in', channel: 'sms', body: 'אני רוצה למות', intent: 'shared_contact_urgent',
+      payload: JSON.stringify({ linked_customers: [{ id: 1, name: 'רונית לוי' }, { id: 2, name: 'משה כהן' }], urgent: 'distress' }),
+      created_at: '2026-11-18T09:00:00+02:00' },
+  ]);
+  assert.equal(n[0].intent, 'shared_contact_urgent');
+  assert.match(n[0].title, /דחופה/);
+  assert.match(n[0].body, /רונית לוי/);
+  assert.match(n[0].body, /משה כהן/);
+});
+
+// critic סבב 149: לכרטיס הכתובת המשותפת לא היה ממשק לשיוך — רק «טופל». הכרטיס חושף את הלקוחות המקושרים (id+שם)
+// כדי שהלוח יציג כפתור «שייך ל…» לכל אחד.
+test('critic 149: shared_contact_urgent חושף linked (id+שם) לכפתורי שיוך', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const [n] = systemNotices([{ id: 4, customer_id: null, direction: 'in', channel: 'sms', body: 'אני בן 15',
+    intent: 'shared_contact_urgent', created_at: '2026-11-18T09:00:00+02:00',
+    payload: JSON.stringify({ linked_customers: [{ id: 1, name: 'דנה כהן' }, { id: 2, name: 'יוסי לוי' }] }) }]);
+  assert.deepEqual(n.linked, [{ id: 1, name: 'דנה כהן' }, { id: 2, name: 'יוסי לוי' }]);
+  const { api } = await import('../src/api.ts');
+  assert.equal(typeof api.assignShared, 'function');
 });

@@ -9,9 +9,8 @@
 // בסוף: אישור אמיתי על הנוסח העדכני ושליחה (dry-run); ביומן היוצאים רק הסכום האחרון.
 // דרישה: npm run build. הרצה: node e2e/rebuild.mjs [תיקיית-צילומים]
 import { createRequire } from 'node:module';
-import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
+import { assertPortFree, srvStdio, srvLogLevel, waitHealthy, launchChromium, spawnServer } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8145, GI_PORT = 8146, base = `http://127.0.0.1:${PORT}`, gi = `http://127.0.0.1:${GI_PORT}/api/v1`;
@@ -20,13 +19,12 @@ const WH_KEY = randomBytes(18).toString('base64url');
 const ROOT = new URL('../..', import.meta.url).pathname;
 const DOC = 'demo2';   // יוסי כהן (דמו), חשבונית 2002: התזכורת שהתרחיש משאיר ממתינה לאישור
 await assertPortFree(PORT); await assertPortFree(GI_PORT);
-const mock = spawn('python3', ['-m', 'app.gi_mock', '--port', String(GI_PORT), '--seed', 'demo',
+const mock = spawnServer('python3', ['-m', 'app.gi_mock', '--port', String(GI_PORT), '--seed', 'demo',
   '--webhook', `${base}/webhooks/greeninvoice?k=${WH_KEY}`], { cwd: ROOT, stdio: srvStdio('mock-rebuild') });
 const rawFetch = globalThis.fetch;
 let srv = null;
-process.on('exit', () => { mock.kill(); srv?.kill(); });   // גם ביציאה על חריגה — לא משאירים שרתים על הפורטים
 await waitHealthy(gi, mock, { name: 'ה-mock של חשבונית ירוקה', path: '/users/me', anyStatus: true });
-srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
+srv = spawnServer('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
   { cwd: ROOT, env: { ...process.env, DEMO: '1', PORT: String(PORT), OWNER_API_TOKEN: TOKEN, GI_WEBHOOK_KEY: WH_KEY,
     GREENINVOICE_ENV: 'mock', GREENINVOICE_MOCK_URL: gi }, stdio: srvStdio('server-rebuild') });
 await waitHealthy(base, srv);
@@ -80,7 +78,7 @@ const watch = pg => {
     if (r.method() === 'POST' && /\/reminders\/\d+\/approve$/.test(r.url())) seenSent.push(JSON.parse(r.postData() || '{}').seen_hash ?? null);
   });
 };
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 try {
   const ctx = await b.newContext();
   await ctx.addInitScript(t => { try { sessionStorage.setItem('gabi_owner_token', t); } catch { /* */ } }, TOKEN);

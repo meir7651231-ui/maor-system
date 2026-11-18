@@ -5,3 +5,42 @@
 {"id": "lk05", "text": "האם יש לכם עורך דין שמטפל בגבייה?", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["legal"]}, "critical": true}
 {"id": "lk06", "text": "ומה יקרה אם לא אשלם עד סוף החודש?", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["dispute"]}, "critical": true}
 {"id": "lk07", "text": "ההעברה שלי לא עברה, יש דרך אחרת לשלם?", "ctx": {"channel": "sms"}, "expect": {"intent": "how_to_pay", "not": ["dispute", "paid_claim"]}, "critical": true}
+{"id": "lk08", "text": "נא למחוק את כל הנתונים שלי מהמאגר", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk09", "text": "תפסיקו כבר להציק עם התזכורות", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk10", "text": "לפי חוק הגנת הפרטיות, מה שמור אצלכם עליי?", "ctx": {"channel": "email"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "lk11", "text": "הבת שלי בכיתה ו׳ ענתה לכם מהטלפון שלי", "ctx": {"channel": "email"}, "expect": {"intent": "minor", "escalate": "urgent"}, "critical": true}
+{"id": "lk12", "text": "קיבלתי את זה בטעות, אני לא אבי", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "lk13", "text": "מצורפת קבלה מהבנק על ההעברה", "ctx": {"channel": "email"}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "lk14", "text": "יש עליי תיק איחוד, משלם רק דרך הלשכה", "ctx": {"channel": "email"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause", "tags": ["insolvency"]}, "critical": true}
+{"id": "lk15", "text": "stop panicking, I will transfer on Thursday", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "not": ["opt_out"]}, "critical": true}
+{"id": "lk16", "text": "הבן שלי בן 14 יעביר לכם את הכסף עבורי", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "not": ["minor"]}, "critical": true}
+{"id": "lk17", "text": "איך משלמים את זה? אני משלמת תמיד בזמן", "ctx": {"channel": "email"}, "expect": {"intent": "how_to_pay", "not": ["paid_claim"]}, "critical": true}
+{"id": "lk18", "text": "אבקש לחדול מפנייה אליי", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk19", "text": "you have the wrong number", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "lk20", "text": "I dispute this, the repair was never completed", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "lk21", "text": "המייל הזה של המשרד, הוא עזב את החברה", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "lk22", "text": "לא בסמס בבקשה, רק במייל", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "stop": "pause", "escalate": "normal", "tags": ["channel_pref"], "not": ["opt_out"]}, "critical": true}
+{"id": "lk23", "text": "אל תשלחו לי מיילים, רק הודעה לנייד", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "stop": "pause", "escalate": "normal", "tags": ["channel_pref"], "not": ["opt_out"]}, "critical": true}
+{"id": "lk24", "text": "אל תשלחו לי יותר שום מייל או סמס", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk25", "text": "בהצעה אמרתם מחיר שונה לגמרי", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "lk26", "text": "החזרתי את הפריט ועדיין מחייבים אותי", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "lk27", "text": "the total doesn't match the estimate", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "lk28", "text": "די כבר עם הספאם שלכם", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk29", "text": "לא רוצה כבר כלום", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "lk30", "text": "הפלאפון של הילד שלי, הוא בגן", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent"}, "critical": true}
+{"id": "lk31", "text": "טעות באיות בחשבונית אבל זה בסדר, אעביר מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute"]}, "critical": true}
+{"id": "lk32", "text": "מאיפה השגתם את המספר שלי ולמי עוד נתתם?", "ctx": {"channel": "sms"}, "expect": {"intent": "who_is_this", "escalate": "normal", "tags": ["data_source"]}, "critical": true}
+{"id": "lk33", "text": "סורי, הייתי במילואים. מעבירה מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "tags": ["reservist"], "stop": "pause"}, "critical": true}
+{"id": "lk34", "text": "ניתן לי צו פתיחת הליכים מבית המשפט, תפנו לנאמן", "ctx": {"channel": "email"}, "expect": {"intent": "cant_pay", "tags": ["insolvency", "legal"], "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "lk35", "text": "לא מעביר מחר", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "escalate": "normal", "not": ["promise"]}, "critical": true}
+{"id": "lk36", "text": "לא מעביר מחר כלום", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "stop": "pause"}, "critical": true}
+{"id": "lk37", "text": "honestly im done with life", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "lk38", "text": "i wanna kms", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "lk39", "text": "i cant go on the way things are", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "lk40", "text": "שלום, אני לא האדם הזה", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "lk41", "text": "sorry im not that person", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "lk42", "text": "stop txting me", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk43", "text": "unsubcribe", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk44", "text": "reportin u to the polise", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "lk45", "text": "הסר אותי\nThanks", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk46", "text": "הסר את המספר שלי", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}

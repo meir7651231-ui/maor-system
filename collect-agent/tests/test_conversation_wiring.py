@@ -16,7 +16,7 @@ from fastapi.testclient import TestClient
 from app.channels import sent_mark
 from app.conversation import Intent
 from app.main import create_app
-from tests.conftest import AUTH, OWNER_TOKEN
+from tests.conftest import AUTH, OWNER_TOKEN, customer_sent
 
 DANA = "050-1234567"
 
@@ -107,7 +107,7 @@ def test_every_intent_end_to_end_through_live_inbound(svc, intent, text, setup, 
                               "WHERE i.customer_id=? AND r.status IN ('pending_approval','approved')",
                               (c["id"],))
     # שום דבר לא יוצא בלי אישור בעל העסק (רק הצעת הפריסה שאושרה בהכנה, אם הייתה)
-    assert len(svc.sender.sent) == (1 if setup else 0)
+    assert len(customer_sent(svc)) == (1 if setup else 0)   # בלי התראת בעלים (מבקר סבב 99)
 
 
 def test_accept_after_offer_was_sent_links_the_plan(svc):
@@ -163,7 +163,7 @@ def test_opted_out_customer_gets_owner_card_not_unsendable_draft(svc, text, inte
     dr = _draft(svc, r["draft_id"])
     assert dr["status"] == "needs_owner" and dr["body"] == ""   # היה: pending_approval ⇒ נדחה בשקט
     assert any("לפנות אישית" in a for a in json.loads(dr["owner_actions"]))
-    assert svc.sender.sent == []
+    assert customer_sent(svc) == []
 
 
 def test_opted_out_customer_explicit_request_still_drafted(svc):
@@ -172,7 +172,7 @@ def test_opted_out_customer_explicit_request_still_drafted(svc):
     r = svc.inbound("sms", DANA, "איך אפשר לשלם?")   # בקשה מפורשת ⇒ מותר (באישור)
     assert _draft(svc, r["draft_id"])["status"] == "pending_approval"
     svc.inbox.approve_draft(r["draft_id"])
-    assert sent_mark(svc.sender.sent) == 1
+    assert sent_mark(customer_sent(svc)) == 1
 
 
 def test_conversation_routes_use_the_service_inbox(svc):

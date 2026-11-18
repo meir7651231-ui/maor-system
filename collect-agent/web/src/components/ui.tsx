@@ -7,7 +7,7 @@ const VARIANT: Record<Variant, string> = {
   dark: 'bg-ink-900 text-white hover:bg-ink-800',
   ghost: 'text-ink-700 hover:bg-ink-100',
   outline: 'border border-ink-200 bg-white text-ink-800 hover:bg-ink-50',
-  danger: 'text-critical hover:bg-red-50',
+  danger: 'text-critical-ink hover:bg-red-50',
 };
 export function Button({ variant = 'primary', size = 'md', className = '', ...p }:
   ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: 'sm' | 'md' | 'lg' }) {
@@ -33,7 +33,7 @@ export function StatusBadge({ status }: { status: InvoiceStatus }) {
 
 export function LateBadge({ days }: { days: number }) {
   if (days <= 0) return <span className="text-xs text-ink-500">בעוד {Math.abs(days)} ימים</span>;
-  const cls = days > 60 ? 'text-critical' : days > 30 ? 'text-late' : 'text-due';
+  const cls = days > 60 ? 'text-critical-ink' : days > 30 ? 'text-late-ink' : 'text-due-ink';
   return <span className={`text-sm font-bold ${cls}`}><span className="num">{days}</span> ימי איחור</span>;
 }
 

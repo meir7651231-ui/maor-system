@@ -3,21 +3,20 @@
 // ביקורת חיובית: סקריפט inline שמוזרק לעמוד (כמו XSS) נחסם ונרשמת הפרה ⇒ המדיניות באמת נאכפת.
 // דרישה: npm run build. הרצה: node e2e/csp.mjs
 import { createRequire } from 'node:module';
-import { spawn } from 'node:child_process';
-import { srvStdio, srvLogLevel, assertPortFree, waitHealthy } from './lib.mjs';
+import { srvStdio, srvLogLevel, assertPortFree, waitHealthy, launchChromium, spawnServer } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = new URL('../..', import.meta.url).pathname;
 const ok = (c, m) => { if (!c) throw new Error(m); };
 const port = 8171, base = `http://127.0.0.1:${port}`;
 await assertPortFree(port);
 const TOKEN = (await import('node:crypto')).randomBytes(32).toString('base64url');
-const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(port), '--log-level', srvLogLevel()],
+const srv = spawnServer('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(port), '--log-level', srvLogLevel()],
   { cwd: root, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN, PORT: String(port) }, stdio: srvStdio(`server-csp-${port}`) });
 await waitHealthy(base, srv);
 const H = { Authorization: 'Bearer ' + TOKEN };
 const api = async (p, m = 'GET') => (await fetch(base + p, { method: m, headers: H })).json();
 
-const b = await chromium.launch(); const fails = [];
+const b = await launchChromium(chromium); const fails = [];
 try {
   await api('/sync', 'POST'); await api('/plan', 'POST');
   // קוד /p/ אמיתי מתור התזכורות

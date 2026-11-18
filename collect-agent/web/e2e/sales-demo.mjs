@@ -3,8 +3,7 @@
 // tests/test_sales_demo_script.py מוודא שכל שלב בתסריט מופיע כאן ושיש לו צילום.
 // דרישה: npm run build. הרצה: node e2e/sales-demo.mjs [תיקיית-צילומים]
 import { createRequire } from 'node:module';
-import { spawn } from 'node:child_process';
-import { assertPortFree, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
+import { assertPortFree, srvStdio, srvLogLevel, waitHealthy, launchChromium, spawnServer } from './lib.mjs';
 const pw = createRequire(import.meta.url)('playwright');
 const root = new URL('../..', import.meta.url).pathname;
 const out = process.argv[2];
@@ -13,9 +12,9 @@ const PORT = 8191, base = `http://127.0.0.1:${PORT}`;
 const TOKEN = (await import('node:crypto')).randomBytes(32).toString('base64url');
 const api = async (path, init = {}) => (await fetch(base + path, { ...init, headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json', ...init.headers } })).json();
 await assertPortFree(PORT);
-const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
+const srv = spawnServer('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
   { cwd: root, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN, PORT: String(PORT) }, stdio: srvStdio('server-sales-demo') });
-const b = await pw.chromium.launch();
+const b = await launchChromium(pw.chromium);
 const errors = [];
 const watch = pg => { pg.on('pageerror', e => errors.push(String(e))); pg.on('console', m => m.type() === 'error' && !/fonts\.g/.test(m.text()) && errors.push(m.text())); };
 const shot = async (pg, id) => { if (out) await pg.screenshot({ path: `${out}/sales-demo-${id}.png` }); };

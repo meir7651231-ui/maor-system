@@ -16,6 +16,12 @@
 
     python3 -I scripts/tree_guard.py fs-snapshot /tmp/x.txt [DIR]
     python3 -I scripts/tree_guard.py fs-check /tmp/x.txt [DIR]
+
+ג׳וב web (הפעלה 224): TMPDIR ייעודי ($RUNNER_TEMP/e2e-tmp) לכל צעדי הדפדפן, fs-snapshot לפני ו-fs-check אחרי
+⇒ סוד TOTP / sqlite / .org.chromium.* שנשארים ב-TMPDIR (222–223) נתפסים אוטומטית ב-CI.
+
+ג׳וב test (הפעלה 225): אותו מגן ($RUNNER_TEMP/test-tmp) סביב pytest, evals, demo.sh, smoke, חוזים ו-sandbox;
+pytest רץ עם --basetemp מחוץ לתיקייה (pytest-of-* נשמר בכוונה). רשימה מעל 200 ⇒ «ועוד N».
 """
 
 from __future__ import annotations
@@ -26,7 +32,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-ALLOWED_PARTS = {"__pycache__", ".pytest_cache", ".ruff_cache"}
+# node-compile-cache (הפעלה 224): מטמון הקומפילציה של Node (npm/node 22 כותבים ל-os.tmpdir()) — לשימוש
+# חוזר, בלי נתונים. נשאר אחרי כל ריצת e2e גם כשהכול נקי ⇒ מותר, כדי שמגן ה-TMPDIR של ג׳וב web יתפוס רק דליפות.
+ALLOWED_PARTS = {"__pycache__", ".pytest_cache", ".ruff_cache", "node-compile-cache"}
 # תיקיות כבדות שנוצרות בכוונה בצעדי CI אחרים (npm/build) — לא חלק מסוויטת pytest.
 SKIP_PREFIXES = ("web/node_modules/", "web/dist/")
 
@@ -43,6 +51,9 @@ def _allowed(path: str, prefix: str = "") -> bool:
     return rel.startswith(SKIP_PREFIXES)
 
 
+GIT_TIMEOUT = 60  # שניות. git תקוע לא תוקע צעד CI עד ה-timeout של ה-job (6 שעות)
+
+
 def _git(root: Path, *args: str) -> str:
     return subprocess.run(  # noqa: S603  # nosec B603 B607 — פקודת git קבועה, בלי קלט חיצוני
         ["git", *args],  # noqa: S607
@@ -50,6 +61,7 @@ def _git(root: Path, *args: str) -> str:
         check=True,
         capture_output=True,
         text=True,
+        timeout=GIT_TIMEOUT,
     ).stdout
 
 
@@ -101,6 +113,8 @@ def main(argv: list[str]) -> int:
             print(f"❌ נוצרו קבצים חדשים תחת {root}:")
             for ln in new[:200]:
                 print("   ", ln)
+            if len(new) > 200:
+                print(f"    … ועוד {len(new) - 200} (סה״כ {len(new)})")
             return 1
         print(f"✅ אין קבצים חדשים תחת {root}")
         return 0

@@ -1,4 +1,5 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
+import { launchChromium } from '../e2e/lib.mjs';
 import { createRequire } from 'node:module';
 import { R13, C, VARIANTS, svgR13, lockupSvg, tileSvg, faviconSvg, TILE_SIZES } from './concepts-r13.mjs';
 const out = new URL('../../docs/brand/concepts/round13/', import.meta.url);
@@ -27,7 +28,7 @@ ${tiles('#FBF8F1', C.navy)}${tiles('#2C2C2E', C.cream)}
 </div></section><section><b>איפה החייב פוגש את המותג</b> ${sms}</section></html>`;
 writeFileSync(new URL('board.html', out), html);
 const { chromium } = createRequire(import.meta.url)('playwright');
-const b = await chromium.launch();
+const b = await launchChromium(chromium);
 const p = await b.newPage({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 2 });
 await p.goto(new URL('board.html', out).href); await p.screenshot({ path: new URL('board.png', out).pathname, fullPage: true });
 const V = Object.keys(VARIANTS);

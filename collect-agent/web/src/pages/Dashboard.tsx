@@ -9,6 +9,7 @@ import { Button, Card, LateBadge, inputCls } from '../components/ui.tsx';
 import { MessagePreview } from '../components/MessagePreview.tsx';
 import { OpenListCard } from '../components/OpenListCard.tsx';
 import type { Invoice } from '../lib/domain.ts';
+import { HolidayBanner } from '../components/HolidayBanner.tsx';
 import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, REAPPROVE_LABEL } from '../api.ts';
 import { ALREADY_PLAN, alreadyDone, failPrefix, type Already } from '../lib/failure.ts';
 import { mockAmountCheck } from '../lib/policy.ts';
@@ -60,6 +61,7 @@ export function Dashboard() {
           <a href="#/settings" className="font-bold underline whitespace-nowrap">ייבוא קובץ מעודכן ←</a>
         </div>
       )}
+      {live && <HolidayBanner where="dashboard" />}
       {live && <OpenListCard count={totals?.open_unreviewed ?? 0} />}
       <section aria-label="מדדי גבייה" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" data-testid="kpis">
         <Kpi hero label="נגבה" value={fmtIls(collected)} sub={sub(live ? `${totals?.closed_invoices ?? 0} חשבוניות שולמו` : 'יוני–נובמבר', 'collected_agorot')} tone="good" />
@@ -115,7 +117,7 @@ export function Dashboard() {
                     <div className="text-sm text-ink-500">{live && pendingOf(i.id)?.count
                       ? <span data-testid="queue-merged"><span className="num">{pendingOf(i.id)!.count}</span> חשבוניות · <b className="text-ink-900">{pendingOf(i.id)!.totalText}</b></span>
                       : <b className="text-ink-900">{fmtMoney(i.amount, i.currency)}</b>} · <LateBadge days={daysOverdue(i.dueAt, today)} /> · {STEP_LABEL[nextStep(i)]}
-                      {live && blockKind(pendingOf(i.id)?.block) === 'hard' && <span className="text-critical font-bold"> · ⛔ {BLOCK_LABEL[pendingOf(i.id)!.block!] ?? pendingOf(i.id)!.block}</span>}
+                      {live && blockKind(pendingOf(i.id)?.block) === 'hard' && <span className="text-critical-ink font-bold"> · ⛔ {BLOCK_LABEL[pendingOf(i.id)!.block!] ?? pendingOf(i.id)!.block}</span>}
                       {live && blockKind(pendingOf(i.id)?.block) === 'reapprove' && <span className="text-amber-700 font-bold"> · ⏳ {REAPPROVE_LABEL[pendingOf(i.id)!.block!]}</span>}
                       {!live && mockAmountCheck(i, invoices).length > 0 && <span className="text-amber-700 font-bold" data-testid="mock-amount-check"> · ⏳ {REAPPROVE_LABEL.amount_check}</span>}</div>
                   </div>
@@ -161,7 +163,7 @@ function Kpi({ label, value, sub, tone, hero, meter }: { label: string; value: s
   return (
     <Card className="p-4">
       <div className="text-sm text-ink-500">{label}</div>
-      <div className={`text-xl md:text-3xl font-extrabold font-display mt-1 num ${tone === 'late' ? 'text-late' : tone === 'good' ? 'text-brand-700' : ''}`}>{value}</div>
+      <div className={`text-xl md:text-3xl font-extrabold font-display mt-1 num ${tone === 'late' ? 'text-late-ink' : tone === 'good' ? 'text-brand-700' : ''}`}>{value}</div>
       <div className="text-xs text-ink-500 mt-0.5">{sub}</div>
     </Card>
   );
@@ -271,6 +273,8 @@ const PAUSE_LABEL: Record<string, string> = {
   credit_review: 'יש זיכוי שלא שויך לחשבונית. בדקו במערכת החשבוניות ואז חדשו',
   // critic סבב 52: השהיות שבעל העסק סימן בעצמו קיבלו «מושהה עד שתבדקו»
   minor: 'סימנתם: קטין/ה', deceased: 'סימנתם: נפטר/ה', insolvency: 'סימנתם: הליך חדלות פירעון',
+  // גבי מנוע סבב 10: סיבות שהמנוע מזהה מתשובת הלקוח
+  channel_pref: 'ביקש/ה ערוץ אחר (מייל/SMS). עדכנו ערוץ ואז חדשו', foreign_language: 'כתב/ה בשפה זרה. כדאי לענות אישית',
 };
 export function pauseLabel(reason: string): string {
   const [base, until] = reason.split(':until=');
@@ -308,10 +312,24 @@ function NeedsYou() {
         {notices.map(n => (
           <li key={`n${n.id}`} className={`rounded-lg p-3 text-sm ${n.tone === 'warn' ? 'bg-amber-50' : 'bg-ink-50'}`} data-testid="notice" data-intent={n.intent}>
             <div className="font-bold"><span aria-hidden>{n.icon}</span> {n.title}</div>
-            <div className="text-ink-700 text-xs mt-0.5">{n.body}</div>
+            <div className="text-ink-700 text-xs mt-0.5 whitespace-pre-line">{n.body}</div>
+            {n.linked?.length ? (
+              // critic סבב 149: החלטה 5 — בעל העסק בוחר למי הפנייה שייכת (רק אז המנוע מטפל בה); «אף אחד» משחרר את ההשהיה
+              <div className="flex flex-wrap gap-2 mt-2">
+                {n.linked.map(c => (
+                  <Button key={c.id} size="sm" variant={armed === `a${n.id}-${c.id}` ? 'dark' : 'primary'} data-testid="notice-assign"
+                    onClick={() => act(`a${n.id}-${c.id}`, () => api.assignShared(n.id, c.id), `הפנייה שויכה ל${c.name}`)}>
+                    {armed === `a${n.id}-${c.id}` ? 'לחצו שוב לאישור' : `שייך ל${c.name}`}</Button>
+                ))}
+                <Button size="sm" variant={armed === `a${n.id}-none` ? 'dark' : 'outline'} data-testid="notice-assign-none"
+                  onClick={() => act(`a${n.id}-none`, () => api.assignShared(n.id, null), 'סומן: אף אחד מהם — התזכורות חודשו')}>
+                  {armed === `a${n.id}-none` ? 'לחצו שוב לאישור' : 'אף אחד מהם'}</Button>
+              </div>
+            ) : (
             <Button size="sm" variant={armed === `n${n.id}` ? 'dark' : 'outline'} className="mt-2" data-testid="notice-done"
               onClick={() => act(`n${n.id}`, () => api.ownerDone(n.id), 'סומן כטופל')}>
               {armed === `n${n.id}` ? 'לחצו שוב לאישור' : '✓ טופל'}</Button>
+            )}
           </li>
         ))}
         {paused.map(c => (

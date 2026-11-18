@@ -72,7 +72,8 @@ MEIR_WALLS = (
     "מערכת דיוור + SPF/DKIM לרצף מיילי הניסיון (הרשמה לשירות)",
     "בדיקת עו״ד: §30א (שירות מול פרסומת), פרטי החברה בתחתית, «כולל מע״מ ככל שחל»",
 )
-GENERATORS = ("marketing/landing/for/build.py", "marketing/library/build.py", "marketing/legal-pages/build.py",
+GENERATORS = ("marketing/landing/for/build.py", "marketing/library/build.py", "marketing/faq/build.py",
+              "marketing/legal-pages/build.py",
               "marketing/video/transcript.py",
               "marketing/video/script.py")
 

@@ -263,7 +263,7 @@ def test_only_business_secrets_module_writes_secret_table():
 def _locked(path):
     pins = {}
     for line in (ROOT / path).read_text().splitlines():
-        m = re.match(r"^([A-Za-z0-9_.-]+)==([^\s;\\]+)", line)
+        m = re.match(r"^([A-Za-z0-9_.-]+)(?:\[[^\]]*\])?==([^\s;\\]+)", line)
         if m:
             pins[m.group(1).lower().replace("_", "-")] = m.group(2)
     return pins
@@ -283,6 +283,16 @@ def test_lockfiles_pin_every_direct_dependency_with_hashes():
             assert name in pins, f"{lock}: {name} לא נעול — הריצו uv pip compile (team/qa.md)"
             assert r.specifier.contains(pins[name], prereleases=True), \
                 f"{lock}: {name}=={pins[name]} לא עומד ב-{r.specifier}"
+
+
+def test_dev_lock_pins_extras_for_old_pip():
+    """הפעלה 252 (CI 788, demo-clean debian:bookworm): pip 23.0.1 קרא את CacheControl[filecache] של pip-audit
+    כדרישה לא נעולה ומשך cachecontrol 0.15.0 מ-PyPI ⇒ «In --require-hashes mode … must be pinned», ההדגמה
+    לא עלתה במכונה נקייה. התיקון: השורה בנעילה נושאת את ה-extra. uv pip compile מוחק אותו — הבדיקה תתריע."""
+    text = (ROOT / "requirements-dev.lock").read_text()
+    assert re.search(r"^cachecontrol\[filecache\]==", text, re.M), \
+        "חסר [filecache] בנעילה — pip 23 ייכשל (debian:bookworm)"
+    assert _locked("requirements-dev.lock").get("cachecontrol"), "cachecontrol לא נעול"
 
 
 def test_runtime_lock_is_subset_of_dev_lock():

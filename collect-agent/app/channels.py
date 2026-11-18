@@ -227,12 +227,150 @@ def parse_address(raw: str) -> str:
     return (m.group(1) or m.group(2)).strip().lower() if m else ""
 
 
-def strip_reply(text: str) -> str:
-    """רק מה שהלקוח כתב: בלי הציטוט של ההודעה שלנו ובלי חתימת '-- '."""
-    out = []
-    for line in (text or "").replace("\r\n", "\n").split("\n"):
-        s = line.strip()
-        if s.startswith(">") or _QUOTE_HDR.match(s) or s == "--":
+# critic סבב 123: כותרת ציטוט של Gmail עברית («בתאריך … מאת שם <mail>:», עם תווי כיווניות, בלי «כתב»),
+# Apple Mail עברית («ב-17 בנוב׳ 2026, בשעה 10:00, שם <mail> כתב/ה:») וכותרת שנשברה לשתי שורות — נשארו בגוף
+# ההודעה: שם העסק («משרד עורכי דין») ⇒ legal, תאריך הכותרת ⇒ תאריך הבטחה. שורה של הלקוח שמסתיימת ב«כתב:» בלי
+# מייל/שנה — נשמרת.
+_BIDI = re.compile(r"[\u200e\u200f\u202a-\u202e\u2066-\u2069]")
+_QUOTE_HDR_TAIL = re.compile(
+    r"<\s*[^<>@\s]+@[^<>\s]+\s*>\s*(?:wrote|כתב(?:/ה|ה)?)?\s*:\s*$"
+    r"|^(?:on|ב-?)\s.*\b(?:19|20)\d\d\b.*(?:wrote|כתב(?:/ה|ה)?)\s*:\s*$", re.I)
+
+
+def _is_quote_header(s: str) -> bool:
+    return bool(s.startswith(">") or _QUOTE_HDR.match(s) or s == "--" or _QUOTE_HDR_TAIL.search(s))
+
+
+# critic סבב 124: חתימת הלקוח עצמו נכנסה לסיווג — «שם | עורכת דין», «Name, Attorney at Law», «יעוץ משפטי», הודעת
+# סודיות סטנדרטית ⇒ «קיבלתי תודה» סווג legal + השהיה + דחוף. חותכים משורת חתימה/סודיות (לא שורה ראשונה).
+_SIG_DISCLAIMER = re.compile(
+    r"(?:הודעה|הודעת|מייל|דוא\"?ל|דואר)\s+(?:\S+\s+){0,3}?(?:זו|זה|זאת)\s+(?:\S+\s+){0,2}?(?:חסוי|חסויה|סודי|סודית)"
+    r"|מיועד\w*\s+(?:\S+\s+){0,2}?לנמען|\bconfidentiality\s+notice\b|\bprivileged\s+and\s+confidential\b"
+    r"|\bif\s+you\s+(?:have\s+)?received\s+this\s+(?:e-?mail|message|communication)\s+in\s+error\b", re.I)
+_SIG_TITLE = re.compile(
+    # critic סבב 139: גם מקף רגיל עם רווחים («דנה לוי - משרד עורכי דין»)
+    r"^[^.!?]{0,40}(?:\||–|\s-\s)\s*(?:עוה?[\"״'׳”“„″]?ד|עורכ[^\s-]*[\s-]+דינ?|משרד\s+עורכי[\s-]+דינ?|י?יעוצ\s+משפטי|יועצ\S*\s+משפטי\S*"
+    r"|attorney(?:\s+at\s+law)?|esq\.?|lawyer|counsel(?:or)?|law\s+(?:office|firm))(?:\s+\S+){0,3}\s*$"
+    r"|^[^.!?,]{0,40},\s*(?:עוה?[\"״'׳”“„″]?ד|attorney(?:\s+at\s+law)?|esq\.?|counsel(?:or)?)\s*$"
+    # critic סבב 139: «דנה לוי, עו״ד ונוטריון/ומגשרת», «לוי ושות׳, עורכי דין», «עו״ד דנה לוי» (תואר לפני השם)
+    r"|^[^.!?]{0,40},\s*(?:עוה?[\"״'׳”“„″]?ד|עורכי[\s-]+דינ?|משרד\s+עורכי[\s-]+דינ?)(?:\s+ו\S+){0,2}\s*$"
+    r"|^עוה?[\"״'׳”“„″]?ד\s+[^\s\d.!?,]{2,}(?:\s+[^\s\d.!?,]{2,}){0,2}\s*$"
+    # critic סבב 140: שורת שם-משרד בלי מפריד («לוי ושות׳ משרד עורכי דין», «Levi & Co. Law Offices»)
+    r"|^[^.!?]{0,60}(?:משרד\s+עורכי[\s-]+דינ?|law\s+offices?|law\s+firm|attorneys\s+at\s+law)[^.!?]{0,30}$", re.I)
+# מנהל 281: «| עו״ד» בגרשיים עבריים (״, מקלדת טלפון/Word) / ״ חכם לא זוהה ⇒ «קיבלתי תודה» סווג legal
+# שורה שיש בה פעולה/שלילה/בעלות היא תוכן, לא חתימה («לא משלם | עורך דין», «עורך הדין שלי»)
+_SIG_MINE = re.compile(r"(?<![\w])(?:שלי|שלנו|לא|אני|אתבע|נתבע|תביעה|אשלמ|משלמ\w*|יתקשר|יטפל|יטפלו|פונה|נתראה"
+                       r"|בית משפט|בדרכ|אליכמ|לכמ|מעביר|מעבירה|יפנה|ישלח|מכתב|התראה"
+                       r"|העברתי|העברנו|פניתי|פנינו|נפנה)(?![\w])"
+                       r"|\b(?:my|our|not|will|sue|court|i)\b", re.I)
+
+
+_SIG_FINALS = str.maketrans("ךםןףץ", "כמנפצ")
+
+
+def _is_signature_line(s: str) -> bool:
+    if _SIG_DISCLAIMER.search(s):
+        return True
+    s = s.translate(_SIG_FINALS)   # מנהל 280: כל האותיות הסופיות — ה-ך חסר ⇒ «| עורך דין» לא נחתך ⇒ legal
+    return len(s) <= 70 and bool(_SIG_TITLE.search(s)) and not _SIG_MINE.search(s)
+
+
+# critic סבב 128: ספק inbound שמעביר HTML (מייל HTML-only) — הציטוט שלנו ב-<blockquote>/«&gt;»/divRplyFwdMsg
+# לא הוסר ⇒ «השיבו "פריסה"» מהתזכורת שלנו ⇒ «ok» סווג plan_request. מזהים HTML רק לפי תגים מוכרים.
+# critic סבב 129: תג אמיתי = שם-תג ואחריו מיד «>» / «/>» או מאפיין (x=) — אחרת «אם a<b אז b>a» זוהה כ-HTML
+# והטקסט שבין «<b» ל-«>» נמחק.
+_HTML_HINT = re.compile(r"</?\s*(?:br|div|p|blockquote|html|body|span|b|i|hr|table|font)(?:\s*/?>|\s+[a-z-]+\s*=)"
+                        r"|&(?:gt|lt|amp|quot|nbsp);", re.I)
+_HTML_QUOTE_START = re.compile(
+    r"<blockquote\b|<div[^>]*\bclass=[\"']?[^\"'>]*\b(?:gmail_quote|yahoo_quoted|moz-cite-prefix)\b"
+    r"|<div[^>]*\bid=[\"']?(?:divRplyFwdMsg|appendonsend|mail-editor-reference-message-container)\b"
+    r"|<hr\b[^>]*>\s*(?=<div[^>]*\bid=[\"']?divRplyFwdMsg)", re.I)
+
+
+def _html_to_text(t: str) -> str:
+    import html as _html
+    m = _HTML_QUOTE_START.search(t)
+    if m:
+        t = t[:m.start()]
+    t = re.sub(r"(?is)<(?:script|style|head)\b.*?</(?:script|style|head)\s*>", " ", t)
+    t = re.sub(r"(?i)<\s*br\s*/?\s*>|</\s*(?:div|p|li|tr|h\d)\s*>|<\s*hr\b[^>]*>", "\n", t)
+    t = re.sub(r"<[^>]*>", "", t)
+    return _html.unescape(t).replace("\xa0", " ")
+
+
+# לולאת גבי מנוע 17.11 (המשך לסבב 128): לקוח שעונה **מתחת** לציטוט (bottom-posting — נפוץ בטלפונים ובמייל
+# «מסורתי») ⇒ החיתוך בראש הציטוט השאיר גוף ריק ⇒ «הסר אותי» שנכתב מתחת ל-«> התזכורת שלנו» / ל-<blockquote> נבלע
+# בשקט (ignored). גיבוי — רק כשהחיתוך הרגיל ריק: הטקסט שמחוץ לציטוט **המסומן** (שורות «>» / <blockquote>).
+# מקור לא מסומן (Outlook: «From:», «-----Original Message-----», divRplyFwdMsg) ⇒ אין גיבוי: מה שאחריו הוא
+# ההודעה שלנו בלי סימון (כולל שורת ההסרה), ואסור לסווג אותה כאילו הלקוח כתב.
+_UNMARKED_ORIGINAL = re.compile(r"^(?:-{2,}\s*original message|-{2,}\s*הודעה מקורית|from:\s|מאת:\s)", re.I)
+_HTML_UNMARKED = re.compile(
+    r"<div[^>]*\bid=[\"']?(?:divRplyFwdMsg|appendonsend|mail-editor-reference-message-container)\b", re.I)
+
+
+def _below_quote(text: str) -> str:
+    if _HTML_HINT.search(text):
+        if _HTML_UNMARKED.search(text):
+            return ""
+        import html as _html
+        t = re.sub(r"(?is)<blockquote\b.*?</blockquote\s*>", "\n", text)
+        t = re.sub(r"(?is)<(?:script|style|head)\b.*?</(?:script|style|head)\s*>", " ", t)
+        t = re.sub(r"(?i)<\s*br\s*/?\s*>|</\s*(?:div|p|li|tr|h\d)\s*>|<\s*hr\b[^>]*>", "\n", t)
+        text = _html.unescape(re.sub(r"<[^>]*>", "", t)).replace("\xa0", " ")
+    out: list[str] = []
+    for line in text.replace("\r\n", "\n").split("\n"):
+        s = _BIDI.sub("", line).strip()
+        if _UNMARKED_ORIGINAL.match(s) or s == "--":
+            break
+        if s.startswith(">") or _is_quote_header(s):
+            continue
+        if s and any(o.strip() for o in out) and _is_signature_line(s):
             break
         out.append(line)
     return "\n".join(out).strip()
+
+
+def strip_reply(text: str) -> str:
+    """רק מה שהלקוח כתב: בלי הציטוט של ההודעה שלנו ובלי חתימת '-- '."""
+    top = _strip_top(text or "")
+    return top or _below_quote(text or "")
+
+
+def _strip_top(text: str) -> str:
+    out = []
+    if _HTML_HINT.search(text):
+        text = _html_to_text(text)
+    lines = text.replace("\r\n", "\n").split("\n")
+    for i, line in enumerate(lines):
+        s = _BIDI.sub("", line).strip()
+        nxt = _BIDI.sub("", lines[i + 1]).strip() if i + 1 < len(lines) else ""
+        wrapped = bool(s and nxt and re.match(r"^(?:on\s|בתאריך\s|ב-?\d)", s, re.I)
+                       and _QUOTE_HDR_TAIL.search(s + " " + nxt))   # כותרת שנשברה לשתי שורות
+        if _is_quote_header(s) or wrapped:
+            break
+        if s and any(o.strip() for o in out) and _is_signature_line(s):   # critic סבב 124: חתימת הלקוח
+            out.extend(_protective_tail(lines[i + 1:]))
+            break
+        out.append(line)
+    return "\n".join(out).strip()
+
+
+def _protective_tail(rest: list[str]) -> list[str]:
+    """לולאה 18.11 (המשך לסבבים 124/139): אחרי חתימה מזוהה («עו״ד דנה כהן») נחתך הכול — גם «אל תשלחו יותר
+    הודעות» / «I'm only 15» שנכתבו **אחרי** החתימה (נ.ב.). שאר השורות (עד הציטוט) נשמרות רק אם יש בהן כוונה
+    מגינה; שורות חתימה/סודיות/פרטי קשר עצמן נשארות מחוץ לסיווג (ההכרעה של 124/139 נשמרת)."""
+    from .conversation import _FLOOR_INTENTS, Intent, detect
+
+    tail: list[str] = []
+    for line in rest:
+        s = _BIDI.sub("", line).strip()
+        if _is_quote_header(s):
+            break
+        if s and not _is_signature_line(s):
+            tail.append(line)
+    text = "\n".join(tail).strip()
+    # בלי LEGAL: שורות החתימה («משרד עורכי דין…», «ושות׳») הן בדיוק מקור ה-legal-שווא שסבבים 124/139 סגרו.
+    # critic סבב 140: LEGAL כן — כשבשורה יש פועל/בעלות («נ.ב. אני פונה לעורך דין», «העו״ד שלי יתקשר»)
+    found = set(detect(text)) if text else set()
+    legal_threat = Intent.LEGAL in found and any(_SIG_MINE.search(x.translate(_SIG_FINALS)) for x in tail)
+    return tail if text and (found & (set(_FLOOR_INTENTS) - {Intent.LEGAL}) or legal_threat) else []

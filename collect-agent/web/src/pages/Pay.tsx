@@ -100,7 +100,7 @@ export function Pay({ code }: { code: string }) {
                   <button disabled={busy} onClick={() => act('paid')} className="w-full h-12 rounded-xl border border-ink-200 font-bold disabled:opacity-50" data-testid="pay-paid">כבר שילמתי</button>
                   {!confirmStop
                     ? <button onClick={() => setConfirmStop(true)} className="w-full h-11 text-sm text-ink-500 underline">הפסקת תזכורות</button>
-                    : <button disabled={busy} onClick={() => act('stop')} className="w-full h-11 rounded-xl text-critical font-bold border border-red-200 disabled:opacity-50">כן, להפסיק לשלוח לי תזכורות</button>}
+                    : <button disabled={busy} onClick={() => act('stop')} className="w-full h-11 rounded-xl text-critical-ink font-bold border border-red-200 disabled:opacity-50">כן, להפסיק לשלוח לי תזכורות</button>}
                 </section>
               </>
             )}
