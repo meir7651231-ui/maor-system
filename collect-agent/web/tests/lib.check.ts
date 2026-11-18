@@ -227,7 +227,7 @@ test('סיבת השהיה מוצגת בעברית, לעולם לא כקוד גו
   assert.doesNotMatch(src, /מושהה: \$\{/, 'נפילה לקוד גולמי');
 });
 
-import { BRAND as LOGO_BRAND, P as LOGO_P, PUBLIC_FILES, markInner, SLOGAN_INK, UI_LOGO_END, UI_LOGO_START, uiLogoHtml } from '../src/brand/logo.ts';
+import { BRAND as LOGO_BRAND, P as LOGO_P, PUBLIC_FILES, markInner, SLOGAN_INK, UI_LOGO_END, UI_LOGO_START, uiLogoHtml, landingLogoSvg, landingFaviconLink, LANDING_FAVICON_START, LANDING_FAVICON_END } from '../src/brand/logo.ts';
 import { readdirSync } from 'node:fs';
 test('לוגו: מקור יחיד (עיצוב מאיר), ירוק רק במטבע, דיו לפי רקע, מזהים ייחודיים, קבצים ציבוריים מסונכרנים', () => {
   const light = markInner({ id: 'a' }), dark = markInner({ onDark: true, id: 'b' });
@@ -258,6 +258,18 @@ test('לוגו: מקור יחיד (עיצוב מאיר), ירוק רק במטב�
   assert.ok(ua > 0 && ub > ua, 'app/ui.html: חסרים סמני הלוגו');
   assert.equal(uiHtml.slice(ua + UI_LOGO_START.length, ub), uiLogoHtml(), 'app/ui.html: הלוגו סטה מ-brand/logo.ts — הריצו npm run logo');
   assert.doesNotMatch(uiHtml, /M22 13h12a4 4 0 0 1 4 4v20/, 'app/ui.html: נשאר הלוגו הישן');
+  // דף-הנחיתה של השיווק + דפי הענף: הלוגו והפאביקון הסופיים מאותו מקור (לא ה«ג» הישן)
+  const land = readFileSync(new URL('../../marketing/landing/index.html', import.meta.url), 'utf8');
+  const blk = (h: string, a: string, b: string) => { const i = h.indexOf(a), j = h.indexOf(b); assert.ok(i > 0 && j > i, `חסרים סמנים ${a}`); return h.slice(i + a.length, j); };
+  assert.equal(blk(land, UI_LOGO_START, UI_LOGO_END), landingLogoSvg(), 'landing/index.html: הלוגו סטה — npm run logo');
+  assert.equal(blk(land, LANDING_FAVICON_START, LANDING_FAVICON_END), landingFaviconLink(), 'landing/index.html: הפאביקון סטה — npm run logo');
+  const forDir = new URL('../../marketing/landing/for/', import.meta.url);
+  for (const f of readdirSync(forDir).filter(n => n.endsWith('.html'))) {
+    const h = readFileSync(new URL(f, forDir), 'utf8');
+    assert.equal(blk(h, UI_LOGO_START, UI_LOGO_END), landingLogoSvg(), `landing/for/${f}: הלוגו סטה — python3 marketing/landing/for/build.py`);
+    assert.doesNotMatch(h, /M22 13h12a4 4 0 0 1 4 4v20/, `landing/for/${f}: לוגו ישן`);
+  }
+  assert.doesNotMatch(land, /M22 13h12|M22%2013h12/, 'landing/index.html: לוגו ישן (גם בפאביקון)');
   // אין עותק שני של הצורה בקוד
   const walk = (d: URL): string[] => readdirSync(d, { withFileTypes: true }).flatMap(e =>
     e.isDirectory() ? walk(new URL(`${e.name}/`, d)) : [new URL(e.name, d).pathname]);

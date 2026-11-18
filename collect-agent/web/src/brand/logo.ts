@@ -85,6 +85,14 @@ export const uiLogoHtml = (): string =>
   `<svg class="logo logo-l" viewBox="0 0 ${VIEWBOX} ${VIEWBOX}" aria-hidden="true">${markInner({ gap: GAPS.inline, id: 'ul' })}</svg>`
   + `<svg class="logo logo-d" viewBox="0 0 ${VIEWBOX} ${VIEWBOX}" aria-hidden="true">${markInner({ onDark: true, gap: GAPS.inline, id: 'ud' })}</svg>`;
 
+/** דף-הנחיתה הסטטי של השיווק (marketing/landing/index.html + דפי הענף מ-build.py): סמל 38px על רקע בהיר
+ *  ופאביקון data-URI — נכתבים ב-`npm run logo` בין סמנים, ו-build.py מעתיק את הסמל מ-index.html. */
+export const LANDING_FAVICON_START = '<!--gabi-favicon:start-->', LANDING_FAVICON_END = '<!--gabi-favicon:end-->';
+export const landingLogoSvg = (): string =>
+  `<svg width="38" height="38" viewBox="0 0 ${VIEWBOX} ${VIEWBOX}" aria-hidden="true" focusable="false">${markInner({ gap: GAPS.inline, id: 'lp' })}</svg>`;
+export const landingFaviconLink = (): string =>
+  `<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(markSvg(true, GAPS.favicon).trim())}">`;
+
 /** הקבצים הציבוריים שנגזרים מהמקור (נכתבים ב-`npm run logo`, ונבדקים שלא סטו). */
 export const PUBLIC_FILES: Record<string, string> = {
   'logo-mark.svg': markSvg(false),
