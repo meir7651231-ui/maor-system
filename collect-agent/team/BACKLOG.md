@@ -68,3 +68,4 @@
 - [x] ✅ 26d9798 תשלום חלקי: סכום התזכורת = היתרה בפועל (לא הסכום המקורי) + בדיקה.
 - [x] ✅ 26d9798 «שולם מחוץ למערכת» בדשבורד: כפתור בעלים שסוגר חשבונית ומתעד ב-audit.
 - [x] ✅ e6bb8d4 נושא 5 (החלטת ראש צוות): הודעה דחופה מכתובת משותפת ⇒ כרטיס בעלים אחד, בלי שיוך אוטומטי; `POST /owner/shared-cards/{id}/assign`. איחוד עם `ef34fac`: ראו commit האיחוד.
+- [ ] 🔴 (מבקר סבב 153) **`app/inbox.py` → `ConversationInbox.handle_customer`, השליחה האוטומטית** (`if draft_id and d.auto_send: approve_draft(..., "system:safe_auto")`): במצב `safe_auto` לקוח עם `paused_reason` מגן (minor/distress/legal/dispute; גם insolvency/deceased/sensitive/shared_contact_urgent) או `disputed=1` שכותב «איך משלמים?» ⇒ **קישור תשלום נשלח אוטומטית בלי אישור** (קטין/מצוקה/עו״ד). לתקן: לקוח מושהה-מגן ⇒ `auto_send=False` (טיוטה לבעל העסק). הוכחה: `tests/test_critic_round153_safe_auto_after_protective.py` (4× `xfail(strict=True)` — אחרי התיקון להסיר את ה-xfail; בדיקת הבקרה ללקוח רגיל חייבת להישאר ירוקה).
