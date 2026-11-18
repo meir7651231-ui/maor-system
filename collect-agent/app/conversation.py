@@ -2125,9 +2125,15 @@ def _plan_ctx(ctx: Context | None) -> bool:
         ctx.state in (State.AWAITING_PLAN_REPLY, State.PLAN_PENDING_OWNER)
 
 
+_SPACED_LETTERS = re.compile(r"[א-תa-zA-Z0-9](?:[\s.\-_*·]+[א-תa-zA-Z0-9]){2,}\W*")
+
+
 def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     """כל הכוונות שזוהו, לפי סדר העדיפות."""
     text = _fold(text)
+    # critic סבב 142: «ה ס ר», «S T O P», «א נ י ר ו צ ה ל מ ו ת» — הודעה שכולה אותיות בודדות ⇒ המילה המחוברת
+    if _SPACED_LETTERS.fullmatch((text or "").strip()) and re.search(r"[א-תa-zA-Z]", text):
+        return detect(re.sub(r"[\s.\-_*·]+", "", text.strip()), ctx)
     t = normalize(text)
     if not t:
         return [Intent.UNKNOWN]
