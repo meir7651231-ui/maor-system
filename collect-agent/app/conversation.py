@@ -2135,6 +2135,8 @@ def _plan_ctx(ctx: Context | None) -> bool:
         ctx.state in (State.AWAITING_PLAN_REPLY, State.PLAN_PENDING_OWNER)
 
 
+_FILLERS = _c(r"(?<![\w])(?:אחי|אחותי|יאללה|בחייאת|בחיאת|נו|באמת|פשוט|כבר|ממש|עמ זה|עמ זאת|כאילו|וואלה)(?![\w])"
+              r"|\b(?:please|pls|plz|just|already|bro|omg|seriously|literally|honestly|really|dude|man)\b")
 _SPACED_LETTERS = re.compile(r"[א-תa-zA-Z0-9](?:[\s.\-_*·]+[א-תa-zA-Z0-9]){2,}\W*")
 # מנהל 286: הודעה שכולה אמוג׳י «עצור» («🛑», «⛔», «🔕», «📵», «🛑✋», «⛔📩») = בקשת הסרה. היה unknown ⇒ ההסרה לא כובדה.
 # «🚫» לבד = «לא/אסור» — בהקשר הסדר זו דחיית ההצעה, ולכן נחשב הסרה רק מחוץ להקשר הסדר. ✋/🙅/❌ לבד — עמומים
@@ -2194,6 +2196,12 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         found.discard(Intent.THANKS)
         found.discard(Intent.UNKNOWN)
         found.add(Intent.OPT_OUT)
+    # critic סבב 144: מילות מילוי סביב פועל ההסרה («יאללה די», «אחי תפסיקו», «די נו», «just stop already») שברו את
+    # התבנית «המילה לבדה» ⇒ unknown. בהודעה קצרה: מסירים מילות מילוי ומסווגים שוב (רק הסרה/מחלוקת מצטרפות).
+    if not (found & {Intent.OPT_OUT, Intent.DISPUTE}) and len(t.split()) <= 7:
+        core = re.sub(r"\s+", " ", _FILLERS.sub(" ", t)).strip(" ,.!?")
+        if core and core != t.strip(" ,.!?"):
+            found |= set(detect(core)) & {Intent.OPT_OUT, Intent.DISPUTE}
     if Intent.DISPUTE not in found and _hits(_C133_DISPUTE, t) and not _C133_VETO.search(t):
         found.add(Intent.DISPUTE)   # critic סבב 133/134: מחלוקות יומיומיות, עם וטו לשגרתיות
     t_dg = _deglue(_typofix(t))   # מנהל 262: הדבקת מילים · 263: שגיאות כתיב — רק כוונות מגינות
