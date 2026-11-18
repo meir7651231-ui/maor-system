@@ -1,0 +1,7 @@
+{"id": "rm289-01", "channel": "sms", "critical": true, "turns": [{"text": "לא באמת שילמתי", "expect": {"intent": "unknown", "state": "awaiting_owner", "not": ["paid_claim"]}}]}
+{"id": "rm289-02", "channel": "sms", "critical": true, "turns": [{"text": "לא הבטחתי שאשלם מחר", "expect": {"intent": "unknown", "state": "awaiting_owner", "not": ["promise"]}}]}
+{"id": "rm289-03", "channel": "sms", "critical": true, "turns": [{"text": "אשלם מחר", "expect": {"intent": "promise", "state": "promised"}}, {"text": "מעולם לא אמרתי שאשלם", "advance_days": 1, "expect": {"intent": "unknown", "state": "awaiting_owner", "not": ["promise"]}}]}
+{"id": "rm289-04", "channel": "sms", "critical": true, "turns": [{"text": "הצילו", "expect": {"intent": "distress", "state": "awaiting_owner", "escalate": "urgent"}}]}
+{"id": "rm289-05", "channel": "sms", "critical": true, "turns": [{"text": "אפשר לחלק ל-3 תשלומים?", "expect": {"intent": "plan_request", "state": "awaiting_plan_reply"}}, {"text": "🆘", "expect": {"intent": "distress", "state": "awaiting_owner", "escalate": "urgent", "not": ["plan_accept", "plan_reject", "opt_out"]}}]}
+{"id": "rm289-06", "channel": "email", "critical": true, "turns": [{"text": "אני במצוקה", "expect": {"intent": "distress", "state": "awaiting_owner", "escalate": "urgent"}}]}
+{"id": "rm289-07", "channel": "sms", "critical": true, "turns": [{"text": "אני במצוקה כלכלית", "expect": {"intent": "cant_pay", "not": ["distress", "unknown"]}}]}
