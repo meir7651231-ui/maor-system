@@ -50,7 +50,7 @@ def test_any_state_with_approved_plan(state):
 
 @pytest.mark.parametrize("text", [
     "שילמתי", "שילמתי הכל", "שילמתי את שני התשלומים הראשונים", "I paid both installments",
-    "שילמתי את התשלום הבא", "שילמתי את התשלום החודשי", "שילמתי את התשלום השישי",  # 6 > 3 תשלומים
+    "שילמתי את התשלום השישי",  # 6 > 3 תשלומים (מנהל 294: «הבא»/«החודשי» ⇒ plan_installment_paid_unspecified)
 ])
 def test_unchanged_without_single_installment(text):
     d = _d(text)
