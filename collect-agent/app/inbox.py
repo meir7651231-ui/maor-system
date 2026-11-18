@@ -159,12 +159,15 @@ class ConversationInbox:
     SHARED_URGENT = "shared_contact_urgent"
 
     def _shared_urgent_card(self, channel: str, sender: str, text: str, linked: list, intent: str,
-                            now) -> dict:
+                            found: set, now) -> dict:
+        """החלטת ראש הצוות לנושא 5 (18.11.2026): פנייה דחופה מכתובת/מספר המשותפים לכמה לקוחות ⇒ דחופה בכל מקרה,
+        כרטיס בעל עסק אחד עם כל הלקוחות המקושרים, בלי שיוך אוטומטי (גם אם אחד קיבל את ההודעה האחרונה) ובלי
+        תשובה ללקוח עד שבעל העסק בוחר (`assign_shared_card`). לא-דחוף ⇒ כמו קודם (סבב 27)."""
         ids = [c["id"] for c in linked]
         # הסרה / מספר שגוי ⇒ רשימת ההסרה לפי הכתובת (חל על כולם; זה לא שיוך — זו הכתובת עצמה)
-        if intent in ("opt_out", "wrong_person"):
+        if {Intent.OPT_OUT, Intent.WRONG_PERSON} & found:
             self.svc.suppress(channel, sender, "shared_contact_opt_out")
-        if intent == "opt_out":
+        if Intent.OPT_OUT in found:
             # review חור 1 (הכרעה שמרנית קודמת, נשמרת): «הסר» מכתובת משותפת ⇒ כל הערוצים של כל המקושרים
             # נעצרים. זו לא שיוך — עוצרים את כולם; בעל העסק יכול לחדש את מי שלא ביקש
             for c in linked:
@@ -175,14 +178,15 @@ class ConversationInbox:
                 self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (self.SHARED_URGENT, c["id"]))
             for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (c["id"],)):
                 self.svc._cancel_invoice(inv["id"], self.SHARED_URGENT)
-        payload = json.dumps({"linked": [{"id": c["id"], "name": c["name"]} for c in linked],
-                              "intent": intent, "sender": sender}, ensure_ascii=False)
+        # מבנה ה-payload נקרא ב-web (notices.ts: linked_customers[].name) — לא לשנות שמות שדות
+        payload = json.dumps({"linked_customers": [{"id": c["id"], "name": c["name"]} for c in linked],
+                              "urgent": intent}, ensure_ascii=False)
         mid = self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,payload,"
                         "created_at) VALUES(NULL,'in',?,?,?,1,?,?)",
                         (channel, text, self.SHARED_URGENT, payload, _iso(now)))
         self.svc.audit("customer", "shared_contact_urgent", {"message": mid, "customers": ids,
                                                              "intent": intent})
-        self.svc.email_owner_urgent(intent)
+        self.svc.email_owner_urgent(intent, unmatched="shared")
         return {"intent": self.SHARED_URGENT, "detected": intent, "escalate": True,
                 "escalation": "urgent", "draft_id": None, "auto_reply": None, "plan_id": None,
                 "card_id": mid, "linked_customers": ids}
@@ -196,7 +200,7 @@ class ConversationInbox:
         if not m["needs_owner"]:
             raise ValueError("הכרטיס כבר טופל")
         info = json.loads(m["payload"] or "{}")
-        ids = [x["id"] for x in info.get("linked", [])]
+        ids = [x["id"] for x in info.get("linked_customers", [])]
         if customer_id is not None and customer_id not in ids:
             raise ValueError("הלקוח לא מקושר לכתובת הזו")
         self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (card_id,))
@@ -215,37 +219,15 @@ class ConversationInbox:
         if channel not in ("sms", "email"):
             raise ValueError("ערוץ לא נתמך")
         now = self.svc.clock()
-        # החלטת ראש הצוות לנושא 5 (18.11.2026): פנייה דחופה מכתובת/מספר המשותפים לכמה לקוחות ⇒ דחופה בכל מקרה,
-        # כרטיס בעל עסק אחד עם כל הלקוחות המקושרים, בלי שיוך אוטומטי לחוב אחד (גם אם אחד קיבל את ההודעה האחרונה)
-        # ובלי תשובה ללקוח עד שבעל העסק בוחר. לא-דחוף ⇒ כמו קודם (סבב 27).
-        linked = self.svc._find_customers(channel, sender)
-        if len(linked) > 1:
-            found = set(detect(text))
-            urgent = next((i.value for i in (Intent.DISTRESS, Intent.MINOR, Intent.LEGAL, Intent.DISPUTE)
-                           if i in found), None)
-            if urgent:
-                if {Intent.OPT_OUT, Intent.WRONG_PERSON} & found:
-                    self.svc.suppress(channel, sender, "shared_contact_opt_out")
-                payload = json.dumps({"linked_customers": [{"id": c["id"], "name": c["name"]} for c in linked],
-                                      "urgent": urgent}, ensure_ascii=False)
-                self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,payload,"
-                          "created_at) VALUES(NULL,'in',?,?, 'shared_contact_urgent', 1, ?, ?)",
-                          (channel, text, payload, _iso(now)))
-                self.svc.audit("customer", "shared_contact_urgent",
-                               {"intent": urgent, "linked": [c["id"] for c in linked]})
-                self.svc.email_owner_urgent(urgent, unmatched="shared")
-                return {"intent": "shared_contact_urgent", "escalate": True, "escalation": "urgent",
-                        "draft_id": None, "auto_reply": None, "plan_id": None,
-                        "linked_customers": [c["id"] for c in linked]}
         cust, ambiguous = self.svc._resolve_sender(channel, sender)
         # החלטת ראש צוות (סבב ביקורת, נושא 5): הודעה **דחופה** מכתובת שמשותפת לכמה לקוחות ⇒ תמיד דחופה,
         # כרטיס בעל עסק **אחד** עם כל הלקוחות המקושרים, בלי שיוך אוטומטי (גם אם אפשר היה לנחש לפי ההודעה
         # היוצאת האחרונה) ובלי תשובה ללקוח עד שבעל העסק בוחר (assign_shared_card).
         linked = self.svc._find_customers(channel, sender)
-        shared_urgent = next((i.value for i in _SHARED_URGENT if i in set(detect(text))), None) \
-            if len(linked) > 1 else None
+        found = set(detect(text)) if len(linked) > 1 else set()
+        shared_urgent = next((i.value for i in _SHARED_URGENT if i in found), None)
         if shared_urgent:
-            return self._shared_urgent_card(channel, sender, text, linked, shared_urgent, now)
+            return self._shared_urgent_card(channel, sender, text, linked, shared_urgent, found, now)
         if cust is None and ambiguous:
             # critic סבב 27: כתובת של כמה לקוחות ואף אחד מהם לא קיבל הודעה ⇒ לא משייכים ולא מנסחים
             # (אין טיוטה עם חוב של אדם אחר). «הסר» ⇒ רשימת ההסרה לפי הכתובת ⇒ חל על כולם.
