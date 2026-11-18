@@ -309,7 +309,12 @@ class ConversationInbox:
             "secondary": [i.value for i in d.secondary], "escalate": d.escalate.value,
             "stop": d.stop.value, "draft": draft_id})
         sent = None
-        if draft_id and d.auto_send:
+        if draft_id and d.auto_send and _protected(self.db.one(
+                "SELECT paused_reason, disputed FROM customers WHERE id=?", (cust["id"],))):
+            # critic סבב 153: המנוע קובע auto_send לפי ההודעה הנוכחית בלבד ⇒ אחרי «אני בן 14» / «אני רוצה למות» /
+            # עו״ד / מחלוקת (או «שילמתי»), «איך משלמים?» הוציא קישור תשלום אוטומטית. לקוח מושהה-מגן ⇒ טיוטה בלבד.
+            self.svc.audit("system", "safe_auto_held", {"customer": cust["id"], "draft": draft_id})
+        elif draft_id and d.auto_send:
             sent = self.approve_draft(draft_id, actor="system:safe_auto")
         auto = bool(sent and sent.get("status") == "sent_dry_run")
         return {"intent": d.intent.value, "secondary": [i.value for i in d.secondary],
@@ -744,6 +749,18 @@ _MONEY_INTENTS = {Intent.PLAN_REQUEST.value, Intent.PLAN_ACCEPT.value, Intent.PL
                   Intent.PAID_CLAIM.value}
 # השהיות "קשות": רק בעל העסק משחרר, ולא מוחלפות בסיבה רכה יותר
 _HARD_PAUSES = ("minor", "deceased", "insolvency", "distress", "legal", "dispute")
+
+
+# critic סבב 153: השהיות שאחריהן אין שליחה אוטומטית (safe_auto) — רק טיוטה לבעל העסק. ההשהיות הקשות + מצב רגיש +
+# כרטיסי כתובת משותפת + «שילמתי» (קישור תשלום אוטומטי למי שטוען ששילם = תזכורת בלי אישור)
+_NO_AUTO_SEND_PAUSES = _HARD_PAUSES + ("sensitive", "paid_claim", "shared_contact_urgent", "shared_contact_paid_claim")
+
+
+def _protected(row) -> bool:
+    if row is None:
+        return True   # לקוח שנמחק תוך כדי — לא שולחים
+    base = (row["paused_reason"] or "").split(":", 1)[0]
+    return bool(row["disputed"]) or base in _NO_AUTO_SEND_PAUSES
 
 
 def _keeps_old_pause(old: str, new: str) -> bool:

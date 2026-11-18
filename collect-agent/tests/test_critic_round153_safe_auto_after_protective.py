@@ -17,8 +17,8 @@ import pytest
 from tests.conftest import customer_sent
 
 
-@pytest.mark.xfail(strict=True, reason="critic 153: באג פתוח לתיקון בונה ב-app/inbox.py handle_customer (safe_auto)")
-@pytest.mark.parametrize("first", ["אני בן 14", "אני רוצה למות", "העברתי לעורך הדין שלי", "לא הזמנתי את זה, זו טעות"])
+@pytest.mark.parametrize("first", ["אני בן 14", "אני רוצה למות", "העברתי לעורך הדין שלי", "לא הזמנתי את זה, זו טעות",
+                                   "שילמתי כבר"])
 def test_no_auto_payment_link_after_protective_message(svc, first):
     svc.sync()
     svc.inbox.policy = dataclasses.replace(svc.inbox.policy, approval_mode="safe_auto")
@@ -35,3 +35,14 @@ def test_safe_auto_still_works_for_ordinary_customer(svc):
     before = len(customer_sent(svc))
     r = svc.inbound("sms", "0501234567", "איך משלמים?")
     assert len(customer_sent(svc)) == before + 1 and r["auto_reply"]
+
+
+def test_held_draft_waits_for_owner_and_is_audited(svc):
+    """תוקן (גבייה סוכן 18.11): הטיוטה נשארת pending_approval לבעל העסק, עם audit safe_auto_held."""
+    svc.sync()
+    svc.inbox.policy = dataclasses.replace(svc.inbox.policy, approval_mode="safe_auto")
+    svc.inbound("sms", "0501234567", "אני בן 14")
+    r = svc.inbound("sms", "0501234567", "איך משלמים?")
+    assert svc.db.one("SELECT status FROM drafts WHERE id=?", (r["draft_id"],))["status"] in (
+        "pending_approval", "needs_owner")
+    assert svc.db.one("SELECT 1 FROM audit WHERE action='safe_auto_held'")
