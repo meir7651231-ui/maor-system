@@ -51,3 +51,5 @@
 {"id": "c134-2", "text": "im in high school", "ctx": {"channel": "sms"}, "expect": {"intent": "minor"}, "critical": true}
 {"id": "c136-1", "text": "ירד לי פעמיים מהכרטיס", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
 {"id": "c136-2", "text": "הילד חולה היום ולא יגיע לשיעור", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["cant_pay"]}, "critical": true}
+{"id": "c137-1", "text": "חייבתם על חודש שהחוג לא התקיים", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c137-2", "text": "המורה לא הגיעה היום, יש שיעור מחר?", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["dispute"]}, "critical": true}
