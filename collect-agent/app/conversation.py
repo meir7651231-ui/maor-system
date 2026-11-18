@@ -1930,6 +1930,23 @@ _PAID_INST_ELLIPTIC = (
     r"|\b(?:the\s+|my\s+)?(?:next|monthly|current)\s+one\b|\bthis\s+month'?s\b(?!\s+(?:payment|installment|instalment))"
     r"|\b(?:paid|transferred|sent)\s+(?:it\s+|already\s+)?(?:for\s+)?this\s+month\b")
 
+# מנהל 296 (נמצא ב-295 ולא תוקן): «שילמתי לחודש נובמבר» / «שילמתי את של נובמבר» / «I paid for November» ליד הסדר
+# בתוקף ⇒ היה כרטיס «שילם/ה 1,200 ₪» (כל החוב). שם חודש **עשוי** לציין תשלום מסוים לפי מועד — אבל זה ניחוש
+# (מועד מאוחר/מוקדם, חודש קודם שלא שולם). שמרני: אותו מסלול 294 «תשלום אחד, בלי לציין איזה»; איזה = בעל העסק.
+# רק כשהחודש מסומן כמושא («ל/של/את/עבור/for/'s») — «שילמתי בנובמבר» (זמן) לא נכלל. «אב»/«שבט» לבד — רק עם «חודש».
+_MONTH_BARE = (r"(?:ינואר|פברואר|מרצ|מארס|אפריל|מאי|יוני|יולי|אוגוסט|ספטמבר|אוקטובר|נובמבר|דצמבר"
+               r"|תשרי|(?:מר)?חשו?ון|כסלו|טבת|אדר(?:\s+[אב]'?)?|ניסנ|איי?ר|סיו?ונ|תמוז|אלול)")
+_MONTH_ANY = r"(?:" + _MONTH_BARE + r"|אב|שבט)"
+_MONTH_EN = (r"(?:january|february|march|april|may|june|july|august|september|october|november|december"
+             r"|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)")
+_PAID_INST_MONTH = (
+    r"(?<![\w])(?:(?:את|של|עבור|בשביל|על)\s+(?:ה)?|ל|ל-|ש)?חודש\s+" + _MONTH_ANY + r"(?![\w])"
+    r"|(?<![\w])(?:(?:את\s+)?של|את|עבור|בשביל)\s+" + _MONTH_BARE + r"(?![\w])"
+    r"|(?<![\w])ל-?" + _MONTH_BARE + r"(?![\w])"
+    r"|(?<![\w])(?:ה)?תשלומ\s+(?:של\s+|ל-?)?" + _MONTH_ANY + r"(?![\w])"
+    r"|\b(?:for|the)\s+" + _MONTH_EN + r"\b|\b" + _MONTH_EN + r"'s\b"
+    r"|\b" + _MONTH_EN + r"\s+(?:payment|installment|instalment|one)\b")
+
 # «הכל» / «את כל החוב» / «in full» — הלקוח אומר שכל החוב שולם, לא תשלום אחד
 _PAID_ALL = (r"(?<![\w])(?:את\s+)?(?:ה)?(?:כל|כול)(?![\w])|(?<![\w])(?:ה)?יתרה(?![\w])"
              r"|\b(?:everything|in\s+full|the\s+whole|the\s+rest|all\s+of\s+it|the\s+balance)\b")
@@ -1941,7 +1958,7 @@ def paid_unspecified_installment(t: str, plan: tuple[Installment, ...]) -> bool:
         return False
     if _s(_PAID_INST_ANY, t):
         return True
-    return bool(_s(_PAID_INST_ELLIPTIC, t)) and not _s(_PAID_ALL, t)
+    return bool(_s(_PAID_INST_ELLIPTIC, t) or _s(_PAID_INST_MONTH, t)) and not _s(_PAID_ALL, t)
 
 
 # חלופה שנדחית: «לא ל-10», «ולא ב-10», «במקום ה-10», «instead of the 10th», «not the 10th»
