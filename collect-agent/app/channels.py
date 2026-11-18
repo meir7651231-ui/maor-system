@@ -346,6 +346,25 @@ def _strip_top(text: str) -> str:
         if _is_quote_header(s) or wrapped:
             break
         if s and any(o.strip() for o in out) and _is_signature_line(s):   # critic סבב 124: חתימת הלקוח
+            out.extend(_protective_tail(lines[i + 1:]))
             break
         out.append(line)
     return "\n".join(out).strip()
+
+
+def _protective_tail(rest: list[str]) -> list[str]:
+    """לולאה 18.11 (המשך לסבבים 124/139): אחרי חתימה מזוהה («עו״ד דנה כהן») נחתך הכול — גם «אל תשלחו יותר
+    הודעות» / «I'm only 15» שנכתבו **אחרי** החתימה (נ.ב.). שאר השורות (עד הציטוט) נשמרות רק אם יש בהן כוונה
+    מגינה; שורות חתימה/סודיות/פרטי קשר עצמן נשארות מחוץ לסיווג (ההכרעה של 124/139 נשמרת)."""
+    from .conversation import _FLOOR_INTENTS, Intent, detect
+
+    tail: list[str] = []
+    for line in rest:
+        s = _BIDI.sub("", line).strip()
+        if _is_quote_header(s):
+            break
+        if s and not _is_signature_line(s):
+            tail.append(line)
+    text = "\n".join(tail).strip()
+    # בלי LEGAL: שורות החתימה («משרד עורכי דין…», «ושות׳») הן בדיוק מקור ה-legal-שווא שסבבים 124/139 סגרו
+    return tail if text and set(detect(text)) & (set(_FLOOR_INTENTS) - {Intent.LEGAL}) else []
