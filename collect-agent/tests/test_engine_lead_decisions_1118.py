@@ -51,7 +51,8 @@ def test_not_opt_out(text):
     assert _d(text).intent != Intent.OPT_OUT
 
 
-@pytest.mark.parametrize("text,intent", [("די, שילמתי כבר אתמול", Intent.PAID_CLAIM), ("די, אין לי כסף", Intent.CANT_PAY)])
+@pytest.mark.parametrize("text,intent", [("די, שילמתי כבר אתמול", Intent.PAID_CLAIM),
+                                         ("די, אין לי כסף", Intent.CANT_PAY)])
 def test_bare_enough_with_other_content_keeps_it(text, intent):
     """«די» + הבטחה ⇒ הסרה; «די» + טענה אחרת (שילמתי/קושי/מחלוקת) ⇒ הטענה (xc47 בסט המבקר)."""
     assert _d(text).intent == intent
