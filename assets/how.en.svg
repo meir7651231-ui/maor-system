@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="600" viewBox="0 0 1280 600" role="img" aria-label="How it works: per-organization config dresses the app, and data is kept in three local layers, with optional cloud and encryption">
+<defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#47bfff"/></marker></defs>
+<rect width="1280" height="600" rx="24" fill="#0d1120"/>
+<text x="60" y="62" text-anchor="start" font-size="22" font-weight="700" fill="#9fdcff" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">① Who you are — per-organization config</text>
+<rect x="60" y="86" width="262" height="96" rx="14" fill="#141b33" stroke="#2c3a66" stroke-width="2"/>
+<text x="191.0" y="126" text-anchor="middle" font-size="22" font-weight="700" fill="#f4f6fb" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">?org=slug</text>
+<text x="191.0" y="158" text-anchor="middle" font-size="16" font-weight="400" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">one URL per organization</text>
+<line x1="326" y1="134" x2="356" y2="134" stroke="#47bfff" stroke-width="2.5" marker-end="url(#ar)"/>
+<rect x="362" y="86" width="262" height="96" rx="14" fill="#141b33" stroke="#2c3a66" stroke-width="2"/>
+<text x="493.0" y="126" text-anchor="middle" font-size="22" font-weight="700" fill="#f4f6fb" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">config.json</text>
+<text x="493.0" y="158" text-anchor="middle" font-size="16" font-weight="400" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">flags · terms · theme</text>
+<line x1="628" y1="134" x2="658" y2="134" stroke="#47bfff" stroke-width="2.5" marker-end="url(#ar)"/>
+<rect x="664" y="86" width="262" height="96" rx="14" fill="#141b33" stroke="#2c3a66" stroke-width="2"/>
+<text x="795.0" y="126" text-anchor="middle" font-size="22" font-weight="700" fill="#f4f6fb" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Vertical pack</text>
+<text x="795.0" y="158" text-anchor="middle" font-size="16" font-weight="400" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">13 ready-made verticals</text>
+<line x1="930" y1="134" x2="960" y2="134" stroke="#47bfff" stroke-width="2.5" marker-end="url(#ar)"/>
+<rect x="966" y="86" width="262" height="96" rx="14" fill="#211d17" stroke="#f3c76b" stroke-width="2"/>
+<text x="1097.0" y="126" text-anchor="middle" font-size="22" font-weight="700" fill="#f3c76b" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">The app</text>
+<text x="1097.0" y="158" text-anchor="middle" font-size="16" font-weight="400" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">only the modules you enabled</text>
+<text x="60" y="238" text-anchor="start" font-size="22" font-weight="700" fill="#9fdcff" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">② Where data lives — three local layers</text>
+<rect x="60" y="262" width="356" height="100" rx="14" fill="#141b33" stroke="#47bfff" stroke-opacity=".55" stroke-width="2"/>
+<circle cx="90" cy="290" r="15" fill="#47bfff"/>
+<text x="90" y="296" text-anchor="middle" font-size="16" font-weight="800" fill="#0d1120" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">1</text>
+<text x="238.0" y="304" text-anchor="middle" font-size="22" font-weight="700" fill="#f4f6fb" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">localStorage</text>
+<text x="238.0" y="338" text-anchor="middle" font-size="16" font-weight="400" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">auto-save after half a second</text>
+<line x1="420" y1="312" x2="456" y2="312" stroke="#47bfff" stroke-width="2.5" marker-end="url(#ar)"/>
+<rect x="462" y="262" width="356" height="100" rx="14" fill="#141b33" stroke="#47bfff" stroke-opacity=".55" stroke-width="2"/>
+<circle cx="492" cy="290" r="15" fill="#47bfff"/>
+<text x="492" y="296" text-anchor="middle" font-size="16" font-weight="800" fill="#0d1120" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">2</text>
+<text x="640.0" y="304" text-anchor="middle" font-size="22" font-weight="700" fill="#f4f6fb" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">IndexedDB</text>
+<text x="640.0" y="338" text-anchor="middle" font-size="16" font-weight="400" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">second copy + 30 daily snapshots</text>
+<line x1="822" y1="312" x2="858" y2="312" stroke="#47bfff" stroke-width="2.5" marker-end="url(#ar)"/>
+<rect x="864" y="262" width="356" height="100" rx="14" fill="#141b33" stroke="#47bfff" stroke-opacity=".55" stroke-width="2"/>
+<circle cx="894" cy="290" r="15" fill="#47bfff"/>
+<text x="894" y="296" text-anchor="middle" font-size="16" font-weight="800" fill="#0d1120" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">3</text>
+<text x="1042.0" y="304" text-anchor="middle" font-size="22" font-weight="700" fill="#f4f6fb" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">JSON files</text>
+<text x="1042.0" y="338" text-anchor="middle" font-size="16" font-weight="400" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">manual + end-of-day backups</text>
+<text x="60" y="420" text-anchor="start" font-size="22" font-weight="700" fill="#b9a7ff" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">③ Optional</text>
+<rect x="60" y="444" width="557" height="84" rx="14" fill="#141b33" stroke="#b9a7ff" stroke-dasharray="7 6" stroke-width="2"/>
+<text x="338.5" y="480" text-anchor="middle" font-size="21" font-weight="700" fill="#f4f6fb" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">☁ Firebase cloud</text>
+<text x="338.5" y="510" text-anchor="middle" font-size="16" font-weight="400" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">multi-device sync, per org</text>
+<rect x="663" y="444" width="557" height="84" rx="14" fill="#141b33" stroke="#b9a7ff" stroke-dasharray="7 6" stroke-width="2"/>
+<text x="941.5" y="480" text-anchor="middle" font-size="21" font-weight="700" fill="#f4f6fb" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">🔒 AES-GCM encryption</text>
+<text x="941.5" y="510" text-anchor="middle" font-size="16" font-weight="400" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">key wrapped by password + recovery key</text>
+<text x="640.0" y="568" text-anchor="middle" font-size="17" font-weight="400" fill="#7d8aa6" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Without the cloud the site is fully static: no server, no monthly cost</text>
+</svg>

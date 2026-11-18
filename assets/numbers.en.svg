@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-label="Numbers: 3,173 tests, 434 test files, 328 flags, 46 terms, 13 vertical packs, 4 themes, 23 entity types, 3 storage layers">
+<rect width="1280" height="420" rx="24" fill="#0d1120"/>
+<text x="60" y="62" text-anchor="start" font-size="24" font-weight="700" fill="#9fdcff" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">The numbers — measured from the code on 2026-11-06</text>
+<rect x="60" y="92" width="275" height="124" rx="16" fill="#141b33" stroke="#2c3a66" stroke-width="2"/>
+<text x="197.5" y="156" text-anchor="middle" font-size="46" font-weight="800" fill="#f3c76b" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">3,173</text>
+<text x="197.5" y="192" text-anchor="middle" font-size="17" font-weight="500" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">unit tests</text>
+<rect x="362" y="92" width="275" height="124" rx="16" fill="#141b33" stroke="#2c3a66" stroke-width="2"/>
+<text x="499.5" y="156" text-anchor="middle" font-size="46" font-weight="800" fill="#f3c76b" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">434</text>
+<text x="499.5" y="192" text-anchor="middle" font-size="17" font-weight="500" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">test files</text>
+<rect x="664" y="92" width="275" height="124" rx="16" fill="#141b33" stroke="#2c3a66" stroke-width="2"/>
+<text x="801.5" y="156" text-anchor="middle" font-size="46" font-weight="800" fill="#f4f6fb" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">328</text>
+<text x="801.5" y="192" text-anchor="middle" font-size="17" font-weight="500" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">feature flags</text>
+<rect x="966" y="92" width="275" height="124" rx="16" fill="#141b33" stroke="#2c3a66" stroke-width="2"/>
+<text x="1103.5" y="156" text-anchor="middle" font-size="46" font-weight="800" fill="#f4f6fb" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">46</text>
+<text x="1103.5" y="192" text-anchor="middle" font-size="17" font-weight="500" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">swappable terms</text>
+<rect x="60" y="243" width="275" height="124" rx="16" fill="#141b33" stroke="#2c3a66" stroke-width="2"/>
+<text x="197.5" y="307" text-anchor="middle" font-size="46" font-weight="800" fill="#f4f6fb" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">13</text>
+<text x="197.5" y="343" text-anchor="middle" font-size="17" font-weight="500" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">vertical packs</text>
+<rect x="362" y="243" width="275" height="124" rx="16" fill="#141b33" stroke="#2c3a66" stroke-width="2"/>
+<text x="499.5" y="307" text-anchor="middle" font-size="46" font-weight="800" fill="#f4f6fb" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">4</text>
+<text x="499.5" y="343" text-anchor="middle" font-size="17" font-weight="500" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">themes</text>
+<rect x="664" y="243" width="275" height="124" rx="16" fill="#141b33" stroke="#2c3a66" stroke-width="2"/>
+<text x="801.5" y="307" text-anchor="middle" font-size="46" font-weight="800" fill="#f4f6fb" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">23</text>
+<text x="801.5" y="343" text-anchor="middle" font-size="17" font-weight="500" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">entity types</text>
+<rect x="966" y="243" width="275" height="124" rx="16" fill="#141b33" stroke="#2c3a66" stroke-width="2"/>
+<text x="1103.5" y="307" text-anchor="middle" font-size="46" font-weight="800" fill="#f4f6fb" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">3</text>
+<text x="1103.5" y="343" text-anchor="middle" font-size="17" font-weight="500" fill="#aab3c7" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">local storage layers</text>
+<text x="640.0" y="396" text-anchor="middle" font-size="15" font-weight="400" fill="#7d8aa6" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Source: npm run verify · FEATURES / TERM_DEFS / VERTICAL_PACKS / ENTITY_COLLECTIONS</text>
+</svg>

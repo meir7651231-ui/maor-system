@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="440" viewBox="0 0 1280 440" role="img" aria-label="Before and after: without Orbit the organization is scattered across tools; with Orbit everything is in one place and the data stays with you">
+<rect width="1280" height="440" rx="24" fill="#faf7f2"/>
+<defs><marker id="a" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1f78b4"/></marker></defs>
+<rect x="60" y="40" width="550" height="360" rx="18" fill="#fdecee" stroke="#c2283a" stroke-opacity=".6" stroke-width="2"/>
+<text x="335" y="92" text-anchor="middle" font-size="28" font-weight="800" fill="#c2283a" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Without Orbit</text>
+<text x="100" y="150" text-anchor="middle" font-size="22" font-weight="800" fill="#c2283a" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✕</text>
+<text x="125" y="150" text-anchor="start" font-size="20" font-weight="500" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Spreadsheets spread across computers</text>
+<text x="100" y="202" text-anchor="middle" font-size="22" font-weight="800" fill="#c2283a" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✕</text>
+<text x="125" y="202" text-anchor="start" font-size="20" font-weight="500" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Lists in WhatsApp and notebooks</text>
+<text x="100" y="254" text-anchor="middle" font-size="22" font-weight="800" fill="#c2283a" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✕</text>
+<text x="125" y="254" text-anchor="start" font-size="20" font-weight="500" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Hebrew dates worked out by hand</text>
+<text x="100" y="306" text-anchor="middle" font-size="22" font-weight="800" fill="#c2283a" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✕</text>
+<text x="125" y="306" text-anchor="start" font-size="20" font-weight="500" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Receipts typed one by one</text>
+<text x="100" y="358" text-anchor="middle" font-size="22" font-weight="800" fill="#c2283a" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✕</text>
+<text x="125" y="358" text-anchor="start" font-size="20" font-weight="500" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Backups? When someone remembers</text>
+<rect x="670" y="40" width="550" height="360" rx="18" fill="#e9f6ef" stroke="#1a8a5a" stroke-opacity=".6" stroke-width="2"/>
+<text x="945" y="92" text-anchor="middle" font-size="28" font-weight="800" fill="#1a8a5a" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">With Orbit</text>
+<text x="710" y="150" text-anchor="middle" font-size="22" font-weight="800" fill="#1a8a5a" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✓</text>
+<text x="735" y="150" text-anchor="start" font-size="20" font-weight="500" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">One screen for the whole organization</text>
+<text x="710" y="202" text-anchor="middle" font-size="22" font-weight="800" fill="#1a8a5a" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✓</text>
+<text x="735" y="202" text-anchor="start" font-size="20" font-weight="500" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Built-in Hebrew–Gregorian calendar</text>
+<text x="710" y="254" text-anchor="middle" font-size="22" font-weight="800" fill="#1a8a5a" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✓</text>
+<text x="735" y="254" text-anchor="start" font-size="20" font-weight="500" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Sequentially numbered receipts (§46)</text>
+<text x="710" y="306" text-anchor="middle" font-size="22" font-weight="800" fill="#1a8a5a" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✓</text>
+<text x="735" y="306" text-anchor="start" font-size="20" font-weight="500" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Auto-save + daily backups</text>
+<text x="710" y="358" text-anchor="middle" font-size="22" font-weight="800" fill="#1a8a5a" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✓</text>
+<text x="735" y="358" text-anchor="start" font-size="20" font-weight="500" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Static site — no server required</text>
+<path d="M625 220 L655 220" stroke="#1f78b4" stroke-width="4" marker-end="url(#a)"/>
+</svg>
