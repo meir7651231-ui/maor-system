@@ -67,10 +67,10 @@ def test_non_change_unchanged(text):
     assert "plan_change" not in _d(text).tags
 
 
-def test_not_approved_unchanged():
-    """AWAITING_OWNER עם הסדר שלא אושר — מחוץ להיקף, נשאר כמו קודם (unknown)."""
+def test_not_approved_card_293():
+    """AWAITING_OWNER עם הסדר שלא אושר — היה מחוץ להיקף (unknown); ממנהל 293 ⇒ כרטיס «שהוצע ולא אושר»."""
     d = _d("אפשר להזיז את התשלום הראשון ל-20?", approved=False)
-    assert "plan_change" not in d.tags
+    assert "plan_change" in d.tags and "שהוצע ולא אושר" in d.owner_summary
 
 
 def test_plan_reply_state_unchanged_264():
