@@ -313,9 +313,23 @@ function NeedsYou() {
           <li key={`n${n.id}`} className={`rounded-lg p-3 text-sm ${n.tone === 'warn' ? 'bg-amber-50' : 'bg-ink-50'}`} data-testid="notice" data-intent={n.intent}>
             <div className="font-bold"><span aria-hidden>{n.icon}</span> {n.title}</div>
             <div className="text-ink-700 text-xs mt-0.5 whitespace-pre-line">{n.body}</div>
+            {n.linked?.length ? (
+              // critic סבב 149: החלטה 5 — בעל העסק בוחר למי הפנייה שייכת (רק אז המנוע מטפל בה); «אף אחד» משחרר את ההשהיה
+              <div className="flex flex-wrap gap-2 mt-2">
+                {n.linked.map(c => (
+                  <Button key={c.id} size="sm" variant={armed === `a${n.id}-${c.id}` ? 'dark' : 'primary'} data-testid="notice-assign"
+                    onClick={() => act(`a${n.id}-${c.id}`, () => api.assignShared(n.id, c.id), `הפנייה שויכה ל${c.name}`)}>
+                    {armed === `a${n.id}-${c.id}` ? 'לחצו שוב לאישור' : `שייך ל${c.name}`}</Button>
+                ))}
+                <Button size="sm" variant={armed === `a${n.id}-none` ? 'dark' : 'outline'} data-testid="notice-assign-none"
+                  onClick={() => act(`a${n.id}-none`, () => api.assignShared(n.id, null), 'סומן: אף אחד מהם — התזכורות חודשו')}>
+                  {armed === `a${n.id}-none` ? 'לחצו שוב לאישור' : 'אף אחד מהם'}</Button>
+              </div>
+            ) : (
             <Button size="sm" variant={armed === `n${n.id}` ? 'dark' : 'outline'} className="mt-2" data-testid="notice-done"
               onClick={() => act(`n${n.id}`, () => api.ownerDone(n.id), 'סומן כטופל')}>
               {armed === `n${n.id}` ? 'לחצו שוב לאישור' : '✓ טופל'}</Button>
+            )}
           </li>
         ))}
         {paused.map(c => (

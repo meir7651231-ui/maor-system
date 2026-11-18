@@ -397,7 +397,7 @@ class CollectService:
                       f"כרטיסים דחופים שממתינים לכם עכשיו: {waiting}.\n\n"
                       + (  # החלטה 5 (18.11): כתובת משותפת לכמה לקוחות — כרטיס אחד, בלי שיוך אוטומטי
                           "הפנייה הגיעה מכתובת/מספר המשותפים לכמה לקוחות, ולכן לא שויכה אוטומטית לאף אחד מהם. "
-                          "בכרטיס מופיעים כל הלקוחות המקושרים — בדקו למי היא שייכת. אף תשובה לא נשלחת בלי "
+                          "בכרטיס מופיעים כל הלקוחות המקושרים — בחרו למי היא שייכת. אף תשובה לא נשלחת בלי "
                           "אישורכם.\n" if unmatched == "shared" else
                           # critic סבב 126: שולח שלא משויך ללקוח ⇒ אין תזכורות שנעצרו
                           "הפנייה הגיעה מכתובת/מספר שלא משויכים לאף לקוח, ולכן התזכורות לא נעצרו אוטומטית — "
@@ -1292,6 +1292,9 @@ class CollectService:
         row = self.db.one("SELECT intent, message_id FROM messages WHERE id=? AND needs_owner=1", (mid,))
         if not row:
             raise KeyError(mid)
+        if row["intent"] == "shared_contact_urgent":
+            # critic סבב 149: «טופל» על כרטיס כתובת משותפת = «אף אחד מהם» — אחרת ההשהיה נשארה על כל המקושרים לתמיד
+            return {"id": mid, "done": True, **self.inbox.assign_shared_card(mid, None, actor=actor)}
         if self._self_dismiss_blocked(row, actor):
             self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "self_dismiss"})
             raise ValueError("את ההתראה על שינוי ההגדרות הרגישות צריך לסמן «טופל» עובד אחר — לא מי שביצע את השינוי.")

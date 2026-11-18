@@ -1,7 +1,7 @@
 // הודעות מערכת לבעל העסק מתוך /owner/inbox (תזכורת סוף ניסיון, 3 תזכורות מוצו, חשבונית ישנה, SMS שלא נמסר).
 // רק direction='system' — אלה טקסטים שהשרת עצמו כתב. תשובות לקוחות (טקסט חופשי) מוצגות ב«תשובות לקוחות», לא כאן.
 export interface OwnerMsg { id: number; customer_id: number | null; direction: string; channel: string; body: string; intent: string | null; created_at: string; payload?: string | null }
-export interface Notice { id: number; icon: string; title: string; body: string; tone: 'warn' | 'info'; intent: string }
+export interface Notice { id: number; icon: string; title: string; body: string; tone: 'warn' | 'info'; intent: string; linked?: { id: number; name: string }[] }
 
 const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }> = {
   trial_ending: { icon: '⏳', title: 'תקופת הניסיון מסתיימת בקרוב', tone: 'warn' },
@@ -31,17 +31,20 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   // critic סבב 127: מצוקה/קטין/משפטי/מחלוקת משולח לא משויך — המייל הדחוף מוביל לכאן ⇒ ראשונה ומסומנת
   unknown_sender_urgent: { icon: '🚨', title: 'פנייה דחופה ממספר/כתובת לא מוכרים — לבדיקתך עכשיו', tone: 'warn' },
   // החלטה 5 (18.11.2026): פנייה דחופה מכתובת המשותפת לכמה לקוחות — כרטיס אחד, בלי שיוך אוטומטי, בעל העסק בוחר
-  shared_contact_urgent: { icon: '🚨', title: 'פנייה דחופה ממספר/כתובת של כמה לקוחות — לא שויכה, בדקו למי היא שייכת', tone: 'warn' },
+  shared_contact_urgent: { icon: '🚨', title: 'פנייה דחופה ממספר/כתובת של כמה לקוחות — לא שויכה, בחרו למי היא שייכת', tone: 'warn' },
   shared_contact_ambiguous: { icon: '👥', title: 'הודעה ממספר/כתובת של כמה לקוחות — לא שויכה, לבדיקתך', tone: 'warn' },
 };
 /** נכנסות שמוצגות כאן: רק בלי לקוח מזוהה (ללקוח מזוהה יש טיוטה/כרטיס ב«תשובות לקוחות»). */
 const INBOUND_ORPHANS = new Set(['unknown_sender', 'unknown_sender_urgent', 'shared_contact_ambiguous', 'shared_contact_urgent']);
 const URGENT_ORPHANS = new Set(['unknown_sender_urgent', 'shared_contact_urgent']);
 
-/** החלטה 5: הלקוחות המקושרים מה-payload (שמות בלבד; בעל העסק בוחר) — בלי לזרוק על JSON פגום. */
-function linkedNames(payload?: string | null): string[] {
-  try { return ((JSON.parse(payload ?? '{}').linked_customers ?? []) as { name?: string }[]).map(c => c.name ?? '').filter(Boolean); }
-  catch { return []; }
+/** החלטה 5: הלקוחות המקושרים מה-payload (id+שם; בעל העסק בוחר — critic סבב 149) — בלי לזרוק על JSON פגום. */
+function linkedCustomers(payload?: string | null): { id: number; name: string }[] {
+  try {
+    return ((JSON.parse(payload ?? '{}').linked_customers ?? []) as { id?: unknown; name?: unknown }[])
+      .filter(c => typeof c.id === 'number' && typeof c.name === 'string' && c.name)
+      .map(c => ({ id: c.id as number, name: c.name as string }));
+  } catch { return []; }
 }
 
 /** מסנן ומתרגם. intent לא מוכר ⇒ מוצג עם כותרת כללית (לא נבלע בשקט). סדר: trial_ending ראשון, ואז החדש ביותר. */
@@ -51,9 +54,9 @@ export function systemNotices(rows: OwnerMsg[]): Notice[] {
       || (r.direction === 'in' && r.customer_id == null && INBOUND_ORPHANS.has(r.intent ?? '')))
     .map(r => {
       const k = KIND[r.intent ?? ''] ?? { icon: 'ℹ️', title: 'הודעה מגבי', tone: 'info' as const };
-      const names = r.intent === 'shared_contact_urgent' ? linkedNames(r.payload) : [];
-      const body = names.length ? `${r.body}\n\nלקוחות מקושרים: ${names.join(' · ')}` : r.body;
-      return { id: r.id, icon: k.icon, title: k.title, body, tone: k.tone, intent: r.intent ?? '' };
+      const linked = r.intent === 'shared_contact_urgent' ? linkedCustomers(r.payload) : [];
+      const body = linked.length ? `${r.body}\n\nלקוחות מקושרים: ${linked.map(c => c.name).join(' · ')}` : r.body;
+      return { id: r.id, icon: k.icon, title: k.title, body, tone: k.tone, intent: r.intent ?? '', ...(linked.length ? { linked } : {}) };
     })
     .sort((a, b) => Number(URGENT_ORPHANS.has(b.intent)) - Number(URGENT_ORPHANS.has(a.intent))
       || Number(b.intent === 'trial_ending') - Number(a.intent === 'trial_ending') || b.id - a.id);

@@ -1274,3 +1274,15 @@ test('החלטה 5: shared_contact_urgent מוצג ראשון, דחוף, עם ה
   assert.match(n[0].body, /רונית לוי/);
   assert.match(n[0].body, /משה כהן/);
 });
+
+// critic סבב 149: לכרטיס הכתובת המשותפת לא היה ממשק לשיוך — רק «טופל». הכרטיס חושף את הלקוחות המקושרים (id+שם)
+// כדי שהלוח יציג כפתור «שייך ל…» לכל אחד.
+test('critic 149: shared_contact_urgent חושף linked (id+שם) לכפתורי שיוך', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const [n] = systemNotices([{ id: 4, customer_id: null, direction: 'in', channel: 'sms', body: 'אני בן 15',
+    intent: 'shared_contact_urgent', created_at: '2026-11-18T09:00:00+02:00',
+    payload: JSON.stringify({ linked_customers: [{ id: 1, name: 'דנה כהן' }, { id: 2, name: 'יוסי לוי' }] }) }]);
+  assert.deepEqual(n.linked, [{ id: 1, name: 'דנה כהן' }, { id: 2, name: 'יוסי לוי' }]);
+  const { api } = await import('../src/api.ts');
+  assert.equal(typeof api.assignShared, 'function');
+});
