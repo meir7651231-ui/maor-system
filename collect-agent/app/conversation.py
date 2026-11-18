@@ -2278,6 +2278,13 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             and not _s(_KEEPS_DISPUTE, t):
         found.discard(Intent.DISPUTE)
         found.add(Intent.HOW_TO_PAY)
+    # לולאה 18.11 (המשך לסבב 136): «אני לא עובדת» = מובטלת, לא «המוצר לא עובד». «הילד חולה מאוד ואני לא עובדת,
+    # אין כסף» ⇒ היה מחלוקת ⇒ תשובה «נברר את העניין» וכרטיס «חולק/ת על החוב» להורה במצוקה. גוף ראשון/בן-זוג ⇒ אין עבודה.
+    _jobless = (r"(?<![\w])(?:ו)?(?:אני|אנחנו|בעלי|אשתי|בעלה|אישתי|בן הזוג שלי|בת הזוג שלי)\s+(?:כבר\s+|עדיין\s+|כרגע\s+|"
+                r"לא\s+)?(?:לא\s+)?(?:עובד|עובדת|עובדים)(?![\w])(?!\s+(?:פה|כאן|במשרד|בחברה))")
+    if Intent.DISPUTE in found and _s(_jobless, t) and not _hits(RX[Intent.DISPUTE], re.sub(_c(_jobless), " ", t)):
+        found.discard(Intent.DISPUTE)
+        found.add(Intent.CANT_PAY)
     # "הלינק לא עובד" = בעיה טכנית בקישור, לא מחלוקת על החוב
     if Intent.DISPUTE in found and _s(r"(?:קישור|לינק)\W+(?:\w+\W+){0,2}(?:לא )(?:עובד|נפתח|נטען)", t) \
             and not _s(_KEEPS_DISPUTE + r"|לא אשלם", t):  # critic סבב 79
