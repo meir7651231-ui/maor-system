@@ -48,6 +48,7 @@ margin-bottom:8px;word-break:break-all}
 iframe{width:100%;min-height:360px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .empty{color:var(--muted);padding:24px;text-align:center}.err{color:var(--bad);margin-top:8px}
 .note{color:var(--warn);background:var(--warn-bg);padding:8px 12px;border-radius:8px;margin-top:8px}
+#oiLink{display:inline-flex;align-items:center;min-height:40px;font-weight:700;color:inherit}
 .confirm{display:flex;gap:8px;align-items:flex-start;margin-top:12px;padding:10px 12px;border:1px solid var(--bad);border-radius:8px;cursor:pointer}
 .decide{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 #dash{max-width:1200px;margin:16px auto 0;padding:0 16px}
@@ -100,6 +101,8 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 <div id="dash">
   <!-- critic סבב 150: פקיעת לוח החגים (גם ב-/app/). אחרי התאריך גבי עוצרת את כל השליחות -->
   <div class="note" id="holWarn" role="status" hidden></div>
+  <!-- critic סבב 151: «דורש טיפול שלך» היה רק מספר ב-/ui — הרשימה והפעולות נמצאות ב-/app/ (אותה התחברות) -->
+  <div class="note" id="oiNote" role="status" hidden><span id="oiMsg"></span> <a href="/app/#/dashboard" id="oiLink">במסך הניהול ←</a></div>
   <div class="kpis" id="kpis"></div>
   <section class="card" id="ol" hidden aria-labelledby="olH"><h2 id="olH"></h2>
     <p class="slogan">לפני תזכורת ראשונה: מה עדיין פתוח, ומה כבר שולם בביט, במזומן או בהעברה? על מה שלא סימנתם לא תצא תזכורת.</p>
@@ -238,6 +241,8 @@ async function loadDash(ask){
     ["חשבוניות פתוחות",t.open_invoices],["ממתינות לאישורך",t.pending_approval,t.pending_approval>0],
     ["SMS שנשלחו (בדיקה)",t.sent_sms],["מיילים שנשלחו (בדיקה)",t.sent_email],
     ["דורש טיפול שלך",t.owner_inbox,t.owner_inbox>0],["נסגרו (שולמו)",t.closed_invoices]];
+  {const n=+t.owner_inbox||0;$("#oiMsg").textContent=n?`יש ${n} ${n===1?"פריט שדורש":"פריטים שדורשים"} טיפול שלך. הודעות מלקוחות מופיעות כאן למטה; התראות מערכת ופניות שלא שויכו ללקוח —`:"";
+   $("#oiNote").hidden=!n}
   $("#kpis").innerHTML=k.map(([l,v,w])=>`<div class="card kpi ${w?"warn":""}"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("");
   dRows=d.invoices;drawDebts();
   await loadOpen(t.open_unreviewed||0);
