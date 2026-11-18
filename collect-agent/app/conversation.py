@@ -480,10 +480,10 @@ _EN_NOT_MONEY_OBJ = (r"(?!\s*\?)(?!\s+(?:(?:my|our|his|her|their|the|a|an|this|t
 # «we're going to make the payment on Friday», «I'll have it transferred» ⇒ היה «לא ברור» (בלי מועד, בלי השהיה).
 # 🔴 וגרוע מזה: «I'll pay when I get paid», «I'll get the transfer done tomorrow», «transfer done tomorrow» ⇒ PAID_CLAIM
 # («טוען/ת ששילם/ה», התזכורות נעצרות) — למי שרק *מבטיח*. עכשיו: הבטחה; וטענת תשלום נבדקת בלי קטעי העתיד.
-_EN_FUT_AUX = (r"(?:i'?ll|i\s+will|we'?ll|we\s+will|(?:i'?m|i\s+am|we'?re|we\s+are)\s+(?:going\s+to|gonna)|gonna)"
+_EN_FUT_AUX = (r"(?:i'?ll|ill|i\s+will|we'?ll|we\s+will|(?:i'?m|i\s+am|we'?re|we\s+are)\s+(?:going\s+to|gonna)|gonna)"
                r"\s+(?:(?:just|definitely|surely|probably|try\s+to|be\s+able\s+to)\s+)?")
 _EN_FUT_XFER = re.compile(
-    r"\b" + _EN_FUT_AUX + r"(?:make|do|send|get|complete|initiate|arrange|set\s+up|put\s+through)\s+(?:the|a|an|my|our)\s+"
+    r"\b" + _EN_FUT_AUX + r"(?:make|do|send|get|complete|process|initiate|arrange|set\s+up|put\s+through)\s+(?:the|a|an|my|our)\s+"
     r"(?:bank\s+)?(?:transfer|wire(?:\s+transfer)?|payment|deposit)\b"
     r"(?!\s+(?:of|for)\s+(?:my|our|his|her|the)\s+(?!payment|bill|invoice|balance|debt|amount)\w+)"
     r"(?!\s+to\s+(?:my|our|his|her)\s+(?!account)\w+)"
@@ -1067,9 +1067,8 @@ _extend(Intent.HOW_TO_PAY,
         r"^\W*i\s+(?:want|wanna|would\s+like|'d\s+like)\s+to\s+pay(?:\s+(?:it|this|the\s+bill|now|today))?(?:\W+(?:how|thanks|please))?\W*$")
 # STATUS 297 «הבא» AI: עתיד של העברה = הבטחה — «I'll make the transfer tomorrow», «I will do the bank transfer on Sunday»,
 # «ill send the transfer friday», «אעשה את ההעברה מחר», «אבצע העברה ביום ראשון» ⇒ היו UNKNOWN (בלי השהיה, בלי מועד).
+# מנהל 298 (איחוד): האנגלית עברה ל-_EN_FUT_XFER (מסלול אחד, עם שומרי שאלה/שלילה/מושא-לא-כסף); כאן רק העברית.
 _extend(Intent.PROMISE,
-        r"\b(?:i'?ll|i\s+will|ill|will|gonna|going\s+to|i'?m\s+going\s+to)\s+(?:make|do|send|complete|process)\s+(?:the|a|my)\s+"
-        r"(?:bank\s+)?(?:transfer|wire|payment)\b",
         r"(?<![\w])(?:אעשה|אבצע|נעשה|נבצע|אשלח|נשלח)\s+(?:את\s+)?(?:ה)?(?:העברה|העברה\s+הבנקאית|תשלומ)(?![\w])")
 # וסירוב לעשות אותה = כמו «לא אשלם» ⇒ מחלוקת: «I won't make the transfer», «לא אעשה את ההעברה»
 _extend(Intent.DISPUTE,

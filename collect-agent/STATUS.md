@@ -35,22 +35,23 @@
 
 ## 🧭 הפעלת מנהל · 18.11.2026 (הפעלה 298)
 - **מיזוג:** אין ענפים חדשים עם שינוי ב-`collect-agent/`. שלושה מוכרים: `stoic-mccarthy-23f03p` (נדחה, 107) · `bold-bell-xom3mc` (WIP, ממתין למאיר; רק מיזוגים מ-collect-agent מאז) · `gabi-019-inbound` (התוכן כבר ב-collect-agent). ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
-- **CI:** ריצה 908 (`66b585da`) רצה בזמן ההפעלה; 904–907 בוטלו כי ריצה חדשה החליפה אותן (concurrency), לא נכשלו. סבב ביקורת 153 (`a6b47652`, 🔴 safe_auto + «איך משלמים?» אחרי קטין/מצוקה ⇒ קישור נשלח אוטומטית; 4 xfail strict) כבר על הענף ⇒ פיתוח.
+- **CI:** ריצה 908 (`66b585da`) רצה בזמן ההפעלה; 904–907 בוטלו כי ריצה חדשה החליפה אותן (concurrency), לא נכשלו. סבב ביקורת 153 🔴 (safe_auto שלח קישור תשלום ללקוח מושהה-מגן) **כבר תוקן** בענף (`3afc3e03`, ה-xfail הוסרו).
 - **המשימה (AI «הבא» מ-297) ✅: עתיד של «transfer» באנגלית ⇒ הבטחה. 🔴 נמצא בדרך באג חמור יותר ותוקן.**
   - **הפער:** «I'll make the transfer tomorrow», «I will do the transfer on Sunday», «we'll make the payment on Friday», «I'm going to make the transfer», «I'll have it transferred» ⇒ UNKNOWN (בלי מועד).
   - 🔴 **הבאג:** «I'll pay when I get paid», «I'll transfer when I get paid», «I'll get the transfer done (tomorrow)», «I'll make the transfer when I get paid» ⇒ **PAID_CLAIM**: מי שרק מבטיח קיבל «עצרנו את התזכורות», ובעל העסק קיבל כרטיס «טוען/ת ששילם/ה 1,200 ₪». הסיבה: `\bpaid\b` תופס את המשכורת של הלקוח («get paid»), ו«transfer done» תופס את «get the transfer done».
   - **תיקון (`conversation.py`):** `_EN_FUT_XFER` (עזר עתידי + make/do/send/get/set up + the/a transfer/payment/wire/deposit, או «have it transferred») ⇒ PROMISE, והמועד נרשם (נוסף גם ל-`_PROMISE_VERB_EN`). שומרים: שלילה («won't», «I don't think I'll», «never»), שאלה **באותו משפט** («I'll make the transfer tomorrow?» ⇒ לא; «…, how do I do it?» ⇒ כן), מושא שאינו כסף («to my son», «of my number»). `_EN_GET_PAID` + `_strip_en_future`: טענת תשלום באנגלית נבדקת על הטקסט **בלי** קטעי העתיד והמשכורת ⇒ «I paid, I'll send the receipt», «I got paid today so I paid you» נשארות טענה.
+  - **איחוד (חשוב):** אותה משימה בוצעה במקביל ב-`e70582fd` (סשן AI אחר). אחרי המיזוג נשאר **מסלול אחד** לאנגלית: הרגקס האנגלי של e70582fd הוסר (בלי שומרים: «I'll make the transfer tomorrow?», «…to my son», «I don't think I'll…» נרשמו הבטחה), ו«ill»/«process» שלו נוספו ל-`_EN_FUT_XFER`. נשמרו ממנו: העברית («אעשה את ההעברה מחר») וסירוב ⇒ מחלוקת («I won't make the transfer»). שני קובצי הבדיקות ירוקים יחד (116).
   - **לא השתנה:** עברית · «transfer done tomorrow» (עמום ⇒ נשאר טענה, מגן) · כל טענות 297.
   - חדש: `tests/test_mgr298_future_transfer_en.py` (47: ‏24 הבטחות, 8 לא-הבטחות, 7 טענות שנשמרו, מועדים, בלי כרטיס «ששילם», עברית, רצפים) + `evals/seq/regress-mgr298.jsonl` (3 רצפים, SMS ומייל, כולל «I'll pay when I get paid» ⇒ «by the 20th» ⇒ PROMISED).
-  - **אומת מקומית:** `pytest` **6941 עברו**, 20 דולגו, 4 xfail (סבב 153) · `ruff` נקי · `evals.harness` 100% (0 הפרות מעקה) · `evals.sequences` כל הקבצים 100% · `demo.sh --check` ירוק. **מוטציה:** בלי החיווט ⇒ 32/47 נופלות.
+  - **אומת מקומית:** `pytest` **6973 עברו** (אחרי המיזוג והאיחוד), 20 דולגו · `ruff` נקי · `evals.harness` 100% (0 הפרות מעקה) · `evals.sequences` כל הקבצים 100% · `demo.sh --check` ירוק. **מוטציה:** בלי החיווט ⇒ 32/47 נופלות.
 - **מצב לפי תפקיד:**
-  - פיתוח: **הבא:** סבב 153 🔴 (`inbox.handle_customer` ב-safe_auto — הסלמה קודמת חוסמת שליחה אוטומטית של קישור; להפוך את 4 ה-xfail לירוקים) · ניסוח הכרטיס ליד הסדר שנדחה (ממתין לביקורת).
+  - פיתוח: ✅ סבב 153 (`3afc3e03`). **הבא:** ניסוח הכרטיס ליד הסדר שנדחה (ממתין לביקורת).
   - ביקורת: **הבא:** לאשר או להפוך 294–298 (298: «transfer done tomorrow» נשאר טענה — מגן או לא?).
-  - AI: ✅ עתיד «transfer». **הבא:** «when I get paid» לבד ב-IDLE (היום UNKNOWN; הבטחה מעורפלת?) · q17-12 · וריאציות 295–298 לסט המוחזק.
-  - QA: **הבא:** סט #18 (עיוור), כולל «I'll pay when I get paid» ו«I'll get the transfer done».
+  - AI: ✅ עתיד «transfer». ⚠️ שני סשני AI לקחו את אותו «הבא» — מעכשיו כל «הבא» של AI נלקח ע״י סשן AI, ומנהל לוקח רק משימה שמסומנת «מנהל». **הבא:** «when I get paid» לבד ב-IDLE (היום UNKNOWN; הבטחה מעורפלת?) · q17-12 · וריאציות 295–298 לסט המוחזק.
+  - QA: ✅ סט #18 נכנס (`466fc605`). **הבא:** סט #19 (עיוור), כולל «I'll pay when I get paid» ו«I'll get the transfer done».
   - תשתית/CI: לוודא שריצת הקומיט הזה ירוקה.
   - חיבורים / משפטי / שיווק / מכירות: ללא שינוי.
-- **הבא:** (1) CI ירוק. (2) פיתוח: סבב 153 🔴. (3) ביקורת: הכרעות 294–298. (4) QA: סט #18. (5) AI: «when I get paid» לבד.
+- **הבא:** (1) CI ירוק. (2) ביקורת: הכרעות 294–298. (3) QA: סט #19. (4) AI: «when I get paid» לבד, ו-«will do the transfer» בלי נושא. (5) פיתוח: לפי הכרעות הביקורת.
 - **חסמים (מאיר):** ללא שינוי: sandbox לספקים, ניסוח מע״מ, פרטי החברה המפעילה, מסמך API של 019, ענף `bold-bell-xom3mc`, ספק מייל לבעלים, הכרעות qa15, ער״ן בתשובה ל«הצילו» לבד.
 
 ## 🧭 הפעלת מנהל · 18.11.2026 (הפעלה 297)
