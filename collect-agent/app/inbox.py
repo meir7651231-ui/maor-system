@@ -157,9 +157,13 @@ class ConversationInbox:
 
     # ---------- כתובת משותפת + דחוף (נושא 5) ----------
     SHARED_URGENT = "shared_contact_urgent"
+    # גבייה סוכן 18.11 («אף לקוח ששילם לא מקבל תזכורת»): «שילמתי» מכתובת משותפת בלי שיוך ⇒ היה
+    # shared_contact_ambiguous בלי השהיה ⇒ plan() בנה תזכורת גם למי ששילם. עכשיו כרטיס עם בחירה + השהיית כולם.
+    SHARED_PAID = "shared_contact_paid_claim"
+    SHARED_CARDS = (SHARED_URGENT, SHARED_PAID)
 
     def _shared_urgent_card(self, channel: str, sender: str, text: str, linked: list, intent: str,
-                            found: set, now) -> dict:
+                            found: set, now, card: str = SHARED_URGENT) -> dict:
         """החלטת ראש הצוות לנושא 5 (18.11.2026): פנייה דחופה מכתובת/מספר המשותפים לכמה לקוחות ⇒ דחופה בכל מקרה,
         כרטיס בעל עסק אחד עם כל הלקוחות המקושרים, בלי שיוך אוטומטי (גם אם אחד קיבל את ההודעה האחרונה) ובלי
         תשובה ללקוח עד שבעל העסק בוחר (`assign_shared_card`). לא-דחוף ⇒ כמו קודם (סבב 27)."""
@@ -175,26 +179,27 @@ class ConversationInbox:
         # עד שבעל העסק בוחר: אף לקוח מקושר לא מקבל תזכורת או תשובה בכתובת הזו
         for c in linked:
             if not c["paused_reason"]:
-                self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (self.SHARED_URGENT, c["id"]))
+                self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (card, c["id"]))
             for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (c["id"],)):
-                self.svc._cancel_invoice(inv["id"], self.SHARED_URGENT)
+                self.svc._cancel_invoice(inv["id"], card)
         # מבנה ה-payload נקרא ב-web (notices.ts: linked_customers[].name) — לא לשנות שמות שדות
         payload = json.dumps({"linked_customers": [{"id": c["id"], "name": c["name"]} for c in linked],
                               "urgent": intent}, ensure_ascii=False)
         mid = self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,payload,"
                         "created_at) VALUES(NULL,'in',?,?,?,1,?,?)",
-                        (channel, text, self.SHARED_URGENT, payload, _iso(now)))
-        self.svc.audit("customer", "shared_contact_urgent", {"message": mid, "customers": ids,
-                                                             "intent": intent})
-        self.svc.email_owner_urgent(intent, unmatched="shared")
-        return {"intent": self.SHARED_URGENT, "detected": intent, "escalate": True,
-                "escalation": "urgent", "draft_id": None, "auto_reply": None, "plan_id": None,
+                        (channel, text, card, payload, _iso(now)))
+        self.svc.audit("customer", card, {"message": mid, "customers": ids, "intent": intent})
+        urgent = card == self.SHARED_URGENT
+        if urgent:   # «שילמתי» אינו דחוף — אין מייל מחוץ לאפליקציה (throttle הדחופים נשמר לדחופים)
+            self.svc.email_owner_urgent(intent, unmatched="shared")
+        return {"intent": card, "detected": intent, "escalate": True,
+                "escalation": "urgent" if urgent else "normal", "draft_id": None, "auto_reply": None, "plan_id": None,
                 "card_id": mid, "linked_customers": ids}
 
     def assign_shared_card(self, card_id: int, customer_id: int | None, actor: str = "owner") -> dict:
         """בעל העסק בחר למי ההודעה שייכת (או None = «אף אחד מהם»). רק אז המנוע מטפל בה כרגיל עבור הלקוח
         הנבחר (השפעות + טיוטה לאישור); שאר הלקוחות המקושרים משתחררים מההשהיה של הכרטיס הזה."""
-        m = self.db.one("SELECT * FROM messages WHERE id=? AND intent=?", (card_id, self.SHARED_URGENT))
+        m = self.db.one("SELECT * FROM messages WHERE id=? AND intent IN (?,?)", (card_id, *self.SHARED_CARDS))
         if m is None:
             raise KeyError(card_id)
         if not m["needs_owner"]:
@@ -210,7 +215,7 @@ class ConversationInbox:
         self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (card_id,))
         for cid in ids:
             self.db.x("UPDATE customers SET paused_reason=NULL WHERE id=? AND paused_reason=?",
-                      (cid, self.SHARED_URGENT))
+                      (cid, m["intent"]))
         self.svc.audit(actor, "shared_contact_assigned", {"card": card_id, "customer": customer_id})
         if customer_id is None:
             return {"card_id": card_id, "assigned": None}
@@ -231,6 +236,9 @@ class ConversationInbox:
         shared_urgent = next((i.value for i in _SHARED_URGENT if i in found), None)
         if shared_urgent:
             return self._shared_urgent_card(channel, sender, text, linked, shared_urgent, found, now)
+        if cust is None and ambiguous and Intent.PAID_CLAIM in found:
+            return self._shared_urgent_card(channel, sender, text, linked, Intent.PAID_CLAIM.value, found, now,
+                                            card=self.SHARED_PAID)
         if cust is None and ambiguous:
             # critic סבב 27: כתובת של כמה לקוחות ואף אחד מהם לא קיבל הודעה ⇒ לא משייכים ולא מנסחים
             # (אין טיוטה עם חוב של אדם אחר). «הסר» ⇒ רשימת ההסרה לפי הכתובת ⇒ חל על כולם.
