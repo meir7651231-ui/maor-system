@@ -295,7 +295,7 @@ class ConversationInbox:
         self._save_state(cust["id"], d, bump_turn=bool(d.reply))
         # מבקר סבב 99: כרטיס דחוף לא הודיע לבעלים מחוץ לאפליקציה ⇒ מייל קצר (בלי טקסט הלקוח, עם throttle)
         if d.escalate == Escalation.URGENT or d.intent.value in _URGENT_OWNER_ALERT:
-            self.svc.email_owner_urgent(_alert_kind(d))
+            self.svc.email_owner_urgent(_alert_kind(d), auto_replied=bool(d.auto_send and d.reply))
         self.svc.audit("customer", "conversation", {
             "customer": cust["id"], "intent": d.intent.value,
             "secondary": [i.value for i in d.secondary], "escalate": d.escalate.value,
