@@ -432,8 +432,17 @@ def _guard(part: str) -> str:
 _INSOLVENT_ME = (r"(?<![\w])(?:פשטתי|פשטנו)\s+רגל(?![\w])|(?<![\w])(?:אני|אנחנו)\s+(?:כבר\s+|עכשיו\s+)?(?:פושט|פושטת|פושטי)\s+רגל(?![\w])"
                  r"|(?<![\w])הכריזו\s+(?:עלי|עליי|עלינו)\s+(?:כ)?(?:פושט|פושטת|פושטי)\s+רגל(?![\w])")
 # מצב רגיש בתוך cant_pay (מחלה/אשפוז/אבל) — משותף לתגית sensitive ולסדר הכוונות מול הצעה שנשלחה
+# מנהל 299: אבל באנגלית — קרוב משפחה שנפטר («my dad passed», «my mother died», «lost my father last week»).
+_EN_KIN = (r"(?:dad|father|mom|mum|mother|husband|wife|son|daughter|brother|sister|partner|grandma|grandpa"
+           r"|grandmother|grandfather|parent|baby|child|kid)")
+_EN_BEREAVE = (r"\b(?:my|our)\s+(?:\w+\s+)?" + _EN_KIN + r"s?\s+(?:just\s+|recently\s+|suddenly\s+)?(?:died\b|passed\s+away\b"
+               r"|passed(?=\s*(?:$|[,.!;:\-–—]|(?:last|this|yesterday|today|on|in|recently|earlier)\b)))"
+               r"|\b(?:lost|buried)\s+(?:my|our)\s+(?:\w+\s+)?" + _EN_KIN + r"\b(?!\s*['’]?s\b|\s+(?:card|phone|keys?|wallet|number))"
+               r"|\bsitting\s+shiva\b")
 _SENSITIVE_ILL = (r"חולה|מחלה|מאושפז|אשפוז|ניתוח|כימו|שבעה|(?:(?:אני|אנחנו|אנו|אנחנו עדיין|עדיין) ב?אבל|ימי (?:ה)?אבל|בתקופת (?:ה)?אבל|שנת (?:ה)?אבל|באבל)|נפטר|לעולמ|לוויה|בבית ה?חולימ|בבי\"?ח|בטיפול נמרצ"
-                  r"|\bpassed away\b|\bfuneral\b|\bmourning\b|\bhospital|\bsurgery\b|\bicu\b")
+                  r"|\bpassed away\b|\bfuneral\b|\bmourning\b|\bhospital|\bsurgery\b|\bicu\b"
+                  # מנהל 299 (qa18 q18-19 🔴): «my dad passed last week» ⇒ היה cant_pay רגיל (לא דחוף). «passed» בלי away
+                  r"|" + _EN_BEREAVE)
 # ר-6: חדלות פירעון (תגית insolvency)
 _INSOLVENCY_TAG = (r"פשיטת רגל|חדלות פירעון|צו כינוס|צו פתיחת הליכים|הליך חדלות|נאמן (?:בתיק|שמונה)|כונס נכסים"
                    r"|(?:תיק|תיקי) איחוד|איחוד תיקים|מעוקל|עיקול|דרך (?:ה)?לשכה|" + _INSOLVENT_ME)
@@ -518,6 +527,8 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"\b(?:can'?t|cannot)\s+(?:even\s+)?(?:afford|buy)\s+(?:food|groceries)\b", r"\bno\s+money\s+(?:even\s+)?for\s+food\b",
         r"אני גומר עם (?:זה|הכול|הכל|החיים)", r"לא רוצה לחיות", r"אין לי בשביל מה לחיות", r"לא רוצה (?:כבר |יותר )?כלום(?: מהחיים)?\W*$", r"לא רוצה (?:כבר |יותר )?כלום מהחיים", r"\bwant (?:it all|everything) to (?:end|stop)\b|\bend it all\b", r"(?:אין|בקושי יש) (?:לי|לנו) (?:מה )?(?:לאכול|אוכל)", r"(?:ה)?(?:כל|כול) נופל עליי", r"(?:אין לי כוח|לא יכול\w*) ל(?:קום|צאת) מה?(?:מיטה|בוקר)", r"(?:לקום|לצאת מהמיטה) בבוקר", r"(?:מרגיש|מרגישה) ש?אין טעם", r"אין טעם (?:לשום|לכלום|בכלום|לחיות)", r"אין לי כוח (?:יותר )?(?:לכלום|לשום דבר)", r"(?:ה)?(?:כל|כול|חיים|עולם)(?: שלי)? (?:קורס|קרס|מתפרק|מתמוטט)\w*(?! ה?(?:מזגן|מחשב|אתר|שרת))(?:\s+(?:עליי|עלי|לי)|\s*[,.!]|$)", r"(?:אני )?(?:מתפרק|מתפרקת|מתמוטט|מתמוטטת)(?![\w])", r"(?:אני )?על הקצה", r"(?:כבר )?לא מחזיק\w* מעמד", r"אין לי כוח (?:לכלום|לשום דבר|לחיים)", r"לא (?:מסוגל|מסוגלת|יכול|יכולה)\w* יותר(?: עם (?:זה|הכל|הכול|החיים))?(?:\s*[,.!]|$)", r"לא רואה (?:שום )?טעם (?:להמשיך|לחיות|בחיים|בכלום)", r"עדיף ש(?:לא אהיה|אמות|איעלם|אעלם)",
         r"(?:לא רוצה להיות|לא אהיה) (?:פה|כאן|בחיים) (?:יותר|בכלל)", r"לסיים את (?:החיים|הכול|הכל) (?:שלי)?$", r"לא יכול\w* (?:יותר )?עם (?:ה)?חיים", r"(?:בשביל מה|למה|סיבה|טעם|כוח) (?:לי )?(?:להמשיך )?לחיות",
+        # מנהל 299 (qa18 q18-19 🔴): «honestly I'm falling apart» = «אני מתפרק» (שכבר מצוקה בעברית). רק על הדובר
+        r"\b(?:i'?m|i\s+am|im|i\s+feel\s+like\s+i'?m)\s+(?:\w+\s+)?(?:falling\s+apart|breaking\s+down|at\s+my\s+breaking\s+point)\b",
         r"\bsuicid", r"kill myself",
         # מנהל 249 (qa7 x7-17): «thinking of killing myself» — נטיות + פגיעה עצמית
         r"\bkill(?:ing|ed)?\s+my\s*self\b", r"\bhurt(?:ing)?\s+my\s*self\b", r"\bself[- ]harm",
@@ -569,6 +580,13 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"^\W*(?:די|מספיק)\W+(?:ל?הודעות|עם ההודעות|לשלוח|עם הסמסים|עם המסרונים)\W*$",
         r"^\W*(?:אני )?לא מעוניינ\w*\W*$", r"\bremove me\b", r"\bplease stop\b",
         r"(?:תמחקו|מחקו|למחוק|תמחק|תמחקי|תוציאו|הוציאו|להוציא) (?:אותי|אותנו|את המספר|את הטלפון)",
+        # מנהל 299 (qa18 q18-24 🔴): «מאיפה יש לכם את המספר שלי?» ⇒ «תמחקו אותו בבקשה» היה UNKNOWN ⇒ ההסרה לא כובדה.
+        # «תמחקו אותו» כהודעה שלמה (בלי מושא אחר): אין דבר אחר למחוק בשיחת גבייה מלבד הפרטים — הסרה (צד מגן).
+        r"^\W*(?:אז\s+)?(?:תמחקו|מחקו|תמחק|תמחקי|נא\s+למחוק)\s+(?:לי\s+)?(?:אותו|אותה|אותמ)(?:\s+(?:בבקשה|מיד|עכשיו|מהמערכת"
+        r"|מהרשימה|מכל\s+מקומ|מהר))*\W*$",
+        # ואנגלית: «delete my number», «please delete me», «delete it» כהודעה שלמה
+        r"\b(?:delete|erase|remove)\s+(?:my\s+(?:number|phone|details|data|info|information|email|contact)|me\s+from)\b",
+        r"^\W*(?:please\s+|pls\s+|just\s+)?(?:delete|erase)\s+(?:me|it|this\s+number|this\s+contact)(?:\s+(?:please|pls|now|immediately))*\W*$",
         r"(?:אותי|אותנו) מה?רשימ",
         r"(?:די|תפסיקו|מספיק|הפסיקו)(?: כבר)?(?: עם)? (?:ה)?ספאם", r"(?:תסרו|תסירי|תסירו|תסרי)\s+(?:אותי|אותנו|את המספר|את הטלפון)",
         r"(?:לחדול|תחדלו|חדלו)\s+(?:מ|מלשלוח|ממשלוח|משליחת|מלפנות|מפנייה)\w*",
@@ -682,6 +700,13 @@ RX: dict[Intent, re.Pattern[str]] = {
         # מנהל הפעלה 247 (סט מוחזק #6): מחלוקת באנגלית — מוצר פגום / לא התקבל / ביטול / «לא משלם על זה»
         r"\b(?:arrived|came|is|was|it'?s)\s+(?:broken|damaged|defective|faulty)\b", r"\b(?:broken|damaged|defective|faulty)\s+(?:product|item|unit|goods)\b",
         r"\bnot\s+paying\s+(?:for\s+(?:this|that|it)|this|that)\b", r"\b(?:won'?t|will\s+not|refuse\s+to)\s+pay\b",
+        # מנהל 299 (qa18 q18-16 🔴): «charged for parts that were never replaced. I'm not paying until this is fixed.»
+        # ⇒ היה UNKNOWN (תזכורות ממשיכות על חשבונית שהלקוח חולק עליה). «until next month / I get paid» ≠ מחלוקת.
+        r"\bnot\s+(?:going\s+to\s+)?pay(?:ing)?\s+(?:\w+\s+){0,2}?(?:until|till|unless)\s+(?:(?:this|it|that|everything|the\s+\w+)"
+        r"\s+(?:is|are|gets?|has\s+been|have\s+been)\s+(?:\w+\s+)?(?:fixed|repaired|done|sorted|resolved|replaced|corrected|finished|completed)"
+        r"|you\s+(?:fix|repair|correct|sort|finish|complete|replace|redo)\w*)\b",
+        r"\bcharged\s+(?:me\s+|us\s+)?for\s+(?:\w+\s+){1,4}?(?:that|which)\s+(?:(?:was|were)\s+never|(?:was|were)\s*n'?t|(?:was|were)\s+not"
+        r"|never\s+got)\s+(?:\w+\s+)?(?:done|replaced|installed|delivered|fixed|provided|received|completed|used|performed)\b",
         r"\b(?:never|didn'?t|did\s+not)\s+(?:receive|get)\s+(?:the\s+|my\s+)?(?:product|item|order|goods|service)\b",
         r"\bi\s+cancell?ed\s+(?:the|my|this)\s+(?:order|subscription|service|contract)\b",
         r"(?:מחלוקת|ערעור|לא מסכים לשלם|לא מוכן לשלם|לא אשלם|לא מתכוונ\w* לשלם|לא משלם על)",
@@ -789,6 +814,7 @@ RX: dict[Intent, re.Pattern[str]] = {
         # מנהל 245 (qa2/qa3 פספוסים בטוחים): «יש לי קושי כלכלי», «נכנסתי למינוס ענק»
         r"(?:קושי|קשיים) (?:כלכלי|כלכליים|כספי|כספיים|בתזרים)", r"(?:נכנסתי|נכנסנו|ירדתי|ירדנו|נקלעתי|נקלענו) ל?(?:ה)?מינוס", r"(?<![\w])למינוס(?![\w])",
         r"(?:נפטר(?!(?:תי|נו|תם|תן)(?![\w]))|נפטרה|נפטרו|הלך לעולמו|הלכה לעולמה|הלוויה|לוויה)",  # מנהל 259: «נפטרתי מהחוב» ≠ אבל
+        _EN_BEREAVE,  # מנהל 299 (qa18 q18-19): «my dad passed last week» / «my father died» ⇒ היה unknown
         # מנהל 249 (qa7 x7-22/23/24): אובדן עבודה/יכולת, אבל ואשפוז באנגלית
         r"\b(?:lost|losing)\s+(?:my|our)\s+job\b", r"\blaid\s+off\b", r"\bunemployed\b",
         r"\b(?:can'?t|cannot|can\s+not|unable\s+to)\s+afford\b", r"\b(?:can'?t|cannot|unable\s+to)\s+pay\b(?!\s+(?:by|with|via|through|online|on\s+the|using)\b)",
@@ -1105,6 +1131,13 @@ _extend(Intent.OPT_OUT,
 # q13-13: «אני משלמת ב-20» (הווה + יום) = הבטחה; «אני משלמת כל חודש ב-10» ⇒ לא.
 _extend(Intent.PROMISE,
         r"(?:אני|אנחנו) (?:משלמ|משלמת|משלמימ|מעביר|מעבירה|מעבירימ) (?:(?:לכמ|את זה|את הכל|את הכול|את החוב) )?(?:ב|עד)\s*-?\s*(?:ה)?\d")
+# מנהל 299 (qa18 q18-30): «Payment will go out Thursday» / «the transfer will be sent on Sunday» ⇒ היה UNKNOWN (בלי
+# הבטחה) — ולצד «our lawyer confirmed the amount is correct» נשאר רק legal (דחוף, בלי מועד). פסיבי/נושא = התשלום.
+_extend(Intent.PROMISE,
+        r"\b(?:the\s+|my\s+|our\s+|your\s+)?(?:payment|transfer|money|check|cheque|wire|balance)\s+(?:will|'ll|is\s+going\s+to|should|shall)"
+        r"\s+(?:go\s+out|be\s+(?:sent|made|transferred|wired|paid|processed|deposited|released)|reach\s+you|arrive|hit\s+your\s+account)\b"
+        r"(?!\s*\?)",
+        r"\b(?:the\s+)?(?:payment|transfer)\s+goes\s+out\s+(?:on\s+)?(?:mon|tues|wednes|thurs|fri|sun|satur)day\b")
 # 🔴 q13-09: «אני על סף התמוטטות» ⇒ היה «לא ברור»; יחד עם «אשלם ב-20» נרשמה הבטחה בלי הסלמה.
 _extend(Intent.DISTRESS,
         r"על סף (?:ה)?(?:התמוטטות|קריסה|שבירה|ייאוש)(?![\w])",
@@ -1241,6 +1274,8 @@ _extend(Intent.OPT_OUT,
 _extend(Intent.DISTRESS, r"^\W*(?:i\s+)?can'?t\s+take\s+it\s+(?:no\s+more|anymore|any\s+more)\W*$")
 _extend(Intent.CANT_PAY, r"^\W*(?:i\s+have\s+|i\s+got\s+)?no\s+money\s+(?:rn|right\s+now|atm)\b")
 _extend(Intent.WHO_IS_THIS, r"^\W*who\s+(?:dis|dat|this)\W*$")
+# מנהל 299 (qa18 q18-14 🔴): «Who's this?» / «whos this» / «who’s this?» ⇒ היה UNKNOWN (רק «who is this» נתפס)
+_extend(Intent.WHO_IS_THIS, r"^\W*who\s*['’]?\s*s\s+(?:this|that|texting|messaging|writing|emailing)(?:\s+me)?\b")
 
 # ═══ critic סבב 147: סלנג צ׳אט בעברית — סירוב/הסרה/קטין בהודעה קצרה ═══
 _extend(Intent.DISPUTE, r"^\W*(?:אני\s+)?לא\s+(?:משלמ|משלמת|משלמימ)(?:\s+(?:וזהו|וזהו זה|בכלל|על זה|לכמ|כלומ|שקל|אגורה))*\W*$")
@@ -1928,9 +1963,14 @@ def _date_only(t: str, today: date) -> tuple[date | None, bool] | None:
 # רץ רק כשיש הסדר בשיחה (AWAITING_PLAN_REPLY / PLAN_PENDING_OWNER עם offered_plan).
 _CHG_VERB = (r"(?<![\w])(?:ש|ו|ה)?(?:להזיז|להעביר|לדחות|להקדימ|לשנות|לזוז|להוריד|להפחית|להגדיל|להקטינ|לעדכנ"
              r"|תזיזו|תעבירו|תדחו|תקדימו|תשנו|תורידו|תעדכנו|נזיז|נעביר|נדחה|נשנה|נוריד|אפשר שה?תשלומ)(?![\w])"
-             r"|\b(?:move|change|shift|push|postpone|reschedule|lower|reduce|delay)\b")
+             r"|\b(?:move|change|shift|push|postpone|reschedule|lower|reduce|delay)\b"
+             # מנהל 299 (qa18 q18-02): «Could the first installment be pushed back?» על הסדר מאושר ⇒ «pushed» לא נתפס ⇒
+             # PLAN_REQUEST רגיל ⇒ הצעה **חדשה וזהה** והמצב חזר ל-AWAITING_PLAN_REPLY. נטיות (בלי change — «changed my mind»)
+             r"|\b(?:mov|shift|push|postpon|reschedul|delay)(?:e|ed|es|ing|s|d)\b")
 _CHG_OBJ = (r"(?<![\w])(?:ש|ו|ב|ל|מ|את )?(?:ה)?(?:תשלומ|תשלומימ|הסדר|פריסה|תאריכ|תאריכימ|מועד|מועדימ|סכומ)(?![\w])"
-            r"|\b(?:payments?|installments?|instalments?|plan|dates?|amount)\b")
+            r"|\b(?:payments?|installments?|instalments?|plan|dates?|amount)\b"
+            # מנהל 299 (qa18 q18-01): «can we move the first one to next month?» ⇒ היה «לא זיהיתי»
+            r"|\b(?:first|second|third|fourth|last|next)\s+one\b")
 _CHG_ORD = (r"(?:ה)?תשלומ (?:ה)?(ראשונ|שני|שלישי|רביעי|חמישי|שישי|אחרונ|הבא|החודשי|הקרוב)(?![\w])"
             r"|\b(first|second|third|fourth|last|next|monthly) (?:payment|installment|instalment)\b")
 _ORD_N = {"ראשונ": 1, "first": 1, "שני": 2, "second": 2, "שלישי": 3, "third": 3, "רביעי": 4, "fourth": 4,
@@ -2313,7 +2353,9 @@ _KEEPS_LEGAL = (r"תביע|אתבע|לתבוע|נתבע|משטרה|בית ה?מ�
                 r"|(?:אפנה|נפנה|תפנו|פנו|תדברו|דברו|ידבר|שידבר|תתקשרו|יתקשר|שיתקשר)\w* (?:אליו|אליה|איתו|איתה|אליכם"
                 r"|לעורך|לעו|עם (?:ה)?(?:עורך|עו))|דרך (?:ה)?(?:עורך|עו\"ד)|מייצג|ייצוג"
                 r"|(?:גם )?(?:לי|לנו) יש (?:עורך|עו\"ד)|(?:אחרי|לאחר) ש(?:הוא|היא)? ?(?:י|ת)?(?:בדוק|בדק|עבור|עבר)"
-                r"|\bcourt\b|\bsue\b|\blawsuit|\bsmall claims|\bcomplaint|\bhandling (?:it|this)|\bbe in touch|\bcontact (?:him|her|them|my)|\brepresent")
+                r"|\bcourt\b|\bsue\b|\blawsuit|\bsmall claims|\bcomplaint|\bhandling (?:it|this)|\bbe in touch|\bcontact (?:him|her|them|my)|\brepresent"
+                # מנהל 299: «Our lawyer will contact you. Payment will go out Thursday.» ⇒ עו״ד פעיל בעתיד = נשאר legal
+                r"|\b(?:lawyer|attorney|solicitor|counsel)s?\s+(?:will|'ll|is\s+going\s+to|are\s+going\s+to|would\s+like\s+to)\b")
 
 
 # כוונות מגינות — כשהן בהודעה, לא מוסיפים פרשנות של הצעה נגדית (מנהל 267)
@@ -2712,6 +2754,16 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     if Intent.DISPUTE in found and _s(r"טעות (?:קטנה )?ב(?:שם|כתובת|איות|תאריך)", t) \
             and _s(r"(?:אבל|אך)\s+(?:זה |לא )?(?:בסדר|נורא|משנה|חשוב)|אשלם|אעביר|נשלם", t) and not _s(_KEEPS_DISPUTE, t):
         found.discard(Intent.DISPUTE)
+    # מנהל 299 (qa18 q18-27 🔴): «stop the reminders for a week, I'll pay on the 16th» ⇒ היה הסרה (קבועה!) ראשית — לקוח
+    # שמבטיח תשלום עם מועד ומבקש *הפסקה זמנית* הוסר לצמיתות. עצירה תחומה בזמן («for a week», «until the 16th», «for now»,
+    # «עד ה-16», «לשבוע») + הבטחה, בלי מילת תמידיות ⇒ הבטחה (ההבטחה ממילא משהה את התזכורות עד המועד). בלי הבטחה ⇒ כמו קודם.
+    if Intent.OPT_OUT in found and Intent.PROMISE in found \
+            and _s(r"\b(?:stop|pause|hold)\w*\s+(?:\w+\s+){0,3}?(?:for\s+(?:a|one|1|two|2|a\s+couple\s+(?:of\s+)?)?\s*(?:days?|weeks?|while|now)"
+                   r"|until|till|til)\b|(?:תפסיקו|תעצרו|עצרו|הפסיקו|תפסיק)\s+(?:\w+\s+){0,3}?(?:ל(?:שבוע|שבועיימ|כמה ימימ|יומיימ)|עד|בינתיימ)"
+                   r"(?![\w])", t) \
+            and not _s(r"\b(?:ever|forever|permanent\w*|unsubscribe|remove|delete|anymore|any\s+more|never|for\s+good)\b"
+                       r"|יותר|שוב|אף פעמ|בכלל|לעולמ|מהרשימה|להסיר|תסירו|הסירו|הסר(?![\w])|תמחקו", t):
+        found.discard(Intent.OPT_OUT)
     # "stop calling me sir/madam" = כינוי, לא בקשת הפסקת פנייה (self4)
     if Intent.OPT_OUT in found and _s(r"\bstop calling me (?:sir|madam|ma'?am|mr|mrs|ms|bro|dude|that|names|by)\b", t):
         found.discard(Intent.OPT_OUT)

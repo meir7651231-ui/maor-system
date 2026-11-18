@@ -1,4 +1,4 @@
-# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 298, 18.11)
+# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 299, 18.11)
 
 ענף אינטגרציה: `collect-agent` (לא מוזג ל-main, ולא ימוזג בלי אישור מפורש של מאיר). תיקייה: `collect-agent/`.
 
@@ -32,6 +32,30 @@
 ## 📌 הכרעות מאיר — מחייבות כל תפקיד (6.11.2026)
 - **מחיר יחיד:** ₪119 לחודש **או** ₪1,190 לשנה · 14 ימי ניסיון. **אין ₪79**, אין A/B, אין מסלולים או מחירונים אחרים. מקור יחיד: `docs/PRICING.md` · בקוד: `Settings.price_ils_month=119`, `price_ils_year=1190`, `trial_days=14` · בדף הנחיתה: `PRICE` ב-`web/src/pages/Landing.tsx`. (ניסוח המע״מ «כולל מע״מ ככל שחל» — עדיין לאישור רו״ח/עו״ד, `docs/PRICING.md`.)
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
+
+## 🧭 הפעלת מנהל · 18.11.2026 (הפעלה 299)
+- **מיזוג:** אין ענפים חדשים עם שינוי ב-`collect-agent/` (`git log origin/collect-agent..<ענף> -- collect-agent/` על כל ענפי ה-remote). שלושה מוכרים: `stoic-mccarthy-23f03p` (נדחה, 107) · `bold-bell-xom3mc` (WIP, ממתין למאיר) · `gabi-019-inbound` (התוכן כבר ב-collect-agent). ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
+- **CI:** ריצה 918 (`88cfeb1b`, 298) **ירוקה**. 913–917 בוטלו כי ריצה חדשה החליפה אותן (concurrency), לא נכשלו.
+- **המשימה: סט מוחזק #18 (`466fc605`, «לא הורץ על המנוע») הורץ לראשונה ⇒ 21/30 (קריטיים 15/24). אחרי תיקון: 28/30 (22/24).** לא נלקח «הבא» של AI או QA.
+  - 🔴 **q18-02 (הכי חמור):** על הסדר שבעל העסק **אישר**, «Could the first installment be pushed back?» ⇒ הצעת פריסה **חדשה וזהה** ללקוח, הסדר proposed שני, והמצב חזר ל-AWAITING_PLAN_REPLY. הסיבה: `_CHG_VERB` הכיר רק `push/move` בבסיס. תיקון: נטיות (pushed/moved/postponed/rescheduled/delayed/shifted — בלי changed, כדי לא לבלוע «changed my mind») + «the first one» כמושא. ⇒ כרטיס שינוי לבעל העסק, הסדר אחד.
+  - 🔴 **q18-14:** «Who's this?» ⇒ UNKNOWN. נוסף `who's/whos/who’s this|that|texting…`.
+  - 🔴 **q18-16:** «charged for parts that were never replaced. I'm not paying until this is fixed» ⇒ UNKNOWN (תזכורות ממשיכות). נוספו: סירוב מותנה בתיקון («not paying until it's fixed / until you fix») ו«charged for X that was never done/replaced». «not paying until next month / I get paid» ⇒ לא מחלוקת.
+  - 🔴 **q18-19:** «I'm falling apart… my dad passed last week» ⇒ cant_pay **לא דחוף**. נוספו: מצוקה «I'm falling apart / breaking down» (מקביל ל«מתפרק»), ואבל באנגלית `_EN_BEREAVE` («my dad passed», «my father died», «lost my father») ⇒ cant_pay + sensitive + דחוף. «my son passed his exam», «lost my dad's card» ⇒ לא.
+  - 🔴 **q18-24:** «מאיפה יש לכם את המספר?» ⇒ «תמחקו אותו בבקשה» ⇒ UNKNOWN (ההסרה לא כובדה). «תמחקו אותו» כהודעה שלמה ⇒ הסרה (צד מגן); גם «delete my number / please delete me». «תמחקו את החשבונית» ⇒ לא.
+  - 🔴 **q18-27:** «stop the reminders for a week, I'll pay on the 16th» ⇒ **הסרה קבועה** ראשית. עצירה תחומה בזמן (for a week / until / for now / עד / לשבוע) + הבטחה, בלי מילת תמידיות ⇒ הבטחה (ההבטחה משהה עד המועד). «stop sending reminders until Friday» בלי הבטחה, «forever», «remove me» ⇒ נשאר הסרה.
+  - 🔴 **q18-30:** «Our lawyer … confirmed the amount is correct. Payment will go out Thursday.» ⇒ legal (דחוף) בלי מועד. נוסף פסיבי «payment will go out / be sent» ⇒ הבטחה; עו״ד שיפעל בעתיד («our lawyer will contact you») נשאר legal (`_KEEPS_LEGAL`).
+  - **לא תוקן — לביקורת:** q18-01/03: «אין לי כסף החודש» על הסדר מאושר ⇒ `plan_reject` ראשי, `cant_pay` משני (הכרעת מנהל 287). ההתנהגות נכונה (כרטיס עם ההסדר, אין ביטול אוטומטי, אין הצעה כפולה); רק התווית שונה מהסט. ביקורת: לאשר את 287 או לשנות תווית.
+  - חדש: `tests/test_mgr299_qa18.py` (47) + `evals/seq/regress-mgr299.jsonl` (7 רצפים, SMS ומייל; rm299-01 בודק `plans: 1`). **מוטציה:** בלי התיקון ⇒ 30/47 נופלות.
+  - **אומת מקומית:** `pytest` **7014 עברו** (+47 החדשות בנפרד ירוקות), 20 דולגו · `ruff` נקי · `evals.harness` 100% (0 הפרות מעקה) · `evals.sequences` כל הקבצים 100% · `demo.sh --check` ירוק.
+- **מצב לפי תפקיד:**
+  - פיתוח: **הבא:** ניסוח הכרטיס ליד הסדר שנדחה (ממתין לביקורת).
+  - ביקורת: **הבא:** לאשר או להפוך 294–299 (299: «תמחקו אותו» לבד ⇒ הסרה; «delete it» לבד ⇒ הסרה; עצירה זמנית+הבטחה ⇒ לא הסרה) + q18-01/03 מול 287.
+  - AI: ללא שינוי מ-298. **הבא:** «when I get paid» לבד ב-IDLE · q17-12 · וריאציות 295–299 לסט המוחזק.
+  - QA: ✅ #18 הורץ (28/30). **הבא:** סט #19 (עיוור), כולל עצירה זמנית בעברית ובאנגלית, אבל באנגלית ושינוי תשלום בהסדר מאושר באנגלית.
+  - תשתית/CI: לוודא שריצת הקומיט הזה ירוקה.
+  - חיבורים / משפטי / שיווק / מכירות: ללא שינוי.
+- **הבא:** (1) CI ירוק. (2) ביקורת: הכרעות 294–299 + q18-01/03. (3) QA: סט #19. (4) AI: «when I get paid» לבד. (5) פיתוח: לפי הכרעות הביקורת.
+- **חסמים (מאיר):** ללא שינוי: sandbox לספקים, ניסוח מע״מ, פרטי החברה המפעילה, מסמך API של 019, ענף `bold-bell-xom3mc`, ספק מייל לבעלים, הכרעות qa15, ער״ן בתשובה ל«הצילו» לבד.
 
 ## 🧭 הפעלת מנהל · 18.11.2026 (הפעלה 298)
 - **מיזוג:** אין ענפים חדשים עם שינוי ב-`collect-agent/`. שלושה מוכרים: `stoic-mccarthy-23f03p` (נדחה, 107) · `bold-bell-xom3mc` (WIP, ממתין למאיר; רק מיזוגים מ-collect-agent מאז) · `gabi-019-inbound` (התוכן כבר ב-collect-agent). ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
