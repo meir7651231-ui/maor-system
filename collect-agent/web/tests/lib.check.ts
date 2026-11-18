@@ -1259,3 +1259,18 @@ test('לוח החגים: באנר פקיעה — 120 יום מראש לפי הש
   assert.equal(holidayNotice(sw('2029-08-31'), '2029-04-01'), null);
   for (const bad of [null, undefined, sw(null), sw('31/08/2029', true)]) assert.equal(holidayNotice(bad as never, '2029-06-01'), null);
 });
+
+// החלטה 5 (18.11.2026): פנייה דחופה מכתובת משותפת לכמה לקוחות ⇒ כרטיס אחד, דחוף, ראשון, עם כל הלקוחות המקושרים.
+test('החלטה 5: shared_contact_urgent מוצג ראשון, דחוף, עם הלקוחות המקושרים', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const n = systemNotices([
+    { id: 9, customer_id: null, direction: 'system', channel: 'owner', body: 'x', intent: 'trial_ending', created_at: '2026-11-18T10:00:00+02:00' },
+    { id: 4, customer_id: null, direction: 'in', channel: 'sms', body: 'אני רוצה למות', intent: 'shared_contact_urgent',
+      payload: JSON.stringify({ linked_customers: [{ id: 1, name: 'רונית לוי' }, { id: 2, name: 'משה כהן' }], urgent: 'distress' }),
+      created_at: '2026-11-18T09:00:00+02:00' },
+  ]);
+  assert.equal(n[0].intent, 'shared_contact_urgent');
+  assert.match(n[0].title, /דחופה/);
+  assert.match(n[0].body, /רונית לוי/);
+  assert.match(n[0].body, /משה כהן/);
+});
