@@ -1102,6 +1102,23 @@ _extend(Intent.DISPUTE,
         r"(?:bank\s+)?(?:transfer|wire|payment)\b(?!\s*(?:today|tonight|now|this\s+week|tomorrow|yet)\b)",
         r"(?<![\w])(?:לא|לעולמ\s+לא)\s+(?:אעשה|אבצע|נעשה|נבצע|אשלח|נשלח)\s+(?:את\s+)?(?:ה)?(?:העברה|תשלומ)(?![\w])"
         r"(?!\s*(?:היומ|הערב|עכשיו|השבוע|מחר|עדיינ))")   # «לא אעשה את ההעברה מחר, רק ביום ראשון» = דחייה, לא סירוב
+# סט #18 (qa18, ריצה עיוורת 18.11) — תיקון לפי מחלקות (טקסטים חדשים בבדיקות, לא טקסט הסט):
+#  · «Who's this?» / «whos this» ⇒ זיהוי (היה unknown)
+_extend(Intent.WHO_IS_THIS, r"^\W*(?:hi\W+|hey\W+|hello\W+)?who'?s\s+(?:this|that|it|texting|messaging)\b", r"^\W*whos\s+this\b")
+#  · מחלוקת על חיוב: «I'm not paying until this is fixed», «charged me for parts that were never replaced»
+_extend(Intent.DISPUTE,
+        r"\bnot\s+(?:paying|gonna\s+pay|going\s+to\s+pay)\s+(?:anything\s+|a\s+(?:cent|penny|dime)\s+)?(?:until|till|unless)\b"
+        r"(?!\s+(?:next|i\s+get|i'?m\s+paid|payday|pay\s*day|the\s+(?:\d|end|first|1st|15th)|my\s+(?:salary|paycheck|pay)|\d|monday"
+        r"|tuesday|wednesday|thursday|friday|sunday|saturday|tomorrow|after))",
+        r"\b(?:charged|billed|invoiced)\s+(?:me\s+|us\s+)?for\s+.{0,40}?\b(?:never|weren'?t|wasn'?t|were\s+not|was\s+not|not)\s+"
+        r"(?:replaced|done|installed|delivered|fixed|used|received|provided|completed)\b")
+#  · אבל במשפחה באנגלית: «my dad passed last week» (בלי away) ⇒ מצב רגיש דחוף; «I'm falling apart» ⇒ מצוקה
+_extend(Intent.DISTRESS, r"\b(?:i'?m|i\s+am|im)\s+(?:completely\s+|totally\s+|literally\s+|just\s+)?(?:falling\s+apart|breaking\s+down"
+                         r"|at\s+my\s+breaking\s+point|on\s+the\s+edge)\b")
+#  · «תמחקו אותו/אותה» (את המספר) ⇒ הסרה; לא כשמדובר בחוב/קנס/חשבונית («את הקנס תמחקו אותו»)
+_extend(Intent.OPT_OUT, r"^(?!.*(?:חוב|קנס|ריבית|חשבונ|סכומ|חיוב)).*(?<![\w])(?:תמחקו|מחקו|תמחק|תמחקי)\s+(?:אותו|אותה)(?![\w])")
+#  · «Payment will go out Thursday» / «payment will be sent tomorrow» ⇒ הבטחה
+_extend(Intent.PROMISE, r"\b(?:the\s+)?payment\s+will\s+(?:go\s+out|be\s+(?:sent|made|transferred|wired)|arrive|come\s+through)\b(?!\s+never)")
 # לולאה 17.11 בוקר (המשך לסבב 122): שגיאות כתיב באנגלית בכוונות מגינות — «stop txting», «stpo texting me»,
 # «unsubcribe», «reportin u to the polise», «i feel so hopless». מילת-פעולה של שליחה נדרשת אחרי stop (לא «stop worrying»).
 _extend(Intent.OPT_OUT,
@@ -2355,7 +2372,10 @@ _KEEPS_LEGAL = (r"תביע|אתבע|לתבוע|נתבע|משטרה|בית ה?מ�
                 r"|(?:גם )?(?:לי|לנו) יש (?:עורך|עו\"ד)|(?:אחרי|לאחר) ש(?:הוא|היא)? ?(?:י|ת)?(?:בדוק|בדק|עבור|עבר)"
                 r"|\bcourt\b|\bsue\b|\blawsuit|\bsmall claims|\bcomplaint|\bhandling (?:it|this)|\bbe in touch|\bcontact (?:him|her|them|my)|\brepresent"
                 # מנהל 299: «Our lawyer will contact you. Payment will go out Thursday.» ⇒ עו״ד פעיל בעתיד = נשאר legal
-                r"|\b(?:lawyer|attorney|solicitor|counsel)s?\s+(?:will|'ll|is\s+going\s+to|are\s+going\s+to|would\s+like\s+to)\b")
+                r"|\b(?:lawyer|attorney|solicitor|counsel)s?\s+(?:will|'ll|is\s+going\s+to|are\s+going\s+to|would\s+like\s+to)\b"
+                # qa18 AI (המשך): «our lawyer will contact you, I will pay thursday» ⇒ האיום נמחק בגלל ההבטחה
+                r"|\b(?:will|'ll|gonna|going\s+to)\s+(?:contact|call|reach\s+out\s+to|write\s+to|email|get\s+in\s+touch\s+with)\s+(?:you|u)\b"
+                r"|\blegal\s+action\b|\btake\s+(?:you|this)\s+to\b")
 
 
 # כוונות מגינות — כשהן בהודעה, לא מוסיפים פרשנות של הצעה נגדית (מנהל 267)
@@ -2470,6 +2490,12 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
                                                      Intent.DISTRESS, Intent.MINOR, Intent.CANT_PAY}) and _s(r"^\W*(?:חלאס|די|די כבר|מספיק|מספיק כבר|enough)(?:\W+(?:נו|אחי|באמת|כבר|already))*"
                                           r"\s*(?:[,.!\n]|$)", (text or "").strip().replace("\r", "") or t):
         found.add(Intent.OPT_OUT)
+    # qa18 (q18-27): «stop the reminders for a week, I'll pay on the 16th» / «תפסיקו לשלוח לשבוע, אשלם ב-16» = השהיה זמנית
+    # + הבטחה, לא הסרה לצמיתות (כמו «leave me alone for a week»). בלי הבטחה — נשארת הסרה.
+    if Intent.OPT_OUT in found and Intent.PROMISE in found and _s(
+            r"\b(?:for|till|until)\s+(?:a|one|two|three|a\s+few|\d{1,2})\s*(?:day|week|month)s?\b|\buntil\s+(?:the\s+)?\d{1,2}"
+            r"|(?<![\w])(?:ל|עד\s+)(?:שבוע|שבועיימ|חודש|יומיימ|כמה\s+ימימ)(?![\w])", t):
+        found.discard(Intent.OPT_OUT)
     # «די» / «מספיק» לבד בשורה — רק כשאין בהודעה שום תוכן אחר («תודה\nמספיק», «שלום\n\nדי»); «די\nאני משלמת מחר» ≠
     if Intent.OPT_OUT not in found and "\n" in (text or "") and found <= {Intent.THANKS, Intent.UNKNOWN} and any(
             _fm(r"\W*(?:די|די כבר|מספיק|enough)(?:\W+(?:בבקשה|תודה|please))*\W*", normalize(ln))

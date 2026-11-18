@@ -476,3 +476,19 @@ cant_pay באנגלית (q16-09, q16-43), «deposit» כהודעה ראשונה 
 | q13-16 בעל העסק מזכיר עו״ד בטיוטה שערך | המסנן ממשיך לחסום | ללא שינוי (§3.1), ננעל בבדיקה |
 | q14-12 «אל תשכחו לשלוח קבלה אחרי שאשלם» | הבטחה מעורפלת ⇒ «עד איזה תאריך?» | ללא שינוי |
 בדיקות: `tests/test_engine_lead_decisions_1118.py`.
+
+---
+
+## סט #18 — `external-2026-11-18-qa18-seq.jsonl` (גבי בדיקות, רצפים · ריצה יחידה עיוורת, 18.11.2026)
+sha256 `f86f487b…` (commit `466fc60`). לא נקרא לפני הריצה.
+
+| מדד | ריצה יחידה |
+|---|---|
+| רצפים שעברו במלואם | **21/30 (70.0%)** |
+| קריטיים | **15/24** |
+
+כשלים (קריטיים, כולם): q18-01/03 «can't pay right now» / «החודש אין לי מאיפה» אחרי הסדר מאושר ⇒ plan_reject (צפוי cant_pay) · q18-02 המצב אחרי בקשת דחייה בהסדר מאושר · q18-14 «Who's this?» ⇒ unknown · 🔴 q18-16 «charged for parts that were never replaced. I'm not paying until this is fixed» ⇒ unknown (מחלוקת אבדה) · 🔴 q18-19 «falling apart, lost my job and my dad passed last week» ⇒ לא דחוף · 🔴 q18-24 «תמחקו אותו בבקשה» (אחרי «מאיפה יש לכם את המספר») ⇒ unknown (הסרה אבדה) · q18-27 «stop the reminders for a week, I'll pay on the 16th» ⇒ הסרה לצמיתות (צפוי הבטחה) · q18-30 «Our lawyer reviewed… Payment will go out Thursday» ⇒ legal (צפוי הבטחה).
+
+**אחרי תיקון לפי מחלקות (AI 18.11, ממוזג עם מנהל 299 שתיקן במקביל — `test_mgr299_qa18.py`):** רצפים **28/30**, קריטיים **22/24**; שאר הסטים המוחזקים ללא שינוי. תוקנו: «Who's this?» · מחלוקת באנגלית («not paying until…», «charged for … never replaced») · אבל באנגלית («my dad passed») דחוף + «I'm falling apart» = מצוקה · «תמחקו אותו» = הסרה (לא כשמדובר בקנס/חוב) · עצירה זמנית + הבטחה («stop … for a week, I'll pay on the 16th») = הבטחה, בלי הבטחה נשאר הסרה · «payment will go out Thursday» = הבטחה. בדרך נמצא פער ותיק: «our lawyer will contact you, I will pay thursday» ⇒ האיום נמחק בגלל ההבטחה ⇒ _KEEPS_LEGAL קיבל אנגלית.
+**נותרו (q18-01/02/03) — מצב הסדר, אצל פיתוח/מנהל:** «can't pay» אחרי הסדר שבעל העסק אישר ⇒ plan_reject משני-cant_pay + כרטיס קושי (plan_hardship, מנהל 287) — הסט ציפה ל-cant_pay עיקרי; q18-02 בקשת דחייה בהסדר מאושר ⇒ awaiting_plan_reply (הסט: awaiting_owner). התוצאה המגינה (כרטיס, בלי ביטול אוטומטי) מתקיימת; התווית לביקורת.
+בדיקות: `tests/test_engine_qa18_classes.py` (19, ‏16 נכשלו לפני) + lk47–lk50.
