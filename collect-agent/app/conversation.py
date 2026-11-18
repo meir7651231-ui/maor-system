@@ -2908,11 +2908,15 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         state = State.AWAITING_OWNER
     elif primary == Intent.PAID_CLAIM:
         paid = extract_paid_amount(t)
-        if paid is None and ctx.total_agorot and not ctx.mixed_currency and not _PARTIAL_WORDS.search(t) and _s(
+        # לולאה 18.11 (בעקבות מנהל 279, מלכודות _PAY_ALL): «הכל מלבד 300», «כמעט הכל», «everything except 200»,
+        # «almost everything», «כל הסכום פחות 100» ⇒ נרשם «שילם/ה 1,200 ₪» (מלוא החוב). הסתייגות ⇒ חלקי, בלי סכום.
+        hedged = _s(r"(?<![\w])(?:מלבד|חוצ מ|חוצ\s|פחות|כמעט|בערכ|בלי ה|לא כולל)|\b(?:except|but\s+(?:the|for)|minus|less|"
+                    r"almost|nearly|apart\s+from|other\s+than|not\s+(?:all|everything|the\s+whole))\b", t)
+        if paid is None and ctx.total_agorot and not ctx.mixed_currency and not _PARTIAL_WORDS.search(t) and not hedged and _s(
                 r"(?<![\w])(?:את\s+)?(?:הכל|הכול)(?![\w])|(?<![\w])(?:את\s+)?כל\s+ה(?:סכומ|חוב|חשבונית|יתרה)(?![\w])"
                 r"|\b(?:in\s+full|the\s+full\s+(?:amount|balance)|everything|the\s+whole\s+(?:amount|thing|bill))\b", t):
             paid = ctx.total_agorot   # qa16 (q16-21/40): «שילמתי הכל» / «את כל הסכום» = מלוא החוב (לא «לא ידוע»)
-        partial = bool(_PARTIAL_WORDS.search(t)) or (
+        partial = bool(_PARTIAL_WORDS.search(t)) or (bool(hedged) and paid is None) or (
             paid is not None and ctx.total_agorot and paid < ctx.total_agorot)
         if partial:
             tags.append("partial")
