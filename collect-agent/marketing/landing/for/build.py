@@ -96,6 +96,13 @@ def sample_sms(vertical: str) -> str:
     raise RuntimeError(f"{vertical}: אין SMS לדוגמה")
 
 
+def _logo() -> str:
+    """הסמל מהדף הראשי (שם הוא נכתב מ-web/src/brand/logo.ts ב-`npm run logo`) — מקור יחיד, בלי עותק כאן."""
+    src = (ROOT / "marketing/landing/index.html").read_text(encoding="utf-8")
+    a, b = src.index("<!--gabi-logo:start-->"), src.index("<!--gabi-logo:end-->")
+    return src[a:b + len("<!--gabi-logo:end-->")]
+
+
 def _style() -> str:
     src = (ROOT / "marketing/landing/index.html").read_text(encoding="utf-8")
     return re.search(r"<style>(.*?)</style>", src, re.S).group(1)
@@ -122,12 +129,7 @@ def page(vertical: str) -> str:
 <div class="draft" role="note">טיוטה, לא לפרסום · דף לענף: {e(BETA_VERTICALS[vertical]['label'])} · «טיוטה – לבדיקת עו״ד»</div>
 <header><div class="wrap">
   <a class="brand" href="../index.html" aria-label="גבי – תזכורות תשלום, לדף הראשי">
-    <svg width="38" height="38" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-      <path d="M22 13h12a4 4 0 0 1 4 4v20" fill="none" stroke="#10B981" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M38 37l-11 9" fill="none" stroke="#10B981" stroke-width="7" stroke-linecap="round"/>
-      <path d="M14 50q18 12 36 0" fill="none" stroke="#10B981" stroke-width="5" stroke-linecap="round"/>
-      <circle cx="48" cy="21" r="4.5" fill="#0F172A"/>
-    </svg>
+    {_logo()}
     <span><b>גבי</b><small>תזכורות תשלום</small></span>
   </a>
   <a class="btn primary" href="../index.html#price">14 ימי ניסיון</a>

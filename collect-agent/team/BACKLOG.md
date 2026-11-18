@@ -40,6 +40,10 @@
 - [x] ✅ `4b86cf88` (+ `555b9175` כרטיס ב-`web/`, `b7e4d6fc` ב-`/ui`): מסך «אישור רשימת הפתוחות» מעל `GET /open-list` + `POST /open-list/confirm`; מובייל 390px נבדק ב-`live.mjs` (live-07b) וב-`ui-openlist.mjs` (ui-13).
 - [x] ✅ `dbb041de` צבעי סטטוס: ניגודיות AA לכל תגית סטטוס — `web/tests/contrast.check.ts` מחושב מה-tokens; נמצאו ותוקנו 3 גווני-טקסט שנכשלו (due/late/critical ⇒ *-ink).
 - [x] ✅ `34457f7c` לוגו לרקע כהה (`web/public/logo-dark.svg`) מאותו מקור (`brand/logo.ts`) + בדיקה ב-`tests/lib.check.ts`.
+- [x] ✅ התראת פקיעת לוח החגים בבית ובהגדרות (`f9a5f94e`, e2e `app-holidays.mjs` ב-CI, AA נמדד בדפדפן).
+- [x] ✅ `14bbc7ac` ניגודיות AA ב-/ui: --muted/--warn נכשלו (4.23–4.49) ⇒ תוקנו + `tests/test_ui_contrast.py` (40 צירופים, בהיר+כהה).
+- [x] ✅ `2bfd5eef` /ui הציג את הלוגו הישן ⇒ הלוגו הסופי מ-`brand/logo.ts` (בהיר/כהה) + בדיקת סנכרון.
+- [x] ✅ `1c326592` דף-הנחיתה + 4 דפי הענף (גם הפאביקון) הציגו את הלוגו הישן ⇒ מאותו מקור + בדיקה.
 - 🧱 אישור הלוגו הסופי (מאיר).
 
 ## גבי משפט
@@ -69,4 +73,4 @@
 - [x] ✅ 26d9798 «שולם מחוץ למערכת» בדשבורד: כפתור בעלים שסוגר חשבונית ומתעד ב-audit.
 - [x] ✅ e6bb8d4 נושא 5 (החלטת ראש צוות): הודעה דחופה מכתובת משותפת ⇒ כרטיס בעלים אחד, בלי שיוך אוטומטי; `POST /owner/shared-cards/{id}/assign`. איחוד עם `ef34fac`: ראו commit האיחוד.
 - [x] ✅ (ראו commit) «שילמתי» מכתובת משותפת בלי שיוך ⇒ היה בלי השהיה ותזכורת יצאה גם למי ששילם; עכשיו כרטיס 👥 + השהיית כל המקושרים + שיוך. `tests/test_shared_paid_claim.py`.
-- [x] ✅ (ראו commit «סבב 153») 🔴 (מבקר סבב 153) **`app/inbox.py` → `ConversationInbox.handle_customer`, השליחה האוטומטית** (`if draft_id and d.auto_send: approve_draft(..., "system:safe_auto")`): במצב `safe_auto` לקוח עם `paused_reason` מגן (minor/distress/legal/dispute; גם insolvency/deceased/sensitive/shared_contact_urgent) או `disputed=1` שכותב «איך משלמים?» ⇒ **קישור תשלום נשלח אוטומטית בלי אישור** (קטין/מצוקה/עו״ד). לתקן: לקוח מושהה-מגן ⇒ `auto_send=False` (טיוטה לבעל העסק). הוכחה: `tests/test_critic_round153_safe_auto_after_protective.py` (4× `xfail(strict=True)` — אחרי התיקון להסיר את ה-xfail; בדיקת הבקרה ללקוח רגיל חייבת להישאר ירוקה).
+- [x] ✅ `3afc3e03` 🔴 (מבקר סבב 153) **`app/inbox.py` → `ConversationInbox.handle_customer`, השליחה האוטומטית** (`if draft_id and d.auto_send: approve_draft(..., "system:safe_auto")`): במצב `safe_auto` לקוח עם `paused_reason` מגן (minor/distress/legal/dispute; גם insolvency/deceased/sensitive/shared_contact_urgent) או `disputed=1` שכותב «איך משלמים?» ⇒ **קישור תשלום נשלח אוטומטית בלי אישור** (קטין/מצוקה/עו״ד). לתקן: לקוח מושהה-מגן ⇒ `auto_send=False` (טיוטה לבעל העסק). הוכחה: `tests/test_critic_round153_safe_auto_after_protective.py` (4× `xfail(strict=True)` — אחרי התיקון להסיר את ה-xfail; בדיקת הבקרה ללקוח רגיל חייבת להישאר ירוקה).

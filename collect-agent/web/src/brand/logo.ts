@@ -78,6 +78,21 @@ export const wordmarkSvg = (onDark = false): string =>
     + `<text x="76" y="56" font-family="Heebo, Arial, sans-serif" font-weight="500" font-size="12" fill="${onDark ? SLOGAN_INK.dark : SLOGAN_INK.light}">${SLOGAN}</text>`,
   `${NAME} – ${SLOGAN}`);
 
+/** הלוגו בדשבורד הפשוט (app/ui.html, קובץ סטטי בלי build): שני SVG — דיו נייבי לבהיר, קרם לכהה (CSS מחליף
+ *  לפי prefers-color-scheme). `npm run logo` כותב אותו בין הסמנים UI_LOGO_START/END; הבדיקה מוודאת שלא סטה. */
+export const UI_LOGO_START = '<!--gabi-logo:start-->', UI_LOGO_END = '<!--gabi-logo:end-->';
+export const uiLogoHtml = (): string =>
+  `<svg class="logo logo-l" viewBox="0 0 ${VIEWBOX} ${VIEWBOX}" aria-hidden="true">${markInner({ gap: GAPS.inline, id: 'ul' })}</svg>`
+  + `<svg class="logo logo-d" viewBox="0 0 ${VIEWBOX} ${VIEWBOX}" aria-hidden="true">${markInner({ onDark: true, gap: GAPS.inline, id: 'ud' })}</svg>`;
+
+/** דף-הנחיתה הסטטי של השיווק (marketing/landing/index.html + דפי הענף מ-build.py): סמל 38px על רקע בהיר
+ *  ופאביקון data-URI — נכתבים ב-`npm run logo` בין סמנים, ו-build.py מעתיק את הסמל מ-index.html. */
+export const LANDING_FAVICON_START = '<!--gabi-favicon:start-->', LANDING_FAVICON_END = '<!--gabi-favicon:end-->';
+export const landingLogoSvg = (): string =>
+  `<svg width="38" height="38" viewBox="0 0 ${VIEWBOX} ${VIEWBOX}" aria-hidden="true" focusable="false">${markInner({ gap: GAPS.inline, id: 'lp' })}</svg>`;
+export const landingFaviconLink = (): string =>
+  `<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(markSvg(true, GAPS.favicon).trim())}">`;
+
 /** הקבצים הציבוריים שנגזרים מהמקור (נכתבים ב-`npm run logo`, ונבדקים שלא סטו). */
 export const PUBLIC_FILES: Record<string, string> = {
   'logo-mark.svg': markSvg(false),
