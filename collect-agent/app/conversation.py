@@ -579,7 +579,7 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"(?:מי ש|ה)(?:היה|בעלים|משתמש)\w* (?:לפני|הקודם|קודם)\w*\W+(?:\w+\W+){0,2}(?:כבר )?לא (?:פה|כאן|בשימוש)?",
         r"\bwrong (?:person|number|guy|address)\b",
         # מנהל 249 (qa7 x7-06): «new number, this isn't Yossi anymore»
-        r"\b(?:this|it)\s*(?:is\s*n'?t|is\s+not|'s\s+not)\s+\w+(?:'s\s+(?:number|phone|email))?\s+any\s?more\b", r"\bno\s+longer\s+\w+'s\s+(?:number|phone|email)\b", r"\b(?:not|isn'?t) (?:my|mine)\b.{0,15}\b(?:invoice|bill|debt)\b|\binvoice is not mine\b",
+        r"\b(?:this|it)\s*(?:is\s*n'?t|is\s+not|'s\s+not)\s+\w+(?:'s\s+(?:number|phone|email))?\s+any\s?more\b", r"\bno\s+longer\s+\w+'s\s+(?:number|phone|email)\b",
         r"(?:כבר )?(?:לא עובד|לא עובדת|לא עובדים) (?:פה|כאן|במשרד|בחברה)", r"(?:עזב|עזבה|עזבו) את (?:ה)?(?:חברה|עבודה|משרד|מקום)", r"בטעות[,.!]?\s+(?:\w+\s+)?אני לא\s+\w+", r"(?:של|על) (?:אדם|מישהו|מישהי|לקוח) אחר", r"אין (?:לי|לנו) (?:שום )?קשר ל\w+(?: שלכם)?\W*$", r"אין (?:לי|לנו) (?:שום )?קשר ל(?:עסק|חברה|חשבונית|חוב|קליניקה|מספרה|מוסך|סטודיו)",
         r"(?:הוא|היא|הם|אבי|אמי|אבא|אמא)\w* (?:כבר )?(?:החליף|החליפה|החליפו) מספר",
         r"(?:מי ש|את מי ש)(?:אתם )?(?:חיפשתם|מחפשים)\s+(?:כבר )?לא (?:גר|גרה|נמצא|נמצאת|פה|כאן)",
@@ -999,6 +999,16 @@ _extend(Intent.CANT_PAY,
         r"\bi\s+have\s+no\s+(?:money|cash|funds)\b")
 _extend(Intent.PAID_CLAIM,   # «i made a payment of 250 today», «I made the payment» (לא «payment request/plan», לא שאלה)
         r"\bi\s+(?:already\s+|just\s+)?made\s+(?:a|the|my)\s+(?:partial\s+|first\s+)?payment\b(?!\s+(?:request|plan|arrangement))")
+# לולאה 18.11 (המשך לסבב 145): «not my bill» / «this isnt my debt» / «the invoice isnt mine» ⇒ היה מספר שגוי **לצמיתות**
+# (הלקוח יורד מהגבייה), אבל בעברית «החוב לא שלי» = מחלוקת (סבב 121). אחידות: מחלוקת דחופה; עם «wrong number/person»
+# ⇒ מספר שגוי כמו קודם (תבניות אחרות). וגם מספר ממוחזר: «this number used to be hers», «המספר הזה היה שלה פעם».
+_extend(Intent.DISPUTE,
+        r"\b(?:not|isn'?t|is\s+not) (?:my|mine)\b.{0,15}\b(?:invoice|bill|debt|charge)\b|\binvoice is not mine\b",
+        r"\b(?:the|this|that)\s+(?:invoice|bill|debt|charge)\s+(?:is\s*n'?t|is\s+not|isnt)\s+mine\b")
+_extend(Intent.WRONG_PERSON,
+        r"\b(?:this|the)\s+(?:number|phone)\s+used\s+to\s+(?:be\s+(?:hers|his|theirs|someone\s+else'?s)|belong\s+to)\b",
+        r"\bthis\s+used\s+to\s+be\s+(?:her|his|their|someone\s+else'?s)\s+(?:number|phone)\b",
+        r"(?:ה)?(?:מספר|טלפון)(?:\s+ה?זה)?\s+היה\s+(?:שלה|שלו|של\s+\S+)(?:\s+פעמ|\s+קודמ|\s+לפני)?")
 # לולאה 17.11 בוקר (המשך לסבב 122): שגיאות כתיב באנגלית בכוונות מגינות — «stop txting», «stpo texting me»,
 # «unsubcribe», «reportin u to the polise», «i feel so hopless». מילת-פעולה של שליחה נדרשת אחרי stop (לא «stop worrying»).
 _extend(Intent.OPT_OUT,
@@ -2399,7 +2409,8 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         found.discard(Intent.CANT_PAY)
     # "לא שלי" עם טענה נגד החוב, בלי סימני מספר/כתובת שגויים ⇒ מחלוקת (שומרת את החוב ומסלימה בדחיפות)
     if Intent.WRONG_PERSON in found and Intent.DISPUTE in found and not _s(
-            r"מספר|מס'|כתובת|מייל|בטעות|לא מכיר|לא מכירה|אין (?:פה|כאן)|טלפון", t):
+            r"מספר|מס'|כתובת|מייל|בטעות|לא מכיר|לא מכירה|אין (?:פה|כאן)|טלפון"
+            r"|\b(?:number|phone|wrong\s+person|wrong\s+guy|email|address|don'?t\s+know)\b", t):   # לולאה 18.11: גם באנגלית
         found.discard(Intent.WRONG_PERSON)
     # critic סבב 121: «אני לא מכיר את החוב הזה» = מחלוקת על החוב, לא «לא מכיר את האדם» (היה חסימה לצמיתות)
     if Intent.WRONG_PERSON in found and Intent.DISPUTE in found and \
