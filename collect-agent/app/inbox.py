@@ -155,6 +155,28 @@ class ConversationInbox:
         if channel not in ("sms", "email"):
             raise ValueError("ערוץ לא נתמך")
         now = self.svc.clock()
+        # החלטת ראש הצוות לנושא 5 (18.11.2026): פנייה דחופה מכתובת/מספר המשותפים לכמה לקוחות ⇒ דחופה בכל מקרה,
+        # כרטיס בעל עסק אחד עם כל הלקוחות המקושרים, בלי שיוך אוטומטי לחוב אחד (גם אם אחד קיבל את ההודעה האחרונה)
+        # ובלי תשובה ללקוח עד שבעל העסק בוחר. לא-דחוף ⇒ כמו קודם (סבב 27).
+        linked = self.svc._find_customers(channel, sender)
+        if len(linked) > 1:
+            found = set(detect(text))
+            urgent = next((i.value for i in (Intent.DISTRESS, Intent.MINOR, Intent.LEGAL, Intent.DISPUTE)
+                           if i in found), None)
+            if urgent:
+                if {Intent.OPT_OUT, Intent.WRONG_PERSON} & found:
+                    self.svc.suppress(channel, sender, "shared_contact_opt_out")
+                payload = json.dumps({"linked_customers": [{"id": c["id"], "name": c["name"]} for c in linked],
+                                      "urgent": urgent}, ensure_ascii=False)
+                self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,payload,"
+                          "created_at) VALUES(NULL,'in',?,?, 'shared_contact_urgent', 1, ?, ?)",
+                          (channel, text, payload, _iso(now)))
+                self.svc.audit("customer", "shared_contact_urgent",
+                               {"intent": urgent, "linked": [c["id"] for c in linked]})
+                self.svc.email_owner_urgent(urgent, unmatched="shared")
+                return {"intent": "shared_contact_urgent", "escalate": True, "escalation": "urgent",
+                        "draft_id": None, "auto_reply": None, "plan_id": None,
+                        "linked_customers": [c["id"] for c in linked]}
         cust, ambiguous = self.svc._resolve_sender(channel, sender)
         if cust is None and ambiguous:
             # critic סבב 27: כתובת של כמה לקוחות ואף אחד מהם לא קיבל הודעה ⇒ לא משייכים ולא מנסחים
