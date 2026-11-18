@@ -476,6 +476,28 @@ _EN_NOT_MONEY_OBJ = (r"(?!\s*\?)(?!\s+(?:(?:my|our|his|her|their|the|a|an|this|t
                      r"(?!\s+(?:to|into)\s+(?:a\s+|an\s+)?(?:another|different|new|other)\b)")
 
 
+# מנהל 298 («הבא» AI מ-297): עתיד באנגלית — «I'll make the transfer tomorrow», «I will do the transfer on Sunday»,
+# «we're going to make the payment on Friday», «I'll have it transferred» ⇒ היה «לא ברור» (בלי מועד, בלי השהיה).
+# 🔴 וגרוע מזה: «I'll pay when I get paid», «I'll get the transfer done tomorrow», «transfer done tomorrow» ⇒ PAID_CLAIM
+# («טוען/ת ששילם/ה», התזכורות נעצרות) — למי שרק *מבטיח*. עכשיו: הבטחה; וטענת תשלום נבדקת בלי קטעי העתיד.
+_EN_FUT_AUX = (r"(?:i'?ll|i\s+will|we'?ll|we\s+will|(?:i'?m|i\s+am|we'?re|we\s+are)\s+(?:going\s+to|gonna)|gonna)"
+               r"\s+(?:(?:just|definitely|surely|probably|try\s+to|be\s+able\s+to)\s+)?")
+_EN_FUT_XFER = re.compile(
+    r"\b" + _EN_FUT_AUX + r"(?:make|do|send|get|complete|initiate|arrange|set\s+up|put\s+through)\s+(?:the|a|an|my|our)\s+"
+    r"(?:bank\s+)?(?:transfer|wire(?:\s+transfer)?|payment|deposit)\b"
+    r"(?!\s+(?:of|for)\s+(?:my|our|his|her|the)\s+(?!payment|bill|invoice|balance|debt|amount)\w+)"
+    r"(?!\s+to\s+(?:my|our|his|her)\s+(?!account)\w+)"
+    r"(?:\s+(?:done|through|sent|made))?"
+    r"|\b" + _EN_FUT_AUX + r"have\s+(?:it|the\s+(?:money|payment|amount|balance))\s+(?:transferred|wired|sent|paid|deposited)\b", re.I)
+# «when I get paid» / «once we're paid» / «I get paid on the 10th» — המשכורת של הלקוח, לא תשלום לעסק
+_EN_GET_PAID = re.compile(r"\b(?:i|we)\s+(?:get|gets|got|am|'m|are|'re|will\s+be|'ll\s+be)\s+paid\b"
+                          r"|\b(?:get|gets|getting|be|being)\s+paid\b", re.I)
+
+
+def _strip_en_future(t: str) -> str:
+    return _EN_GET_PAID.sub(" ", _EN_FUT_XFER.sub(" ", t))
+
+
 RX: dict[Intent, re.Pattern[str]] = {
     Intent.DISTRESS: _rx(
         # critic סבב 115: «לא יכול לחיות ככה» (לא «לחיות בלי הקפה»)
@@ -2225,7 +2247,7 @@ _PROMISE_VERB_HE = (r"(?:אשלם|נשלם|אעביר|נעביר|אסדר|נסד
                     r"|(?:אסגור|נסגור) (?:את )?(?:זה|החוב|החשבון|הכל|הכול|העניין|התשלום|היתרה))(?![\w])")
 # מנהל 260 (q12-27): «הן עוזרות לי לזכור :) אשלם ב-16» — סמיילי מפריד משפטים
 _CLAUSE_SPLIT = r"(?:[.!?;\n]|,(?!\d)|[:;]-?[()](?![\w])|[\u2600-\u27BF\U0001F300-\U0001FAFF])+"
-_PROMISE_VERB_EN = r"(?:i'?ll|i\s+will|we'?ll|we\s+will|i\s+can|can\s+i)\s+(?:pay|transfer|settle)"
+_PROMISE_VERB_EN = r"(?:i'?ll|i\s+will|we'?ll|we\s+will|i\s+can|can\s+i)\s+(?:pay|transfer|settle)|" + _EN_FUT_XFER.pattern
 
 
 def _promise_clause_day(t: str, today: date) -> date | None:
@@ -2365,6 +2387,16 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             continue
         if _hits(rx, t_plan if it == Intent.PLAN_REQUEST else t, negatable=it in NEGATABLE):
             found.add(it)
+    # מנהל 298: «I'll pay when I get paid» / «I'll get the transfer done» — טענת תשלום רק אם נשארת בלי קטעי העתיד
+    if Intent.PAID_CLAIM in found and re.search(r"[a-z]", t):
+        t_nf = _strip_en_future(t)
+        if t_nf != t and not _hits(RX[Intent.PAID_CLAIM], t_nf, negatable=True):
+            found.discard(Intent.PAID_CLAIM)
+    if Intent.PROMISE not in found and any(
+            not _NEG_BEFORE.search(t[max(0, m.start() - 22):m.start()])
+            and not re.search(r"\b(?:don'?t|do\s+not|doubt|not\s+sure|no\s+way)\b[^.,!?;\n]*$", t[:m.start()]) and "?" not in re.split(r"[.,!;\n]", t[m.end():])[0]
+            for m in _EN_FUT_XFER.finditer(t)):   # «I'll make the transfer tomorrow?» = שאלה; «…, how do I do it?» = הבטחה
+        found.add(Intent.PROMISE)
     # critic סבב 136: «הילד חולה היום ולא יגיע לשיעור» = הודעת היעדרות, לא קושי בתשלום (היה cant_pay+sensitive ⇒ דחוף)
     if Intent.CANT_PAY in found and _s(r"(?<![\w])(?:הילד|הילדה|הבנ|הבת|הוא|היא|בני|בתי)(?: שלי)?\s+(?:\S+\s+)?חולה(?![\w])", t) \
             and _s(r"לא\s+(?:יגיע|תגיע|יבוא|תבוא|יהיה|תהיה)|(?<![\w])(?:ל|ב)?(?:שיעור|חוג|אימונ|תרגול)|יחסר|תחסר|נעדר"
