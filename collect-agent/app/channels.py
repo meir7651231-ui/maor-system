@@ -248,9 +248,10 @@ _SIG_DISCLAIMER = re.compile(
     r"|מיועד\w*\s+(?:\S+\s+){0,2}?לנמען|\bconfidentiality\s+notice\b|\bprivileged\s+and\s+confidential\b"
     r"|\bif\s+you\s+(?:have\s+)?received\s+this\s+(?:e-?mail|message|communication)\s+in\s+error\b", re.I)
 _SIG_TITLE = re.compile(
-    r"^[^.!?]{0,40}(?:\||–)\s*(?:עו\"?ד|עורכ[^\s-]*[\s-]+דינ?|משרד\s+עורכי[\s-]+דינ?|י?יעוצ\s+משפטי|יועצ\S*\s+משפטי\S*"
+    r"^[^.!?]{0,40}(?:\||–)\s*(?:עוה?[\"״'׳”“]?ד|עורכ[^\s-]*[\s-]+דינ?|משרד\s+עורכי[\s-]+דינ?|י?יעוצ\s+משפטי|יועצ\S*\s+משפטי\S*"
     r"|attorney(?:\s+at\s+law)?|esq\.?|lawyer|counsel(?:or)?|law\s+(?:office|firm))(?:\s+\S+){0,3}\s*$"
-    r"|^[^.!?,]{0,40},\s*(?:עו\"?ד|attorney(?:\s+at\s+law)?|esq\.?|counsel(?:or)?)\s*$", re.I)
+    r"|^[^.!?,]{0,40},\s*(?:עוה?[\"״'׳”“]?ד|attorney(?:\s+at\s+law)?|esq\.?|counsel(?:or)?)\s*$", re.I)
+# מנהל 281: «| עו״ד» בגרשיים עבריים (״, מקלדת טלפון/Word) / ״ חכם לא זוהה ⇒ «קיבלתי תודה» סווג legal
 # שורה שיש בה פעולה/שלילה/בעלות היא תוכן, לא חתימה («לא משלם | עורך דין», «עורך הדין שלי»)
 _SIG_MINE = re.compile(r"(?<![\w])(?:שלי|שלנו|לא|אני|אתבע|נתבע|תביעה|אשלמ|משלמ\w*|יתקשר|יטפל|פונה|נתראה"
                        r"|בית משפט)(?![\w])"
