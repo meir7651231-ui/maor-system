@@ -34,7 +34,7 @@ def test_urgent_from_shared_address_is_one_card_with_all_linked(api, svc, text):
     assert sorted(r["linked_customers"]) == _ids(svc) and r["draft_id"] is None
     cards = svc.db.q("SELECT * FROM messages WHERE intent='shared_contact_urgent' AND needs_owner=1")
     assert len(cards) == 1
-    names = {x["name"] for x in json.loads(cards[0]["payload"])["linked"]}
+    names = {x["name"] for x in json.loads(cards[0]["payload"])["linked_customers"]}
     assert names == {"דנה כהן", "יוסי לוי"}
     assert customer_sent(svc) == []                              # אין תשובה ללקוח
 
@@ -111,3 +111,19 @@ def test_opt_out_from_shared_address_stops_all_linked_and_card(api, svc):
     r = _inbound(api, "הסר")
     assert r["intent"] == "shared_contact_urgent"
     assert [c["opted_out"] for c in svc.db.q("SELECT opted_out FROM customers ORDER BY id")] == [1, 1]
+
+
+def test_opt_out_mixed_with_distress_still_suppresses_and_opts_out_all(api, svc):
+    """איחוד שני המימושים (ef34fac + שלי): «הסר, אני רוצה למות» ⇒ דחוף בכוונת מצוקה, וגם הכתובת חסומה וכולם מוסרים."""
+    r = _inbound(api, "תסירו אותי, אני רוצה למות")
+    assert r["intent"] == "shared_contact_urgent" and r["detected"] == "distress"
+    assert [c["opted_out"] for c in svc.db.q("SELECT opted_out FROM customers ORDER BY id")] == [1, 1]
+
+
+def test_single_code_path_for_shared_urgent_card():
+    """מגן-מקור: כרטיס shared_contact_urgent נוצר במקום אחד בלבד (היו שני מימושים מקבילים, 18.11)."""
+    import inspect
+
+    from app import inbox
+    src = inspect.getsource(inbox)
+    assert src.count("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,payload") == 1

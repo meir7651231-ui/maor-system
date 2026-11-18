@@ -18,6 +18,7 @@ def test_own_line_opt_out(text):
     assert d.intent == Intent.OPT_OUT and d.stop == Stop.PERMANENT, (text, d.intent)
 
 
-@pytest.mark.parametrize("text", ["די\nאני משלמת מחר", "תודה\nהסר את הקנס ואשלם", "תודה\nמספיק לי שבוע"])
+# «די\\nאני משלמת מחר» ⇒ הסרה (הכרעת ראש צוות 18.11)
+@pytest.mark.parametrize("text", ["תודה\nהסר את הקנס ואשלם", "תודה\nמספיק לי שבוע"])
 def test_not_opt_out(text):
     assert _d(text).intent != Intent.OPT_OUT

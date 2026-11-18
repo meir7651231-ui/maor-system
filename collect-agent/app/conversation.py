@@ -1015,6 +1015,16 @@ _extend(Intent.DISPUTE, r"\b(?:that|this|it)?\s*ain'?t\s+(?:my|mine)\b.{0,10}\b(
 _extend(Intent.OPT_OUT, r"\bleave\s+me\s+(?:tf|the\s+f\w*|the\s+hell|f\w*ing|fing|freaking|damn|the\s+heck)\s+alone\b(?!\s+(?:for|until|till)\b)")
 _extend(Intent.PROMISE, r"\bi'?ll\s+pay\s+(?:u|ya|yall|y'all)\b(?!\s+(?:back\s+)?(?:never|nothing))")
 _extend(Intent.CANT_PAY, r"\bi\s+ain'?t\s+got\s+(?:no\s+|any\s+)?(?:money|cash|funds)\b")
+# הכרעת ראש צוות 18.11 (q15-28): «תפסיקו לחפור (לי בשכל)» / «די לנדנד» / «מספיק להציק» = בקשת הפסקה ⇒ הסרה.
+_extend(Intent.OPT_OUT,
+        r"(?<![\w])(?:תפסיקו|תפסיק|תפסיקי|הפסיקו|די|מספיק|די כבר|מספיק כבר)\s+(?:כבר\s+)?(?:ל)?(?:חפור|לחפור|נדנד|לנדנד|הציק|להציק"
+        r"|בלבל|לבלבל|נג?דנג|לנדנג|ייבש|לייבש|שגע|לשגע)(?![\w])",
+        r"(?<![\w])(?:די|מספיק|חלאס|נמאס)\s+(?:לי\s+)?(?:כבר\s+)?עם\s+(?:ה)?(?:לחצ|לחצים|הודעות|סמסים|מסרונים|הטרדות|תזכורות|נדנודים|מיילים)(?![\w])")
+# הכרעת ראש צוות 18.11 (q12-11): «אני רוצה לשלם» / «I want to pay» לבד ⇒ קישור תשלום (how_to_pay), לא «לא ברור».
+_extend(Intent.HOW_TO_PAY,
+        r"^\W*(?:אני\s+|אנחנו\s+)?(?:רוצה|רוצים|רוצָה|מעוניינ\w*|מבקש\w*)\s+(?:ל)?שלם(?:\s+(?:את\s+)?(?:זה|החוב|החשבונית|הכל|הכול))?"
+        r"(?:\W+(?:איכ|איך|תודה|בבקשה))?\W*$",
+        r"^\W*i\s+(?:want|wanna|would\s+like|'d\s+like)\s+to\s+pay(?:\s+(?:it|this|the\s+bill|now|today))?(?:\W+(?:how|thanks|please))?\W*$")
 # לולאה 17.11 בוקר (המשך לסבב 122): שגיאות כתיב באנגלית בכוונות מגינות — «stop txting», «stpo texting me»,
 # «unsubcribe», «reportin u to the polise», «i feel so hopless». מילת-פעולה של שליחה נדרשת אחרי stop (לא «stop worrying»).
 _extend(Intent.OPT_OUT,
@@ -2287,6 +2297,12 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
                 # לולאה 18.11: «הסר בבקשה», «stop please», «הסירו אותי תודה» בשורה נפרדת
                 r"(?:\W+(?:בבקשה|תודה|please|pls|plz|thanks|now|עכשיו|מיד))*\W*", normalize(ln))
             for ln in (text or "").splitlines()):
+        found.add(Intent.OPT_OUT)
+    # הכרעת ראש צוות 18.11 («בספק — הכוונה המגינה מנצחת»): «חלאס, אשלם מחר» / «די\nאני משלמת מחר» / «מספיק כבר. אשלם»
+    # — «די/חלאס/מספיק» חשוף בראש ההודעה = הפסיקו לשלוח, גם כשאחריו הבטחה. «עזוב, אשלם» / «נמאס לי מהעבודה» ≠.
+    if Intent.OPT_OUT not in found and not (found & {Intent.PAID_CLAIM, Intent.DISPUTE, Intent.WRONG_PERSON, Intent.LEGAL,
+                                                     Intent.DISTRESS, Intent.MINOR, Intent.CANT_PAY}) and _s(r"^\W*(?:חלאס|די|די כבר|מספיק|מספיק כבר|enough)(?:\W+(?:נו|אחי|באמת|כבר|already))*"
+                                          r"\s*(?:[,.!\n]|$)", (text or "").strip().replace("\r", "") or t):
         found.add(Intent.OPT_OUT)
     # «די» / «מספיק» לבד בשורה — רק כשאין בהודעה שום תוכן אחר («תודה\nמספיק», «שלום\n\nדי»); «די\nאני משלמת מחר» ≠
     if Intent.OPT_OUT not in found and "\n" in (text or "") and found <= {Intent.THANKS, Intent.UNKNOWN} and any(
