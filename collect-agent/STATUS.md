@@ -1,4 +1,4 @@
-# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 296, 18.11)
+# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 297, 18.11)
 
 ענף אינטגרציה: `collect-agent` (לא מוזג ל-main, ולא ימוזג בלי אישור מפורש של מאיר). תיקייה: `collect-agent/`.
 
@@ -21,6 +21,26 @@
 ## 📌 הכרעות מאיר — מחייבות כל תפקיד (6.11.2026)
 - **מחיר יחיד:** ₪119 לחודש **או** ₪1,190 לשנה · 14 ימי ניסיון. **אין ₪79**, אין A/B, אין מסלולים או מחירונים אחרים. מקור יחיד: `docs/PRICING.md` · בקוד: `Settings.price_ils_month=119`, `price_ils_year=1190`, `trial_days=14` · בדף הנחיתה: `PRICE` ב-`web/src/pages/Landing.tsx`. (ניסוח המע״מ «כולל מע״מ ככל שחל» — עדיין לאישור רו״ח/עו״ד, `docs/PRICING.md`.)
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
+
+## 🧭 הפעלת מנהל · 18.11.2026 (הפעלה 297)
+- **מיזוג:** אין ענפים חדשים עם שינוי ב-`collect-agent/` (`git log origin/collect-agent..<ענף> -- collect-agent/` על כל ענפי ה-remote). שלושה מוכרים: `stoic-mccarthy-23f03p` (נדחה, 107) · `bold-bell-xom3mc` (WIP, ממתין למאיר) · `gabi-019-inbound` (התוכן כבר ב-collect-agent). ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
+- **CI:** ריצה 895 (`934b2ffd`, 296) **ירוקה**. 894 (סבב 151) בוטלה כי ריצה חדשה החליפה אותה (concurrency), לא נכשלה. «הבא» (1) סגור.
+- **המשימה (AI «הבא» מ-296) ✅: «I transferred» / «transferred» באנגלית. 🔴 אומת ותוקן.**
+  - 🔴 **הבאג:** «I transferred», «transferred yesterday», «I already transferred», «I've transferred», «wired yesterday», «I deposited yesterday», «I made the transfer», «I did a bank transfer», «transfer done», «bank transfer sent», «Transfer was made yesterday» ⇒ UNKNOWN («❓ לא זיהיתי»), והתזכורות **ממשיכות** למי שאומר ששילם. בעברית «העברתי» לבד כבר נתפס.
+  - **תיקון (`conversation.py`, `Intent.PAID_CLAIM`):** שלושה דפוסים. (א) גוף ראשון או תחילת הודעה + transferred/wired/deposited. (ב) «made/did/sent the (bank) transfer». (ג) «transfer done/sent/made/went through». שומר `_EN_NOT_MONEY_OBJ`: מושא שאינו כסף («my number», «schools», «my daughter to another class», «to a different X») או סימן שאלה ⇒ לא טענת תשלום.
+  - **לא השתנה:** שלילה («I haven't transferred», «I didn't make the transfer», «the transfer wasn't done») · שאלה («did the transfer go through?») · עתיד («I'll make the transfer») · ספק («not sure if I transferred») · תקלה («transfer failed») · «I sent it» לבד (עמום, נשאר UNKNOWN) · עברית.
+  - חדש: `tests/test_mgr297_transferred_en.py` (57: ‏25 טענות, 27 לא-טענות, respond, עברית, רצפים) + `evals/seq/regress-mgr297.jsonl` (3 רצפים דרך השירות, SMS ומייל: `awaiting_owner` + השהיה). **מוטציה:** בלי הדפוסים ⇒ 28/57 נופלות.
+  - **אומת מקומית:** `pytest` **6879 עברו**, 19 דולגו · `ruff` נקי · `evals.harness` 100% (0 הפרות מעקה) · `evals.sequences` כל הקבצים 100% · `demo.sh --check` ירוק.
+  - **נמצא ולא תוקן:** «I'll make the transfer tomorrow» / «I will do the transfer on Sunday» ⇒ UNKNOWN, ולא הבטחה (PROMISE). פער קיים ⇒ AI.
+- **מצב לפי תפקיד:**
+  - פיתוח: **הבא:** ניסוח הכרטיס ליד הסדר **שנדחה** (293). ממתין להכרעת ביקורת.
+  - ביקורת: **הבא:** לאשר או להפוך 294–296 · ניסוח ליד הסדר שנדחה · לאשר את גבולות 297 («I think I transferred» ⇒ טענה; «I sent it» ⇒ לא). פתוח: מחלוקת ⇒ הצעה, qa15 (ד), q16-40/41, q17-12.
+  - AI: ✅ «transferred». **הבא:** «I'll make the transfer tomorrow» ⇒ הבטחה · q17-12 · וריאציות 295–297 לסט המוחזק.
+  - QA: **הבא:** סט #18 (עיוור), כולל שרשרת באנגלית: «can't pay now» ⇒ «move the first one» ⇒ «transfer done».
+  - תשתית/CI: לוודא שריצת הקומיט הזה ירוקה.
+  - חיבורים / משפטי / שיווק / מכירות: ללא שינוי (ראו 293).
+- **הבא:** (1) CI ירוק. (2) ביקורת: הכרעות 294–297 + הסדר שנדחה. (3) AI: עתיד של «transfer» כהבטחה. (4) QA: סט #18. (5) פיתוח: לפי הכרעות הביקורת.
+- **חסמים (מאיר):** ללא שינוי: sandbox לספקים, ניסוח מע״מ, פרטי החברה המפעילה, מסמך API של 019, ענף `bold-bell-xom3mc`, ספק מייל לבעלים, הכרעות qa15, ער״ן בתשובה ל«הצילו» לבד.
 
 ## 🧭 הפעלת מנהל · 18.11.2026 (הפעלה 296)
 - **מיזוג:** אין ענפים חדשים עם שינוי ב-`collect-agent/` (`git log origin/collect-agent..<ענף> -- collect-agent/` על כל ענפי ה-remote). שלושה מוכרים: `stoic-mccarthy-23f03p` (נדחה, 107) · `bold-bell-xom3mc` (WIP, ממתין למאיר) · `gabi-019-inbound` (התוכן כבר ב-collect-agent, 19eb202). סבב ביקורת 151 (`3e2943ee`) כבר על הענף. ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.

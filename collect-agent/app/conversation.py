@@ -467,6 +467,15 @@ _EN_SPLIT_RX = re.compile(r"\bsplit\s+(?:(?:it|this|that|the\s+(?:bill|amount|ba
                           + _EN_INW + r")\b(?!\s*(?:%|percent|days?|weeks?|years?|hours?|people|ways?\s+with))", re.I)
 
 
+# מנהל 297: מושא שאינו כסף אחרי «transferred» לבד — «I transferred my number», «we transferred schools»,
+# «transferred to another school», «transferred? when?» (שאלה) ⇒ לא טענת תשלום.
+_EN_NOT_MONEY_OBJ = (r"(?!\s*\?)(?!\s+(?:(?:my|our|his|her|their|the|a|an|this|that)\s+)?(?:\w+\s+)?(?:numbers?|phones?|lines?|sim|"
+                     r"schools?|class(?:es)?|branch(?:es)?|kids?|sons?|daughters?|child(?:ren)?|calls?|subscriptions?|"
+                     r"memberships?|registrations?|contracts?|files?|photos?|data|domains?|jobs?|departments?|apartments?|"
+                     r"cars?|ownership|insurance|credits?|points|tickets?|appointments?)\b)"
+                     r"(?!\s+(?:to|into)\s+(?:a\s+|an\s+)?(?:another|different|new|other)\b)")
+
+
 RX: dict[Intent, re.Pattern[str]] = {
     Intent.DISTRESS: _rx(
         # critic סבב 115: «לא יכול לחיות ככה» (לא «לחיות בלי הקפה»)
@@ -716,6 +725,15 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"(?:deposit|down\s*payment|partial\s+payment|advance(?:\s+payment)?)\b(?!\s+(?:request|invoice|receipt\s+request)\b)",
         r"\b(?:i|we)\s+(?:already\s+|just\s+)?(?:sent|transferred|paid)\s+(?:it\s+|you\s+|the\s+money\s+|\d[\d,]*\s*(?:nis|ils|₪|shekels?)?\s+)?"
         r"(?:via|by|with|through|on)\s+(?:bit|paybox|bank\s+transfer)\b",
+        # מנהל 297 («הבא» AI מ-296): «I transferred» / «transferred yesterday» / «I've wired it» / «I made the transfer» /
+        # «transfer done» לבד ⇒ היה «לא ברור» (התזכורות ממשיכות למי ששילם). המקבילה העברית «העברתי» לבד כבר נתפסת.
+        # לא: «I transferred my number/schools» (מושא שאינו כסף), «transferred?» (שאלה), שלילה (מסונן למטה ב-t_en).
+        r"(?:\b(?:i|we)(?:'ve|\s+have|'d|\s+had)?\s+(?:already\s+|just\s+|actually\s+|also\s+)?|^\W*(?:(?:done|ok|okay|yes|yeah|hi|hello)\W+)?"
+        r"(?:already\s+|just\s+)?)(?:transferred|wired|deposited)\b" + _EN_NOT_MONEY_OBJ,
+        r"\b(?:i|we)(?:'ve|\s+have)?\s+(?:already\s+|just\s+)?(?:made|did|done|sent|completed|initiated)\s+(?:the|a|an|my)\s+"
+        r"(?:bank\s+)?(?:transfer|wire(?:\s+transfer)?)\b",
+        r"\b(?:the\s+|my\s+)?(?:bank\s+)?(?:transfer|wire)\s+(?:is\s+|was\s+|has\s+been\s+|'s\s+)?(?:already\s+)?"
+        r"(?:done|sent|made|completed|through|gone\s+through|went\s+through)\b(?!\s*\?)",
         r"(?:יש לי|מצרפ\w*|הנה|שולח\w*) (?:את ה)?אסמכתא", r"(?:בעלי|אשתי|בעלה|אבא שלי|אמא שלי|השותף) (?:כבר )?(?:שילם|שילמה|העביר|העבירה)",
         r"(?:ה)?(?:ביט|פייבוקס|העברה|תשלום|צ'?ק|כסף)(?: \w+)? (?:כבר )?(?:נשלח|נשלחה|בוצע|בוצעה|יצא|יצאה|הועבר|הועברה|הופקד)",
         r"(?:קיבלתם|קיבלת) (?:כבר )?(?:את )?(?:ה)?(?:כסף|תשלום)",

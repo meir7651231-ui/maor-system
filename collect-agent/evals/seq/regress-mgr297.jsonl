@@ -1,0 +1,3 @@
+{"id": "rm297-01", "channel": "sms", "critical": true, "turns": [{"text": "I transferred yesterday", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause"}}]}
+{"id": "rm297-02", "channel": "sms", "critical": true, "turns": [{"text": "transfer done", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause"}}]}
+{"id": "rm297-03", "channel": "email", "critical": true, "turns": [{"text": "Hi, I made the bank transfer this morning", "expect": {"intent": "paid_claim", "state": "awaiting_owner", "stop": "pause"}}]}
