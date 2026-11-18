@@ -2436,7 +2436,7 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     # (PLAN_PENDING_OWNER, 266) נשארת כרטיס. בלי «הכל», עם שאלה, או בלי מועד בעתיד ⇒ כמו קודם (כרטיס).
     if out[:1] == [Intent.PLAN_REJECT] and Intent.PROMISE in found and Intent.PLAN_REQUEST not in found \
             and ctx is not None and ctx.offered_plan and ctx.state == State.AWAITING_PLAN_REPLY \
-            and _s(_PAY_ALL, t) and "?" not in t:
+            and _pay_all(t) and "?" not in t:
         dd, _ = extract_date_ctx(t, ctx)
         if dd is not None and dd >= ctx.today:
             out.remove(Intent.PROMISE)
@@ -2449,6 +2449,28 @@ _PAY_ALL = (r"(?<![\w])(?:את\s+)?(?:ה)?(?:הכל|הכול|כל\s+(?:ה)?(?:ס
             r"|מלוא\s+(?:ה)?(?:סכומ|חוב|יתרה))(?![\w])"
             r"|\b(?:in\s+full|everything|all\s+of\s+it|the\s+(?:whole|full)\s+(?:amount|thing|balance)|at\s+once"
             r"|pay(?:ing)?\s+(?:it\s+|you\s+|this\s+)?all)\b")
+
+# מנהל 279 (ביקורת מלכודות ל-278): «הכל» שאינו תשלום מלא ⇒ לא הבטחה. «הכל בסדר / הכל טוב / everything is fine»
+# הם נימוס, לא סכום; «הכל חוץ מ-200 / מלבד / פחות / כמעט הכל / except / minus / almost» = חלק; סכום מפורש
+# («אעביר 500 מחר»), חצי/חלק/רוב, או פריסה («בתשלומים») ⇒ גם חלק. בכל אלה נשאר כרטיס לבעל העסק (מדיניות 253).
+# ⚠️ הטקסט מגיע מנורמל לאותיות לא-סופיות; תבנית חייבת לעבור דרך _c (re.sub ישיר עם «תשלומים» לא תופס).
+_PAY_ALL_FILLER = (r"(?<![\w])(?:ה)?(?:הכל|הכול)\s+(?:בסדר|טוב|תקינ|ברור|מובנ|בריא)(?![\w])"
+                   r"|\b(?:everything(?:'s|\s+is)?|all(?:'s|\s+is)?)\s+(?:fine|ok(?:ay)?|good|clear|well|set)\b"
+                   # «בלי תשלומימ / no need for installments» = סירוב לפריסה, לא חלקיות (277/278)
+                   r"|(?<![\w])(?:בלי|ללא|לא\s+צריך|לא\s+רוצה|אינ\s+צורכ\s+ב?)\s*(?:ב)?(?:ה)?(?:תשלומימ|פריסה)(?![\w])"
+                   r"|\b(?:no|without|don'?t\s+(?:want|need)|no\s+need\s+for)\s+(?:any\s+|the\s+)?"
+                   r"(?:installments?|instalments?|payments?(?:\s+plan)?|a\s+payment\s+plan)\b")
+_PAY_ALL_VETO = (r"(?<![\w])(?:ו?(?:ה?חצי|חלק|השאר|היתרה)(?![\w])|חוצ\s+מ|מלבד|פחות|בניכוי|למעט|כמעט|בערכ|בתשלומימ|תשלומימ)"
+                 r"|\b(?:except|minus|less|the\s+rest|apart\s+from|aside\s+from|other\s+than|almost|nearly|most\s+of"
+                 r"|installments?|instalments?|payments)\b"
+                 r"|\b(?:everything|all(?:\s+of\s+it)?)\s+but\b"
+                 # סכום מפורש (3+ ספרות, לא שנה ולא חלק מתאריך) — אולי לא כל החוב; הבעלים יכריע
+                 r"|(?<![\d./-])(?!20\d\d(?!\d))\d{3,}(?:,\d{3})*(?![\d./-])")
+
+
+def _pay_all(t: str) -> bool:
+    core = _c(_PAY_ALL_FILLER).sub(" ", t)  # דרך _c: אותיות סופיות מתורגמות גם בתבנית
+    return bool(_s(_PAY_ALL, core)) and not _s(_PAY_ALL_VETO, core) and not _PARTIAL_WORDS.search(core)
 
 
 _EN_NOT_NAMES = frozenset(
