@@ -67,3 +67,5 @@
 {"id": "c146-2", "text": "i aint paying till friday sorry", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["dispute"]}, "critical": true}
 {"id": "c147-1", "text": "חלאס", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out"}, "critical": true}
 {"id": "c147-2", "text": "אל תשלחו לי קישור, אני אעביר בבנק", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["opt_out"]}, "critical": true}
+{"id": "c148-1", "text": "הטלפון שלי נשבר, אשלם כשאתקן", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute"]}, "critical": true}
+{"id": "c148-2", "text": "זה הגיע שבור", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
