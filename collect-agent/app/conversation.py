@@ -1919,11 +1919,29 @@ _PAID_INST_ANY = (r"(?<![\w])(?:ה)?תשלומ\s+(?:ה(?:בא|חודשי|קרו�
                   r"|\b(?:payment|installment|instalment)\s+for\s+this\s+month\b")
 
 
+# מנהל 295 (AI «הבא» מ-294): אותה טענה בלי המילה «תשלום» — «שילמתי את של החודש», «שילמתי לחודש הזה»,
+# «העברתי את הבא», «שילמתי החודש», «I paid this month», «paid the next one» ⇒ היה כרטיס «שילם/ה 1,200 ₪» (כל
+# החוב). הקורא כבר זיהה טענת תשלום ויש הסדר בתוקף, אז «של החודש» / «הבא» כאן = תשלום אחד מההסדר.
+# «החודש» לבד — רק צמוד לפועל תשלום («שילמתי (כבר) החודש»), כי «החודש» במקום אחר הוא רק זמן.
+_PAID_INST_ELLIPTIC = (
+    r"(?<![\w])את\s+(?:ה(?:בא|חודשי|קרוב|נוכחי)|של\s*(?:ה)?חודש|(?:ה)?חודש(?:\s+(?:הזה|הנוכחי))?)(?![\w])"
+    r"|(?<![\w])(?:ל|על\s+ה|בשביל\s+ה)חודש\s+(?:הזה|הנוכחי)(?![\w])"
+    r"|(?<![\w])(?:שילמתי|שילמנו|העברתי|העברנו|הפקדתי|הפקדנו)\s+(?:כבר\s+|את\s+)?(?:ל?החודש|של\s*החודש)(?![\w])"
+    r"|\b(?:the\s+|my\s+)?(?:next|monthly|current)\s+one\b|\bthis\s+month'?s\b(?!\s+(?:payment|installment|instalment))"
+    r"|\b(?:paid|transferred|sent)\s+(?:it\s+|already\s+)?(?:for\s+)?this\s+month\b")
+
+# «הכל» / «את כל החוב» / «in full» — הלקוח אומר שכל החוב שולם, לא תשלום אחד
+_PAID_ALL = (r"(?<![\w])(?:את\s+)?(?:ה)?(?:כל|כול)(?![\w])|(?<![\w])(?:ה)?יתרה(?![\w])"
+             r"|\b(?:everything|in\s+full|the\s+whole|the\s+rest|all\s+of\s+it|the\s+balance)\b")
+
+
 def paid_unspecified_installment(t: str, plan: tuple[Installment, ...]) -> bool:
     """הלקוח טוען ששילם תשלום **אחד** מההסדר בלי לציין איזה («הבא», «של החודש»)."""
     if not plan or _s(r"(?<![\w])(?:שני|שלושת|כל) ה?תשלומימ|תשלומימ|\b(?:payments|installments|instalments|both)\b", t):
         return False
-    return bool(_s(_PAID_INST_ANY, t))
+    if _s(_PAID_INST_ANY, t):
+        return True
+    return bool(_s(_PAID_INST_ELLIPTIC, t)) and not _s(_PAID_ALL, t)
 
 
 # חלופה שנדחית: «לא ל-10», «ולא ב-10», «במקום ה-10», «instead of the 10th», «not the 10th»
