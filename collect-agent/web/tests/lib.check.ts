@@ -1245,3 +1245,17 @@ test('critic 127: unknown_sender_urgent מוצגת, מסומנת דחופה ור
   assert.match(n[0].title, /דחופה/);
   assert.equal(n[0].tone, 'warn');
 });
+
+test('לוח החגים: באנר פקיעה — 120 יום מראש לפי השרת, פג ⇒ expired, בלי נתון ⇒ כלום', async () => {
+  const { holidayNotice } = await import('../src/lib/holidays.ts');
+  const sw = (until: string | null, expiring?: boolean) => ({ open_now: true, closed_reason: null, next_allowed: null, holidays_until: until, holidays_expiring: expiring });
+  assert.equal(holidayNotice(sw('2029-08-31', false), '2026-11-18'), null, 'בתוקף לאורך זמן ⇒ אין באנר');
+  assert.deepEqual(holidayNotice(sw('2029-08-31', true), '2029-06-01'), { level: 'expiring', until: '2029-08-31', daysLeft: 91 });
+  assert.deepEqual(holidayNotice(sw('2029-08-31', true), '2029-09-01'), { level: 'expired', until: '2029-08-31', daysLeft: -1 });
+  // השרת אומר expiring=false אבל התאריך עבר ⇒ עדיין expired (fail-closed גם בתצוגה)
+  assert.equal(holidayNotice(sw('2029-08-31', false), '2029-09-02')?.level, 'expired');
+  // שרת ישן בלי הדגל ⇒ חישוב מקומי <120
+  assert.equal(holidayNotice(sw('2029-08-31'), '2029-05-10')?.level, 'expiring');
+  assert.equal(holidayNotice(sw('2029-08-31'), '2029-04-01'), null);
+  for (const bad of [null, undefined, sw(null), sw('31/08/2029', true)]) assert.equal(holidayNotice(bad as never, '2029-06-01'), null);
+});

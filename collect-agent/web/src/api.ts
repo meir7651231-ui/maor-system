@@ -99,6 +99,7 @@ export interface DashRow {
 }
 /** סיכום למטבע שאינו ₪ (app/service.py _other_currency). הסכומים ב-totals הם ₪ בלבד. */
 export interface OtherCurrency { currency: string; open_invoices: number; open_agorot: number; overdue_agorot: number; at_risk_agorot: number; collected_agorot: number }
+import type { SendWindow } from './lib/holidays.ts';
 export interface Dashboard {
   today: string;
   totals: { open_invoices: number; open_agorot: number; overdue_agorot: number; closed_invoices: number; pending_approval: number; sent_sms: number; sent_email: number; sent_owner?: number; owner_inbox: number;
@@ -109,6 +110,8 @@ export interface Dashboard {
     /** critic סבב 79: חשבוניות פתוחות שממתינות לאישור בעל העסק (שער רשימת הפתוחות). חסר בשרת ישן. */ open_unreviewed?: number };
   series?: WeekPoint[];
   invoices: DashRow[];
+  /** חלון השליחה + פקיעת לוח החגים (critic סבב 119). חסר בשרת ישן. */
+  send_window?: SendWindow;
 }
 export interface PreviewMsg {
   channel: 'sms' | 'email'; provider: string; to: string; body: string;

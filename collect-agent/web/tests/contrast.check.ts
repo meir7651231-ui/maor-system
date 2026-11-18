@@ -58,3 +58,14 @@ test('גווני-המילוי due/late/critical אינם עוברים AA כטק�
   const bad = files.flatMap(p => [...readFileSync(p, 'utf8').matchAll(/\btext-(due|late|critical)\b(?!-ink)/g)].map(m => `${p.replace(WEB, '')}: ${m[0]}`));
   assert.deepEqual(bad, [], 'טקסט בגוון-מילוי (השתמשו ב-*-ink)');
 });
+
+test('באנר פקיעת לוח החגים: כל צירוף טקסט/רקע במחלקות הרכיב ≥4.5:1', () => {
+  const src = readFileSync(join(WEB, 'src/components/HolidayBanner.tsx'), 'utf8');
+  for (const bg of ['amber-50', 'red-50']) assert.ok(src.includes(`bg-${bg}`), `הרכיב לא משתמש ב-bg-${bg}`);
+  for (const fg of ['ink-900', 'due-ink', 'critical-ink']) assert.ok(src.includes(`text-${fg}`), `הרכיב לא משתמש ב-text-${fg}`);
+  for (const [fg, bg] of [['ink-900', 'amber-50'], ['due-ink', 'amber-50'], ['ink-900', 'red-50'], ['critical-ink', 'red-50']]) {
+    const r = ratio(fg, bg);
+    assert.ok(r >= 4.5, `${fg} על ${bg} = ${r.toFixed(2)}:1`);
+  }
+  assert.doesNotMatch(src, /text-(amber|orange|red)-[3-5]00\b/, 'גוון טקסט בהיר מדי בבאנר');
+});

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../store.tsx';
+import { hashParam } from '../router.ts';
 import { api, type AmountCheck } from '../api.ts';
 import { fmtMoney } from '../lib/format.ts';
 import { RULES } from '../lib/domain.ts';
 import { diffPatch, explainImportError, explainSettingsError, draftFor, formDiff, mergeServerForm, restoreDraft, settingsDraft, SOURCE_SYSTEMS, sourceLabel, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
 import { Button, Card, Field, inputCls } from '../components/ui.tsx';
+import { HolidayBanner } from '../components/HolidayBanner.tsx';
 import { failPrefix } from '../lib/failure.ts';
 
 const PAY: [PayProvider, string][] = [['greeninvoice', 'חשבונית ירוקה (morning)'], ['meshulam', 'משולם'], ['bit', 'ביט']];
@@ -14,7 +16,13 @@ const PAY: [PayProvider, string][] = [['greeninvoice', 'חשבונית ירוק�
  * כללי המוצר (3 תזכורות, 08–20, אישור לכל הודעה), הסולם והמחיר — קבועים, מוצגים לקריאה בלבד.
  */
 export function Settings() {
-  const { mode, business, setBusiness, showToast, reload, dataSeq, me } = useApp();
+  const { mode, business, setBusiness, showToast, reload, dataSeq, me, sendWindow } = useApp();
+  // «לפרטים ועדכון» מבאנר לוח החגים בבית ⇒ #/settings?s=holidays ⇒ גוללים לסעיף (אחרי גלילת-הראוטר לראש)
+  useEffect(() => {
+    if (hashParam(location.hash, 's') !== 'holidays') return;
+    const t = setTimeout(() => document.getElementById('holidays')?.scrollIntoView({ block: 'center' }), 50);
+    return () => clearTimeout(t);
+  }, [sendWindow]);
   const live = mode === 'live';
   const mockForm: SettingsForm = useMemo(() => ({
     business_name: business.name, owner_name: business.ownerName, vat_id: business.vatId, reply_email: business.email,
@@ -108,6 +116,7 @@ export function Settings() {
           <b>🧪 מוק — ההגדרות לא נשמרות בשרת.</b> אין חיבור לשרת גבי. אפשר לנסות את המסך, אבל שינוי כאן לא משפיע על שום דבר ונמחק ברענון.
         </div>
       )}
+      {live && <HolidayBanner where="settings" />}
       {loadErr && <p role="alert" className="text-critical-ink font-bold">לא הצלחנו לטעון את ההגדרות: {loadErr}</p>}
 
       <Card className="p-5 space-y-4">

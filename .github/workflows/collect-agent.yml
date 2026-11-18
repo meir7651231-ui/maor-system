@@ -204,6 +204,8 @@ jobs:
         run: TZ=UTC node e2e/app-invoice-fix.mjs "$RUNNER_TEMP/shots"
       - name: "e2e המסך המעוצב (/app/) — רשימת הפתוחות: אין תזכורת לפני אישור, «כבר שולם» לא נפתח בייבוא חוזר, מובייל"
         run: TZ=UTC node e2e/app-openlist.mjs "$RUNNER_TEMP/shots"
+      - name: e2e — התראת פקיעת לוח החגים (בית+הגדרות, AA, מובייל)
+        run: TZ=UTC node e2e/app-holidays.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
         run: TZ=UTC node e2e/rebuild.mjs "$RUNNER_TEMP/shots"
       - name: e2e CSP — 7 עמודי HTML (/p, /p-404, /ui, /app, /pay, /connect/orbit) בלי הפרות, וסקריפט מוזרק נחסם
