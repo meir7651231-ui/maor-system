@@ -1070,6 +1070,25 @@ _extend(Intent.DISPUTE,
         r"|were\s+cancell?ed)\b",
         r"\b(?:classes|lessons|sessions|class)\s+(?:were|was|got)\s+cancell?ed\b.{0,30}\bno\s+refund\b")
 
+# ═══ critic סבב 138: תלונות בוורטיקלים אחרים (מוסך/מספרה/קוסמטיקה/קליניקה/רו״ח) ═══
+_extend(Intent.DISPUTE,
+        r"(?:חזר|חזרה)\s+(?:\S+\s+)?(?:עמ\s+)?(?:אותה|אותו)\s+(?:ה)?(?:תקלה|בעיה|רעש|נזילה)",
+        r"(?:חייבו|חייבתמ|גביתמ|גבו)\s+(?:\S+\s+){0,2}?(?:על|עבור)\s+(?:\S+\s+){0,3}?ש(?:ממש\s+)?לא\s+(?:עשיתי|עשינו|קיבלתי"
+        r"|קיבלנו|הוחלפ|הוחלפה|הוחלפו|היה|היתה|הייתה|ביקשתי|ביקשנו|הזמנתי|נעשה|נעשתה|בוצע|בוצעה)(?![\w])",
+        r"(?:ובכל זאת|ועדיינ|ובכ\"?ז)\s+(?:חייבו|חייבתמ|גביתמ|גבו|מחייבימ)(?![\w])",
+        r"(?:יצא|יצאה|יצאו)\s+(?:\S+\s+)?(?:הרוס|הרוסה|הרוסימ|נוראי|נוראית|זוועה|גרוע|גרועה|עקומ|עקומה)(?![\w])",
+        r"(?:ה)?(?:שיער|עור|ציפורנ\w*|גבות)\s+(?:\S+\s+)?(?:נשרפ|נשרפה|נשרפו|נהרס|נהרסה|נהרסו|נפגע|נפגעה)(?![\w])",
+        r"לא\s+(?:תיקנ|תיקנו|תיקנתמ|תיקנה)\s+(?:את\s+)?(?:מה ש(?:ביקשתי|ביקשנו|אמרתי)|הבעיה|התקלה)(?![\w])",
+        r"לא\s+(?:הגיש|הגישה|הגישו|הגשתמ)\s+(?:\S+\s+){0,3}?(?:בזמנ|במועד)(?![\w])",
+        r"\bcame\s+back\s+with\s+the\s+same\s+(?:problem|issue|fault|noise|leak)\b",
+        r"\bcharged\b.{0,25}\bfor\s+(?:a|an|the)\s+\w+\s+(?:that\s+|which\s+)?(?:(?:i|we)\s+)?(?:never|was\s+never|were\s+never"
+        r"|did\s*n'?t|didnt)\s+\w+",
+        r"\b(?:was|were|still\s+got)\s+still\s+charged\b|\b(?:and|but)\s+(?:was|were|got)\s+(?:still\s+)?charged\s+anyway\b",
+        r"\b(?:came\s+out|turned\s+out)\s+(?:so\s+|really\s+)?(?:terrible|awful|horrible|ruined|wrong|bad|uneven)\b",
+        r"\b(?:haircut|color|colour|hair|nails|treatment|repair|paint\s*job)\s+(?:was|is|got)\s+(?:completely\s+)?ruined\b",
+        r"\b(?:accountant|you|they|he|she)\s+missed\s+the\s+(?:filing\s+)?deadline\b",
+        r"\b(?:did\s*n'?t|didnt|did\s+not|never)\s+fix\s+(?:what\s+(?:i|we)\s+asked|the\s+(?:problem|issue|fault))\b")
+
 # q12-08/10: «התשלומים» כשם עצם כללי («אני אחראית על התשלומים בבית», «התשלומים של האשראי יורדים ב-10») ≠ בקשת
 # פריסה. הביטויים מוסרים מהטקסט רק לבדיקת PLAN_REQUEST; «אפשר בתשלומים?» לא נוגע.
 _GEN_PAYMENTS = _c(

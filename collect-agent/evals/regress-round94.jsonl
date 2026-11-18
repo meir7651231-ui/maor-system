@@ -53,3 +53,5 @@
 {"id": "c136-2", "text": "הילד חולה היום ולא יגיע לשיעור", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["cant_pay"]}, "critical": true}
 {"id": "c137-1", "text": "חייבתם על חודש שהחוג לא התקיים", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
 {"id": "c137-2", "text": "המורה לא הגיעה היום, יש שיעור מחר?", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["dispute"]}, "critical": true}
+{"id": "c138-1", "text": "הרכב חזר עם אותה תקלה", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute"}, "critical": true}
+{"id": "c138-2", "text": "I missed the deadline for the payment, sorry, paying now", "ctx": {"channel": "sms"}, "expect": {"intent": "promise", "not": ["dispute"]}, "critical": true}
