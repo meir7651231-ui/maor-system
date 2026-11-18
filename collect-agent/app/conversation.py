@@ -1009,6 +1009,12 @@ _extend(Intent.WRONG_PERSON,
         r"\b(?:this|the)\s+(?:number|phone)\s+used\s+to\s+(?:be\s+(?:hers|his|theirs|someone\s+else'?s)|belong\s+to)\b",
         r"\bthis\s+used\s+to\s+be\s+(?:her|his|their|someone\s+else'?s)\s+(?:number|phone)\b",
         r"(?:ה)?(?:מספר|טלפון)(?:\s+ה?זה)?\s+היה\s+(?:שלה|שלו|של\s+\S+)(?:\s+פעמ|\s+קודמ|\s+לפני)?")
+# לולאה 18.11 (המשך לסבב 146 — סלנג באנגלית): «aint my bill/debt», «leave me tf alone» (מילת חיזוק באמצע),
+# «ill pay u fri» / «ill pay ya tmrw» (u/ya במקום you).
+_extend(Intent.DISPUTE, r"\b(?:that|this|it)?\s*ain'?t\s+(?:my|mine)\b.{0,10}\b(?:bill|debt|invoice|charge)?|\bain'?t\s+mine\b")
+_extend(Intent.OPT_OUT, r"\bleave\s+me\s+(?:tf|the\s+f\w*|the\s+hell|f\w*ing|fing|freaking|damn|the\s+heck)\s+alone\b(?!\s+(?:for|until|till)\b)")
+_extend(Intent.PROMISE, r"\bi'?ll\s+pay\s+(?:u|ya|yall|y'all)\b(?!\s+(?:back\s+)?(?:never|nothing))")
+_extend(Intent.CANT_PAY, r"\bi\s+ain'?t\s+got\s+(?:no\s+|any\s+)?(?:money|cash|funds)\b")
 # לולאה 17.11 בוקר (המשך לסבב 122): שגיאות כתיב באנגלית בכוונות מגינות — «stop txting», «stpo texting me»,
 # «unsubcribe», «reportin u to the polise», «i feel so hopless». מילת-פעולה של שליחה נדרשת אחרי stop (לא «stop worrying»).
 _extend(Intent.OPT_OUT,
