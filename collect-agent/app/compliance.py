@@ -17,7 +17,7 @@ import re
 from dataclasses import dataclass
 
 LEGAL_BLACKLIST: tuple[tuple[str, str], ...] = (
-    ("enforcement", r"הוצאה לפועל|הוצל\"?פ"),
+    ("enforcement", r"הוצאה לפועל|הוצל[\"']?פ"),
     ("lawyer", r"עו[\"״']ד|עוה[\"״']ד|עור[כך]\w*[\s\-]+ה?דין|משרד עורכי|פרקליט"),   # "עוד" ≠ עו"ד
     ("court", r"תביע|לתבוע|נתבע(?![\w])|בית ה?משפט|(?<![\w])[לבמו]?בית ה?דין|הליכים משפטיים|צעדים משפטיים|"
               r"הליך משפטי"),
@@ -111,8 +111,35 @@ def sms_segments(text: str) -> int:
 _FINALS = str.maketrans("ךםןףץ", "כמנפצ")
 
 
+# מנהל 283: וריאנטי גרשיים/גרש וסימנים בלתי-נראים עקפו את המעקה היוצא. «נעביר להוצל״פ» (גרשיים עבריים — הכתיב
+# התקני!) לא נחסם כי הדפוס הכיר רק `"`; «נפנה לעו”ד» (מרכאות חכמות — פלט נפוץ של LLM), «עו„ד», «עו″ד», «עו׳׳ד»,
+# «עו''ד», «עו’ד», ניקוד («הוֹצָאָה לַפֹּועַל»), מקף עברי («עורך־דין») ותו רוחב-אפס בתוך מילה — כולם עברו.
+# מנרמלים לעותק נוסף ובודקים **בנוסף** למקור — רק מחמיר, לא מקל.
+_NIKUD = re.compile("[\u0591-\u05BD\u05BF-\u05C7]")
+_INVIS = re.compile("[\u00ad\u200b-\u200f\u202a-\u202e\u2060-\u2064\ufeff]")
+_QUOTES = str.maketrans({"״": '"', "”": '"', "“": '"', "„": '"', "‟": '"', "″": '"', "＂": '"', "«": '"', "»": '"',
+                         "׳": "'", "’": "'", "‘": "'", "′": "'", "‚": "'", "‛": "'", "＇": "'", "`": "'",
+                         "\u05be": "-", "–": "-", "—": "-", "‐": "-", "‑": "-"})
+
+
+def _qnorm(t: str) -> str:
+    t = _INVIS.sub("", _NIKUD.sub("", t)).translate(_QUOTES)
+    return t.replace("''", '"')
+
+
+def _variants(t: str) -> tuple[str, ...]:
+    n = _qnorm(t)
+    return (t,) if n == t else (t, n)
+
+
 def _hit(pat: str, t: str) -> bool:
-    return bool(re.search(pat, t) or re.search(pat.translate(_FINALS), t.translate(_FINALS)))
+    pf = pat.translate(_FINALS)
+    return any(re.search(pat, v) or re.search(pf, v.translate(_FINALS)) for v in _variants(t))
+
+
+def _qhit(pat: str, t: str) -> bool:
+    """מותגים: אותה בדיקה כמו קודם (בלי נרמול סופיות), גם על העותק המנורמל-גרשיים."""
+    return any(re.search(pat, v) for v in _variants(t))
 
 
 def violations(text: str, r: Rules) -> list[str]:
@@ -127,7 +154,7 @@ def violations(text: str, r: Rules) -> list[str]:
     own = r.own_name or r.business
     branded = prose.replace(own, " ") if own else prose
     for name, pat in BRANDS:
-        if re.search(pat, branded):
+        if _qhit(pat, branded):
             out.append(name)
     if not r.allow_debt_word and _hit(DEBT_WORD[1], prose):
         out.append(DEBT_WORD[0])

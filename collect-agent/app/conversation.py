@@ -307,8 +307,14 @@ def _amount_words_to_digits(t: str) -> str:
     return sub(_HE_PAID_WORDS_RX, _he_amount_tokens, 2)
 
 
+# מנהל 283: תווים בלתי-נראים (רוחב-אפס ZWSP/ZWNJ/ZWJ, WORD JOINER, BOM, סימני כיווניות מוטבעים) בתוך מילה —
+# נפוצים בהעתק-הדבק מוואטסאפ/דפדפן — עקפו כל מילת-מפתח: «ה\u200bסר» ו«תפס\u200dיקו לשלוח» סווגו «לא ברור»
+# (בקשת הסרה לא כובדה!), «עו\u200b"ד» לא legal.
+_INVIS = re.compile("[\u00ad\u200b-\u200d\u202a-\u202e\u2060-\u2064\ufeff]")
+
+
 def normalize(text: str) -> str:
-    t = _NIKUD.sub("", text or "").translate(_QUOTES).lower()
+    t = _INVIS.sub("", _NIKUD.sub("", text or "")).translate(_QUOTES).lower()
     t = _ACRO_1Q.sub(_acro_1q, t.replace("''", '"')).translate(_FINALS)  # אותיות סופיות ⇒ רגילות (גם בתבניות)
     # "תודההההה" ⇒ "תודהה". מנהל 270: לא ספרות — «שילמתי 1000» נקרא 100 ₪, «אשלם 1000 לחודש» ⇒ ₪100 (50 תשלומים)
     t = re.sub(r"([^\d])\1{2,}", r"\1\1", t)
@@ -2735,7 +2741,7 @@ _FOREIGN_STOP = re.compile(
 def _foreign(lang: str, text: str, ctx: Context) -> Decision:
     name = ctx.customer_name or "הלקוח/ה"
     label = {"ar": "ערבית", "ru": "רוסית"}[lang]
-    if _FOREIGN_STOP.search(text or ""):
+    if _FOREIGN_STOP.search(_INVIS.sub("", text or "")):   # מנהל 283: רוחב-אפס בתוך המילה
         return Decision(
             intent=Intent.OPT_OUT, secondary=(), reply=None, auto_send=False,
             escalate=Escalation.NORMAL, stop=Stop.PERMANENT, pause_until=None, next_state=State.OPTED_OUT,
