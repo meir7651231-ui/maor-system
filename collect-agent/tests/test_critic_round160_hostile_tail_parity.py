@@ -30,7 +30,7 @@ def _card(text):
     return d.intent != Intent.PROMISE or d.escalate != Escalation.NONE
 
 
-@pytest.mark.xfail(strict=True, reason="critic 160: המשך ביטול/עוין בלי שוויון עברית-אנגלית ⇒ הבטחה שקטה (לתיקון בונה)")
+
 @pytest.mark.parametrize("text", MISSED)
 def test_hostile_tail_parity_reaches_owner(text):
     assert _card(text), text
