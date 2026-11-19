@@ -718,7 +718,7 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"אין לי (?:מושג|מושג בכלל) מי",
         r"(?:ה)?מספר (?:ה?זה )?(?:חדש|חדשה) (?:אצלי|אצלנו|לי)|(?:קניתי|קנו לי|קיבלתי) (?:את )?(?:ה)?מספר(?: ה?זה)? (?:חדש|לא מזמן)",
         r"(?:מי ש|ה)(?:היה|בעלים|משתמש)\w* (?:לפני|הקודם|קודם)\w*\W+(?:\w+\W+){0,2}(?:כבר )?לא (?:פה|כאן|בשימוש)?",
-        r"\bwrong (?:person|number|guy|address)\b",
+        r"\bwrong (?:person|number|guy|address)\b", r"\bwrong\s+e-?mail(?:\s+address)?\b",
         # מנהל 249 (qa7 x7-06): «new number, this isn't Yossi anymore»
         r"\b(?:this|it)\s*(?:is\s*n'?t|is\s+not|'s\s+not)\s+\w+(?:'s\s+(?:number|phone|email))?\s+any\s?more\b", r"\bno\s+longer\s+\w+'s\s+(?:number|phone|email)\b",
         r"(?:כבר )?(?:לא עובד|לא עובדת|לא עובדים) (?:פה|כאן|במשרד|בחברה)", r"(?:עזב|עזבה|עזבו) את (?:ה)?(?:חברה|עבודה|משרד|מקום)", r"בטעות[,.!]?\s+(?:\w+\s+)?אני לא\s+\w+", r"(?:של|על) (?:אדם|מישהו|מישהי|לקוח) אחר", r"אין (?:לי|לנו) (?:שום )?קשר ל\w+(?: שלכם)?\W*$", r"אין (?:לי|לנו) (?:שום )?קשר ל(?:עסק|חברה|חשבונית|חוב|קליניקה|מספרה|מוסך|סטודיו)",
@@ -3259,6 +3259,16 @@ def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
             d, escalate=max(d.escalate, Escalation.NORMAL, key=_esc_rank), auto_send=False,
             tags=d.tags + ("complaint_with_payment",),
             owner_actions=d.owner_actions + ("הלקוח/ה מזכיר/ה תלונה על השירות/המוצר — לבדוק לפני שממשיכים",))
+    if {Intent.OPT_OUT, Intent.WRONG_PERSON} <= set(d.all_intents):
+        # הכרעת ראש צוות 19.11 (qa19 q19-09/11): «wrong number, stop texting me» = **שני הדברים**: מספר שגוי לצמיתות
+        # (הכתובת יוצאת מהחייב, ההשפעות של wrong_person ב-inbox) + בקשת הסרה מתועדת + כרטיס לבעל העסק לעדכון מספר.
+        # ספק ⇒ המחמיר מנצח ⇒ **לא שולחים** כלום (גם לא «הבקשה התקבלה» לזר).
+        sec = tuple(dict.fromkeys(i for i in d.all_intents if i != Intent.WRONG_PERSON))
+        d = replace(d, intent=Intent.WRONG_PERSON, secondary=sec, stop=Stop.PERMANENT, reply=None, auto_send=False,
+                    escalate=max(d.escalate, Escalation.NORMAL, key=_esc_rank),
+                    tags=d.tags + ("wrong_number_opt_out",),
+                    owner_actions=d.owner_actions + (
+                        "מספר/כתובת שגויים + בקשת הסרה (מתועדת) — לעדכן פרטי קשר נכונים בחשבונית ירוקה; לא נשלחה תשובה",))
     d = replace(d, confidence=confidence, owner_summary=_with_quote(d.owner_summary, text))
     if confidence == "llm" and d.escalate == Escalation.NONE:
         d = replace(d, escalate=Escalation.NORMAL, tags=d.tags + ("llm_classified",))

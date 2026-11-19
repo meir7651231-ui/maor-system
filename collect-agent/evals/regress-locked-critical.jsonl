@@ -53,3 +53,5 @@
 {"id": "lk53", "text": "my daughter is 12 and she answered", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent"}, "critical": true}
 {"id": "lk54", "text": "מי אתם בכלל? לא מכיר אתכם", "ctx": {"channel": "sms"}, "expect": {"intent": "who_is_this"}, "critical": true}
 {"id": "lk55", "text": "מי זה? טעות במספר, לא מכיר", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person"}, "critical": true}
+{"id": "lk56", "text": "wrong number, please stop messaging me", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent", "escalate": "normal"}, "critical": true}
+{"id": "lk57", "text": "This is the wrong email address. Stop emailing me.", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent", "escalate": "normal"}, "critical": true}
