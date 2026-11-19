@@ -64,6 +64,29 @@ HARD_BLOCKS = {"no_contact", "no_payment_link", "compliance", "no_reply_to"}
 REFRESH_PAGE_CAP = "refresh_page_cap"
 
 
+# מנהל 323: אחרי כמה שעות של כשל רענון רצוף בעל העסק מקבל התראה (לא רק תווית בטבלה)
+REFRESH_STUCK_HOURS = 48
+REFRESH_STUCK_SHOW = 5
+
+
+def refresh_stuck_text(items: list[tuple[str, str, str]]) -> str:
+    """(שם לקוח, מספר חשבונית, סיבה) ⇒ גוף ההתראה. טהור — נבדק ביחידה. עד 5 שמות, והשאר «ועוד N»."""
+    n = len(items)
+    names = "; ".join(f"{name} (חשבונית {num})" for name, num, _ in items[:REFRESH_STUCK_SHOW])
+    more = f" ועוד {n - REFRESH_STUCK_SHOW}" if n > REFRESH_STUCK_SHOW else ""
+    head = ("תזכורת מאושרת אחת לא יוצאת" if n == 1 else f"{n} תזכורות מאושרות לא יוצאות") + \
+        f" כבר יותר מ-{REFRESH_STUCK_HOURS} שעות: {names}{more}."
+    parts = [head]
+    if any(w != REFRESH_PAGE_CAP for _, _, w in items):
+        parts.append("לא הצלחנו לוודא את הסכום מול מערכת החשבוניות — ננסה שוב אוטומטית, אבל כדאי לבדוק "
+                     "שהחיבור למערכת החשבוניות תקין (הגדרות).")
+    if any(w == REFRESH_PAGE_CAP for _, _, w in items):
+        parts.append("אצל חלק מהלקוחות יש יותר מ-10,000 קבלות/זיכויים מאז תאריך החשבונית, ואי אפשר לוודא "
+                     "שלא שולמה — לבדוק ידנית ולפנות ללקוח בעצמכם אם צריך.")
+    parts.append("עד שהבדיקה תצליח לא נשלחת להם תזכורת.")
+    return " ".join(parts)
+
+
 def refresh_block_reason(e: BaseException) -> str:
     from .greeninvoice import PageCapError
     if isinstance(e, PageCapError) or str(e).startswith("page_cap:"):
@@ -1150,6 +1173,7 @@ class CollectService:
         self._notify_trial_ending()
         from . import dsr
         dsr.sweep(self)   # בקשות עיון/תיקון/מחיקה: התראה 5 ימים לפני המועד ובאיחור
+        self._sweep_refresh_stuck()   # מנהל 323: תזכורת מאושרת שתקועה על כשל רענון >48 שעות ⇒ התראה
         self.purge_closed()   # ר-10: זול, פעם בסבב
         self._roll_episodes(now)
         created: list[int] = []
@@ -2105,8 +2129,42 @@ class CollectService:
         return ok
 
     def _mark_refresh_failed(self, r, why: str, err: str = "") -> None:
-        self.db.x("UPDATE reminders SET block_reason=? WHERE id=?", (why, r["id"]))
+        # מנהל 323: refresh_failed_since נשמר מהכשל הראשון ברצף (COALESCE) — לא מתאפס בכל ניסיון חוזר
+        self.db.x("UPDATE reminders SET block_reason=?, refresh_failed_since=COALESCE(refresh_failed_since,?) "
+                  "WHERE id=?", (why, _iso(self.clock()), r["id"]))
         self.audit("system", why, {"reminder": r["id"], "error": err[:200]})
+
+    def _sweep_refresh_stuck(self) -> int:
+        """מנהל 323 (פתוח-לביקורת מ-322): תזכורת מאושרת שלא יוצאת כבר יותר מ-REFRESH_STUCK_HOURS כי הרענון מול
+        מערכת החשבוניות נכשל (מקור לא זמין / 10,000+ קבלות) — עד עכשיו רק תווית בצ׳יפ; בעל העסק שלא נכנס לטבלה
+        לא ידע שהלקוח לא מקבל תזכורת. עכשיו: התראה אחת מרוכזת (כל התזכורות שנתקעו מאז ההתראה הקודמת), ופעם אחת
+        לכל רצף כשל — רענון שהצליח מאפס, וכשל חדש אחר כך יתריע מחדש. **בלי שום שינוי בשליחה** (עדיין לא יוצאת)."""
+        stuck = ("refresh_failed", REFRESH_PAGE_CAP)
+        # רצף שנגמר (נשלחה/בוטלה/חזרה לאישור/נוקתה הסיבה) ⇒ מאפסים, כדי שכשל עתידי יספר מחדש
+        self.db.x("UPDATE reminders SET refresh_failed_since=NULL, refresh_alerted_at=NULL "
+                  "WHERE (refresh_failed_since IS NOT NULL OR refresh_alerted_at IS NOT NULL) AND "
+                  "(status!='approved' OR block_reason IS NULL OR block_reason NOT IN (?,?))", stuck)
+        now = self.clock()
+        cutoff = _iso(now - timedelta(hours=REFRESH_STUCK_HOURS))
+        rows = self.db.q("SELECT r.id, r.block_reason, r.refresh_failed_since, i.number, c.name, c.id cid "
+                         "FROM reminders r JOIN invoices i ON i.id=r.invoice_id "
+                         "JOIN customers c ON c.id=i.customer_id WHERE r.status='approved' "
+                         "AND r.block_reason IN (?,?) AND r.refresh_failed_since IS NOT NULL "
+                         "AND r.refresh_failed_since<=? AND r.refresh_alerted_at IS NULL "
+                         "ORDER BY r.refresh_failed_since, r.id", (*stuck, cutoff))
+        if not rows:
+            return 0
+        body = refresh_stuck_text([(r["name"] or f"#{r['cid']}", r["number"], r["block_reason"]) for r in rows])
+        ids = [r["id"] for r in rows]
+        cust = {r["cid"] for r in rows}
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
+                  "created_at) VALUES(?,'system','owner',?,'refresh_stuck',1,?,?)",
+                  (next(iter(cust)) if len(cust) == 1 else None, body,
+                   "refresh_stuck:" + ",".join(map(str, ids)), _iso(now)))
+        for rid in ids:
+            self.db.x("UPDATE reminders SET refresh_alerted_at=? WHERE id=?", (_iso(now), rid))
+        self.audit("system", "refresh_stuck_alert", {"reminders": ids})
+        return len(ids)
 
     # ---------- inbound ----------
     def _find_customers(self, channel: str, sender: str) -> list:

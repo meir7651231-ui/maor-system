@@ -1409,3 +1409,11 @@ test('critic 175: התראת restore_hold מוצגת עם כותרת ייעוד�
   assert.equal(n[0].icon, '🛑');
   assert.match(n[0].title, /שוחזרה מגיבוי/);
 });
+
+test('מנהל 323: התראת refresh_stuck (תזכורות מאושרות תקועות >48 שעות) — כותרת ייעודית ואזהרה, לא «הודעה מגבי»', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const n = systemNotices([{ id: 4, customer_id: null, direction: 'system', channel: 'owner', body: '2 תזכורות מאושרות לא יוצאות',
+    intent: 'refresh_stuck', created_at: '2026-11-19T09:00:00+02:00' }]);
+  assert.equal(n[0].tone, 'warn');
+  assert.match(n[0].title, /לא יוצאות/);
+});

@@ -212,6 +212,13 @@ class DB:
         # critic סבב 39: מתי נתפסה תזכורת לשליחה (approved ⇒ sending) — לזיהוי שליחה שנתקעה באמצע
         if "claimed_at" not in {r[1] for r in self.conn.execute("PRAGMA table_info(reminders)")}:
             self.conn.execute("ALTER TABLE reminders ADD COLUMN claimed_at TEXT")
+        # מנהל 323: מאז מתי תזכורת מאושרת תקועה על כשל רענון, ומתי בעל העסק קיבל על כך התראה (48 שעות)
+        rc2 = {r[1] for r in self.conn.execute("PRAGMA table_info(reminders)")}
+        for col, ddl in (
+                ("refresh_failed_since", "ALTER TABLE reminders ADD COLUMN refresh_failed_since TEXT"),
+                ("refresh_alerted_at", "ALTER TABLE reminders ADD COLUMN refresh_alerted_at TEXT")):
+            if col not in rc2:
+                self.conn.execute(ddl)
         self.conn.commit()
         # critic 15.1/2.12 (הכרעת מאיר 7.11): תזכורת מאוחדת ללקוח — אילו חשבוניות כל תזכורת כוללת.
         # reminders.invoice_id נשאר «עוגן» (החשבונית הוותיקה); תזכורות ישנות = החשבונית שלהן בלבד.
