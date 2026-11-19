@@ -503,6 +503,34 @@ _EN_GET_PAID = re.compile(r"\b(?:i|we)\s+(?:get|gets|got|am|'m|are|'re|will\s+be
                           r"|\b(?:get|gets|getting|be|being)\s+paid\b", re.I)
 
 
+# מנהל 303 («הבא» AI מ-302): «when I get paid» לבד ⇒ היה UNKNOWN (כרטיס לבעלים), גם במצב AWAITING_DATE,
+# ו«when I get paid on the 10th» בהודעה ראשונה ⇒ UNKNOWN בלי מועד. בעברית «כשאקבל משכורת» = הבטחה (עד איזה תאריך?).
+# עכשיו שוויון: הודעה שנפתחת בתנאי-משכורת (when/once/as soon as/after + I get paid / my salary / payday) ⇒ הבטחה.
+# שמרני: רק כשאין שום כוונה אחרת, בלי «?» ובלי שלילה («not when I get paid», «even when I get paid»).
+_EN_SALARY_COND = re.compile(
+    r"^\W*(?:(?:ok|okay|sure|so|well|probably|maybe|soon|hopefully|honestly|um+|hmm+|yeah|yes|fine)\W+)*"
+    r"(?:(?:when|once|as\s+soon\s+as|after|right\s+after|the\s+moment)\s+(?:i|we)\s+"
+    r"(?:(?:get|gets|'m|am|are|'re|will\s+get|'ll\s+get|will\s+be|'ll\s+be)\s+paid"
+    r"|(?:get|receive|will\s+get|'ll\s+get)\s+(?:my|our|the)\s+(?:salary|paycheck|pay\s*check|wages?|pay)"
+    r"|(?:'ve|have)\s+been\s+paid)"
+    r"|(?:after|on|by|right\s+after)\s+(?:my\s+|our\s+|the\s+)?(?:payday|pay\s+day|(?:next\s+)?pay\s*check|salary))\b", re.I)
+
+
+def _en_salary_promise(t: str) -> bool:
+    m = _EN_SALARY_COND.search(t)
+    if not m or "?" in t or re.search(r"\b(?:not|never|even|unless|until|don'?t|won'?t|can'?t|no)\b",
+                                      t[:m.start()] + " " + t[m.end():]):
+        return False
+    # ההמשך: ריק, מועד, או פועל תשלום — «when I get paid I'll buy a phone» / «…I'll call you» ≠ הבטחה
+    rest = re.sub(r"^[\W_]+", "", t[m.end():])
+    return not rest or bool(re.match(
+        r"(?:on|by|this|next|in|around|at|before|which\s+is|that'?s|probably|hopefully|then|so|and|i\s+promise"
+        r"|(?:(?:and|then|so)\s+)?(?:i'?ll|i\s+will|we'?ll|we\s+will|i\s+can|we\s+can)\s+(?:\w+\s+)?"
+        r"(?:pay|transfer|send|settle|wire|cover|clear|deposit|sort\s+it|take\s+care|do\s+it|have\s+it)"
+        r"|(?:the\s+)?\d|(?:mon|tues|wednes|thurs|fri|satur|sun)day|tomorrow|tonight|end\s+of|early|mid|first|beginning)\b",
+        rest, re.I))
+
+
 def _strip_en_future(t: str) -> str:
     return _EN_GET_PAID.sub(" ", _EN_FUT_XFER.sub(" ", t))
 
@@ -2469,6 +2497,8 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             not _NEG_BEFORE.search(t[max(0, m.start() - 22):m.start()])
             and not re.search(r"\b(?:don'?t|do\s+not|doubt|not\s+sure|no\s+way)\b[^.,!?;\n]*$", t[:m.start()]) and "?" not in re.split(r"[.,!;\n]", t[m.end():])[0]
             for m in _EN_FUT_XFER.finditer(t)):   # «I'll make the transfer tomorrow?» = שאלה; «…, how do I do it?» = הבטחה
+        found.add(Intent.PROMISE)
+    if not found and _en_salary_promise(t):   # מנהל 303: «when I get paid (on the 10th)»
         found.add(Intent.PROMISE)
     # critic סבב 136: «הילד חולה היום ולא יגיע לשיעור» = הודעת היעדרות, לא קושי בתשלום (היה cant_pay+sensitive ⇒ דחוף)
     if Intent.CANT_PAY in found and _s(r"(?<![\w])(?:הילד|הילדה|הבנ|הבת|הוא|היא|בני|בתי)(?: שלי)?\s+(?:\S+\s+)?חולה(?![\w])", t) \

@@ -32,10 +32,11 @@ PROMISES = ["I'll make the transfer tomorrow", "I will do the transfer on Sunday
             "I'll definitely make the transfer tomorrow", "I'll make the transfer tomorrow, how do I do it?",
             "I'll make the transfer tomorrow if you send the invoice", "I'll set up the transfer tonight"]
 
+# מנהל 303: «when I get paid» לבד = הבטחה מעורפלת (test_mgr303); השאלה «when I get paid?» עדיין לא
 NOT_PROMISES = ["I won't make the transfer tomorrow", "I'll make the transfer tomorrow?",
                 "should I make the transfer tomorrow?",
                 "I'll make the transfer to my son tomorrow", "I'll do the transfer of my number tomorrow",
-                "I don't think I'll make the transfer", "when I get paid", "I'll never make the transfer"]
+                "I don't think I'll make the transfer", "when I get paid?", "I'll never make the transfer"]
 
 STILL_CLAIMS = ["I paid, I'll send the receipt", "I already paid. I'll send you the confirmation tomorrow",
                 "I made the transfer yesterday, I'll send a screenshot", "I got paid today so I paid you",
