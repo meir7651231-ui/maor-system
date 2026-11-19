@@ -188,6 +188,8 @@ jobs:
         run: TZ=UTC node e2e/live.mjs "$RUNNER_TEMP/shots"
       - name: e2e התראות לבעל העסק (סוף ניסיון) מול DEMO=1
         run: TZ=UTC node e2e/notices.mjs
+      - name: "e2e מרשם בקשות עיון/מחיקה (critic 172ב) — קישור מהכרטיס, סגירה רק עם תיעוד, מול DEMO=1"
+        run: TZ=UTC node e2e/dsr.mjs "$RUNNER_TEMP/shots"
       - name: e2e ערכת בטא — יום ראשון לכל ענף (מספרה/מוסך/קליניקה/רו״ח) מול gi_mock
         run: TZ=UTC node e2e/beta.mjs
       - name: e2e תסריט ההדגמה של מכירות (sales/demo-script.md, 6 שלבים) מול DEMO=1

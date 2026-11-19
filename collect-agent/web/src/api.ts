@@ -7,6 +7,7 @@ import { loginErrorText, readToken } from './lib/auth.ts';
 import { failureText, writeOutcomeUnknown } from './lib/failure.ts';
 import type { WeekPoint } from './lib/series.ts';
 import type { OwnerMsg } from './lib/notices.ts';
+import type { DsrRow } from './lib/dsr.ts';
 
 /** השרת ענה 401 — צריך קוד גישה של בעל העסק. */
 export class AuthError extends Error {}
@@ -166,6 +167,9 @@ export const api = {
   resume: (cid: number) => j<unknown>(`/customers/${cid}/resume`, { method: 'POST' }),
   /** מנהל 310: בקשת עיון — כל המידע על לקוח אחד (קריאה בלבד; נרשם ב-access_log וב-audit בשרת) */
   customerData: (cid: number) => j<Record<string, unknown>>(`/customers/${cid}/data`),
+  /** critic סבב 172ב: מרשם בקשות עיון/תיקון/מחיקה + סגירה עם תיעוד (השרת דורש ≥5 תווים) */
+  dsr: () => j<DsrRow[]>('/dsr'),
+  dsrDone: (id: number, note: string) => j<DsrRow>(`/dsr/${id}/done`, { method: 'POST', body: JSON.stringify({ note }) }),
   plans: () => j<Plan[]>('/plans'),
   ownerInbox: () => j<OwnerMsg[]>('/owner/inbox'),
   ownerDone: (id: number) => j<unknown>(`/owner/inbox/${id}/done`, { method: 'POST' }),

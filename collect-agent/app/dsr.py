@@ -50,8 +50,10 @@ _DELETE = re.compile(r"(למחוק|מחיקת|מחיקה\s+של|תמחקו|מח�
 # רק מילות-מילוי ביניהן) ⇒ המופע לא נחשב. «אל תשכחו למחוק» / «don't forget to delete» = בקשה (הפועל המשני לא מילוי).
 _FILL_HE = (r"(?:ממש|בכלל|רוצה|רוצים|ביקשתי|ביקשנו|ביקש|ביקשה|מבקש|מבקשת|מבקשים|"
             r"צריך|צריכה|צריכים|צריכות|תנסו|כדאי|צורך|אני|אנחנו)")
-_NEG_HE = re.compile(r"(?:^|[\s,(\"'])ו?(?:אל|לא|אין|בלי|אף\s+פעם\s+לא)\s+(?:" + _FILL_HE + r"\s+)*ש?$")
-_FILL_EN = r"(?:really|want|wish|need|ask|asked|you|to|me|for|please|it|guys)"
+# critic 173: «שלא תמחקו» (קידומת ש׳/וש׳), «אסור לכם למחוק», ובאנגלית «u»/«ya» — גם הם שלילה צמודה.
+_NEG_HE = re.compile(r"(?:^|[\s,(\"'])(?:וש|ו|ש)?(?:אל|לא|אין|בלי|אף\s+פעם\s+לא|אסור(?:\s+(?:לכם|לכן|לך))?)\s+"
+                     r"(?:" + _FILL_HE + r"\s+)*ש?$")
+_FILL_EN = r"(?:really|want|wish|need|ask|asked|you|u|ya|y'?all|to|me|for|please|it|guys)"
 _NEG_EN = re.compile(r"\b(?:don'?t|do\s+not|didn'?t|did\s+not|never|no\s+need\s+to)\s+(?:" + _FILL_EN
                      + r"\s+)*$", re.I)
 

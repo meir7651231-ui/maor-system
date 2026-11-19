@@ -325,6 +325,9 @@ function NeedsYou() {
           <li key={`n${n.id}`} className={`rounded-lg p-3 text-sm ${n.tone === 'warn' ? 'bg-amber-50' : 'bg-ink-50'}`} data-testid="notice" data-intent={n.intent}>
             <div className="font-bold"><span aria-hidden>{n.icon}</span> {n.title}</div>
             <div className="text-ink-700 text-xs mt-0.5 whitespace-pre-line">{n.body}</div>
+            {/* critic סבב 172ב: «✓ טופל» סוגר רק את ההתראה; הבקשה עצמה נסגרת במרשם עם תיעוד */}
+            {n.intent === 'dsr' && <a href="#/inbox?dsr=1" data-testid="notice-dsr-link"
+              className="mt-1 inline-block text-xs font-bold text-ink-700 underline">למרשם הבקשות — סגירה עם תיעוד ←</a>}
             {n.linked?.length ? (
               // critic סבב 149: החלטה 5 — בעל העסק בוחר למי הפנייה שייכת (רק אז המנוע מטפל בה); «אף אחד» משחרר את ההשהיה
               <div className="flex flex-wrap gap-2 mt-2">

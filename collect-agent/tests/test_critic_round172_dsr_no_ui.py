@@ -5,18 +5,16 @@
 «📄 בקשת עיון/תיקון/מחיקה — יש מועד להשיב»; «✓ טופל» על הכרטיס סוגר את ההודעה בלבד, והבקשה במרשם נשארת `open`
 ⇒ `dsr.sweep` ממשיך להתריע «5 ימים לפני» ו«באיחור» על בקשה שכבר טופלה, ו-`listing` מסמן אותה `overdue` לנצח.
 [מאומת: אחרי `owner_message_done` על הכרטיס, 31 יום אחר כך — הבקשה open+overdue ונוספה התראת איחור.]
-הצעה: מסך מרשם ב-/app/ (רשימה, ימים שנותרו, סגירה עם תיעוד ≥5 תווים), וקישור אליו מהכרטיס. xfail(strict=True)."""
+הצעה: מסך מרשם ב-/app/ (רשימה, ימים שנותרו, סגירה עם תיעוד ≥5 תווים), וקישור אליו מהכרטיס. xfail(strict=True).
+   תוקן במנהל 321: `components/DsrRegister.tsx` ב«תשובות לקוחות» + קישור מכרטיס ה-dsr בסקירה — ה-xfail הוסר."""
 from datetime import timedelta
 from pathlib import Path
-
-import pytest
 
 from app import dsr
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-@pytest.mark.xfail(strict=True, reason="critic 172: אין מסך למרשם DSR (רשימה+סגירה) — לתיקון גבייה עיצוב")
 def test_web_has_dsr_screen_with_close():
     src = "\n".join(p.read_text(encoding="utf-8") for p in (ROOT / "web" / "src").rglob("*.ts*"))
     assert "/dsr" in src and "/done" in src

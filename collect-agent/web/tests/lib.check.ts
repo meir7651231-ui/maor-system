@@ -1346,3 +1346,31 @@ test('כרטיס ממייל לא מאומת מסומן באזהרה; מאומת 
   assert.ok(by(2).unverified && by(2).body.includes('SPF/DKIM'));
   for (const id of [3, 4, 5]) { assert.ok(!by(id).unverified, String(id)); assert.ok(!by(id).body.includes('SPF'), String(id)); }
 });
+
+import { dsrView, dsrCanClose, dsrSorted, DSR_NO_CUSTOMER, type DsrRow } from '../src/lib/dsr.ts';
+test('critic 172ב: מרשם DSR — ימים שנותרו/איחור/טופל, בלי לקוח ⇒ «כתובת משותפת», סגירה רק עם תיעוד ≥5', () => {
+  const base: DsrRow = { id: 1, customer_id: 3, customer: 'דנה', kind: 'deletion', channel: 'sms', received_at: '2026-11-01T10:00:00',
+    due_at: '2026-12-01T10:00:00', status: 'open', done_at: null, note: '', days_left: 12, overdue: false };
+  const v = dsrView(base);
+  assert.equal(v.kind, 'מחיקת מידע'); assert.equal(v.who, 'דנה'); assert.equal(v.due, '01.12.2026');
+  assert.equal(v.state, 'נותרו 12 ימים'); assert.equal(v.tone, 'ok');
+  assert.equal(dsrView({ ...base, days_left: 1 }).state, 'נותרו 1 יום');
+  assert.equal(dsrView({ ...base, days_left: 4 }).tone, 'soon');
+  assert.equal(dsrView({ ...base, days_left: 0 }).state, 'היום האחרון להשיב');
+  const late = dsrView({ ...base, days_left: -3, overdue: true });
+  assert.equal(late.state, 'באיחור של 3 ימים'); assert.equal(late.tone, 'late');
+  assert.equal(dsrView({ ...base, customer_id: null, customer: null }).who, DSR_NO_CUSTOMER);
+  const done = dsrView({ ...base, status: 'done', done_at: '2026-11-19T09:00:00', days_left: null });
+  assert.equal(done.state, 'טופל 19.11.2026'); assert.equal(done.open, false);
+  assert.equal(dsrCanClose('    abcd '), false); assert.equal(dsrCanClose('נשלח'), false); assert.equal(dsrCanClose('נשלח קובץ'), true);
+  const rows = dsrSorted([{ ...base, id: 1, status: 'done', done_at: '2026-11-10' }, { ...base, id: 2, due_at: '2026-12-05' },
+    { ...base, id: 3, due_at: '2026-11-25' }, { ...base, id: 4, status: 'done', done_at: '2026-11-18' }]);
+  assert.deepEqual(rows.map(r => r.id), [3, 2, 4, 1]);
+});
+
+test('critic 172ב: מסך המרשם מחובר — GET /dsr, POST /dsr/{id}/done, ב«תשובות לקוחות», וקישור מכרטיס ה-dsr', () => {
+  const api = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
+  assert.match(api, /j<DsrRow\[\]>\('\/dsr'\)/); assert.match(api, /\/dsr\/\$\{id\}\/done/);
+  assert.match(readFileSync(new URL('../src/pages/Inbox.tsx', import.meta.url), 'utf8'), /<DsrRegister \/>/);
+  assert.match(readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8'), /n\.intent === 'dsr'[\s\S]{0,80}#\/inbox\?dsr=1/);
+});
