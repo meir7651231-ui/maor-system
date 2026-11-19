@@ -1374,3 +1374,23 @@ test('critic 172ב: מסך המרשם מחובר — GET /dsr, POST /dsr/{id}/do
   assert.match(readFileSync(new URL('../src/pages/Inbox.tsx', import.meta.url), 'utf8'), /<DsrRegister \/>/);
   assert.match(readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8'), /n\.intent === 'dsr'[\s\S]{0,80}#\/inbox\?dsr=1/);
 });
+
+// מנהל 322 (מבקר 170, פתוח-לביקורת): תזכורת מאושרת שלא יצאה כי הרענון מול המקור נכשל — היה: אין כלום
+// בטבלת החשבוניות, ובתצוגה המקדימה «⛔ חסום: refresh_failed» (קוד גולמי). page_cap (10,000+ קבלות) בנוסח ייעודי.
+import { REFRESH_LABEL } from '../src/api.ts';
+test('מנהל 322: refresh_failed / refresh_page_cap — תווית בטבלה ובתצוגה המקדימה, לא «חסום»', () => {
+  assert.equal(blockKind('refresh_failed'), 'refresh');
+  assert.equal(blockKind('refresh_page_cap'), 'refresh');
+  assert.match(REFRESH_LABEL.refresh_page_cap, /10,000/);
+  assert.match(REFRESH_LABEL.refresh_failed, /ננסה שוב/);
+  const base = { number: '1', customer: 'x', phone: '', email: '', due: '2026-10-01', status: 'open', days_overdue: 1, reminders_sent: 0, customer_block: null, amount_agorot: 100 };
+  const lr = (status: string, block_reason: string | null) => ({ id: 9, step: 1, status, template_key: 'friendly', sent_at: null, block_reason });
+  const m = fromDashboard({ today: '2026-11-19', totals: {} as Dashboard['totals'], invoices: [
+    { ...base, invoice_id: 1, last_reminder: lr('approved', 'refresh_page_cap') },
+    { ...base, invoice_id: 2, last_reminder: lr('approved', 'refresh_failed') },
+    { ...base, invoice_id: 3, last_reminder: lr('pending_approval', 'refresh_failed') },   // לא מאושרת ⇒ לא מוצג
+    { ...base, invoice_id: 4, last_reminder: lr('approved', 'refresh_page_cap'), customer_block: 'disputed' },  // ההשהיה גוברת
+    { ...base, invoice_id: 5, last_reminder: lr('approved', null) },
+  ] } as never, []);
+  assert.deepEqual(m.invoices.map(i => i.note), [REFRESH_LABEL.refresh_page_cap, REFRESH_LABEL.refresh_failed, undefined, 'במחלוקת', undefined]);
+});

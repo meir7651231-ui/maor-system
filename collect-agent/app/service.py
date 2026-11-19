@@ -58,6 +58,18 @@ AWAITING_OWNER = "awaiting_owner"   # critic סבב 64: הודעת הלקוח מ
 AMOUNT_CHECK = "amount_check"   # הפעלה 123: סכום חריג ⇒ אישור מפורש (לא חסימה קשה)
 HARD_BLOCKS = {"no_contact", "no_payment_link", "compliance", "no_reply_to"}
 
+# מנהל 322 (פתוח-לביקורת ממבקר 170): כשל רענון בגלל גבול 10,000 קבלות/זיכויים מאז תאריך החשבונית ⇒
+# סיבה נפרדת, כי היא לא חולפת מעצמה בריצה הבאה כמו תקלת רשת. ההתנהגות זהה ל-refresh_failed:
+# התזכורת נשארת מאושרת, לא נשלחת, ומנסים שוב בכל ריצה.
+REFRESH_PAGE_CAP = "refresh_page_cap"
+
+
+def refresh_block_reason(e: BaseException) -> str:
+    from .greeninvoice import PageCapError
+    if isinstance(e, PageCapError) or str(e).startswith("page_cap:"):
+        return REFRESH_PAGE_CAP
+    return "refresh_failed"
+
 
 class AlreadyDecided(ValueError):
     """הפעלה 146: ניסיון חוזר של הכרעה שכבר נרשמה (למשל אישור שהתשובה שלו אבדה ברשת).
@@ -1960,7 +1972,7 @@ class CollectService:
         # לשליחה עדכן את invoices, ההשוואה יצאה שווה, ונשלח הסכום הישן.
         if total != sent_amount or len(still) != len(ids):
             return self._rebuild_for_amount(r, still)
-        if r["block_reason"] in ("refresh_failed", "csv_stale"):
+        if r["block_reason"] in ("refresh_failed", REFRESH_PAGE_CAP, "csv_stale"):
             self.db.x("UPDATE reminders SET block_reason=NULL WHERE id=?", (r["id"],))
         return "ok"
 
@@ -1990,7 +2002,7 @@ class CollectService:
         except _CreditHeld:
             return "failed"     # הלקוח הושהה לבדיקת זיכוי; התזכורת בוטלה (credit_review)
         except Exception as e:  # noqa: BLE001 — כל כשל ברענון (כולל זיכויים) חוסם שליחה
-            self._mark_refresh_failed(r, "refresh_failed", str(e))
+            self._mark_refresh_failed(r, refresh_block_reason(e), str(e))
             return "failed"
         if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
             self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?",

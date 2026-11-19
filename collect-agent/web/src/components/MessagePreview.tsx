@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, driftText, REAPPROVE_LABEL, type Preview } from '../api.ts';
+import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, driftText, REAPPROVE_LABEL, REFRESH_LABEL, type Preview } from '../api.ts';
 import { failPrefix, staleChangeText, stalePreview } from '../lib/failure.ts';
 import { useApp } from '../store.tsx';
 import type { Channel, Invoice, Step } from '../lib/domain.ts';
@@ -69,7 +69,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
   const smsSender = (live && liveSource) || business.smsSender;
   const when = nextAllowed(now);
   const block = live ? pv?.block_reason ?? pending?.block ?? null : null;
-  const sendable = live ? !!pv && blockKind(block) !== 'hard' && !busy : (on.sms || on.email) && !c.optedOut;
+  const sendable = live ? !!pv && blockKind(block) !== 'hard' && blockKind(block) !== 'refresh' && !busy : (on.sms || on.email) && !c.optedOut;
   const odd = live ? pv?.amount_check ?? [] : mockAmountCheck(invoice, invoices);   // הפעלה 126: גם בהדגמה הסטטית
   useEffect(() => {
     if (live && pv) { setOn({ sms: !!liveSms, email: !!liveMail }); setTab(liveSms ? 'sms' : 'email'); if (pv.template_key) setStep(pv.template_key); }
@@ -141,6 +141,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
               <div>🛑 כולל קישור הסרה · מזהה את העסק · ללא תוכן שיווקי (סעיף 30א)</div>
               {!readOnly && (live || requiresApproval(step, business, invoice.reminders.length === 0)) && <div className="text-amber-700">✋ שלב זה דורש את אישורך</div>}
               {blockKind(block) === 'hard' && <div className="text-critical-ink font-bold">⛔ חסום: {BLOCK_LABEL[block!] ?? block}</div>}
+              {blockKind(block) === 'refresh' && <div data-testid="mp-refresh" className="text-amber-700 font-bold">⏳ {REFRESH_LABEL[block!]}</div>}
               {/* הפעלה 163: כמו /ui (157) — «לאשר מחדש» שנשאר מבנייה קודמת לא מוצג על תזכורת שכבר אושרה */}
               {!readOnly && blockKind(block) === 'reapprove' && <div data-testid="mp-reapprove" className="text-amber-700 font-bold">⏳ {REAPPROVE_LABEL[block!]}</div>}
               {err && <div className="text-critical-ink">שגיאה: {err}</div>}
