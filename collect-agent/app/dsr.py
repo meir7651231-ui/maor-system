@@ -45,10 +45,33 @@ _DELETE = re.compile(r"(למחוק|מחיקת|מחיקה\s+של|תמחקו|מח�
                      re.I)
 
 
+# critic 172: «אל תמחקו את המידע שלי», «לא ביקשתי למחוק», «אני לא רוצה שתמחקו», «I don't want you to delete»,
+# «please don't delete my details» נרשמו כבקשת **מחיקה** — הפוך מרצון הלקוח. שלילה צמודה לפועל (באותו משפט,
+# רק מילות-מילוי ביניהן) ⇒ המופע לא נחשב. «אל תשכחו למחוק» / «don't forget to delete» = בקשה (הפועל המשני לא מילוי).
+_FILL_HE = (r"(?:ממש|בכלל|רוצה|רוצים|ביקשתי|ביקשנו|ביקש|ביקשה|מבקש|מבקשת|מבקשים|"
+            r"צריך|צריכה|צריכים|צריכות|תנסו|כדאי|צורך|אני|אנחנו)")
+_NEG_HE = re.compile(r"(?:^|[\s,(\"'])ו?(?:אל|לא|אין|בלי|אף\s+פעם\s+לא)\s+(?:" + _FILL_HE + r"\s+)*ש?$")
+_FILL_EN = r"(?:really|want|wish|need|ask|asked|you|to|me|for|please|it|guys)"
+_NEG_EN = re.compile(r"\b(?:don'?t|do\s+not|didn'?t|did\s+not|never|no\s+need\s+to)\s+(?:" + _FILL_EN
+                     + r"\s+)*$", re.I)
+
+
+def _negated(t: str, start: int) -> bool:
+    # רק רווחים בין השלילה לפועל (דרך מילות-מילוי) ⇒ פסיק/נקודה/סימן שאלה שוברים את השרשרת: «לא, תמחקו» = בקשה
+    before = t[max(0, start - 60):start].replace("\u2019", "'")
+    return bool(_NEG_HE.search(before) or _NEG_EN.search(before))
+
+
+def _hit(rx: re.Pattern, t: str, negation: bool) -> bool:
+    if not negation:
+        return bool(rx.search(t))
+    return any(not _negated(t, m.start()) for m in rx.finditer(t))
+
+
 def detect(text: str) -> list[str]:
     t = text or ""
     return [k for k, rx in (("access", _ACCESS), ("correction", _CORRECT), ("deletion", _DELETE))
-            if rx.search(t)]
+            if _hit(rx, t, k == "deletion")]
 
 
 def _iso(dt: datetime) -> str:

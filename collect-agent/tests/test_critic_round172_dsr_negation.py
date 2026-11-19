@@ -16,7 +16,6 @@ NEGATED = ["אל תמחקו את המידע שלי, אני עוד לקוח", "ל
            "please don't delete my details, I'll pay friday"]
 
 
-@pytest.mark.xfail(strict=True, reason="critic 172: «אל תמחקו» נרשם כבקשת מחיקה (לתיקון בונה)")
 @pytest.mark.parametrize("text", NEGATED)
 def test_negated_deletion_not_registered(svc, text):
     svc.sync()
