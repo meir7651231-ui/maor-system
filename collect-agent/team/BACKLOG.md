@@ -10,6 +10,8 @@
 - ✅ `contract_checks_http.sh`: כל `mktemp` נמחק גם בכשל (trap) + מגן-מקור כמו ב-demo.sh. — `5f7ffeb`
 - ✅ «יום ה-sandbox» בפקודה אחת: `scripts/sandbox_day.sh` שמריץ ברצף את בדיקת החוזה של חשבונית ירוקה + `sandbox_day1_paid_check.py` ומדפיס «להשיק/לא להשיק». רץ ירוק מול mock. — `deab729`
 - ✅ ריצת ה-HTTP של חוזה חשבונית ירוקה מוכנה כמו sandbox (זיכוי · תשלום חלקי · קבלה) ונכשלת על GAP: 16/1/5 ⇒ 19/0/3. — `fb23c3a`
+- ✅ DLR של InforU (גיבוי): `/webhooks/sms/inforu` — SMS שיצא בגיבוי ולא נמסר ⇒ התראה לבעל העסק (היה: נשאר 'sent' לנצח). התאמה לפי מזהה InforU או CustomerMessageId שלנו. — (hash בקומיט הבא)
+- 🧱 מסמך API של InforU (DLR + קודים) — מאיר, יחד עם 019.
 - 🧱 מסמך API של 019 + חשבון בדיקה (מאיר).
 
 ## גבי מבקר

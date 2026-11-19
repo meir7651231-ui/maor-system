@@ -618,6 +618,18 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(413, "too large")
         return svc.sms_webhook_019(raw)
 
+    @app.post("/webhooks/sms/inforu")
+    async def inforu_webhook(request: Request):
+        """דוחות מסירה של InforU (ספק הגיבוי). אותו מפתח כמו 019 (SMS_WEBHOOK_KEY), עונים 200 מהר."""
+        key = request.query_params.get("k", "")
+        if not svc.s.sms_webhook_key or not hmac.compare_digest(
+                key.encode("utf-8"), svc.s.sms_webhook_key.encode("utf-8")):
+            raise HTTPException(403, "forbidden")
+        raw = await request.body()
+        if len(raw) > MAX_WEBHOOK_BODY:
+            raise HTTPException(413, "too large")
+        return svc.sms_webhook_inforu(raw)
+
     # ---------- קישור קצר מה-SMS: עמוד תשלום + פריסה + "שילמתי" + הפסקה ----------
     @app.get("/p/{code}", response_class=HTMLResponse)
     def paylink(code: str):

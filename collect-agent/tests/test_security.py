@@ -159,6 +159,8 @@ PUBLIC_ROUTES = {"/health", "/auth/login", "/auth/logout",
                  "/webhooks/greeninvoice",
                  "/webhooks/email", "/p/{code}", "/p/{code}/pay", "/p/{code}/{action}", "/p/{code}/done",
                  "/pay/{code}", "/pay/{code}/go", "/api/pay/{code}", "/api/pay/{code}/{action}",
+                 # DLR של InforU (ספק ה-SMS לגיבוי): אותו מפתח כמו 019 (SMS_WEBHOOK_KEY, 403 בלי)
+                 "/webhooks/sms/inforu",
                  # webhook ממקור חשבוניות נבחר (iCount): סוד ב-URL (SOURCE_WEBHOOK_KEY, 403 בלי), טריגר בלבד
                  "/webhooks/source/{system}",
                  # כניסה מאורביט (חוזה-המסירה v1): דף סטטי + אימות טוקן חתום פר-ארגון (HMAC, חד-פעמי,
