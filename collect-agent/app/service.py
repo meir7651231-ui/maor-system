@@ -1440,7 +1440,10 @@ class CollectService:
         inv_n = cust_n = 0
         # critic 157: ריפוי — חשבונית סגורה בלי closed_at (מסלולי סגירה ישנים) לא נמחקה לעולם.
         # owner_paid_at = מועד מדויק; אחרת «עכשיו» — שמרני: 90 הימים נספרים מהיום, אף פעם לא מחיקה מוקדמת
-        self.db.x("UPDATE invoices SET closed_at=COALESCE(owner_paid_at, ?) "
+        # critic 158ב: בלי owner_paid_at — synced_at (הפעם האחרונה שנראתה פתוחה, ≤ מועד הסגירה) לפני «עכשיו»;
+        # אחרת סגירה ישנה נספרת כגבייה של השבוע בגרף ובמדדים. מחיקה מוקדמת? לכל היותר מעט לפני 90 יום מהסגירה
+        # האמיתית — ר-10 הוא תקרת שמירה, לא רצפה.
+        self.db.x("UPDATE invoices SET closed_at=COALESCE(owner_paid_at, synced_at, ?) "
                   "WHERE status='closed' AND closed_at IS NULL AND purged_at IS NULL", (now,))
         for r in self.db.q("SELECT i.id FROM invoices i JOIN customers c ON c.id=i.customer_id "
                            "WHERE i.status='closed' AND i.purged_at IS NULL AND i.closed_at "
@@ -1457,6 +1460,13 @@ class CollectService:
             left = self.db.one("SELECT COUNT(*) n FROM invoices WHERE customer_id=? AND "
                                "purged_at IS NULL", (c["id"],))["n"]
             if left or not self.db.one("SELECT 1 FROM invoices WHERE customer_id=?", (c["id"],)):
+                continue
+            # critic 158א: כרטיס דחוף פתוח ב«דורש טיפול שלך» ⇒ לא מתממים עכשיו (תקרה: 180 יום מהכרטיס),
+            # אחרת בעל העסק רואה כרטיס דחוף ריק (בלי שם, טלפון ותוכן). ה-purge ממשיך אחרי «טופל».
+            if self._has_open_card(c["id"]):
+                if not self.db.one("SELECT 1 FROM audit WHERE action='purge_deferred_open_card' "
+                                   "AND detail=?", (json.dumps({"customer_id": c["id"]}),)):
+                    self.audit("system", "purge_deferred_open_card", {"customer_id": c["id"]})
                 continue
             self.db.x("UPDATE messages SET body='', payload=NULL WHERE customer_id=?", (c["id"],))
             # QA: גם טיוטות (כתובת יעד + גוף + סיכום לבעל העסק), מצב שיחה וטוקני הסרה
@@ -1481,6 +1491,18 @@ class CollectService:
         # ומזהה הודעת מייל יכול לשאת דומיין/שם שולח ⇒ אותו חלון שמירה.
         self.db.x("DELETE FROM webhook_dedupe WHERE at<=?", (cutoff,))
         return inv_n, cust_n, len(unk)
+
+    def _has_open_card(self, customer_id: int) -> bool:
+        """critic 158א: כרטיס **דחוף** פתוח (טיוטה escalate='urgent' שבעל העסק עוד לא טיפל בה) ⇒ ההתממה נדחית.
+        כרטיס רגיל לא דוחה (אחרת PII נשמר לנצח על כרטיס שנשכח, וזו הפרת ר-10, כמו ב-157). תקרה: כרטיס שנוצר
+        לפני יותר מ-2×RETENTION_DAYS לא דוחה עוד, כדי שגם כרטיס דחוף שננטש לא ישמור PII לעולם."""
+        if not self._table_exists("drafts"):
+            return False
+        floor = _iso(self.clock() - timedelta(days=2 * RETENTION_DAYS))
+        return self.db.one(
+            "SELECT 1 FROM drafts WHERE customer_id=? AND escalate='urgent' AND "
+            "status IN ('pending_approval','needs_owner') AND created_at>?",
+            (customer_id, floor)) is not None
 
     def _scrub_sent_log(self, cust) -> None:
         """critic סבב 75 (ר-10): רשומות יומן ה-dry-run (`sender.sent`, /outbox) של לקוח שהותמם — נשחרות במקום:
