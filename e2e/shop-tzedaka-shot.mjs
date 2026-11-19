@@ -42,7 +42,7 @@ const page = await ctx.newPage();
 page.on('console', (m) => { if (m.type() === 'error') console.log('❌', m.text()); });
 await page.goto(base, { waitUntil: 'networkidle', timeout: 30000 });
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-const clickBtn = async (label) => { await page.locator('button', { hasText: label }).first().click().catch(() => {}); await wait(600); };
+const _clickBtn = async (label) => { await page.locator('button', { hasText: label }).first().click().catch(() => {}); await wait(600); };
 const shot = async (n) => { await page.screenshot({ path: join(OUT, n + '.png'), fullPage: true }); console.log('📸', n); };
 
 const navTo = async (label) => {

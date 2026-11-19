@@ -42,7 +42,7 @@ import { normalizeCdr, meterUsage, computeInvoice, checkQuota, planQuota, PLANS 
 import { simulateCall, explainCall } from './lib/simulate.mjs';
 import { xmlWellFormed, validateAgainstSchema } from './lib/validators.mjs';
 import {
-  flagOn, featureOn, termOf, expandTerms, applyVertical, VERTICAL_PACKS,
+  flagOn, termOf, expandTerms, applyVertical, VERTICAL_PACKS,
   capabilities, migrateConfig, effectiveConfig, diffConfig, isBaselineConfig,
   sanitizeConfigFields, SCHEMA_VERSION, FLAG_DEFAULTS, reportDroppedKeys, isDiaspora,
 } from './lib/config.mjs';
@@ -550,7 +550,7 @@ console.log('· גל 6 — עומק-onboarding');
 // 51. CSV
 {
   const csv = 'number,label,type,kosher\n02-5551234,קו ראשי,sim,\n053-9998877,קו כשר,sim,כן\n"077-200,000",וירטואלי,virtual,';
-  const { numbers, errors } = numbersFromCsv(csv);
+  const { numbers } = numbersFromCsv(csv);
   ok('CSV מפרסר 3 שורות', numbers.length === 3);
   ok('CSV kosher=כן', numbers[1].kosher === true);
   ok('CSV מרכאות (פסיק פנימי)', numbers[2].label === 'וירטואלי');
@@ -655,7 +655,7 @@ const fB = buildTenant({ ...chesed, orgName: 'שם חדש' }).files;
   const good = applyWithRollback(fA, fB, (p, c) => { store[p] = c; });
   ok('apply מוצלח', good.ok && !good.rolledBack);
   let n = 0;
-  const bad = applyWithRollback(fA, fB, (p, c) => { if (++n === 2) throw new Error('disk full'); });
+  const bad = applyWithRollback(fA, fB, (_p, _c) => { if (++n === 2) throw new Error('disk full'); });
   ok('apply נכשל ⇒ rolledBack', !bad.ok && bad.rolledBack && bad.error.includes('disk'));
 }
 // 67. line diff
@@ -1076,7 +1076,7 @@ eq('R3#15: schemaVersion עתידי נשמר', migrateConfig({ schemaVersion: 9 
 // R3#6: ר״ח יום-30 בשם החודש הנכנס (2026-09-11 = כ״ט אלול → ר״ח תשרי? לא, כ״ט. נבדוק יום-30)
 {
   // מצא יום-30 בחלון: אלול לרוב 29; נשתמש בחודש עם 30 (חשוון/כסלו). 2026-11-10 בקירוב.
-  const c30 = classifyDay('2026-10-11'); // ~כ״ט תשרי או ל׳
+  const _c30 = classifyDay('2026-10-11'); // ~כ״ט תשרי או ל׳
   ok('R3#6: ר״ח קיים (בדיקת-מבנה)', typeof classifyDay('2026-10-11').roshChodesh === 'boolean');
 }
 // R3#19: שדה עם שני-מספרים → הראשון
@@ -1911,7 +1911,7 @@ console.log('· ratchet — תיקוני נחיל-עומק (R5)');
   const polar = validateTenant({ ...chesed, timezone: 'Europe/Oslo', geo: { lat: 70, lon: 25 },
     features: { 'calendar.hebrew': true, 'calendar.shabbat': true, 'calendar.zmanim': true } }).tenant;
   const wins = zClosedWindows('2026-06-15', 10, polar, { includeShabbat: true, includeYomTov: true });
-  ok('F14: קוטב ⇒ סגירת-יום-מלא (fail-closed, לא חלון-ריק)', wins.length > 0 && wins.some((w) => w.startTime === '00:00' && w.endTime === '23:59'));
+  ok('F14: קוטב ⇒ סגירת-יום-מלא (fail-closed, לא חלון-ריק)', wins.some((w) => w.startTime === '00:00' && w.endTime === '23:59'));
 }
 // F15: צום תויג closed_kind=holiday ⇒ ניגן greeting-holiday.wav. עכשיו צום=do_closed הגנרי.
 {

@@ -35,9 +35,8 @@ await page.goto(`${base}/?org=${ORG}&site`, { waitUntil: 'networkidle' });
 await page.waitForSelector('nav', { timeout: 15000 });
 await page.waitForTimeout(1400); // fonts + first paint
 
-const scroller = await page.$('div[dir]'); // outer .ps container (fixed, overflowY:auto)
+const _scroller = await page.$('div[dir]'); // outer .ps container (fixed, overflowY:auto)
 async function shot(name, y) {
-  await page.evaluate((yy) => { const el = document.querySelector('div[style*="position: fixed"]') || document.scrollingElement; }, y);
   await page.evaluate((yy) => {
     // scroll the outer fixed container
     const outer = [...document.querySelectorAll('div')].find((d) => d.style && d.style.position === 'fixed' && d.style.overflowY === 'auto');

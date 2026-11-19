@@ -1,3 +1,9 @@
 {
-  "ignorePatterns": ["knowledge/legacy/**", "knowledge/orbit-design/**"]
+  "ignorePatterns": ["knowledge/legacy/**", "knowledge/orbit-design/**"],
+  "rules": {
+    "no-unused-expressions": ["warn", { "allowTernary": true, "allowShortCircuit": true }],
+    "unicorn/no-useless-fallback-in-spread": "off",
+    "unicorn/no-new-array": "off",
+    "unicorn/prefer-string-starts-ends-with": "off"
+  }
 }
