@@ -1347,7 +1347,7 @@ test('כרטיס ממייל לא מאומת מסומן באזהרה; מאומת 
   for (const id of [3, 4, 5]) { assert.ok(!by(id).unverified, String(id)); assert.ok(!by(id).body.includes('SPF'), String(id)); }
 });
 
-import { dsrView, dsrCanClose, dsrSorted, DSR_NO_CUSTOMER, type DsrRow } from '../src/lib/dsr.ts';
+import { dsrView, dsrCanClose, dsrSorted, DSR_NO_CUSTOMER, DSR_ANONYMIZED, type DsrRow } from '../src/lib/dsr.ts';
 test('critic 172ב: מרשם DSR — ימים שנותרו/איחור/טופל, בלי לקוח ⇒ «כתובת משותפת», סגירה רק עם תיעוד ≥5', () => {
   const base: DsrRow = { id: 1, customer_id: 3, customer: 'דנה', kind: 'deletion', channel: 'sms', received_at: '2026-11-01T10:00:00',
     due_at: '2026-12-01T10:00:00', status: 'open', done_at: null, note: '', days_left: 12, overdue: false };
@@ -1360,6 +1360,8 @@ test('critic 172ב: מרשם DSR — ימים שנותרו/איחור/טופל, 
   const late = dsrView({ ...base, days_left: -3, overdue: true });
   assert.equal(late.state, 'באיחור של 3 ימים'); assert.equal(late.tone, 'late');
   assert.equal(dsrView({ ...base, customer_id: null, customer: null }).who, DSR_NO_CUSTOMER);
+  // critic סבב 174 (נלווה): לקוח שהותמם — יש customer_id בלי שם ⇒ לא «כתובת משותפת — לשייך» (אין מה לשייך)
+  for (const customer of [null, '', '   ']) assert.equal(dsrView({ ...base, customer_id: 7, customer }).who, DSR_ANONYMIZED);
   const done = dsrView({ ...base, status: 'done', done_at: '2026-11-19T09:00:00', days_left: null });
   assert.equal(done.state, 'טופל 19.11.2026'); assert.equal(done.open, false);
   assert.equal(dsrCanClose('    abcd '), false); assert.equal(dsrCanClose('נשלח'), false); assert.equal(dsrCanClose('נשלח קובץ'), true);
