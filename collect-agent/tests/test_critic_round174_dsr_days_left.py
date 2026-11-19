@@ -43,7 +43,9 @@ def test_due_day_alert_is_not_late_and_late_starts_next_day(svc, clock):
     clock.now += timedelta(days=30, minutes=30)       # יום היעד
     dsr.sweep(svc)
     bodies = [m["body"] for m in svc.db.q("SELECT body FROM messages WHERE intent='dsr'")]
-    assert not any("עברה את המועד" in b for b in bodies) and any("נותרו 0" in b for b in bodies)
+    # מנהל 322: ביום היעד ההתראה אומרת «היום היום האחרון להשיב» (כמו המרשם ב-/app/), לא «נותרו 0 ימים»
+    assert not any("עברה את המועד" in b for b in bodies)
+    assert any("נותרו 0" in b or "היום האחרון" in b for b in bodies)
     clock.now += timedelta(days=1)                    # למחרת
     dsr.sweep(svc)
     assert any("עברה את המועד" in m["body"] for m in svc.db.q("SELECT body FROM messages WHERE intent='dsr'"))
