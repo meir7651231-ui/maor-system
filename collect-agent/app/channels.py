@@ -24,7 +24,7 @@ from .integrations.sms import sms_segments as _segments
 
 __all__ = ["EMAIL_RE", "SMS_ADAPTERS", "DryRunSender", "Message", "SmtpEmail", "build_adapters", "clean_email",
            "is_il_mobile", "local_phone", "message_from_json", "message_to_json",
-           "normalize_il_phone", "parse_address", "sms_segments", "strip_reply", "valid_email"]
+           "normalize_il_phone", "parse_address", "parse_bounce", "sms_segments", "strip_reply", "valid_email"]
 
 SMS_ADAPTERS = SMS_PROVIDERS   # 019 · inforu (Twilio יצא — לא נדרש ל-MVP)
 UNSET = "UNSET"   # מפתח חסר בשלב 1 — ה-adapter נבנה לתצוגה בלבד; הסוד מצונזר בכל מקרה
@@ -219,6 +219,35 @@ def message_from_json(s: str) -> Message:
 _ADDR = re.compile(r"<([^<>@\s]+@[^<>\s]+)>|([^\s<>\"]+@[^\s<>\"]+)")
 _QUOTE_HDR = re.compile(r"^(on .+ wrote:|ב?תאריך .+(כתב|נכתב).*:|-{2,}\s*original message|"
                         r"-{2,}\s*הודעה מקורית|from:\s|מאת:\s)", re.I)
+
+
+# ---------- מייל שחזר (bounce / DSN, RFC 3464) ----------
+_BOUNCE_SENDERS = ("mailer-daemon", "postmaster", "mail-daemon", "mailerdaemon")
+_BOUNCE_SUBJECT = re.compile(
+    r"undeliver|returned to sender|delivery status notification|mail delivery (failed|failure|subsystem)"
+    r"|returned mail|delivery failure|failure notice|לא נמסר|החזרת דואר", re.IGNORECASE)
+_DSN_RECIPIENT = re.compile(r"^(?:final|original)-recipient:\s*(?:rfc822;\s*)?<?([^\s<>;]+@[^\s<>;]+?)>?\s*$",
+                            re.IGNORECASE | re.MULTILINE)
+_DSN_STATUS = re.compile(r"^status:\s*([245])\.\d{1,3}\.\d{1,3}", re.IGNORECASE | re.MULTILINE)
+_MSGID = re.compile(r"^message-id:\s*(<[^<>\s]+@[^<>\s]+>)", re.IGNORECASE | re.MULTILINE)
+
+
+def parse_bounce(sender: str, text: str, subject: str = "") -> dict[str, Any] | None:
+    """הודעת החזרה של שרת דואר ⇒ {recipient, permanent, message_ids}; תשובה רגילה ⇒ None.
+
+    זיהוי שמרני: גם שולח של מערכת דואר (MAILER-DAEMON/postmaster) **או** נושא של החזרה, **וגם** גוף
+    שנראה כמו DSN (Final-Recipient/Status). לקוח שכותב «Status: 5.1.1» בתשובה רגילה ⇒ לא bounce.
+    Status 5.x.x ⇒ קבוע (כתובת שגויה) · 4.x.x ⇒ עיכוב זמני (לא כשל)."""
+    local = parse_address(sender).split("@", 1)[0].lower()
+    if not (local in _BOUNCE_SENDERS or _BOUNCE_SUBJECT.search(subject or "")):
+        return None
+    st = _DSN_STATUS.search(text or "")
+    rec = _DSN_RECIPIENT.search(text or "")
+    if not st and not rec:
+        return None
+    permanent = (st.group(1) == "5") if st else True     # בלי Status אבל עם Final-Recipient ⇒ כשל
+    return {"recipient": clean_email(rec.group(1)) if rec else "", "permanent": permanent,
+            "message_ids": _MSGID.findall(text or "")}
 
 
 def parse_address(raw: str) -> str:
