@@ -534,6 +534,25 @@ _PROMISE_HOSTILE_TAIL = (
     r"|גמרתי\s+איתכמ|תשכחו\s+ממני|שכחו\s+ממני)")
 
 
+# מבקר 161 («הבא» AI): שלילה באנגלית לפני הסמן — «I'm not switching», «I won't be cancelling the lessons»,
+# «it won't be the last time» — היה כרטיס מיותר (בעברית «לא מבטל»/«לא עובר» כבר שקט). השלילה נבדקת רק בתוך
+# הפסוקית (פסיק/נקודה/and/but מפסיקים) ורק עם מילות-מילוי מוגדרות, כך ש«not happy, switching» ו«not happy and
+# I'm switching» נשארים כרטיס. «done with you»/«never again»/«no promises» לא נשללים (שמרני: «I'm not done with you» ⇒ כרטיס).
+_EN_NEGATABLE_TAIL = re.compile(r"(?:switching|leaving|cancel|pull|tak|last\s+time)", re.I)
+_EN_TAIL_NEGATED = re.compile(
+    r"\b(?:not|never|won'?t|don'?t|doesn'?t|isn'?t|ain'?t|aren'?t|can'?t|wouldn'?t|didn'?t)\s+"
+    r"(?:(?:be|going|gonna|to|really|even|actually|ever|planning|plan|thinking|about|of|on|the)\s+){0,4}$", re.I)
+
+
+def _promise_hostile_tail(t: str) -> bool:
+    for m in _c(_PROMISE_HOSTILE_TAIL).finditer(t):
+        if _EN_NEGATABLE_TAIL.match(m.group(0)):
+            clause = re.split(r"[,.;!?]|\b(?:and|but|then|so)\b", t[:m.start()], flags=re.I)[-1]
+            if _EN_TAIL_NEGATED.search(clause):
+                continue
+        return True
+    return False
+
 def _en_salary_promise(t: str) -> bool:
     m = _EN_SALARY_COND.search(t)
     if not m or "?" in t or re.search(r"\b(?:not|never|even|unless|until|don'?t|won'?t|can'?t|no)\b",
@@ -3185,7 +3204,7 @@ def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
             escalate=max(d.escalate, Escalation.NORMAL, key=_esc_rank),
             tags=d.tags + ("protective_floor",),
             owner_actions=d.owner_actions + (f"לבדוק: בהודעה יש סימן ל-{names} שהמנוע לא אישר — להחליט אם לעצור",))
-    if t and d.intent == Intent.PROMISE and _s(_PROMISE_HOSTILE_TAIL, t):
+    if t and d.intent == Intent.PROMISE and _promise_hostile_tail(t):
         # מבקר סבב 159: «when I get paid then I'm done with you people», «…on the 10th I'm cancelling the lessons»,
         # «…I promise nothing», «כשאקבל משכורת אני מבטל את החוג» ⇒ הבטחה שקטה (טיוטת «עד איזה תאריך?» בלי כרטיס),
         # כשאותו המשך לבד היה מגיע לבעלים. ההבטחה נשמרת, אבל בעל העסק רואה כרטיס עם ההמשך.
