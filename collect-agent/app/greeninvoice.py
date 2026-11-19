@@ -437,6 +437,19 @@ class GreenInvoiceClient:
                                               from_date=since, page_size=50, max_pages=200),
                               doc if doc is not None else doc_id)
 
+    def receipts_for(self, doc_id: str, since=None, doc: Invoice | None = None) -> dict[str, str]:
+        """יעד «גבייה סוכן» (fuzz 19.11): קבלה שהונפקה **אחרי הסנכרון** על חשבונית שעדיין «פתוחה» לא נראתה
+        ברענון שלפני שליחה (שבודק רק את המסמך והזיכויים) ⇒ תזכורת יצאה למי ששילם. אותם כללים כמו בסנכרון
+        (`net_credits`): קבלה מקושרת למסמך, או לא מקושרת באותו לקוח ובאותו סכום ⇒ {מזהה: סיבה}. ריק ⇒ אין."""
+        if doc is None:
+            doc = self.get_document(doc_id)
+        if doc.status != 0:
+            return {}
+        receipts = list(self._iter_docs(types=RECEIPT_TYPES, statuses=RECEIPT_STATUSES, from_date=since,
+                                        page_size=50, max_pages=200))
+        return {d.external_id: why for d, why in net_credits([doc], [], [], receipts).review
+                if d.external_id == doc.external_id and why.startswith("receipt")}
+
     def open_debts(self, page_size: int = 50, max_pages: int = 200) -> Netting:
         """החוב הפתוח **אחרי קיזוז** (ממצא מבקר 2.16) — זה מה שהסנכרון קולט.
         זיכויים ומסמכי-המשך נשלפים רק מתאריך החוב הפתוח הוותיק (לא כל ההיסטוריה)."""

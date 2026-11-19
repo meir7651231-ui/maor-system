@@ -2020,6 +2020,13 @@ class CollectService:
                                               {c.external_id: why for c, why in e.items}):
                 raise _CreditHeld from e
             credit = e.certain
+        receipts_for = getattr(self.gi, "receipts_for", None)
+        if receipts_for is not None:
+            # fuzz 19.11: קבלה שהונפקה אחרי הסנכרון (החשבונית עדיין «פתוחה») ⇒ כמו בסנכרון: credit_review,
+            # הלקוח מושהה והתזכורת לא יוצאת. בעל העסק כבר בדק אותה וחידש ⇒ ההכרעה שלו (0 ⇒ ממשיכים)
+            why = receipts_for(inv["external_id"], since=doc.issued, doc=doc)
+            if why and self._hold_customer_for_credit(self._customer_row(inv["customer_id"]), why):
+                raise _CreditHeld
         return replace(doc, amount_agorot=doc.amount_agorot - credit)
 
     def refresh_customer(self, cid: int) -> bool:
