@@ -4,7 +4,7 @@
 (`pay_url`) ופריסה, ו-`landing_action(code, "plan")` יוצר טיוטת הסדר. ברוח 153 (אין קישור תשלום לקטין בלי עין
 אנושית) — העמוד לא מכיר את ההשהיה המגינה. הצעה: `paused_reason` מגן (minor/distress/deceased/…) ⇒ `pay_url=None`
 ו-plan/paid לא זמינים (או שורה «פנו אלינו טלפונית»). xfail(strict=True); הבקרה (לקוח רגיל) נשארת ירוקה."""
-import pytest
+
 
 
 def _code(svc):
@@ -12,7 +12,6 @@ def _code(svc):
     return svc._short_code(svc._invoice(svc.db.one("SELECT id FROM invoices WHERE customer_id=1")["id"]))
 
 
-@pytest.mark.xfail(strict=True, reason="critic 166: /p/ מציג כפתור תשלום לקטין (לתיקון בונה)")
 def test_minor_landing_has_no_pay_button(svc):
     code = _code(svc)
     svc.inbound("sms", "0501234567", "אני בן 14")

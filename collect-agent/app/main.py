@@ -1091,14 +1091,16 @@ def landing_page(info: dict | None) -> str:
     else:
         pay = (f'<a class="b p" href="{base}/pay">לתשלום מאובטח</a>' if info["pay_url"]
                else '<p class="m">בעל העסק יעדכן אתכם לגבי אפשרויות התשלום.</p>')
+    if info.get("held"):   # critic 166: השהיה מגינה ⇒ בלי תשלום/פריסה/«שילמתי»; הסרה נשארת
+        pay = '<p class="m" data-testid="landing-held">בעל העסק ייצור איתכם קשר אישית.</p>'
     opts = "".join(f'<option value="{n}">{n} תשלומים</option>' for n in (2, 3, 4, 6))
     stop = ('<p class="m">התזכורות האוטומטיות הופסקו.</p>' if info["opted_out"] else
             f'<form method="post" action="{base}/stop"><button class="b">הפסקת תזכורות</button></form>')
-    body = (head + f'<div class="amt">{e(amount)}</div>' + pay
-            + f'<form method="post" action="{base}/plan"><select name="n" aria-label="מספר תשלומים">'
-            + opts + '</select><button class="b">בקשת פריסה ללא תוספת</button></form>'
-            + f'<form method="post" action="{base}/paid"><button class="b">כבר שילמתי</button></form>'
-            + stop)
+    actions = "" if info.get("held") else (
+        f'<form method="post" action="{base}/plan"><select name="n" aria-label="מספר תשלומים">'
+        + opts + '</select><button class="b">בקשת פריסה ללא תוספת</button></form>'
+        + f'<form method="post" action="{base}/paid"><button class="b">כבר שילמתי</button></form>')
+    body = head + f'<div class="amt">{e(amount)}</div>' + pay + actions + stop
     # ר-13 (critic סבב 2): זה העמוד שקישור ה-SMS מוביל אליו («להפסקה: בקישור»), ולכן גם בו —
     # כמו ב-/u — למה קיבלתם, מי בעל השליטה ופרטיות (טיוטה לעו״ד)
     from . import legal

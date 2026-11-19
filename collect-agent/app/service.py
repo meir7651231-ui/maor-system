@@ -36,6 +36,7 @@ from .integrations.sources import (
 )
 from .policy import (
     APPROVAL_VALID_DAYS,
+    LANDING_HOLDS,
     MAX_REMINDERS_PER_INVOICE,
     OWNER_HOLDS,
     RETENTION_DAYS,
@@ -2107,14 +2108,18 @@ class CollectService:
         if not inv or inv["purged_at"]:
             raise KeyError(code)
         cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
+        held = self._landing_held(cust)
         items = self._landing_items(inv)
+        if held:   # critic 166: השהיה מגינה ⇒ אין קישור תשלום, גם לא לחשבונית בודדת ברשימה
+            items = [i | {"pay_url": None} for i in items]
         total = sum(i["amount_agorot"] for i in items)
         links = {i["pay_url"] for i in items}
         return {"code": code, "business": self.s.business_name, "number": inv["number"],
                 "amount": templates.fmt_amount(inv["amount_agorot"], inv["currency"]),
                 "due": inv["due"], "open": bool(items),
                 "opted_out": bool(cust["opted_out"]),
-                "pay_url": self._payment_link(inv) if inv["status"] == "open" else None,
+                "pay_url": self._payment_link(inv) if inv["status"] == "open" and not held else None,
+                "held": held,
                 # critic 15.1/2.12: הודעה מאוחדת ⇒ העמוד מפרט את כל החשבוניות שבה, עם סה״כ
                 "invoices": [{k: v for k, v in i.items() if k != "pay_url"}
                              | {"can_pay": bool(i["pay_url"])} for i in items],
@@ -2123,6 +2128,12 @@ class CollectService:
                 # קישור תשלום אחד לכולן (עמוד קבוע של העסק) ⇒ כפתור אחד; אחרת כפתור לכל חשבונית
                 "pay_shared": len(items) > 1 and len(links) == 1 and None not in links,
                 "_cust": cust}
+
+    @staticmethod
+    def _landing_held(cust) -> bool:
+        """critic סבב 166: קישור /p/ שכבר נשלח ללקוח שסומן אחר כך קטין/מצוקה/פטירה/חדלות פירעון ⇒ העמוד
+        לא מציע תשלום, פריסה או «שילמתי» (ברוח 153: אין בקשת כסף בלי עין אנושית). הסרה נשארת."""
+        return (cust["paused_reason"] or "").split(":", 1)[0] in LANDING_HOLDS
 
     def _landing_items(self, inv) -> list[dict]:
         """החשבוניות הפתוחות שבתזכורת האחרונה שכוללת את החשבונית של הקוד (לפי מועד). אין תזכורת
@@ -2153,6 +2164,9 @@ class CollectService:
             return {"action": "stop", "ok": True}
         if action not in self.LANDING_TEXT:
             raise ValueError("פעולה לא מוכרת")
+        if info["held"]:
+            self.audit("customer", "landing_held", {"customer": cust["id"], "action": action})
+            raise ValueError("הפעולה אינה זמינה — בעל העסק ייצור איתכם קשר")
         text = self.LANDING_TEXT[action]
         if action == "plan" and installments:
             text += f" ב-{int(installments)} תשלומים"
@@ -2692,7 +2706,8 @@ class CollectService:
                 "methods": list(self.PAY_METHODS) if info["pay_url"] else [],
                 "pay_host": self.pay_destination(info["pay_url"])[0] if info["pay_url"] else "",
                 "pay_provider": self.pay_destination(info["pay_url"])[1] if info["pay_url"] else "",
-                "plan_options": [2, 3, 4, 6], "dry_run": True}
+                "held": info["held"],
+                "plan_options": [] if info["held"] else [2, 3, 4, 6], "dry_run": True}
 
     def payer_go(self, code: str, method: str) -> str:
         """⇒ עמוד התשלום של העסק (אמצעי התשלום נקבעים שם, לא אצלנו). יעד מאומת מול רשימת

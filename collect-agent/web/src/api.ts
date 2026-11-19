@@ -197,6 +197,8 @@ export interface PayerView {
   invoices?: PayerInvoice[]; count?: number; total?: string; total_agorot?: number;
   /** קישור תשלום אחד לכולן (עמוד קבוע של העסק) ⇒ כפתור אחד; אחרת כפתור לכל חשבונית */
   pay_shared?: boolean;
+  /** critic 166: השהיה מגינה (קטין/מצוקה/פטירה/חדלות פירעון) ⇒ בלי תשלום/פריסה/«שילמתי»; הסרה נשארת */
+  held?: boolean;
   /** ר-13: «למה קיבלתם» ופרטיות — אותו מקור כמו /p ו-/u בשרת (legal.privacy_points) */
   legal?: { why: string; controller: string; use: string; retention: string; contact: string; label: string };
 }
