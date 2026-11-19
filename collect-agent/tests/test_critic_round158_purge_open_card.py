@@ -17,8 +17,6 @@
 תוקנו במנהל 304 (ה-xfail הוסרו); בדיקות הבקרה חייבות להישאר ירוקות."""
 from datetime import timedelta
 
-import pytest
-
 DANA = 1   # 0501234567 = doc1 = לקוח 1 ב-conftest
 
 
@@ -90,7 +88,6 @@ def test_deferral_capped_for_abandoned_urgent_card(svc, clock):
     assert svc.db.one("SELECT name FROM customers WHERE id=?", (DANA,))["name"] is None
 
 
-@pytest.mark.xfail(strict=True, reason="critic 159: «טופל» לא סוגר טיוטה דחופה ⇒ purge נדחה עד 180 יום")
 def test_owner_done_alone_releases_purge(svc, clock):
     """critic סבב 159 · 🟡 רכיב: `app/service.py` → `_has_open_card` (מ-`802744f2`) מול `owner_message_done`.
     בעל העסק לחץ «טופל» על הכרטיס (messages.needs_owner=0), אבל הטיוטה הדחופה נשארת needs_owner ⇒ `_has_open_card`

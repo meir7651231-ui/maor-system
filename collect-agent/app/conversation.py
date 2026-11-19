@@ -531,6 +531,27 @@ def _en_salary_promise(t: str) -> bool:
         rest, re.I))
 
 
+# critic סבב 159: תנאי-משכורת בראש ההודעה הסתיר המשך של ביטול/עוינות/«לא מבטיח» ⇒ הבטחה שקטה («once I get paid
+# then I'm done with you people», «…on the 10th I'm cancelling the lessons», «כשאקבל משכורת אני מבטל את החוג»).
+# אותו המשך לבד מגיע לבעל העסק כ«לא ברור». עכשיו: תנאי-משכורת + סמן כזה ⇒ ההבטחה יורדת (UNKNOWN ⇒ כרטיס).
+_HE_SALARY_COND = (r"(?:כשת?יכנס|כשתכנס|ברגע ש(?:ת)?י?כנס|אחרי ש(?:ת)?י?כנס|כשאקבל|אחרי שאקבל) (?:ה)?(?:משכורת|כסף|תשלום)")
+_EN_SALARY_HOSTILE = re.compile(
+    r"\b(?:done\s+with|through\s+with|finished\s+with|cancel\w*|quit\w*|last\s+time|promise\s+nothing|nothing"
+    r"|pigs\s+(?:fly|can\s+fly)|hell\s+freezes|you\s+people|scam\w*|leav(?:e|ing)\s+(?:you|this|the)|unsubscrib\w*"
+    r"|no\s+longer|never\s+again|forget\s+(?:it|you|about)|screw\s+you|f\W*off|go\s+to\s+hell)\b", re.I)
+_HE_SALARY_HOSTILE = (r"(?<![\w])(?:מבטל|מבטלת|מבטלים|אבטל|נבטל|לבטל|ביטול|נגמר|נגמרה|נמאס|פעם אחרונה|לא מבטיח|לא מבטיחה"
+                      r"|לא מבטיחים|עוזב|עוזבת|עוזבים|אעזוב|מפסיק|מפסיקה|מפסיקים|אפסיק|לעולם לא|שכחו מזה|תשכחו|רמאי|נוכל)(?![\w])")
+
+
+def _salary_cond_hostile_tail(t: str) -> bool:
+    """תנאי-משכורת (אנגלית/עברית) + המשך של ביטול/עוינות/«לא מבטיח» — לא הבטחה שקטה."""
+    m = _EN_SALARY_COND.search(t)
+    if m and _EN_SALARY_HOSTILE.search(t[m.end():]):
+        return True
+    h = _s(_HE_SALARY_COND, t)
+    return bool(h and _s(_HE_SALARY_HOSTILE, t))
+
+
 def _strip_en_future(t: str) -> str:
     return _EN_GET_PAID.sub(" ", _EN_FUT_XFER.sub(" ", t))
 
@@ -2500,6 +2521,8 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         found.add(Intent.PROMISE)
     if not found and _en_salary_promise(t):   # מנהל 303: «when I get paid (on the 10th)»
         found.add(Intent.PROMISE)
+    if Intent.PROMISE in found and _salary_cond_hostile_tail(t):   # critic סבב 159
+        found.discard(Intent.PROMISE)
     # critic סבב 136: «הילד חולה היום ולא יגיע לשיעור» = הודעת היעדרות, לא קושי בתשלום (היה cant_pay+sensitive ⇒ דחוף)
     if Intent.CANT_PAY in found and _s(r"(?<![\w])(?:הילד|הילדה|הבנ|הבת|הוא|היא|בני|בתי)(?: שלי)?\s+(?:\S+\s+)?חולה(?![\w])", t) \
             and _s(r"לא\s+(?:יגיע|תגיע|יבוא|תבוא|יהיה|תהיה)|(?<![\w])(?:ל|ב)?(?:שיעור|חוג|אימונ|תרגול)|יחסר|תחסר|נעדר"

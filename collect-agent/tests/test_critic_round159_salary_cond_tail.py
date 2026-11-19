@@ -22,7 +22,6 @@ TAILS = ["once I get paid then I'm done with you people",
          "כשאקבל משכורת אני מבטל את החוג"]
 
 
-@pytest.mark.xfail(strict=True, reason="critic 159: תנאי-משכורת + המשך עוין/ביטול ⇒ הבטחה שקטה (לתיקון בונה)")
 @pytest.mark.parametrize("text", TAILS)
 def test_salary_condition_with_hostile_or_cancel_tail_reaches_owner(text):
     d = respond(text, build_ctx({"channel": "sms"}))

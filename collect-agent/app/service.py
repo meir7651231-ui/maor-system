@@ -1499,10 +1499,13 @@ class CollectService:
         if not self._table_exists("drafts"):
             return False
         floor = _iso(self.clock() - timedelta(days=2 * RETENTION_DAYS))
+        # critic סבב 159: «טופל» על הכרטיס מאפס רק messages.needs_owner — הטיוטה הדחופה נשארה פתוחה ⇒ ההתממה נדחתה
+        # עד התקרה אף שבעל העסק סיים. הכרטיס = ההודעה ב«דורש טיפול»; טיוטה דחופה דוחה רק כל עוד הכרטיס עצמו פתוח.
         return self.db.one(
             "SELECT 1 FROM drafts WHERE customer_id=? AND escalate='urgent' AND "
-            "status IN ('pending_approval','needs_owner') AND created_at>?",
-            (customer_id, floor)) is not None
+            "status IN ('pending_approval','needs_owner') AND created_at>? AND EXISTS("
+            "SELECT 1 FROM messages WHERE customer_id=? AND needs_owner=1)",
+            (customer_id, floor, customer_id)) is not None
 
     def _scrub_sent_log(self, cust) -> None:
         """critic סבב 75 (ר-10): רשומות יומן ה-dry-run (`sender.sent`, /outbox) של לקוח שהותמם — נשחרות במקום:
