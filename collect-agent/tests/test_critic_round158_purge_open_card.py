@@ -86,3 +86,15 @@ def test_deferral_capped_for_abandoned_urgent_card(svc, clock):
     clock.now += timedelta(days=90)
     assert svc.purge_closed()["customers"] == 1
     assert svc.db.one("SELECT name FROM customers WHERE id=?", (DANA,))["name"] is None
+
+
+@pytest.mark.xfail(strict=True, reason="critic 159: «טופל» ב-/owner/inbox לא סוגר את הטיוטה הדחופה ⇒ ה-purge נדחה עד 180 יום")
+def test_owner_done_alone_releases_purge(svc, clock):
+    """critic סבב 159 · 🟡 רכיב: `app/service.py` → `_has_open_card` (מ-`802744f2`) מול `owner_message_done`.
+    בעל העסק לחץ «טופל» על הכרטיס (messages.needs_owner=0), אבל הטיוטה הדחופה נשארת needs_owner ⇒ `_has_open_card`
+    עדיין True ⇒ ההתממה נדחית עד תקרת 180 יום, אף שבעל העסק סיים. הצעה: «טופל» סוגר גם טיוטות דחופות פתוחות של
+    אותה הודעה/לקוח (status=superseded/decided_by=owner), או ש-`_has_open_card` יבדוק גם `messages.needs_owner=1`."""
+    _legal_then_paid(svc, clock)
+    for m in svc.db.q("SELECT id FROM messages WHERE customer_id=? AND needs_owner=1", (DANA,)):
+        svc.owner_message_done(m["id"])
+    assert svc.purge_closed()["customers"] == 1
