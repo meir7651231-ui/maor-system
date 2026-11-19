@@ -1445,6 +1445,47 @@ class CollectService:
                                          "note_id": note_id})
         return dict(self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)))
 
+    # מנהל 309: זכות עיון (סעיף 13 לחוק הגנת הפרטיות; DPA 9.1 — «בקשת עיון מועברת לעסק»).
+    # עד היום לבעל העסק לא היה איך לענות לבקשה כזו בלי לחפש ידנית בכמה מסכים. ייצוא קריאה-בלבד של כל
+    # מה שגבי מחזיקה על לקוח אחד. לא כולל: אסימונים (unsub_token, link_tokens — מפתחות גישה, לא מידע עליו),
+    # payload פנימי של הודעות, וכרטיסי «כתובת משותפת» (customer_id=NULL — מכילים שמות של לקוחות אחרים).
+    # הייצוא נרשם ב-access_log (PII_READ_ROUTES) וגם ב-audit (בלי תוכן).
+    _EXPORT_CUSTOMER_HIDE = frozenset({"unsub_token"})
+
+    def customer_data_export(self, customer_id: int, actor: str = "owner") -> dict:
+        row = self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,))
+        if not row:
+            raise KeyError(customer_id)
+        customer = {k: row[k] for k in row.keys() if k not in self._EXPORT_CUSTOMER_HIDE}
+        invoices = [dict(r) for r in self.db.q(
+            "SELECT id,number,doc_type,amount_agorot,credit_agorot,currency,issued,due,status,"
+            "payment_url,closed_at,owner_paid_at,purged_at FROM invoices WHERE customer_id=? ORDER BY id",
+            (customer_id,))]
+        # תזכורת משולבת (כמה חשבוניות) מקושרת דרך reminder_invoices — שאילתה קבועה, בלי SQL דינמי
+        reminders = [dict(r) for r in self.db.q(
+            "SELECT r.id,r.invoice_id,r.step,r.scheduled_for,r.status,r.body,r.sent_at,r.decided_at "
+            "FROM reminders r WHERE r.invoice_id IN (SELECT id FROM invoices WHERE customer_id=?) "
+            "OR r.id IN (SELECT ri.reminder_id FROM reminder_invoices ri JOIN invoices i "
+            "ON i.id=ri.invoice_id WHERE i.customer_id=?) ORDER BY r.id", (customer_id, customer_id))]
+        messages = [dict(r) for r in self.db.q(
+            "SELECT id,direction,channel,body,intent,created_at,delivery_status FROM messages "
+            "WHERE customer_id=? ORDER BY id", (customer_id,))]
+        plans_ = [dict(r) for r in self.db.q(
+            "SELECT id,invoice_id,installments,status,created_at FROM plans WHERE customer_id=? "
+            "ORDER BY id", (customer_id,))]
+        try:
+            drafts = [dict(r) for r in self.db.q(
+                "SELECT id,channel,body,intent,status,created_at,sent_at FROM drafts "
+                "WHERE customer_id=? ORDER BY id", (customer_id,))]
+        except sqlite3.OperationalError:
+            drafts = []
+        self.audit(actor, "customer_data_export", {"customer": customer_id})
+        return {"customer": customer, "invoices": invoices, "reminders": reminders,
+                "messages": messages, "plans": plans_, "drafts": drafts,
+                "generated_at": _iso(self.clock()),
+                "note": "ייצוא לפי בקשת עיון (סעיף 13). מפתחות גישה וכרטיסים משותפים עם לקוחות אחרים "
+                        "אינם כלולים."}
+
     def purge_closed(self, actor: str = "system") -> dict[str, int]:
         """חוב סגור מעל 90 יום ⇒ ריקון תוכן ההודעות והתממת הלקוח (כשאין לו חוב פתוח),
         אלא אם יש legal hold מתועד. רשימת ההסרה (suppressions, גיבוב בלבד) ו-audit נשארים.

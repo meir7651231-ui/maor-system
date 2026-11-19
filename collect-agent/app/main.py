@@ -100,7 +100,8 @@ class LegalHoldIn(BaseModel):
 PII_READ_ROUTES = frozenset({
     "/reminders", "/reminders/{rid}/preview", "/dashboard", "/customers", "/outbox",
     "/owner/inbox", "/plans", "/audit", "/conversation/drafts", "/access-log",
-    "/open-list"})   # שער רשימת הפתוחות: שמות לקוחות + סכומים
+    "/open-list",    # שער רשימת הפתוחות: שמות לקוחות + סכומים
+    "/customers/{cid}/data"})   # מנהל 309: ייצוא לבקשת עיון (סעיף 13)
 
 
 class InboundIn(BaseModel):
@@ -489,6 +490,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.get("/customers", dependencies=auth)
     def customers():
         return [dict(r) for r in svc.db.q("SELECT * FROM customers ORDER BY id")]
+
+    @app.get("/customers/{cid}/data", dependencies=auth)
+    def customer_data(cid: int, request: Request):                     # מנהל 309: זכות עיון
+        return guard(svc.customer_data_export, cid, request.state.actor)
 
     @app.post("/invoices/{iid}/mark-paid", dependencies=auth)
     def mark_paid(iid: int, request: Request):
