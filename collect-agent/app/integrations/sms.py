@@ -13,6 +13,7 @@ import re
 
 # B405: ראו parse() — DOCTYPE/ENTITY נדחים לפני הפרסור
 import xml.etree.ElementTree as ET  # noqa: S405  # nosec B405
+from typing import Any
 from xml.sax.saxutils import escape  # nosec B406
 
 import httpx
@@ -213,3 +214,28 @@ def parse_019_dlr(fields: dict[str, str]) -> tuple[str, str]:
     else:
         st = "unknown"
     return pid, st
+
+
+def parse_inforu_dlr(fields: dict[str, Any]) -> tuple[str, str, str]:
+    """דוח מסירה של InforU (גיבוי) ⇒ (מזהה אצל InforU, המזהה שלנו מ-CustomerMessageId, מצב).
+
+    ⚠️ חוזה לא מאומת: סובלני לשמות (MessageId/RequestId · CustomerMessageId) ולמילות סטטוס כמו 019.
+    קוד מספרי ⇒ 'unknown' (בלי פעולה) עד שיהיה מסמך רשמי של InforU."""
+    def pick(*names: str) -> str:
+        for n in names:
+            for k, v in fields.items():
+                if k.lower() == n.lower() and v not in (None, ""):
+                    return str(v).strip()
+        return ""
+    pid = pick("MessageId", "MessageID", "RequestId", "Id")
+    ours = pick("CustomerMessageId", "CustomerMessageID", "CustomerParameter")
+    raw = pick("StatusText", "StatusDescription", "Status", "DeliveryStatus").lower()
+    if raw in _DLR_DELIVERED:
+        st = "delivered"
+    elif raw in _DLR_FAILED:
+        st = "failed"
+    elif raw in _DLR_PENDING:
+        st = "pending"
+    else:
+        st = "unknown"
+    return pid, ours, st

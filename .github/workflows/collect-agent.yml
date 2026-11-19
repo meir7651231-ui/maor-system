@@ -206,6 +206,8 @@ jobs:
         run: TZ=UTC node e2e/app-openlist.mjs "$RUNNER_TEMP/shots"
       - name: e2e — התראת פקיעת לוח החגים (בית+הגדרות, AA, מובייל)
         run: TZ=UTC node e2e/app-holidays.mjs "$RUNNER_TEMP/shots"
+      - name: e2e — ניגודיות AA בדפדפן: כל מסכי /app/, /ui, /p/, /u/ (בהיר+כהה, 390px) ודפי-הנחיתה
+        run: TZ=UTC node e2e/app-contrast.mjs && node e2e/landing-contrast.mjs
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
         run: TZ=UTC node e2e/rebuild.mjs "$RUNNER_TEMP/shots"
       - name: e2e CSP — 7 עמודי HTML (/p, /p-404, /ui, /app, /pay, /connect/orbit) בלי הפרות, וסקריפט מוזרק נחסם

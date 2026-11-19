@@ -61,6 +61,23 @@ class InforUMock:
                           "customer_id": d["Settings"].get("CustomerMessageId")})
         return self._res(OK, "Success", MessageId=mid)
 
+    # מצבי DLR (מילים כמו ב-019/SMPP; הקודים המספריים של InforU לא ידועים ⇒ unknown, בלי פעולה)
+    DLR_STATES: dict[str, tuple[str, bool]] = {
+        "Delivered": ("delivered", False), "Sent": ("pending", False),
+        "Failed": ("failed", True), "Expired": ("failed", True), "Blocked": ("failed", True),
+        "2": ("unknown", False),
+    }
+
+    @staticmethod
+    def dlr(message_id: str = "", status: str = "Delivered", customer_message_id: str = "") -> bytes:
+        """גוף DLR (JSON) כפי ש-parse_inforu_dlr מצפה (לא מאומת)."""
+        body: dict[str, Any] = {"Status": status}
+        if message_id:
+            body["MessageId"] = message_id
+        if customer_message_id:
+            body["CustomerMessageId"] = customer_message_id
+        return json.dumps(body).encode()
+
     def handler(self, req: httpx.Request) -> httpx.Response:
         status, body = self.route(req.method, req.url.path,
                                   {k.lower(): v for k, v in req.headers.items()}, req.content)

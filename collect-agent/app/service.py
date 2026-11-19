@@ -2020,6 +2020,13 @@ class CollectService:
                                               {c.external_id: why for c, why in e.items}):
                 raise _CreditHeld from e
             credit = e.certain
+        receipts_for = getattr(self.gi, "receipts_for", None)
+        if receipts_for is not None:
+            # fuzz 19.11: קבלה שהונפקה אחרי הסנכרון (החשבונית עדיין «פתוחה») ⇒ כמו בסנכרון: credit_review,
+            # הלקוח מושהה והתזכורת לא יוצאת. בעל העסק כבר בדק אותה וחידש ⇒ ההכרעה שלו (0 ⇒ ממשיכים)
+            why = receipts_for(inv["external_id"], since=doc.issued, doc=doc)
+            if why and self._hold_customer_for_credit(self._customer_row(inv["customer_id"]), why):
+                raise _CreditHeld
         return replace(doc, amount_agorot=doc.amount_agorot - credit)
 
     def refresh_customer(self, cid: int) -> bool:
@@ -2308,6 +2315,47 @@ class CollectService:
             res = {"ok": True, "kind": kind, "ignored": True}
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
                   " VALUES(NULL,'webhook','sms',?,?,?)", (kind, key, _iso(self.clock())))
+        return res
+
+    def sms_webhook_inforu(self, raw: bytes) -> dict:
+        try:
+            return self._sms_webhook_inforu(raw)
+        except Exception:
+            self._release_webhook("inforu:" + hashlib.sha256(raw).hexdigest())
+            raise
+
+    def _sms_webhook_inforu(self, raw: bytes) -> dict:
+        """DLR של InforU (ספק הגיבוי). בלי זה SMS שיצא בגיבוי ולא נמסר נשאר 'sent' לנצח, ובעל העסק
+        לא מקבל התראה. JSON או form; התאמה לפי המזהה של InforU, או לפי המזהה שלנו (CustomerMessageId)."""
+        import json as _json
+        from urllib.parse import parse_qs
+
+        from .integrations.sms import parse_inforu_dlr
+
+        key = "inforu:" + hashlib.sha256(raw).hexdigest()
+        if not self._claim_webhook(key) or self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
+            return {"ok": True, "duplicate": True}
+        text = raw.decode("utf-8", "replace").strip()
+        try:
+            f = _json.loads(text) if text.startswith("{") else \
+                {k: v[0] for k, v in parse_qs(text).items()}
+        except ValueError:
+            f = {}
+        f = f if isinstance(f, dict) else {}
+        pid, ours, st = parse_inforu_dlr(f)
+        if not pid and ours:
+            row = self.db.one("SELECT provider_id FROM messages WHERE direction='out' AND "
+                              "provider='inforu' AND message_id=?", (ours,))
+            pid = (row["provider_id"] or "") if row else ""
+        res = {"ok": True, "kind": "dlr", **self.delivery_report("inforu", pid, st)} if pid \
+            else {"ok": True, "kind": "dlr", "ignored": True}
+        if res.get("matched") is False and ours:
+            row = self.db.one("SELECT provider_id FROM messages WHERE direction='out' AND "
+                              "provider='inforu' AND message_id=?", (ours,))
+            if row and row["provider_id"]:
+                res = {"ok": True, "kind": "dlr", **self.delivery_report("inforu", row["provider_id"], st)}
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
+                  " VALUES(NULL,'webhook','sms','dlr',?,?)", (key, _iso(self.clock())))
         return res
 
     def _claim_webhook(self, key: str) -> bool:
