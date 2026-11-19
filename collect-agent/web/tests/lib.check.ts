@@ -1327,3 +1327,22 @@ test('dataExport: התוכן הוא בדיוק מה שהשרת החזיר', () =
   const d = { customer: { id: 1, name: 'דנה' }, invoices: [] };
   assert.deepEqual(JSON.parse(dataExportText(d)), d);
 });
+
+// critic סבב 169: כרטיס בלי טיוטה ממייל שלא עבר SPF/DKIM/DMARC (payload.email_verified=false) — מסומן בראש הכרטיס.
+test('כרטיס ממייל לא מאומת מסומן באזהרה; מאומת / JSON פגום / system — לא', async () => {
+  const { systemNotices, UNVERIFIED_EMAIL_LINE } = await import('../src/lib/notices.ts');
+  const row = (id: number, direction: string, intent: string, payload: string | null) =>
+    ({ id, customer_id: null, direction, channel: 'email', body: 'שילמתי', intent, created_at: '2026-11-19T10:00:00+02:00', payload });
+  const n = systemNotices([
+    row(1, 'in', 'shared_contact_paid_claim', JSON.stringify({ linked_customers: [{ id: 3, name: 'רונית' }], email_verified: false })),
+    row(2, 'in', 'unknown_sender_urgent', '{"email_verified": false}'),
+    row(3, 'in', 'unknown_sender', '{"email_verified": true}'),
+    row(4, 'in', 'unknown_sender', '{פגום'),
+    row(5, 'system', 'max_reminders', '{"email_verified": false}'),
+  ]);
+  const by = (id: number) => n.find(x => x.id === id)!;
+  assert.ok(by(1).unverified && by(1).body.startsWith(UNVERIFIED_EMAIL_LINE));
+  assert.equal(by(1).linked?.[0].name, 'רונית');           // השיוך עדיין עובד
+  assert.ok(by(2).unverified && by(2).body.includes('SPF/DKIM'));
+  for (const id of [3, 4, 5]) { assert.ok(!by(id).unverified, String(id)); assert.ok(!by(id).body.includes('SPF'), String(id)); }
+});

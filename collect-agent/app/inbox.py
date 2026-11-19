@@ -39,6 +39,9 @@ from .conversation import (
 from .llm import load_classifier
 from .policy import TZ, invoice_too_old
 
+# critic 3.6.7 / סבב 169: מקור יחיד לאזהרת מייל לא מאומת (טיוטה ישירה וטיוטה אחרי שיוך כרטיס)
+UNVERIFIED_EMAIL_NOTE = " ⚠️ המייל לא עבר אימות שולח (SPF/DKIM) — ייתכן שלא נשלח ע״י הלקוח."
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS conversations (
   customer_id INTEGER PRIMARY KEY REFERENCES customers(id),
@@ -224,6 +227,10 @@ class ConversationInbox:
         if customer_id is None:
             return {"card_id": card_id, "assigned": None}
         res = self.handle_customer(cust, m["channel"], m["body"])
+        if info.get("email_verified") is False and res.get("draft_id"):
+            # critic סבב 169: האזהרה עוברת מהכרטיס לטיוטה שנוצרה אחרי השיוך (אחרת נעלמת ברגע הבחירה)
+            self.db.x("UPDATE drafts SET owner_summary=COALESCE(owner_summary,'') || ? WHERE id=?",
+                      (UNVERIFIED_EMAIL_NOTE, res["draft_id"]))
         return {"card_id": card_id, "assigned": customer_id, **res}
 
     # ---------- קלט ----------

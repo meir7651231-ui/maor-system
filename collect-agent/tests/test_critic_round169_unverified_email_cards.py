@@ -36,7 +36,6 @@ def _card_flagged(svc, intent) -> bool:
     return "לא עבר אימות" in ((row["payload"] or "") + (row["body"] or ""))
 
 
-@pytest.mark.xfail(strict=True, reason="critic 169: כרטיס בלי טיוטה ממייל לא מאומת — בלי אזהרה (לתיקון בונה)")
 @pytest.mark.parametrize("who,msg,intent", [
     ("fam@ex.com", "שילמתי", "shared_contact_paid_claim"),
     ("fam@ex.com", "אני בן 14", "shared_contact_urgent"),

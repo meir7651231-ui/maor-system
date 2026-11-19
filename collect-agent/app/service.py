@@ -141,6 +141,25 @@ def _scrub_linked_names(payload, only: int | None = None):
         return None
 
 
+def _unverified_note() -> str:
+    from .inbox import UNVERIFIED_EMAIL_NOTE  # מקומי: inbox מייבא מ-service בזמן ריצה
+
+    return UNVERIFIED_EMAIL_NOTE
+
+
+def _mark_unverified(payload) -> str:
+    """critic סבב 169: מייל שלא עבר SPF/DKIM/DMARC ⇒ `email_verified: false` ב-payload של הכרטיס. JSON פגום/לא-מילון ⇒
+    מילון חדש (הסימן חשוב יותר מתוכן פגום שממילא לא מוצג)."""
+    try:
+        info = json.loads(payload or "{}")
+        if not isinstance(info, dict):
+            info = {}
+    except (ValueError, TypeError):
+        info = {}
+    info["email_verified"] = False
+    return json.dumps(info, ensure_ascii=False)
+
+
 def _iso(dt: datetime) -> str:
     return dt.astimezone(TZ).isoformat(timespec="seconds")
 
@@ -2275,12 +2294,18 @@ class CollectService:
             return {"ok": True, "ignored": True}
         auth = email_auth_verdict(auth_results)
         self.audit("system", "email_auth", {"message": key[:80], **auth})
+        before = self.db.one("SELECT COALESCE(MAX(id), 0) AS m FROM messages")["m"]
         out = self.inbound("email", addr, body)
+        if not auth["verified"] and not out.get("draft_id"):
+            # critic סבב 169: כרטיס **בלי** טיוטה (כתובת משותפת + «שילמתי»/דחוף, שולח לא מוכר) ⇒ גם הוא מסומן,
+            # אחרת בעל העסק משייך/מסמן «שולם» על בסיס מייל שאולי מזויף בלי שום סימן. payload נשמר (linked_customers)
+            for m in self.db.q("SELECT id, payload FROM messages WHERE id>? AND direction='in' AND needs_owner=1",
+                               (before,)):
+                self.db.x("UPDATE messages SET payload=? WHERE id=?", (_mark_unverified(m["payload"]), m["id"]))
         if not auth["verified"] and out.get("draft_id"):
             # כרטיס/טיוטה: בעל העסק יודע שהמייל לא אומת אצל הספק (אולי התחזות)
             self.db.x("UPDATE drafts SET owner_summary=COALESCE(owner_summary,'') || ? WHERE id=?",
-                      (" ⚠️ המייל לא עבר אימות שולח (SPF/DKIM) — ייתכן שלא נשלח ע״י הלקוח.",
-                       out["draft_id"]))
+                      (_unverified_note(), out["draft_id"]))
         return {"ok": True, **out, "email_verified": auth["verified"]}
 
     def sms_webhook_019(self, raw: bytes) -> dict:
