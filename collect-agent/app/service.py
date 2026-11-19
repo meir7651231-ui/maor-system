@@ -1,6 +1,7 @@
 """תזמור: סנכרון ⇒ תכנון תור ⇒ אישור בעלים ⇒ שליחה (dry-run, SMS+מייל) ⇒ מענה לתשובות."""
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import re
@@ -1820,70 +1821,73 @@ class CollectService:
             for k in self._contacts_of(c):
                 if t and (k not in last_by_contact or t > last_by_contact[k]):
                     last_by_contact[k] = t
-        for r in rows:
-            # ר-12: אושר בדיוק הגוף הזה ובגרסת הנוסח הנוכחית? אחרת האישור בטל
-            if r["approved_hash"] != _sha(r["payload"]) or \
-                    (r["approved_version"] or "") != templates.template_version():
-                self._invalidate(r, "approval_invalidated")
-                continue
-            # critic סבב 31: אישור שחיכה (סוף ניסיון/חסימה) יצא 22 יום אחר כך, עם כל התור באותו בוקר.
-            # תקף APPROVAL_VALID_DAYS מהמאוחר מבין האישור והמועד המתוכנן (אישור מראש לעתיד נשמר).
-            anchor = max(d for d in (_dt(r["decided_at"]), _dt(r["scheduled_for"])) if d is not None)
-            if now - anchor > timedelta(days=APPROVAL_VALID_DAYS):
-                self._invalidate(r, "approval_expired")
-                continue
-            # ר-4: רענון מהמקור לפני כל שליחה; כשל ⇒ לא שולחים
-            fresh = self._refresh_before_send(r)
-            if fresh != "ok":
-                continue
-            r = self._reminder(r["id"])
-            inv = self._invoice(r["invoice_id"])
-            cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
-            reason = self._customer_block(cust["id"])
-            if reason:
-                self.db.x("UPDATE reminders SET status='cancelled', block_reason=? WHERE id=?",
-                          (reason, r["id"]))
-                continue
-            if not gap_ok(_dt(cust["last_sent_at"]), now):
-                continue  # ננסה בסבב הבא
-            shared = [last_by_contact[k] for k in self._contacts_of(cust) if k in last_by_contact]
-            if shared and not gap_ok(max(shared), now):
-                continue  # critic סבב 66: אותה כתובת קיבלה תזכורת (של לקוח אחר) לפני פחות מ-72 שעות
-            if not self._claim_reminder(r["id"]):
-                continue   # critic סבב 39: ריצה אחרת כבר תפסה אותה (אין שליחה כפולה במקביל)
-            ids = []
-            failed = False
-            for m in json.loads(r["payload"]):
-                msg = Message(**m)
-                if self.gate(cust, msg.channel, msg.to):
+        # מבקר סבב 170: שליפת הקבלות לרענון פעם אחת לריצה (לא N×עמודים); בלי batch ⇒ כמו קודם
+        batch = getattr(self.gi, "receipt_batch", None)
+        with batch() if callable(batch) else contextlib.nullcontext():
+            for r in rows:
+                # ר-12: אושר בדיוק הגוף הזה ובגרסת הנוסח הנוכחית? אחרת האישור בטל
+                if r["approved_hash"] != _sha(r["payload"]) or \
+                        (r["approved_version"] or "") != templates.template_version():
+                    self._invalidate(r, "approval_invalidated")
                     continue
-                try:
-                    mid = self.sender.send(msg)
-                except IntegrationError as e:
-                    # כל ספקי הערוץ נכשלו (019 ⇒ InforU) ⇒ לא מסמנים "נשלח" ⇒ ננסה בסבב הבא
-                    self.audit("system", "send_failed", {"reminder": r["id"],
-                                                         "channel": msg.channel,
-                                                         "error": str(e)[:300]})
-                    failed = True
+                # critic סבב 31: אישור שחיכה (סוף ניסיון/חסימה) יצא 22 יום אחר כך, עם כל התור באותו בוקר.
+                # תקף APPROVAL_VALID_DAYS מהמאוחר מבין האישור והמועד המתוכנן (אישור מראש לעתיד נשמר).
+                anchor = max(d for d in (_dt(r["decided_at"]), _dt(r["scheduled_for"])) if d is not None)
+                if now - anchor > timedelta(days=APPROVAL_VALID_DAYS):
+                    self._invalidate(r, "approval_expired")
                     continue
-                ids.append(mid)
-                self._log_out(cust["id"], msg, mid, now)
-            if failed and not ids:
-                # שום הודעה לא יצאה ⇒ משחררים את התפיסה, וננסה בסבב הבא
-                self.db.x("UPDATE reminders SET status='approved', claimed_at=NULL WHERE id=?", (r["id"],))
-                continue
-            if not ids:
-                self.db.x("UPDATE reminders SET status='cancelled', block_reason='opted_out' "
-                          "WHERE id=?", (r["id"],))
-                continue
-            self.db.x("UPDATE reminders SET status='sent_dry_run', sent_at=?, message_id=?, "
-                      "payload=?, body=? WHERE id=?",
-                      (_iso(now), ",".join(ids), redact_tokens(r["payload"]),
-                       redact_tokens(r["body"]), r["id"]))
-            self.db.x("UPDATE customers SET last_sent_at=? WHERE id=?", (_iso(now), cust["id"]))
-            for k in self._contacts_of(cust):
-                last_by_contact[k] = now
-            out.append({"reminder_id": r["id"], "message_ids": ids, "dry_run": True})
+                # ר-4: רענון מהמקור לפני כל שליחה; כשל ⇒ לא שולחים
+                fresh = self._refresh_before_send(r)
+                if fresh != "ok":
+                    continue
+                r = self._reminder(r["id"])
+                inv = self._invoice(r["invoice_id"])
+                cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
+                reason = self._customer_block(cust["id"])
+                if reason:
+                    self.db.x("UPDATE reminders SET status='cancelled', block_reason=? WHERE id=?",
+                              (reason, r["id"]))
+                    continue
+                if not gap_ok(_dt(cust["last_sent_at"]), now):
+                    continue  # ננסה בסבב הבא
+                shared = [last_by_contact[k] for k in self._contacts_of(cust) if k in last_by_contact]
+                if shared and not gap_ok(max(shared), now):
+                    continue  # critic סבב 66: אותה כתובת קיבלה תזכורת (של לקוח אחר) לפני פחות מ-72 שעות
+                if not self._claim_reminder(r["id"]):
+                    continue   # critic סבב 39: ריצה אחרת כבר תפסה אותה (אין שליחה כפולה במקביל)
+                ids = []
+                failed = False
+                for m in json.loads(r["payload"]):
+                    msg = Message(**m)
+                    if self.gate(cust, msg.channel, msg.to):
+                        continue
+                    try:
+                        mid = self.sender.send(msg)
+                    except IntegrationError as e:
+                        # כל ספקי הערוץ נכשלו (019 ⇒ InforU) ⇒ לא מסמנים "נשלח" ⇒ ננסה בסבב הבא
+                        self.audit("system", "send_failed", {"reminder": r["id"],
+                                                             "channel": msg.channel,
+                                                             "error": str(e)[:300]})
+                        failed = True
+                        continue
+                    ids.append(mid)
+                    self._log_out(cust["id"], msg, mid, now)
+                if failed and not ids:
+                    # שום הודעה לא יצאה ⇒ משחררים את התפיסה, וננסה בסבב הבא
+                    self.db.x("UPDATE reminders SET status='approved', claimed_at=NULL WHERE id=?", (r["id"],))
+                    continue
+                if not ids:
+                    self.db.x("UPDATE reminders SET status='cancelled', block_reason='opted_out' "
+                              "WHERE id=?", (r["id"],))
+                    continue
+                self.db.x("UPDATE reminders SET status='sent_dry_run', sent_at=?, message_id=?, "
+                          "payload=?, body=? WHERE id=?",
+                          (_iso(now), ",".join(ids), redact_tokens(r["payload"]),
+                           redact_tokens(r["body"]), r["id"]))
+                self.db.x("UPDATE customers SET last_sent_at=? WHERE id=?", (_iso(now), cust["id"]))
+                for k in self._contacts_of(cust):
+                    last_by_contact[k] = now
+                out.append({"reminder_id": r["id"], "message_ids": ids, "dry_run": True})
         if out:
             self.audit("system", "dispatch_dry_run", {"count": len(out)})
         return out

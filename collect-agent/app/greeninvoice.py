@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Iterator
+from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field, replace
 from datetime import date, datetime
@@ -407,7 +408,9 @@ class GreenInvoiceClient:
         return {**doc, "client": merged}
 
     def _iter_docs(self, *, types, statuses, from_date: date | None, page_size: int,
-                   max_pages: int) -> Iterator[Invoice]:
+                   max_pages: int, strict: bool = False) -> Iterator[Invoice]:
+        """strict (מבקר סבב 170): הגעה ל-max_pages כשיש עוד עמודים ⇒ GreenInvoiceError, לא עצירה בשקט.
+        ברענון שלפני שליחה (זיכויים/קבלות) רשימה קטועה = «אין» = תזכורת למי ששילם (fail-open)."""
         page = 1
         while page <= max_pages:
             body = self.search_documents(page=page, page_size=page_size, statuses=statuses,
@@ -424,8 +427,11 @@ class GreenInvoiceClient:
                 if total is None:
                     continue
                 yield replace(inv, amount_agorot=abs(total)) if inv.doc_type == TYPE_CREDIT else inv
-            if page >= int(body.get("pages") or 1):
+            pages = int(body.get("pages") or 1)
+            if page >= pages:
                 return
+            if strict and page >= max_pages:
+                raise GreenInvoiceError(f"page_cap: {pages} pages > max_pages={max_pages} (types={list(types)})")
             page += 1
 
     def credits_for(self, doc_id: str, since=None, doc: Invoice | None = None) -> int:
@@ -434,7 +440,7 @@ class GreenInvoiceClient:
         זיכוי בלי קישור של אותו לקוח (כש-doc ידוע) ⇒ CreditAmbiguous — השירות משהה לבדיקה."""
         from .integrations.sources import credits_on_doc
         return credits_on_doc(self._iter_docs(types=CREDIT_TYPES, statuses=CREDIT_STATUSES,
-                                              from_date=since, page_size=50, max_pages=200),
+                                              from_date=since, page_size=50, max_pages=200, strict=True),
                               doc if doc is not None else doc_id)
 
     def receipts_for(self, doc_id: str, since=None, doc: Invoice | None = None) -> dict[str, str]:
@@ -445,10 +451,44 @@ class GreenInvoiceClient:
             doc = self.get_document(doc_id)
         if doc.status != 0:
             return {}
-        receipts = list(self._iter_docs(types=RECEIPT_TYPES, statuses=RECEIPT_STATUSES, from_date=since,
-                                        page_size=50, max_pages=200))
+        receipts = self._receipts_since(since)
         return {d.external_id: why for d, why in net_credits([doc], [], [], receipts).review
                 if d.external_id == doc.external_id and why.startswith("receipt")}
+
+    _BATCH_TTL = 60.0   # שניות — מטמון קבלות רק בתוך ריצת dispatch אחת, לא מעבר
+
+    @contextmanager
+    def receipt_batch(self):
+        """מבקר סבב 170 (עלות): בלי מטמון כל רענון סרק את כל הקבלות בחשבון — N תזכורות ⇒ N×עמודים.
+        בתוך ריצת dispatch אחת: שליפה אחת מהתאריך המוקדם, סינון מקומי לפי תאריך לכל חשבונית.
+        מחוץ ל-batch אין מטמון (רענון טרי לכל קריאה, כמו קודם). גם כשל (page_cap) נשמר — לא חוזרים
+        על 200 עמודים לכל תזכורת; כל רענון בריצה נכשל ⇒ אף תזכורת לא יוצאת."""
+        prev = self.__dict__.get("_rcpt_batch")
+        self.__dict__["_rcpt_batch"] = {}
+        try:
+            yield self
+        finally:
+            self.__dict__["_rcpt_batch"] = prev
+
+    def _receipts_since(self, since) -> list[Invoice]:
+        b = self.__dict__.get("_rcpt_batch")
+        fresh = b is not None and "t" in b and time.monotonic() - b["t"] <= self._BATCH_TTL
+        if fresh and (b["since"] is None or (since is not None and since >= b["since"])):
+            if b.get("error"):
+                raise GreenInvoiceError(b["error"])
+            return [d for d in b["docs"] if since is None or d.issued is None or d.issued >= since]
+        try:
+            docs = list(self._iter_docs(types=RECEIPT_TYPES, statuses=RECEIPT_STATUSES, from_date=since,
+                                        page_size=50, max_pages=200, strict=True))
+        except GreenInvoiceError as e:
+            if b is not None:
+                b.clear()
+                b.update(t=time.monotonic(), since=since, docs=[], error=str(e))
+            raise
+        if b is not None:
+            b.clear()
+            b.update(t=time.monotonic(), since=since, docs=docs)
+        return docs
 
     def open_debts(self, page_size: int = 50, max_pages: int = 200) -> Netting:
         """החוב הפתוח **אחרי קיזוז** (ממצא מבקר 2.16) — זה מה שהסנכרון קולט.

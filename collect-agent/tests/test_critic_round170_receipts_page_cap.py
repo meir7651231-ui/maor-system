@@ -9,7 +9,6 @@
 N תזכורות — N×עמודים.
 הצעה: הגעה ל-max_pages ⇒ חריגה (כשל רענון ⇒ לא שולחים, כמו credits_unverifiable), ובנוסף לצמצם את החיפוש ללקוח
 (סינון לפי לקוח אם ה-API תומך) או מטמון קבלות לכל ריצת dispatch. xfail(strict=True); הבקרה נשארת ירוקה."""
-import pytest
 
 from tests.conftest import gi_doc
 from tests.test_paid_never_reminded import _approve_all, _receipt, _to_dana
@@ -24,7 +23,7 @@ def _others(n):
     return out
 
 
-@pytest.mark.xfail(strict=True, reason="critic 170: receipts_for נעצר בשקט אחרי 10,000 קבלות ⇒ תזכורת למי ששילם")
+
 def test_receipt_beyond_page_cap_still_holds(svc, fake_gi):
     svc.sync()
     _approve_all(svc, svc.plan())
