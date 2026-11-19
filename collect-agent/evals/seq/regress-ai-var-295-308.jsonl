@@ -1,0 +1,11 @@
+{"id":"v295-01","channel":"sms","critical":true,"turns":[{"text":"אפשר לחלק ל-3 תשלומים?","expect":{"intent":"plan_request","state":"awaiting_plan_reply"}},{"text":"מאשר","expect":{"intent":"plan_accept","state":"plan_pending_owner"}},{"owner":"approve_plan","expect":{"ok":true}},{"text":"העברתי את התשלום של החודש","expect":{"intent":"paid_claim","not":["opt_out","dispute"]}}]}
+{"id":"v296-01","channel":"email","critical":true,"turns":[{"text":"שילמתי עבור דצמבר","expect":{"intent":"paid_claim","not":["promise","opt_out"]}}]}
+{"id":"v297-01","channel":"sms","critical":true,"turns":[{"text":"Just transferred it this morning","expect":{"intent":"paid_claim","not":["promise","opt_out"]}}]}
+{"id":"v297-02","channel":"email","critical":true,"turns":[{"text":"Bank transfer went through yesterday","expect":{"intent":"paid_claim","not":["opt_out"]}}]}
+{"id":"v297-03","channel":"sms","critical":true,"turns":[{"text":"I'll do the bank transfer on Monday","expect":{"intent":"promise","state":"promised","not":["paid_claim"]}}]}
+{"id":"v303-01","channel":"sms","critical":true,"turns":[{"text":"once my salary comes in","expect":{"intent":"promise","not":["opt_out","dispute"]}}]}
+{"id":"v305-01","channel":"sms","critical":true,"turns":[{"text":"when I get paid I'm cancelling everything with you","expect":{"escalate":"normal","not":["opt_out"]}}]}
+{"id":"v306-01","channel":"email","critical":true,"turns":[{"text":"אשלם בשבוע הבא ואחר כך אני עוזב את החוג","expect":{"escalate":"normal","not":["opt_out"]}}]}
+{"id":"v308-01","channel":"sms","critical":true,"turns":[{"text":"I'll pay friday, I'm not leaving the class","expect":{"intent":"promise","escalate":"none"}}]}
+{"id":"vq17-12","channel":"sms","critical":false,"turns":[{"text":"paid 300 already, can we split what's left into 3?","expect":{"intent":"paid_claim","paid":30000,"not":["opt_out","dispute"]}}]}
+{"id":"v303-02","channel":"email","critical":true,"turns":[{"text":"כשהמשכורת תיכנס","expect":{"intent":"promise","not":["opt_out","dispute"]}}]}

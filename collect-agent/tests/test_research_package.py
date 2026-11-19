@@ -77,3 +77,12 @@ def test_competitor_table_every_row_has_source_link():
         assert any(must in n for n in names), must
     for r in rows:
         assert re.search(r"\]\(https://", r), f"שורה בלי קישור מקור: {r[:60]}"
+
+
+def test_global_competitors_sourced():
+    """§1.2: שורות Chaser/InvoiceSherpa/Paidnice נושאות קישור למחירון הרשמי ותאריך קריאה."""
+    sec = MARKET.split("### 1.2")[1].split("### 1.4")[0]
+    for name, url in (("Chaser", "chaserhq.com/pricing"), ("InvoiceSherpa", "invoicesherpa.com/pricing"),
+                      ("Paidnice", "paidnice.com/pricing")):
+        row = next(ln for ln in sec.splitlines() if ln.startswith(f"| **{name}**"))
+        assert url in row and "נקרא 19.11.2026" in row, name

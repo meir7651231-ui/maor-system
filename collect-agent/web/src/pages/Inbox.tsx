@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useApp } from '../store.tsx';
 import { api, type Draft } from '../api.ts';
 import { Button, Card } from '../components/ui.tsx';
+import { DsrRegister } from '../components/DsrRegister.tsx';
 import { smsSegments } from '../lib/message.ts';
 import { fmtWhenIL } from '../lib/policy.ts';
 import { fmtMoney } from '../lib/format.ts';
@@ -48,6 +49,7 @@ export function Inbox() {
       ) : (
         <ul className="space-y-4" data-testid="drafts">{drafts.map(d => <DraftCard key={d.id} d={d} />)}</ul>
       )}
+      <DsrRegister />
     </div>
   );
 }

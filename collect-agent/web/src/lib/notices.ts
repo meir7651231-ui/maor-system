@@ -1,10 +1,11 @@
 // הודעות מערכת לבעל העסק מתוך /owner/inbox (תזכורת סוף ניסיון, 3 תזכורות מוצו, חשבונית ישנה, SMS שלא נמסר).
 // רק direction='system' — אלה טקסטים שהשרת עצמו כתב. תשובות לקוחות (טקסט חופשי) מוצגות ב«תשובות לקוחות», לא כאן.
 export interface OwnerMsg { id: number; customer_id: number | null; direction: string; channel: string; body: string; intent: string | null; created_at: string; payload?: string | null }
-export interface Notice { id: number; icon: string; title: string; body: string; tone: 'warn' | 'info'; intent: string; linked?: { id: number; name: string }[] }
+export interface Notice { id: number; icon: string; title: string; body: string; tone: 'warn' | 'info'; intent: string; linked?: { id: number; name: string }[]; unverified?: boolean }
 
 const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }> = {
   trial_ending: { icon: '⏳', title: 'תקופת הניסיון מסתיימת בקרוב', tone: 'warn' },
+  dsr: { icon: '📄', title: 'בקשת עיון/תיקון/מחיקה — יש מועד להשיב', tone: 'warn' },
   max_reminders: { icon: '✋', title: 'נשלחו 3 תזכורות — מומלץ קשר אישי', tone: 'warn' },
   manual_only_old: { icon: '🗂️', title: 'חשבונית ישנה — טיפול ידני בלבד', tone: 'info' },
   no_due_date: { icon: '📅', title: 'חשבונית בלי תאריך — אין תזכורות עליה', tone: 'warn' },
@@ -51,6 +52,12 @@ function linkedCustomers(payload?: string | null): { id: number; name: string }[
   } catch { return []; }
 }
 
+/** critic סבב 169: כרטיס ממייל שלא עבר אימות שולח (SPF/DKIM/DMARC) — payload.email_verified === false. */
+export const UNVERIFIED_EMAIL_LINE = '⚠️ המייל לא עבר אימות שולח (SPF/DKIM) — ייתכן שלא נשלח ע״י הלקוח. לפני שיוך או «שולם» כדאי לוודא מולו.';
+function unverifiedEmail(payload?: string | null): boolean {
+  try { return JSON.parse(payload ?? '{}')?.email_verified === false; } catch { return false; }
+}
+
 /** מסנן ומתרגם. intent לא מוכר ⇒ מוצג עם כותרת כללית (לא נבלע בשקט). סדר: trial_ending ראשון, ואז החדש ביותר. */
 export function systemNotices(rows: OwnerMsg[]): Notice[] {
   return rows
@@ -59,8 +66,11 @@ export function systemNotices(rows: OwnerMsg[]): Notice[] {
     .map(r => {
       const k = KIND[r.intent ?? ''] ?? { icon: 'ℹ️', title: 'הודעה מגבי', tone: 'info' as const };
       const linked = SHARED_CARDS.has(r.intent ?? '') ? linkedCustomers(r.payload) : [];
-      const body = linked.length ? `${r.body}\n\nלקוחות מקושרים: ${linked.map(c => c.name).join(' · ')}` : r.body;
-      return { id: r.id, icon: k.icon, title: k.title, body, tone: k.tone, intent: r.intent ?? '', ...(linked.length ? { linked } : {}) };
+      const unverified = r.direction === 'in' && unverifiedEmail(r.payload);
+      let body = linked.length ? `${r.body}\n\nלקוחות מקושרים: ${linked.map(c => c.name).join(' · ')}` : r.body;
+      if (unverified) body = `${UNVERIFIED_EMAIL_LINE}\n\n${body}`;
+      return { id: r.id, icon: k.icon, title: k.title, body, tone: k.tone, intent: r.intent ?? '',
+        ...(linked.length ? { linked } : {}), ...(unverified ? { unverified: true } : {}) };
     })
     .sort((a, b) => Number(URGENT_ORPHANS.has(b.intent)) - Number(URGENT_ORPHANS.has(a.intent))
       || Number(b.intent === 'trial_ending') - Number(a.intent === 'trial_ending') || b.id - a.id);

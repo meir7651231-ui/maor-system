@@ -101,7 +101,17 @@ PII_READ_ROUTES = frozenset({
     "/reminders", "/reminders/{rid}/preview", "/dashboard", "/customers", "/outbox",
     "/owner/inbox", "/plans", "/audit", "/conversation/drafts", "/access-log",
     "/open-list",    # שער רשימת הפתוחות: שמות לקוחות + סכומים
-    "/customers/{cid}/data"})   # מנהל 309: ייצוא לבקשת עיון (סעיף 13)
+    "/customers/{cid}/data",
+    "/dsr"})   # מרשם בקשות עיון/תיקון/מחיקה (שם לקוח + מועדים)   # מנהל 309: ייצוא לבקשת עיון (סעיף 13)
+
+
+class DsrOpenIn(BaseModel):
+    kind: Literal["access", "correction", "deletion"]
+    note: str = Field("", max_length=500)
+
+
+class DsrDoneIn(BaseModel):
+    note: str = Field(..., min_length=5, max_length=500)
 
 
 class InboundIn(BaseModel):
@@ -491,6 +501,26 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def customers():
         return [dict(r) for r in svc.db.q("SELECT * FROM customers ORDER BY id")]
 
+    @app.get("/dsr", dependencies=auth)
+    def dsr_list():
+        from . import dsr
+        return dsr.listing(svc)
+
+    @app.post("/customers/{cid}/dsr", dependencies=auth)
+    def dsr_open(cid: int, b: DsrOpenIn):          # בקשה שהגיעה בטלפון / בכתב לעסק
+        from . import dsr
+        if not svc.db.one("SELECT 1 FROM customers WHERE id=?", (cid,)):
+            raise HTTPException(404, "לא נמצא")
+        rid = guard(dsr.open_request, svc, cid, b.kind, "owner", b.note)
+        if rid is None:
+            raise HTTPException(409, "כבר קיימת בקשה פתוחה מסוג זה ללקוח")
+        return {"id": rid}
+
+    @app.post("/dsr/{rid}/done", dependencies=auth)
+    def dsr_done(rid: int, b: DsrDoneIn):
+        from . import dsr
+        return guard(dsr.close_request, svc, rid, b.note)
+
     @app.get("/customers/{cid}/data", dependencies=auth)
     def customer_data(cid: int, request: Request):                     # מנהל 309: זכות עיון
         return guard(svc.customer_data_export, cid, request.state.actor)
@@ -617,6 +647,18 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         if len(raw) > MAX_WEBHOOK_BODY:
             raise HTTPException(413, "too large")
         return svc.sms_webhook_019(raw)
+
+    @app.post("/webhooks/sms/inforu")
+    async def inforu_webhook(request: Request):
+        """דוחות מסירה של InforU (ספק הגיבוי). אותו מפתח כמו 019 (SMS_WEBHOOK_KEY), עונים 200 מהר."""
+        key = request.query_params.get("k", "")
+        if not svc.s.sms_webhook_key or not hmac.compare_digest(
+                key.encode("utf-8"), svc.s.sms_webhook_key.encode("utf-8")):
+            raise HTTPException(403, "forbidden")
+        raw = await request.body()
+        if len(raw) > MAX_WEBHOOK_BODY:
+            raise HTTPException(413, "too large")
+        return svc.sms_webhook_inforu(raw)
 
     # ---------- קישור קצר מה-SMS: עמוד תשלום + פריסה + "שילמתי" + הפסקה ----------
     @app.get("/p/{code}", response_class=HTMLResponse)

@@ -39,6 +39,9 @@ from .conversation import (
 from .llm import load_classifier
 from .policy import TZ, invoice_too_old
 
+# critic 3.6.7 / סבב 169: מקור יחיד לאזהרת מייל לא מאומת (טיוטה ישירה וטיוטה אחרי שיוך כרטיס)
+UNVERIFIED_EMAIL_NOTE = " ⚠️ המייל לא עבר אימות שולח (SPF/DKIM) — ייתכן שלא נשלח ע״י הלקוח."
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS conversations (
   customer_id INTEGER PRIMARY KEY REFERENCES customers(id),
@@ -82,6 +85,15 @@ _GATE_HE = {
 
 def _iso(dt: datetime) -> str:
     return dt.astimezone(TZ).isoformat(timespec="seconds")
+
+
+def _parse_iso(value: str | None) -> datetime | None:
+    """created_at שמור ⇒ datetime (עם אזור זמן). פגום/חסר ⇒ None (המועד נספר מעכשיו, כמו קודם)."""
+    try:
+        dt = datetime.fromisoformat(value or "")
+    except ValueError:
+        return None
+    return dt if dt.tzinfo else dt.replace(tzinfo=TZ)
 
 
 STALE_DRAFT_HOURS = 96   # critic סבב 30: טיוטה מאושרת שחיכתה מעבר לזה מהשאלה ⇒ לא נשלחת
@@ -187,11 +199,11 @@ class ConversationInbox:
             for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (c["id"],)):
                 self.svc._cancel_invoice(inv["id"], card)
         # מבנה ה-payload נקרא ב-web (notices.ts: linked_customers[].name) — לא לשנות שמות שדות
-        payload = json.dumps({"linked_customers": [{"id": c["id"], "name": c["name"]} for c in linked],
-                              "urgent": intent}, ensure_ascii=False)
+        info = {"linked_customers": [{"id": c["id"], "name": c["name"]} for c in linked], "urgent": intent}
         mid = self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,payload,"
                         "created_at) VALUES(NULL,'in',?,?,?,1,?,?)",
-                        (channel, text, card, payload, _iso(now)))
+                        (channel, text, card, json.dumps(info, ensure_ascii=False), _iso(now)))
+        self._register_unlinked_dsr(mid, channel, text, found, info)
         self.svc.audit("customer", card, {"message": mid, "customers": ids, "intent": intent})
         urgent = card == self.SHARED_URGENT
         if urgent:   # «שילמתי» אינו דחוף — אין מייל מחוץ לאפליקציה (throttle הדחופים נשמר לדחופים)
@@ -199,6 +211,32 @@ class ConversationInbox:
         return {"intent": card, "detected": intent, "escalate": True,
                 "escalation": "urgent" if urgent else "normal", "draft_id": None, "auto_reply": None, "plan_id": None,
                 "card_id": mid, "linked_customers": ids}
+
+    def _register_unlinked_dsr(self, mid: int, channel: str, text: str, found: set, info: dict) -> None:
+        """מנהל 319 (critic 171ב): בקשת עיון/תיקון/מחיקה מכתובת של כמה לקוחות ⇒ נרשמת **עם קבלתה** (בלי לקוח),
+        כדי שהמועד החוקי (30 יום) ירוץ ויוצג מהיום הראשון. בשיוך (`assign_shared_card`) הבקשה מקושרת ללקוח
+        שנבחר. «מספר שגוי» ⇒ זר, לא נרשם (כמו בפנייה ישירה). המזהים נשמרים ב-payload (`dsr_ids`)."""
+        if Intent.WRONG_PERSON in found:
+            return
+        from . import dsr
+        ids = [rid for kind in dsr.detect(text)
+               if (rid := dsr.open_request(self.svc, None, kind, channel,
+                                           note=f"מכתובת של כמה לקוחות — כרטיס #{mid}; לשייך מהכרטיס")) is not None]
+        if ids:
+            info["dsr_ids"] = ids
+            self.db.x("UPDATE messages SET payload=? WHERE id=?", (json.dumps(info, ensure_ascii=False), mid))
+
+    def _link_card_dsr(self, info: dict, customer_id: int, actor: str) -> None:
+        """בקשות שנרשמו עם קבלת הכרטיס ⇒ משויכות ללקוח שנבחר (המועד נשמר מיום הקבלה). אם ללקוח כבר יש בקשה
+        פתוחה מאותו סוג — לא יוצרים כפולה; הבקשה נשארת במרשם בלי לקוח, לסגירה עם תיעוד."""
+        from . import dsr
+        dsr.ensure_schema(self.db)
+        for rid in info.get("dsr_ids") or []:
+            r = self.db.one("SELECT kind FROM dsr WHERE id=? AND customer_id IS NULL AND status='open'", (rid,))
+            if r and not self.db.one("SELECT 1 FROM dsr WHERE customer_id=? AND kind=? AND status='open'",
+                                     (customer_id, r["kind"])):
+                self.db.x("UPDATE dsr SET customer_id=? WHERE id=?", (customer_id, rid))
+                self.svc.audit(actor, "dsr_linked", {"dsr": rid, "customer": customer_id})
 
     def assign_shared_card(self, card_id: int, customer_id: int | None, actor: str = "owner") -> dict:
         """בעל העסק בחר למי ההודעה שייכת (או None = «אף אחד מהם»). רק אז המנוע מטפל בה כרגיל עבור הלקוח
@@ -223,7 +261,13 @@ class ConversationInbox:
         self.svc.audit(actor, "shared_contact_assigned", {"card": card_id, "customer": customer_id})
         if customer_id is None:
             return {"card_id": card_id, "assigned": None}
-        res = self.handle_customer(cust, m["channel"], m["body"])
+        self._link_card_dsr(info, customer_id, actor)
+        # critic 171ב: המועד החוקי לבקשת עיון/מחיקה נספר מקבלת ההודעה המקורית, לא מיום השיוך
+        res = self.handle_customer(cust, m["channel"], m["body"], received_at=_parse_iso(m["created_at"]))
+        if info.get("email_verified") is False and res.get("draft_id"):
+            # critic סבב 169: האזהרה עוברת מהכרטיס לטיוטה שנוצרה אחרי השיוך (אחרת נעלמת ברגע הבחירה)
+            self.db.x("UPDATE drafts SET owner_summary=COALESCE(owner_summary,'') || ? WHERE id=?",
+                      (UNVERIFIED_EMAIL_NOTE, res["draft_id"]))
         return {"card_id": card_id, "assigned": customer_id, **res}
 
     # ---------- קלט ----------
@@ -248,9 +292,11 @@ class ConversationInbox:
             # (אין טיוטה עם חוב של אדם אחר). «הסר» ⇒ רשימת ההסרה לפי הכתובת ⇒ חל על כולם.
             if {Intent.OPT_OUT, Intent.WRONG_PERSON} & set(detect(text)):
                 self.svc.suppress(channel, sender, "shared_contact_opt_out")
-            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
-                      "created_at) VALUES(NULL,'in',?,?, 'shared_contact_ambiguous', 1, ?)",
-                      (channel, text, _iso(now)))
+            mid = self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                            "created_at) VALUES(NULL,'in',?,?, 'shared_contact_ambiguous', 1, ?)",
+                            (channel, text, _iso(now)))
+            # מנהל 319: «מה המידע שיש לכם עליי» מכתובת משותפת לא נרשם כלל (לא דחוף ⇒ לא כרטיס שיוך). עכשיו במרשם.
+            self._register_unlinked_dsr(mid, channel, text, set(detect(text)), {})
             return {"intent": "shared_contact_ambiguous", "escalate": True, "escalation": "normal",
                     "draft_id": None, "auto_reply": None, "plan_id": None}
         if cust is None:
@@ -272,7 +318,7 @@ class ConversationInbox:
                     "draft_id": None, "auto_reply": None, "plan_id": None}
         return self.handle_customer(cust, channel, text)
 
-    def handle_customer(self, cust, channel: str, text: str) -> dict:
+    def handle_customer(self, cust, channel: str, text: str, received_at: datetime | None = None) -> dict:
         """channel: sms / email / web (פעולה בעמוד הקישור הקצר — בלי טיוטת תשובה)."""
         now = self.svc.clock()
         self.release_expired_pauses()
@@ -286,6 +332,18 @@ class ConversationInbox:
             # critic סבב 23 (ר-7): חשבונית מעל 3 שנים ⇒ שום תשובה לא יוצאת בלי אישור פרטני
             d = replace(d, auto_send=False, tags=d.tags + ("manual_only_old",),
                         owner_actions=d.owner_actions + ("יש חשבונית בת יותר מ-3 שנים — לאשר ידנית",))
+        if d.plan:
+            row = self.db.one("SELECT paused_reason, disputed FROM customers WHERE id=?", (cust["id"],))
+            base = ((row["paused_reason"] if row else "") or "").split(":", 1)[0]
+            if base in _HARD_PAUSES or (row and row["disputed"]):
+                # qa19 (q19-06 🔴): «אני בן 14» ⇒ קטין דחוף, ואחריו «אפשר לשלם בתשלומים?» ⇒ המנוע (שלא מכיר את ההשהיה)
+                # הציע הסדר ונוצר הסדר לקטין. השהיה קשה (קטין/פטירה/חדלות/מצוקה/עו״ד/מחלוקת) ⇒ אין הסדר ואין הצעה —
+                # כרטיס לבעל העסק בלבד.
+                d = replace(d, plan=(), reply=None, auto_send=False, next_state=State.AWAITING_OWNER,
+                            escalate=max(d.escalate, Escalation.NORMAL, key=lambda e: _ESC_ORDER.index(e)),
+                            tags=d.tags + ("plan_held_protected",),
+                            owner_actions=d.owner_actions + (
+                                f"בקשת פריסה בזמן השהיה ({base or 'מחלוקת'}) — לא הוצע הסדר; לבדוק לפני כל הצעה",))
         # critic 165: «מספר שגוי» כוונה **משנית** (ליד הסרה/גיל) ⇒ סימון צד-שלישי ב-payload, כדי שייצוא בקשת
         # העיון (customer_data_export) לא ימסור ללקוחה את תוכן ההודעה של הזר. ה-intent הראשי לא משתנה.
         third = Intent.WRONG_PERSON in d.all_intents
@@ -294,6 +352,10 @@ class ConversationInbox:
                   (cust["id"], channel, text, d.intent.value,
                    int(d.escalate != Escalation.NONE), compliance.THIRD_PARTY_PAYLOAD if third else None, _iso(now)))
         plan_id = self._apply_effects(cust, d, prior=ctx.state)
+        if not third:   # בקשה לפי חוק הגנת הפרטיות §13–14 ⇒ מרשם + מועד 30 יום (app/dsr.py). זר — לא
+            from . import dsr
+            for kind in dsr.detect(text):
+                dsr.open_request(self.svc, cust["id"], kind, channel, received_at=received_at)
         draft_id = None
         if d.reply or d.escalate != Escalation.NONE:
             # בלי טיוטה (למשל עו"ד) ⇒ כרטיס "דרוש טיפול" בתור, שבעל העסק יכול לענות ממנו בעצמו
@@ -757,6 +819,7 @@ _MONEY_INTENTS = {Intent.PLAN_REQUEST.value, Intent.PLAN_ACCEPT.value, Intent.PL
                   Intent.CANT_PAY.value, Intent.HOW_TO_PAY.value, Intent.PROMISE.value,
                   Intent.PAID_CLAIM.value}
 # השהיות "קשות": רק בעל העסק משחרר, ולא מוחלפות בסיבה רכה יותר
+_ESC_ORDER = (Escalation.NONE, Escalation.NORMAL, Escalation.URGENT)
 _HARD_PAUSES = ("minor", "deceased", "insolvency", "distress", "legal", "dispute")
 
 

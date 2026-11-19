@@ -492,3 +492,20 @@ sha256 `f86f487b…` (commit `466fc60`). לא נקרא לפני הריצה.
 **אחרי תיקון לפי מחלקות (AI 18.11, ממוזג עם מנהל 299 שתיקן במקביל — `test_mgr299_qa18.py`):** רצפים **28/30**, קריטיים **22/24**; שאר הסטים המוחזקים ללא שינוי. תוקנו: «Who's this?» · מחלוקת באנגלית («not paying until…», «charged for … never replaced») · אבל באנגלית («my dad passed») דחוף + «I'm falling apart» = מצוקה · «תמחקו אותו» = הסרה (לא כשמדובר בקנס/חוב) · עצירה זמנית + הבטחה («stop … for a week, I'll pay on the 16th») = הבטחה, בלי הבטחה נשאר הסרה · «payment will go out Thursday» = הבטחה. בדרך נמצא פער ותיק: «our lawyer will contact you, I will pay thursday» ⇒ האיום נמחק בגלל ההבטחה ⇒ _KEEPS_LEGAL קיבל אנגלית.
 **נותרו (q18-01/02/03) — מצב הסדר, אצל פיתוח/מנהל:** «can't pay» אחרי הסדר שבעל העסק אישר ⇒ plan_reject משני-cant_pay + כרטיס קושי (plan_hardship, מנהל 287) — הסט ציפה ל-cant_pay עיקרי; q18-02 בקשת דחייה בהסדר מאושר ⇒ awaiting_plan_reply (הסט: awaiting_owner). התוצאה המגינה (כרטיס, בלי ביטול אוטומטי) מתקיימת; התווית לביקורת.
 בדיקות: `tests/test_engine_qa18_classes.py` (19, ‏16 נכשלו לפני) + lk47–lk50.
+
+---
+
+## סט #19 — `external-2026-11-19-qa19-seq.jsonl` (גבי בדיקות, רצפים · ריצה יחידה עיוורת, 19.11.2026)
+sha256 `fbc82265…5a22` (commit `db8a2eef`, נעול `606d3ec9`). לא נקרא לפני הריצה.
+
+| מדד | ריצה יחידה |
+|---|---|
+| רצפים שעברו במלואם | **20/30 (66.7%)** |
+| קריטיים | **18/26** |
+| מזיקות לפי השער המחמיר (כוונה מגינה שהוחמצה / תוצאה אסורה) | **3** |
+
+**מזיקות:** 🔴 q19-06 «אני בן 14» ⇒ קטין דחוף ✓, אבל «אפשר לשלם בתשלומים?» אחריו ⇒ **נוצר הסדר** לקטין · 🔴 q19-22 «we're in insolvency proceedings, all debts are frozen by court order» ⇒ לא דחוף · 🔴 q19-27 «Not the wrong number, just bad timing. Paying Friday.» ⇒ **מספר שגוי לצמיתות** (שלילה לא נקראה).
+**לא מזיקות (עוצרות/בעלים):** q19-09/11 «wrong number, stop texting me» / «wrong email… Please stop» ⇒ הסרה לצמיתות (צפוי מספר שגוי — שתיהן עוצרות) · q19-12 «Hi who is this?» ⇒ unknown · q19-04 שם עסק עם תו בלתי-נראה + «לא מכיר» ⇒ מספר שגוי (צפוי זיהוי) · q19-26 «my 15 year old will drop off the cash tomorrow» ⇒ unknown (צפוי הבטחה, לא קטין) · q19-29 «Please stop the reminder emails — I've just paid» ⇒ הסרה (צפוי טענת תשלום) · q19-14 מצב.
+
+**אחרי תיקון (19.11):** 25/30 (83.3%) · קריטיים 23/26 · **0 מזיקים**. תוקן: q19-06 (הסדר מוחזק בהשהיה קשה — inbox) · q19-22 (חדלות פירעון EN ⇒ דחוף) · q19-27 (שלילת «wrong number» — כלל-צמצום: «wrong number»/«not the wrong number but I'm not him» עדיין נתפסים) · q19-12 · q19-26 · קטין EN. נעול: lk51–lk53 + `tests/test_engine_qa19_classes.py`.
+נותרו (לא מזיקים): q19-09/11 «wrong number, stop texting» ⇒ opt_out (שניהם קבועים) · q19-29 «stop the reminder emails — I've just paid» ⇒ opt_out (מגן, ההסרה מנצחת בספק) · q19-14 תווית-מצב. **q19-04 תוקן (לולאה 19.11):** «מי זה <העסק>? לא מכיר» ⇒ who_is_this (היה מספר שגוי לצמיתות); עם טעות/שם/«אין פה» נשאר מספר שגוי · lk54–55 · ‏26/30.

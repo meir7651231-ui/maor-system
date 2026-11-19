@@ -1,6 +1,7 @@
 """תזמור: סנכרון ⇒ תכנון תור ⇒ אישור בעלים ⇒ שליחה (dry-run, SMS+מייל) ⇒ מענה לתשובות."""
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import re
@@ -56,6 +57,18 @@ ORBIT_FIRST_LINK = "orbit_first_linked_at"   # critic סבב 68: סימון «ה
 AWAITING_OWNER = "awaiting_owner"   # critic סבב 64: הודעת הלקוח ממתינה לבעל העסק ⇒ אין תזכורת עד שיטפל
 AMOUNT_CHECK = "amount_check"   # הפעלה 123: סכום חריג ⇒ אישור מפורש (לא חסימה קשה)
 HARD_BLOCKS = {"no_contact", "no_payment_link", "compliance", "no_reply_to"}
+
+# מנהל 322 (פתוח-לביקורת ממבקר 170): כשל רענון בגלל גבול 10,000 קבלות/זיכויים מאז תאריך החשבונית ⇒
+# סיבה נפרדת, כי היא לא חולפת מעצמה בריצה הבאה כמו תקלת רשת. ההתנהגות זהה ל-refresh_failed:
+# התזכורת נשארת מאושרת, לא נשלחת, ומנסים שוב בכל ריצה.
+REFRESH_PAGE_CAP = "refresh_page_cap"
+
+
+def refresh_block_reason(e: BaseException) -> str:
+    from .greeninvoice import PageCapError
+    if isinstance(e, PageCapError) or str(e).startswith("page_cap:"):
+        return REFRESH_PAGE_CAP
+    return "refresh_failed"
 
 
 class AlreadyDecided(ValueError):
@@ -139,6 +152,25 @@ def _scrub_linked_names(payload, only: int | None = None):
         return json.dumps(info, ensure_ascii=False)
     except (ValueError, AttributeError, TypeError):
         return None
+
+
+def _unverified_note() -> str:
+    from .inbox import UNVERIFIED_EMAIL_NOTE  # מקומי: inbox מייבא מ-service בזמן ריצה
+
+    return UNVERIFIED_EMAIL_NOTE
+
+
+def _mark_unverified(payload) -> str:
+    """critic סבב 169: מייל שלא עבר SPF/DKIM/DMARC ⇒ `email_verified: false` ב-payload של הכרטיס. JSON פגום/לא-מילון ⇒
+    מילון חדש (הסימן חשוב יותר מתוכן פגום שממילא לא מוצג)."""
+    try:
+        info = json.loads(payload or "{}")
+        if not isinstance(info, dict):
+            info = {}
+    except (ValueError, TypeError):
+        info = {}
+    info["email_verified"] = False
+    return json.dumps(info, ensure_ascii=False)
 
 
 def _iso(dt: datetime) -> str:
@@ -1106,6 +1138,8 @@ class CollectService:
         # באג: release_expired_pauses לא נקרא מאף מקום ⇒ "אשלם בחמישי" שלא שולם השהה לנצח
         self.inbox.release_expired_pauses()
         self._notify_trial_ending()
+        from . import dsr
+        dsr.sweep(self)   # בקשות עיון/תיקון/מחיקה: התראה 5 ימים לפני המועד ובאיחור
         self.purge_closed()   # ר-10: זול, פעם בסבב
         self._roll_episodes(now)
         created: list[int] = []
@@ -1799,70 +1833,73 @@ class CollectService:
             for k in self._contacts_of(c):
                 if t and (k not in last_by_contact or t > last_by_contact[k]):
                     last_by_contact[k] = t
-        for r in rows:
-            # ר-12: אושר בדיוק הגוף הזה ובגרסת הנוסח הנוכחית? אחרת האישור בטל
-            if r["approved_hash"] != _sha(r["payload"]) or \
-                    (r["approved_version"] or "") != templates.template_version():
-                self._invalidate(r, "approval_invalidated")
-                continue
-            # critic סבב 31: אישור שחיכה (סוף ניסיון/חסימה) יצא 22 יום אחר כך, עם כל התור באותו בוקר.
-            # תקף APPROVAL_VALID_DAYS מהמאוחר מבין האישור והמועד המתוכנן (אישור מראש לעתיד נשמר).
-            anchor = max(d for d in (_dt(r["decided_at"]), _dt(r["scheduled_for"])) if d is not None)
-            if now - anchor > timedelta(days=APPROVAL_VALID_DAYS):
-                self._invalidate(r, "approval_expired")
-                continue
-            # ר-4: רענון מהמקור לפני כל שליחה; כשל ⇒ לא שולחים
-            fresh = self._refresh_before_send(r)
-            if fresh != "ok":
-                continue
-            r = self._reminder(r["id"])
-            inv = self._invoice(r["invoice_id"])
-            cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
-            reason = self._customer_block(cust["id"])
-            if reason:
-                self.db.x("UPDATE reminders SET status='cancelled', block_reason=? WHERE id=?",
-                          (reason, r["id"]))
-                continue
-            if not gap_ok(_dt(cust["last_sent_at"]), now):
-                continue  # ננסה בסבב הבא
-            shared = [last_by_contact[k] for k in self._contacts_of(cust) if k in last_by_contact]
-            if shared and not gap_ok(max(shared), now):
-                continue  # critic סבב 66: אותה כתובת קיבלה תזכורת (של לקוח אחר) לפני פחות מ-72 שעות
-            if not self._claim_reminder(r["id"]):
-                continue   # critic סבב 39: ריצה אחרת כבר תפסה אותה (אין שליחה כפולה במקביל)
-            ids = []
-            failed = False
-            for m in json.loads(r["payload"]):
-                msg = Message(**m)
-                if self.gate(cust, msg.channel, msg.to):
+        # מבקר סבב 170: שליפת הקבלות לרענון פעם אחת לריצה (לא N×עמודים); בלי batch ⇒ כמו קודם
+        batch = getattr(self.gi, "receipt_batch", None)
+        with batch() if callable(batch) else contextlib.nullcontext():
+            for r in rows:
+                # ר-12: אושר בדיוק הגוף הזה ובגרסת הנוסח הנוכחית? אחרת האישור בטל
+                if r["approved_hash"] != _sha(r["payload"]) or \
+                        (r["approved_version"] or "") != templates.template_version():
+                    self._invalidate(r, "approval_invalidated")
                     continue
-                try:
-                    mid = self.sender.send(msg)
-                except IntegrationError as e:
-                    # כל ספקי הערוץ נכשלו (019 ⇒ InforU) ⇒ לא מסמנים "נשלח" ⇒ ננסה בסבב הבא
-                    self.audit("system", "send_failed", {"reminder": r["id"],
-                                                         "channel": msg.channel,
-                                                         "error": str(e)[:300]})
-                    failed = True
+                # critic סבב 31: אישור שחיכה (סוף ניסיון/חסימה) יצא 22 יום אחר כך, עם כל התור באותו בוקר.
+                # תקף APPROVAL_VALID_DAYS מהמאוחר מבין האישור והמועד המתוכנן (אישור מראש לעתיד נשמר).
+                anchor = max(d for d in (_dt(r["decided_at"]), _dt(r["scheduled_for"])) if d is not None)
+                if now - anchor > timedelta(days=APPROVAL_VALID_DAYS):
+                    self._invalidate(r, "approval_expired")
                     continue
-                ids.append(mid)
-                self._log_out(cust["id"], msg, mid, now)
-            if failed and not ids:
-                # שום הודעה לא יצאה ⇒ משחררים את התפיסה, וננסה בסבב הבא
-                self.db.x("UPDATE reminders SET status='approved', claimed_at=NULL WHERE id=?", (r["id"],))
-                continue
-            if not ids:
-                self.db.x("UPDATE reminders SET status='cancelled', block_reason='opted_out' "
-                          "WHERE id=?", (r["id"],))
-                continue
-            self.db.x("UPDATE reminders SET status='sent_dry_run', sent_at=?, message_id=?, "
-                      "payload=?, body=? WHERE id=?",
-                      (_iso(now), ",".join(ids), redact_tokens(r["payload"]),
-                       redact_tokens(r["body"]), r["id"]))
-            self.db.x("UPDATE customers SET last_sent_at=? WHERE id=?", (_iso(now), cust["id"]))
-            for k in self._contacts_of(cust):
-                last_by_contact[k] = now
-            out.append({"reminder_id": r["id"], "message_ids": ids, "dry_run": True})
+                # ר-4: רענון מהמקור לפני כל שליחה; כשל ⇒ לא שולחים
+                fresh = self._refresh_before_send(r)
+                if fresh != "ok":
+                    continue
+                r = self._reminder(r["id"])
+                inv = self._invoice(r["invoice_id"])
+                cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
+                reason = self._customer_block(cust["id"])
+                if reason:
+                    self.db.x("UPDATE reminders SET status='cancelled', block_reason=? WHERE id=?",
+                              (reason, r["id"]))
+                    continue
+                if not gap_ok(_dt(cust["last_sent_at"]), now):
+                    continue  # ננסה בסבב הבא
+                shared = [last_by_contact[k] for k in self._contacts_of(cust) if k in last_by_contact]
+                if shared and not gap_ok(max(shared), now):
+                    continue  # critic סבב 66: אותה כתובת קיבלה תזכורת (של לקוח אחר) לפני פחות מ-72 שעות
+                if not self._claim_reminder(r["id"]):
+                    continue   # critic סבב 39: ריצה אחרת כבר תפסה אותה (אין שליחה כפולה במקביל)
+                ids = []
+                failed = False
+                for m in json.loads(r["payload"]):
+                    msg = Message(**m)
+                    if self.gate(cust, msg.channel, msg.to):
+                        continue
+                    try:
+                        mid = self.sender.send(msg)
+                    except IntegrationError as e:
+                        # כל ספקי הערוץ נכשלו (019 ⇒ InforU) ⇒ לא מסמנים "נשלח" ⇒ ננסה בסבב הבא
+                        self.audit("system", "send_failed", {"reminder": r["id"],
+                                                             "channel": msg.channel,
+                                                             "error": str(e)[:300]})
+                        failed = True
+                        continue
+                    ids.append(mid)
+                    self._log_out(cust["id"], msg, mid, now)
+                if failed and not ids:
+                    # שום הודעה לא יצאה ⇒ משחררים את התפיסה, וננסה בסבב הבא
+                    self.db.x("UPDATE reminders SET status='approved', claimed_at=NULL WHERE id=?", (r["id"],))
+                    continue
+                if not ids:
+                    self.db.x("UPDATE reminders SET status='cancelled', block_reason='opted_out' "
+                              "WHERE id=?", (r["id"],))
+                    continue
+                self.db.x("UPDATE reminders SET status='sent_dry_run', sent_at=?, message_id=?, "
+                          "payload=?, body=? WHERE id=?",
+                          (_iso(now), ",".join(ids), redact_tokens(r["payload"]),
+                           redact_tokens(r["body"]), r["id"]))
+                self.db.x("UPDATE customers SET last_sent_at=? WHERE id=?", (_iso(now), cust["id"]))
+                for k in self._contacts_of(cust):
+                    last_by_contact[k] = now
+                out.append({"reminder_id": r["id"], "message_ids": ids, "dry_run": True})
         if out:
             self.audit("system", "dispatch_dry_run", {"count": len(out)})
         return out
@@ -1935,7 +1972,7 @@ class CollectService:
         # לשליחה עדכן את invoices, ההשוואה יצאה שווה, ונשלח הסכום הישן.
         if total != sent_amount or len(still) != len(ids):
             return self._rebuild_for_amount(r, still)
-        if r["block_reason"] in ("refresh_failed", "csv_stale"):
+        if r["block_reason"] in ("refresh_failed", REFRESH_PAGE_CAP, "csv_stale"):
             self.db.x("UPDATE reminders SET block_reason=NULL WHERE id=?", (r["id"],))
         return "ok"
 
@@ -1965,7 +2002,7 @@ class CollectService:
         except _CreditHeld:
             return "failed"     # הלקוח הושהה לבדיקת זיכוי; התזכורת בוטלה (credit_review)
         except Exception as e:  # noqa: BLE001 — כל כשל ברענון (כולל זיכויים) חוסם שליחה
-            self._mark_refresh_failed(r, "refresh_failed", str(e))
+            self._mark_refresh_failed(r, refresh_block_reason(e), str(e))
             return "failed"
         if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
             self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?",
@@ -2020,6 +2057,13 @@ class CollectService:
                                               {c.external_id: why for c, why in e.items}):
                 raise _CreditHeld from e
             credit = e.certain
+        receipts_for = getattr(self.gi, "receipts_for", None)
+        if receipts_for is not None:
+            # fuzz 19.11: קבלה שהונפקה אחרי הסנכרון (החשבונית עדיין «פתוחה») ⇒ כמו בסנכרון: credit_review,
+            # הלקוח מושהה והתזכורת לא יוצאת. בעל העסק כבר בדק אותה וחידש ⇒ ההכרעה שלו (0 ⇒ ממשיכים)
+            why = receipts_for(inv["external_id"], since=doc.issued, doc=doc)
+            if why and self._hold_customer_for_credit(self._customer_row(inv["customer_id"]), why):
+                raise _CreditHeld
         return replace(doc, amount_agorot=doc.amount_agorot - credit)
 
     def refresh_customer(self, cid: int) -> bool:
@@ -2266,12 +2310,18 @@ class CollectService:
             return {"ok": True, "ignored": True}
         auth = email_auth_verdict(auth_results)
         self.audit("system", "email_auth", {"message": key[:80], **auth})
+        before = self.db.one("SELECT COALESCE(MAX(id), 0) AS m FROM messages")["m"]
         out = self.inbound("email", addr, body)
+        if not auth["verified"] and not out.get("draft_id"):
+            # critic סבב 169: כרטיס **בלי** טיוטה (כתובת משותפת + «שילמתי»/דחוף, שולח לא מוכר) ⇒ גם הוא מסומן,
+            # אחרת בעל העסק משייך/מסמן «שולם» על בסיס מייל שאולי מזויף בלי שום סימן. payload נשמר (linked_customers)
+            for m in self.db.q("SELECT id, payload FROM messages WHERE id>? AND direction='in' AND needs_owner=1",
+                               (before,)):
+                self.db.x("UPDATE messages SET payload=? WHERE id=?", (_mark_unverified(m["payload"]), m["id"]))
         if not auth["verified"] and out.get("draft_id"):
             # כרטיס/טיוטה: בעל העסק יודע שהמייל לא אומת אצל הספק (אולי התחזות)
             self.db.x("UPDATE drafts SET owner_summary=COALESCE(owner_summary,'') || ? WHERE id=?",
-                      (" ⚠️ המייל לא עבר אימות שולח (SPF/DKIM) — ייתכן שלא נשלח ע״י הלקוח.",
-                       out["draft_id"]))
+                      (_unverified_note(), out["draft_id"]))
         return {"ok": True, **out, "email_verified": auth["verified"]}
 
     def sms_webhook_019(self, raw: bytes) -> dict:
@@ -2308,6 +2358,47 @@ class CollectService:
             res = {"ok": True, "kind": kind, "ignored": True}
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
                   " VALUES(NULL,'webhook','sms',?,?,?)", (kind, key, _iso(self.clock())))
+        return res
+
+    def sms_webhook_inforu(self, raw: bytes) -> dict:
+        try:
+            return self._sms_webhook_inforu(raw)
+        except Exception:
+            self._release_webhook("inforu:" + hashlib.sha256(raw).hexdigest())
+            raise
+
+    def _sms_webhook_inforu(self, raw: bytes) -> dict:
+        """DLR של InforU (ספק הגיבוי). בלי זה SMS שיצא בגיבוי ולא נמסר נשאר 'sent' לנצח, ובעל העסק
+        לא מקבל התראה. JSON או form; התאמה לפי המזהה של InforU, או לפי המזהה שלנו (CustomerMessageId)."""
+        import json as _json
+        from urllib.parse import parse_qs
+
+        from .integrations.sms import parse_inforu_dlr
+
+        key = "inforu:" + hashlib.sha256(raw).hexdigest()
+        if not self._claim_webhook(key) or self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
+            return {"ok": True, "duplicate": True}
+        text = raw.decode("utf-8", "replace").strip()
+        try:
+            f = _json.loads(text) if text.startswith("{") else \
+                {k: v[0] for k, v in parse_qs(text).items()}
+        except ValueError:
+            f = {}
+        f = f if isinstance(f, dict) else {}
+        pid, ours, st = parse_inforu_dlr(f)
+        if not pid and ours:
+            row = self.db.one("SELECT provider_id FROM messages WHERE direction='out' AND "
+                              "provider='inforu' AND message_id=?", (ours,))
+            pid = (row["provider_id"] or "") if row else ""
+        res = {"ok": True, "kind": "dlr", **self.delivery_report("inforu", pid, st)} if pid \
+            else {"ok": True, "kind": "dlr", "ignored": True}
+        if res.get("matched") is False and ours:
+            row = self.db.one("SELECT provider_id FROM messages WHERE direction='out' AND "
+                              "provider='inforu' AND message_id=?", (ours,))
+            if row and row["provider_id"]:
+                res = {"ok": True, "kind": "dlr", **self.delivery_report("inforu", row["provider_id"], st)}
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
+                  " VALUES(NULL,'webhook','sms','dlr',?,?)", (key, _iso(self.clock())))
         return res
 
     def _claim_webhook(self, key: str) -> bool:
