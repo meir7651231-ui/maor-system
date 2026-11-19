@@ -2294,11 +2294,17 @@ class CollectService:
         (השהיה/מחלוקת/הסרה — שמרני), ולכן לא חוסמים; אבל **מתעדים** את פסיקת SPF/DKIM/DMARC של
         הספק (`email_auth` ב-audit, בלי כתובות), ומייל שלא עבר אימות מסומן לבעל העסק."""
 
-        from .channels import parse_address, strip_reply
+        from .channels import parse_address, parse_bounce, strip_reply
 
         key = self._email_key(sender, text, message_id, subject)
         if not self._claim_webhook(key) or self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
             return {"ok": True, "duplicate": True}
+        bounce = parse_bounce(sender, text, subject)
+        if bounce is not None:
+            # מייל שחזר: לא תשובת לקוח (לא «שולח לא מוכר»). מסמנים את המייל המקורי ומתריעים לבעל העסק
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
+                      " VALUES(NULL,'webhook','email','bounce',?,?)", (key, _iso(self.clock())))
+            return {"ok": True, **self._email_bounce(bounce)}
         addr, body = parse_address(sender), strip_reply(text)
         if not body and subject:   # critic סבב 125: «הסר» בשורת הנושא עם גוף ריק/ציטוט בלבד נבלע בשקט
             body = self._email_subject_text(subject)
@@ -2323,6 +2329,35 @@ class CollectService:
             self.db.x("UPDATE drafts SET owner_summary=COALESCE(owner_summary,'') || ? WHERE id=?",
                       (_unverified_note(), out["draft_id"]))
         return {"ok": True, **out, "email_verified": auth["verified"]}
+
+    def _email_bounce(self, b: dict) -> dict:
+        """bounce ⇒ המייל היוצא שחזר: לפי Message-ID המקורי (מדויק), אחרת המייל האחרון לנמען.
+        5.x.x ⇒ 'failed' + התראה (פעם אחת) · 4.x.x ⇒ 'delayed', בלי התראה. בלי הסרה אוטומטית."""
+        row = None
+        for mid in b["message_ids"]:
+            row = self.db.one("SELECT * FROM messages WHERE direction='out' AND channel='email' "
+                              "AND provider_id=?", (mid,))
+            if row:
+                break
+        if row is None and b["recipient"]:
+            row = self.db.one("SELECT m.* FROM messages m JOIN customers c ON c.id=m.customer_id "
+                              "WHERE m.direction='out' AND m.channel='email' AND lower(c.email)=? "
+                              "ORDER BY m.id DESC LIMIT 1", (b["recipient"].lower(),))
+        if row is None:
+            self.audit("system", "email_bounce_unmatched", {"permanent": b["permanent"]})
+            return {"bounce": "unmatched"}
+        if not b["permanent"]:
+            return {"bounce": "delayed", "matched": True}
+        if row["delivery_status"] == "failed":
+            return {"bounce": "failed", "matched": True, "final": True}
+        now = _iso(self.clock())
+        self.db.x("UPDATE messages SET delivery_status='failed', delivery_at=? WHERE id=?", (now, row["id"]))
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at)"
+                  " VALUES(?,'system','email',?, 'email_bounced', 1, ?)",
+                  (row["customer_id"], "המייל ללקוח חזר (הכתובת לא קיימת או חסומה). כדאי לבדוק את "
+                   "כתובת המייל בחשבונית ירוקה.", now))
+        self.audit("system", "email_bounced", {"message": row["id"]})
+        return {"bounce": "failed", "matched": True}
 
     def sms_webhook_019(self, raw: bytes) -> dict:
         try:
