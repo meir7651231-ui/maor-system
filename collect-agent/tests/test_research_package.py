@@ -66,3 +66,14 @@ def test_market_differentiation_consistent_with_competitor_table():
     lead = proofs.split("**גם:**")[0]
     assert "SMS" not in lead and "שבת" not in lead, "SMS/שבת שוב בראש ההוכחות"
     assert "מאשר כל הודעה" in lead
+
+
+def test_competitor_table_every_row_has_source_link():
+    """BACKLOG מחקר: «עם ציטוט וקישור לכל שורה» — כל שורת מתחרה ב-§1.6 נושאת קישור https."""
+    sec = MARKET.split("### 1.6")[1].split("**⚠️ מה זה משנה")[0]
+    rows = [ln for ln in sec.splitlines() if ln.startswith("| **")]
+    names = [r.split("|")[1].strip() for r in rows]
+    for must in ("iCount", "SUMIT", "ריווחית", "EZcount", "Invoice4U"):
+        assert any(must in n for n in names), must
+    for r in rows:
+        assert re.search(r"\]\(https://", r), f"שורה בלי קישור מקור: {r[:60]}"
