@@ -58,3 +58,18 @@ def test_plan_not_offered_during_minor_pause(svc):
     cid = svc.db.one("SELECT id FROM customers WHERE name='דנה כהן'")["id"]
     inbox.handle("sms", "050-1234567", "אפשר לפרוס לשלושה תשלומים?")
     assert svc.db.one("SELECT COUNT(*) c FROM plans WHERE customer_id=?", (cid,))["c"] == 0
+
+
+# q19-04: «מי זה <העסק>? לא מכיר» = לא מזהה את העסק ⇒ who_is_this (היה wrong_person לצמיתות — לקוח אמיתי ירד מהגבייה)
+@pytest.mark.parametrize("text", ["מי זה הסטודיו הזה? לא מכירה", "מי אתם בכלל? לא מכיר אתכם",
+                                  "מי זה מרכז​הריקוד? לא מזהה"])
+def test_dont_recognize_business_is_who_is_this(text):
+    d = _d(text)
+    assert d.intent == Intent.WHO_IS_THIS and d.stop != Stop.PERMANENT
+
+
+# כלל-צמצום: «לא מכיר» עם טעות/שם/«אין פה» נשאר מספר שגוי
+@pytest.mark.parametrize("text", ["מי זה? טעות במספר, לא מכיר", "מי זה? לא מכיר שום דנה", "מי זה? אני לא דנה, לא מכירה",
+                                  "לא מכיר את דנה, טעות"])
+def test_dont_know_with_wrong_signal_still_wrong_person(text):
+    assert _d(text).intent == Intent.WRONG_PERSON

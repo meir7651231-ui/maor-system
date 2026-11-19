@@ -2798,6 +2798,15 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             not _s(r"טעות|בטעות|אין (?:פה|כאן)|זה לא אני|לא (?:ה)?לקוח|לא שלי|החלפתי|לא שייך", t) and \
             not (fn and len(fn) >= 2 and _s(re.escape(fn), t)):
         found.discard(Intent.WRONG_PERSON)
+    # qa19 (q19-04): «מי זה סטודיו נוגה? לא מכיר» / «מי אתם? לא מכיר אתכם» = לא מזהה את **העסק**, לא «טעות במספר».
+    # היה wrong_person לצמיתות (טלפון נמחק, לקוח אמיתי ששכח את שם העסק יורד מהגבייה). «לא מכיר» בלי מושא
+    # או עם מושא = העסק ⇒ who_is_this. כלל-צמצום: שם הלקוח/«טעות»/«אין פה»/«לא מכיר את X Y» נשארים מספר שגוי.
+    if Intent.WRONG_PERSON in found and Intent.WHO_IS_THIS in found and \
+            _s(r"לא (?:מכיר|מכירה|מכירים|מזהה|מזהים)(?:\s+(?:אתכם|אתכן|אותכם|את ה?עסק|את ה?סטודיו|את ה?חברה|את ה?שולח))?\W*$"
+               r"|\bi\s+don'?t\s+(?:know|recognize)\s+(?:you|you\s+guys|this\s+(?:business|company|studio|sender))\W*$", t) and \
+            not _s(r"טעות|בטעות|אין (?:פה|כאן)|זה לא אני|לא (?:ה)?לקוח|לא שלי|החלפתי|לא שייך|wrong|not\s+(?:me|mine|her|him)", t) and \
+            not (fn and len(fn) >= 2 and _s(re.escape(fn), t)):
+        found.discard(Intent.WRONG_PERSON)
     # תיקוני התנגשות ידועים
     if Intent.PAID_CLAIM in found and _s(r"(?:איך|לאן|למי) (?:אפשר )?(?:לשלם|להעביר)", t) \
             and not _s(r"שילמתי|העברתי", t):
