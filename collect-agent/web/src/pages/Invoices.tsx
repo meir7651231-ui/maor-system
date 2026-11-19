@@ -8,14 +8,26 @@ import { Button, Card, LateBadge, StatusBadge, inputCls } from '../components/ui
 import { DRIFT_LABEL, driftText } from '../api.ts';
 import { MessagePreview } from '../components/MessagePreview.tsx';
 import { hashParam } from '../router.ts';
+import { failPrefix } from '../lib/failure.ts';
 import { found } from '../lib/search.ts';
+import { api } from '../api.ts';
+import { dataExportFileName, downloadJson } from '../lib/dataExport.ts';
 
 type Sort = 'late' | 'amount' | 'name';
 type Filter = InvoiceStatus | 'all' | 'drift' | 'paused';
 const FILTERS: [InvoiceStatus | 'all', string][] = [['all', 'הכול'], ['open', 'פתוחות'], ['reminded', 'נשלחה תזכורת'], ['promised', 'הבטיח'], ['disputed', 'במחלוקת']];
 
 export function Invoices() {
-  const { invoices, today, customerOf, markPaid, mode, pendingOf, mergedAnchorOf } = useApp();
+  const { invoices, today, customerOf, markPaid, mode, pendingOf, mergedAnchorOf, showToast, showFail } = useApp();
+  // מנהל 310: ייצוא בקשת עיון — מזהה הלקוח שההורדה שלו בדרך (מונע לחיצה כפולה)
+  const [exporting, setExporting] = useState<number | null>(null);
+  const exportData = async (cid: number, name: string) => {
+    if (exporting !== null) return;
+    setExporting(cid);
+    try { downloadJson(dataExportFileName(cid, today), await api.customerData(cid)); showToast(`הקובץ של ${name} ירד — זה כל המידע ששמור עליו/ה בגבי`); }
+    catch (e) { showFail(failPrefix('הייצוא לא בוצע', (e as Error).message)); }
+    finally { setExporting(null); }
+  };
   const live = mode === 'live';
   const [q, setQ] = useState('');
   // הפעלה 164: «ועוד N» ממסך הסקירה מגיע עם #/invoices?f=drift ⇒ מסונן לתזכורות שהסכום שלהן השתנה (חי בלבד)
@@ -75,7 +87,12 @@ export function Invoices() {
                 return (
                   <Fragment key={i.id}>
                   <tr className="hover:bg-ink-50/60">
-                    <td className="px-4 py-3"><div className="font-bold">{c.name}</div>{i.note && <div className="text-xs text-ink-500">📝 {i.note}</div>}</td>
+                    <td className="px-4 py-3"><div className="font-bold">{c.name}</div>{i.note && <div className="text-xs text-ink-500">📝 {i.note}</div>}
+                      {live && c.backendId != null && <button type="button" data-testid="data-export" disabled={exporting !== null}
+                        onClick={() => exportData(c.backendId!, c.name)}
+                        title="לבקשת עיון של הלקוח: קובץ עם כל המידע ששמור עליו בגבי (חשבוניות, תזכורות, הודעות, הסדרים)"
+                        className="mt-1 min-h-9 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-ink-500 underline hover:text-ink-700 cursor-pointer disabled:opacity-50 disabled:cursor-wait">
+                        {exporting === c.backendId ? 'מכין קובץ…' : '⬇ ייצוא מידע (בקשת עיון)'}</button>}</td>
                     <td className="px-4 py-3"><span className="num">{i.number}</span>{i.source === 'csv' && <span className="ms-1.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5" title="יובאה מקובץ CSV — לא מתעדכנת לבד">CSV</span>}</td>
                     <td className="px-4 py-3 font-bold whitespace-nowrap">{fmtMoney(i.amount, i.currency)}</td>
                     <td className="px-4 py-3 num">{fmtDate(i.dueAt)}</td>

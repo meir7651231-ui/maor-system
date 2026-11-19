@@ -69,7 +69,8 @@ export function Pay({ code }: { code: string }) {
 
             {done ? <DoneCard done={done} planN={planN} business={v.business} /> : v.open && (
               <>
-                {many && !v.pay_shared ? (many.some(i => i.can_pay) ? null
+                {v.held ? <p className="rounded-2xl bg-white shadow-card p-4 text-ink-700" data-testid="pay-held">{v.business} ייצור איתכם קשר אישית.</p>
+                : many && !v.pay_shared ? (many.some(i => i.can_pay) ? null
                   : <p className="rounded-2xl bg-amber-50 text-amber-800 p-4">קישור התשלום עוד לא זמין — בעל העסק יעדכן אתכם.</p>)
                 : v.can_pay ? (
                   <section className="space-y-2.5" aria-label="אמצעי תשלום">
@@ -84,7 +85,7 @@ export function Pay({ code }: { code: string }) {
                   </section>
                 ) : <p className="rounded-2xl bg-amber-50 text-amber-800 p-4">קישור התשלום עוד לא זמין — בעל העסק יעדכן אתכם.</p>}
 
-                <section className="rounded-2xl bg-white shadow-card p-5 space-y-3">
+                {!v.held && <section className="rounded-2xl bg-white shadow-card p-5 space-y-3">
                   <h2 className="font-extrabold text-lg">צריכים פריסה?</h2>
                   <p className="text-sm text-ink-500">אפשר לבקש לחלק {many ? 'את הסכום הכולל' : ''} לתשלומים, ללא ריבית. הבקשה עוברת לאישור בעל העסק.</p>
                   <div className="flex gap-2" role="radiogroup" aria-label="מספר תשלומים">
@@ -94,10 +95,10 @@ export function Pay({ code }: { code: string }) {
                     ))}
                   </div>
                   <button disabled={busy} onClick={() => act('plan')} className="w-full h-12 rounded-xl bg-brand text-ink-900 font-bold disabled:opacity-50" data-testid="pay-plan">בקשת פריסה ל-{planN} תשלומים</button>
-                </section>
+                </section>}
 
                 <section className="rounded-2xl bg-white shadow-card p-5 space-y-2">
-                  <button disabled={busy} onClick={() => act('paid')} className="w-full h-12 rounded-xl border border-ink-200 font-bold disabled:opacity-50" data-testid="pay-paid">כבר שילמתי</button>
+                  {!v.held && <button disabled={busy} onClick={() => act('paid')} className="w-full h-12 rounded-xl border border-ink-200 font-bold disabled:opacity-50" data-testid="pay-paid">כבר שילמתי</button>}
                   {!confirmStop
                     ? <button onClick={() => setConfirmStop(true)} className="w-full h-11 text-sm text-ink-500 underline">הפסקת תזכורות</button>
                     : <button disabled={busy} onClick={() => act('stop')} className="w-full h-11 rounded-xl text-critical-ink font-bold border border-red-200 disabled:opacity-50">כן, להפסיק לשלוח לי תזכורות</button>}

@@ -1,0 +1,3 @@
+{"id": "rm298-01", "channel": "sms", "critical": true, "turns": [{"text": "I'll make the transfer tomorrow", "expect": {"intent": "promise", "state": "promised", "promise": "2026-11-09"}}]}
+{"id": "rm298-02", "channel": "sms", "critical": true, "turns": [{"text": "I'll pay when I get paid", "expect": {"intent": "promise", "state": "awaiting_date", "promise": null}}, {"text": "by the 20th", "expect": {"intent": "promise", "state": "promised", "promise": "2026-11-20"}}]}
+{"id": "rm298-03", "channel": "email", "critical": true, "turns": [{"text": "Hi, I will do the bank transfer next week, thanks", "expect": {"intent": "promise", "state": "promised", "promise": "2026-11-15"}}]}

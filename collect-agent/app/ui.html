@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>גבי – תזכורות תשלום</title>
 <style>
-:root{--bg:#FBF8F1;--card:#fff;--ink:#0F172A;--muted:#64748B;--line:#e5e7eb;--brand:#10B981;
---brand-ink:#0F172A;--warn:#b45309;--warn-bg:#fef3c7;--bad:#b91c1c;--sms:#e7f6f3;--chip:#eef2f7}
+:root{--bg:#FBF8F1;--card:#fff;--ink:#0F172A;--muted:#5F6F85;--line:#e5e7eb;--brand:#10B981;
+--brand-ink:#0F172A;--warn:#a64b08;--warn-bg:#fef3c7;--bad:#b91c1c;--sms:#e7f6f3;--chip:#eef2f7}
 @media (prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#121a2b;--ink:#e5e7eb;--muted:#9aa4b2;
 --line:#243049;--brand:#10B981;--brand-ink:#0F172A;--warn:#fbbf24;--warn-bg:#3a2a06;--bad:#f87171;
 --sms:#10332e;--chip:#1b2540}}
@@ -15,7 +15,7 @@ font:15px/1.5 Heebo,Rubik,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
 header{padding:16px;border-bottom:1px solid var(--line);background:var(--card);display:flex;
 flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
 .brand{display:flex;gap:10px;align-items:center}.logo{width:36px;height:36px;flex:none}
-.logo .eye{fill:var(--ink)}
+.logo-d{display:none}@media (prefers-color-scheme:dark){.logo-l{display:none}.logo-d{display:block}}
 h1{font-size:18px;margin:0}.slogan{color:var(--muted);font-size:13px}
 .dry{background:var(--warn-bg);color:var(--warn);padding:6px 10px;border-radius:999px;
 font-size:13px;font-weight:600}
@@ -83,7 +83,7 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 </head>
 <body>
 <header>
-  <div class="brand"><svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><path d="M22 13h12a4 4 0 0 1 4 4v20" fill="none" stroke="#10B981" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M38 37l-11 9" fill="none" stroke="#10B981" stroke-width="7" stroke-linecap="round"/><path d="M14 50q18 12 36 0" fill="none" stroke="#10B981" stroke-width="5" stroke-linecap="round"/><circle class="eye" cx="48" cy="21" r="4.5"/></svg>
+  <div class="brand"><!--gabi-logo:start--><svg class="logo logo-l" viewBox="0 0 64 64" aria-hidden="true"><defs><mask id="w-ul" maskUnits="userSpaceOnUse" x="-100" y="-100" width="300" height="300"><g fill="#fff"><rect x="8.4" y="56.1" width="27" height="17" rx="5"/><rect x="25" y="59.7" width="13.8" height="9.8" rx="4.9"/></g><g fill="#000"><rect x="12" y="59.9" width="19.8" height="2.4" rx="1.2"/><rect x="25" y="59.7" width="13.8" height="9.8" rx="4.9"/></g><g fill="#fff"><rect x="26.8" y="61.5" width="10.2" height="6.2" rx="3.1"/></g><g fill="#000"><circle cx="31.6" cy="64.6" r="1.7"/></g></mask><clipPath id="c-ul"><rect x="-300" y="-300" width="600" height="352.3"/></clipPath></defs><g transform="translate(0.81 -0.738) scale(0.804)"><g transform="translate(11.1 -14.8) rotate(25 32 32) translate(0 82) scale(1 -1)" fill="#0F172A"><path d="M9 31 C9 28.5 12.5 27.8 14 30 C16.5 35 20.5 37.8 26 37.8 C31 37.8 34.5 35.5 36.6 31.5 C38.4 28.6 41.6 28.4 43.4 30.6 C44.6 32.4 45.6 33.8 47.5 34.2 L52 35 L52 46.6 C45 46.6 40 46.4 35 46.6 C22 47.2 12 42 9.5 35 C9.2 33.8 9 32.4 9 31 Z"/><path d="M35.6 33.5 L35 22.5 C34.7 20.2 37.6 19 39 20.8 L42.4 30.5 L43.2 34 Z" transform="rotate(6 39.4 31)"/><rect x="54.8" y="33" width="6.5" height="16" rx="2.4"/></g><rect x="3.4" y="50.1" width="39" height="29" fill="#0F172A" mask="url(#w-ul)"/><circle cx="22.5" cy="55" r="6" fill="#059669" clip-path="url(#c-ul)"/></g></svg><svg class="logo logo-d" viewBox="0 0 64 64" aria-hidden="true"><defs><mask id="w-ud" maskUnits="userSpaceOnUse" x="-100" y="-100" width="300" height="300"><g fill="#fff"><rect x="8.4" y="56.1" width="27" height="17" rx="5"/><rect x="25" y="59.7" width="13.8" height="9.8" rx="4.9"/></g><g fill="#000"><rect x="12" y="59.9" width="19.8" height="2.4" rx="1.2"/><rect x="25" y="59.7" width="13.8" height="9.8" rx="4.9"/></g><g fill="#fff"><rect x="26.8" y="61.5" width="10.2" height="6.2" rx="3.1"/></g><g fill="#000"><circle cx="31.6" cy="64.6" r="1.7"/></g></mask><clipPath id="c-ud"><rect x="-300" y="-300" width="600" height="352.3"/></clipPath></defs><g transform="translate(0.81 -0.738) scale(0.804)"><g transform="translate(11.1 -14.8) rotate(25 32 32) translate(0 82) scale(1 -1)" fill="#FBF8F1"><path d="M9 31 C9 28.5 12.5 27.8 14 30 C16.5 35 20.5 37.8 26 37.8 C31 37.8 34.5 35.5 36.6 31.5 C38.4 28.6 41.6 28.4 43.4 30.6 C44.6 32.4 45.6 33.8 47.5 34.2 L52 35 L52 46.6 C45 46.6 40 46.4 35 46.6 C22 47.2 12 42 9.5 35 C9.2 33.8 9 32.4 9 31 Z"/><path d="M35.6 33.5 L35 22.5 C34.7 20.2 37.6 19 39 20.8 L42.4 30.5 L43.2 34 Z" transform="rotate(6 39.4 31)"/><rect x="54.8" y="33" width="6.5" height="16" rx="2.4"/></g><rect x="3.4" y="50.1" width="39" height="29" fill="#FBF8F1" mask="url(#w-ud)"/><circle cx="22.5" cy="55" r="6" fill="#10B981" clip-path="url(#c-ud)"/></g></svg><!--gabi-logo:end-->
     <div><h1>גבי</h1><div class="slogan">גבי – תזכורות תשלום</div></div></div>
   <span class="dry">מצב בדיקה: אף הודעה לא נשלחת באמת</span>
   <div class="actions">
@@ -131,9 +131,15 @@ const PAUSE={paid_claim:"כתב/ה ששילם/ה. בדקו בחשבון ואז �
   plan_accept:"הסכים/ה להצעת הפריסה",plan_reject:"דחה/תה את הצעת הפריסה",cant_pay:"כתב/ה שאין אפשרות לשלם כרגע",
   dispute:"יש מחלוקת על החשבונית",legal:"הוזכר עניין משפטי",distress:"נראה שהלקוח/ה במצוקה. כדאי לפנות אישית",
   callback:"ביקש/ה שתחזרו אליו/ה",wrong_person:"כתב/ה שזה לא המספר הנכון",abusive:"תגובה פוגענית. כדאי לטפל אישית",
-  credit_review:"יש זיכוי שלא שויך לחשבונית. בדקו ואז חדשו",minor:"סימנתם: קטין/ה",deceased:"סימנתם: נפטר/ה",
-  insolvency:"סימנתם: הליך חדלות פירעון",channel_pref:"ביקש/ה ערוץ אחר (מייל/SMS). עדכנו ערוץ ואז חדשו",
+  credit_review:"יש זיכוי שלא שויך לחשבונית. בדקו ואז חדשו",minor:"קטין/ה (לפי הודעת הלקוח או סימון שלכם). פנו להורה, לא ללקוח",
+  deceased:"נפטר/ה (לפי הודעה או סימון שלכם). אין לשלוח תזכורות",
+  insolvency:"הליך חדלות פירעון (לפי הודעה או סימון שלכם). בדקו עם עו״ד לפני חידוש",
+  shared_contact_urgent:"הודעה דחופה מכתובת של כמה לקוחות. שייכו בכרטיס «כתובת משותפת»",
+  shared_contact_paid_claim:"כתבו ששילמו מכתובת של כמה לקוחות. שייכו בכרטיס «כתובת משותפת»",
+  sensitive:"כתב/ה על מצב רגיש (מחלה, אשפוז, אבל). כדאי לפנות אישית",channel_pref:"ביקש/ה ערוץ אחר (מייל/SMS). עדכנו ערוץ ואז חדשו",
   foreign_language:"כתב/ה בשפה זרה. כדאי לענות אישית"};
+// critic סבב 155: חידוש בסיבה מגינה (קטין/נפטר/חדלות/מצוקה/רגיש/משפטי) ⇒ אזהרה מפורשת. זהה ל-PROTECTIVE ב-/app/.
+const PROTECT=new Set(["minor","deceased","insolvency","distress","sensitive","legal"]);
 const pause=r=>{const [b,u]=String(r).split(":until=");const t=BLOCK[b]||PAUSE[b]||"מושהה עד שתבדקו";
   return u?t+" · עד "+u.split("-").reverse().join("."):t};
 const BLOCK={no_contact:"אין נייד או מייל תקין",compliance:"נחסם במסנן הניסוח",plan_active:"בהסדר תשלומים",disputed:"מחלוקת",no_payment_link:"אין קישור תשלום",
@@ -368,7 +374,7 @@ function drawDebts(){
       :L?chipOf(L):"טרם הוכנה";
     return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}${
     x.status==="open"&&x.paused_reason&&(x.customer_block===x.paused_reason||x.customer_block==="disputed")
-      ?` <button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""} title="בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו">↻ חידוש תזכורות</button>`:""}</td><td>${esc(x.number)}${
+      ?` <button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""}${PROTECT.has(String(x.paused_reason).split(":until=")[0])?' data-protect="1"':""} title="${PROTECT.has(String(x.paused_reason).split(":until=")[0])?"שימו לב: חידוש ישלח שוב תזכורות תשלום לאותו נייד/מייל. חדשו רק אחרי שבדקתם":"בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו"}">↻ חידוש תזכורות</button>`:""}</td><td>${esc(x.number)}${
     x.status==="open"?` <button class="markpaid" data-iid="${x.invoice_id}"${busy?" disabled":""} title="הלקוח שילם בביט/העברה/מזומן? החשבונית תיסגר כאן ולא יישלחו עליה תזכורות">✓ שולם מחוץ למערכת</button>`:""}</td>
     <td class="num">${esc(fmtCur(x.amount_agorot,x.currency))}</td><td>${esc(x.due||"")}</td>
     <td class="${x.days_overdue>0?"late":""}">${x.days_overdue>0?x.days_overdue+" ימים":"—"}</td>
@@ -377,12 +383,12 @@ function drawDebts(){
 $("#dFind").addEventListener("input",e=>{dQ=e.target.value;dLim=DPAGE;drawDebts()});
 // חידוש ללקוח מושהה (למשל אחרי «שילמתי» שלא אומת): לחיצה ראשונה מחמשת, השנייה מבצעת
 $("#debts").addEventListener("click",async e=>{const b=e.target.closest("button.resume");if(!b||busy)return;
-  if(!b.dataset.armed){b.dataset.armed="1";b.textContent="בטוח? לחצו שוב";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="↻ חידוש תזכורות"}},4000);return}
+  if(!b.dataset.armed){b.dataset.armed="1";b.textContent=b.dataset.protect?"סיבה מגינה! בדקתם? לחצו שוב":"בטוח? לחצו שוב";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="↻ חידוש תזכורות"}},4000);return}
   b.disabled=true;b.dataset.going="1";try{await api(`/customers/${b.dataset.cid}/resume`,{method:"POST"});await load()}
   catch(err){failed(err,m=>{delete b.dataset.going;b.disabled=busy;b.textContent="שגיאה: "+m})}});
 // «שולם מחוץ למערכת» (BACKLOG גבייה סוכן #3): לחיצה ראשונה מחמשת, השנייה סוגרת ומתעדת ב-audit
 $("#debts").addEventListener("click",async e=>{const b=e.target.closest("button.markpaid");if(!b||busy)return;
-  if(!b.dataset.armed){b.dataset.armed="1";b.textContent="בטוח? לחצו שוב";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="✓ שולם מחוץ למערכת"}},4000);return}
+  if(!b.dataset.armed){b.dataset.armed="1";b.textContent=b.dataset.protect?"סיבה מגינה! בדקתם? לחצו שוב":"בטוח? לחצו שוב";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="✓ שולם מחוץ למערכת"}},4000);return}
   b.disabled=true;b.dataset.going="1";try{await api(`/invoices/${b.dataset.iid}/mark-paid`,{method:"POST"});await load()}
   catch(err){failed(err,m=>{delete b.dataset.going;b.disabled=busy;b.textContent="שגיאה: "+m})}});
 // הפעלה 142: כשל ב-/dashboard נבלע בשקט (הטבלה נשארה ריקה או ישנה), וכשל ב-/reminders השאיר תור ריק בלי הסבר.

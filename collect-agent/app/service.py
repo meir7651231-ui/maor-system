@@ -36,6 +36,7 @@ from .integrations.sources import (
 )
 from .policy import (
     APPROVAL_VALID_DAYS,
+    LANDING_HOLDS,
     MAX_REMINDERS_PER_INVOICE,
     OWNER_HOLDS,
     RETENTION_DAYS,
@@ -114,6 +115,30 @@ def _plan_not_proposed(status: str) -> ValueError:
 
 
 _B62 = "abcdefghijkmnpqrstuvwxyz23456789"  # אותיות קטנות+ספרות, בלי 0/o/1/l (קריא, ~31 ביט)
+
+
+# מנהל 307: כרטיסי «כתובת משותפת» (inbox.SHARED_CARDS — כאן כמחרוזות כדי לא לייבא את inbox)
+_SHARED_URGENT_INTENT = "shared_contact_urgent"
+_SHARED_CARD_INTENTS = (_SHARED_URGENT_INTENT, "shared_contact_paid_claim")
+
+
+def _linked_ids(payload) -> set:
+    try:
+        return {x.get("id") for x in json.loads(payload or "{}").get("linked_customers", [])}
+    except (ValueError, AttributeError, TypeError):
+        return set()
+
+
+def _scrub_linked_names(payload, only: int | None = None):
+    """שמות הלקוחות המקושרים ⇒ None (כולם, או רק `only`); המזהים ושאר ה-payload נשמרים. JSON פגום ⇒ NULL."""
+    try:
+        info = json.loads(payload or "{}")
+        for x in info.get("linked_customers", []):
+            if only is None or x.get("id") == only:
+                x["name"] = None
+        return json.dumps(info, ensure_ascii=False)
+    except (ValueError, AttributeError, TypeError):
+        return None
 
 
 def _iso(dt: datetime) -> str:
@@ -801,6 +826,19 @@ class CollectService:
         self.db.x("UPDATE invoices SET short_code=? WHERE id=?", (code, inv_row["id"]))
         return code
 
+    def revoke_short_codes(self, customer_id: int, why: str) -> int:
+        """מבקר סבב 163: הקוד הקצר (/p/{code}) נשלח לכתובת שהתבררה כשגויה ⇒ מי שמחזיק אותו הוא זר. הקוד
+        מבוטל (`short_code=NULL`) — העמוד מחזיר 404, והזר לא יכול לרשום «שילמתי»/«פריסה» בשם הלקוח. הלקוח
+        האמיתי יקבל קוד חדש בהודעה הבאה לכתובת המתוקנת (`_short_code` מנפיק מחדש כשהשדה ריק)."""
+        rows = self.db.q("SELECT id FROM invoices WHERE customer_id=? AND short_code IS NOT NULL",
+                         (customer_id,))
+        for r in rows:
+            self.db.x("UPDATE invoices SET short_code=NULL WHERE id=?", (r["id"],))
+        n = len(rows)
+        if n:
+            self.audit("system", "short_codes_revoked", {"customer": customer_id, "via": why, "n": n})
+        return n
+
     def short_url(self, inv_row) -> str:
         return f"{self.s.public_base_url}/p/{self._short_code(inv_row)}"
 
@@ -1036,8 +1074,8 @@ class CollectService:
             self.db.x("UPDATE invoices SET open_reviewed_at=? WHERE id=?", (now, iid))
             done["confirmed"].append(iid)
         for iid in paid:
-            self.db.x("UPDATE invoices SET status='closed', open_reviewed_at=?, owner_paid_at=? "
-                      "WHERE id=?", (now, now, iid))
+            self.db.x("UPDATE invoices SET status='closed', open_reviewed_at=?, owner_paid_at=?, "
+                      "closed_at=? WHERE id=?", (now, now, now, iid))   # critic 157: closed_at ⇒ ר-10
             self._cancel_invoice(iid, "owner_marked_paid")
             done["paid"].append(iid)
         self.audit(actor, "open_list_confirmed", done)
@@ -1053,7 +1091,7 @@ class CollectService:
             raise ValueError("החשבונית כבר לא פתוחה")
         now = _iso(self.clock())
         self.db.x("UPDATE invoices SET status='closed', open_reviewed_at=COALESCE(open_reviewed_at,?), "
-                  "owner_paid_at=? WHERE id=?", (now, now, iid))
+                  "owner_paid_at=?, closed_at=? WHERE id=?", (now, now, now, iid))   # critic 157
         self._cancel_invoice(iid, "owner_marked_paid")
         self.audit(actor, "invoice_marked_paid", {"invoice": iid, "number": inv["number"],
                                                   "amount_agorot": inv["amount_agorot"]})
@@ -1295,7 +1333,7 @@ class CollectService:
         row = self.db.one("SELECT intent, message_id FROM messages WHERE id=? AND needs_owner=1", (mid,))
         if not row:
             raise KeyError(mid)
-        if row["intent"] == "shared_contact_urgent":
+        if row["intent"] in ("shared_contact_urgent", "shared_contact_paid_claim"):
             # critic סבב 149: «טופל» על כרטיס כתובת משותפת = «אף אחד מהם» — אחרת ההשהיה נשארה על כל המקושרים לתמיד
             return {"id": mid, "done": True, **self.inbox.assign_shared_card(mid, None, actor=actor)}
         if self._self_dismiss_blocked(row, actor):
@@ -1421,6 +1459,74 @@ class CollectService:
                                          "note_id": note_id})
         return dict(self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)))
 
+    # מנהל 309: זכות עיון (סעיף 13 לחוק הגנת הפרטיות; DPA 9.1 — «בקשת עיון מועברת לעסק»).
+    # עד היום לבעל העסק לא היה איך לענות לבקשה כזו בלי לחפש ידנית בכמה מסכים. ייצוא קריאה-בלבד של כל
+    # מה שגבי מחזיקה על לקוח אחד. לא כולל: אסימונים (unsub_token, link_tokens — מפתחות גישה, לא מידע עליו),
+    # payload פנימי של הודעות, וכרטיסי «כתובת משותפת» (customer_id=NULL — מכילים שמות של לקוחות אחרים).
+    # הייצוא נרשם ב-access_log (PII_READ_ROUTES) וגם ב-audit (בלי תוכן).
+    # critic 164: blocked_phone/blocked_email = הכתובת של **מי שענה «מספר שגוי»** (צד שלישי), לא של הלקוח
+    _EXPORT_CUSTOMER_HIDE = frozenset({"unsub_token", "blocked_phone", "blocked_email"})
+    _EXPORT_THIRD_PARTY_NOTE = ("התקבלה הודעה ממספר/כתובת שאינם של הלקוח («מספר שגוי»). "
+                                "פרטי השולח ותוכן ההודעה לא נמסרים.")
+
+    def customer_data_export(self, customer_id: int, actor: str = "owner") -> dict:
+        row = self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,))
+        if not row:
+            raise KeyError(customer_id)
+        customer = {k: row[k] for k in row.keys() if k not in self._EXPORT_CUSTOMER_HIDE}
+        invoices = [dict(r) for r in self.db.q(
+            "SELECT id,number,doc_type,amount_agorot,credit_agorot,currency,issued,due,status,"
+            "payment_url,closed_at,owner_paid_at,purged_at FROM invoices WHERE customer_id=? ORDER BY id",
+            (customer_id,))]
+        # תזכורת משולבת (כמה חשבוניות) מקושרת דרך reminder_invoices — שאילתה קבועה, בלי SQL דינמי
+        reminders = [dict(r) for r in self.db.q(
+            "SELECT r.id,r.invoice_id,r.step,r.scheduled_for,r.status,r.body,r.sent_at,r.decided_at "
+            "FROM reminders r WHERE r.invoice_id IN (SELECT id FROM invoices WHERE customer_id=?) "
+            "OR r.id IN (SELECT ri.reminder_id FROM reminder_invoices ri JOIN invoices i "
+            "ON i.id=ri.invoice_id WHERE i.customer_id=?) ORDER BY r.id", (customer_id, customer_id))]
+        # critic 164: התכתבות עם זר שענה «מספר שגוי» היא מידע על **צד שלישי**, לא על הלקוח (סעיף 13 = מידע עליו).
+        # ההודעה הנכנסת נשארת כשורה (התאריך = עובדה על הטיפול בחוב שלה) אבל בלי התוכן; טיוטת התשובה לזר
+        # וההודעה היוצאת אליו לא נמסרות. שאילתות קבועות, בלי SQL דינמי.
+        # critic 165: «מספר שגוי» גם ככוונה משנית (ליד הסרה/גיל) ⇒ ה-intent הראשי הוא opt_out/minor. לכן צד
+        # שלישי מזוהה גם לפי סימון ה-payload של ההודעה הנכנסת, וטיוטה/הודעה יוצאת לפי הכתובת שנחסמה
+        # (blocked_phone/blocked_email = הכתובת של הזר; תזכורות שנשלחו אליה בשם הלקוחה נשארות).
+        blocked = {a for a in (normalize_il_phone(row["blocked_phone"] or ""),
+                               (row["blocked_email"] or "").strip().lower()) if a}
+        try:
+            all_drafts = [dict(r) for r in self.db.q(
+                "SELECT id,channel,body,intent,status,created_at,sent_at,to_addr,message_id FROM drafts "
+                "WHERE customer_id=? ORDER BY id", (customer_id,))]
+        except sqlite3.OperationalError:
+            all_drafts = []
+        drafts, third_mids = [], set()
+        for dr in all_drafts:
+            to_addr, mid = dr.pop("to_addr"), dr.pop("message_id")
+            addr = (normalize_il_phone(to_addr) if dr["channel"] == "sms" else (to_addr or "").strip().lower())
+            if dr["intent"] == "wrong_person" or (addr and addr in blocked):
+                if mid:
+                    third_mids.add(mid)
+                continue
+            drafts.append(dr)
+        messages = []
+        for r in self.db.q("SELECT id,direction,channel,body,intent,created_at,delivery_status,message_id,"
+                           "payload FROM messages WHERE customer_id=? ORDER BY id", (customer_id,)):
+            m = dict(r)
+            payload = m.pop("payload") or ""
+            if m.pop("message_id") in third_mids and m["direction"] == "out":
+                continue
+            if m["intent"] == "wrong_person" or (m["direction"] == "in" and payload == compliance.THIRD_PARTY_PAYLOAD):
+                m["body"] = self._EXPORT_THIRD_PARTY_NOTE
+            messages.append(m)
+        plans_ = [dict(r) for r in self.db.q(
+            "SELECT id,invoice_id,installments,status,created_at FROM plans WHERE customer_id=? "
+            "ORDER BY id", (customer_id,))]
+        self.audit(actor, "customer_data_export", {"customer": customer_id})
+        return {"customer": customer, "invoices": invoices, "reminders": reminders,
+                "messages": messages, "plans": plans_, "drafts": drafts,
+                "generated_at": _iso(self.clock()),
+                "note": "ייצוא לפי בקשת עיון (סעיף 13). מפתחות גישה, כרטיסים משותפים עם לקוחות אחרים "
+                        "ופרטים של צד שלישי (מי שענה «מספר שגוי») אינם כלולים."}
+
     def purge_closed(self, actor: str = "system") -> dict[str, int]:
         """חוב סגור מעל 90 יום ⇒ ריקון תוכן ההודעות והתממת הלקוח (כשאין לו חוב פתוח),
         אלא אם יש legal hold מתועד. רשימת ההסרה (suppressions, גיבוב בלבד) ו-audit נשארים.
@@ -1438,6 +1544,13 @@ class CollectService:
         cutoff = _iso(self.clock() - timedelta(days=RETENTION_DAYS))
         now = _iso(self.clock())
         inv_n = cust_n = 0
+        # critic 157: ריפוי — חשבונית סגורה בלי closed_at (מסלולי סגירה ישנים) לא נמחקה לעולם.
+        # owner_paid_at = מועד מדויק; אחרת «עכשיו» — שמרני: 90 הימים נספרים מהיום, אף פעם לא מחיקה מוקדמת
+        # critic 158ב: בלי owner_paid_at — synced_at (הפעם האחרונה שנראתה פתוחה, ≤ מועד הסגירה) לפני «עכשיו»;
+        # אחרת סגירה ישנה נספרת כגבייה של השבוע בגרף ובמדדים. מחיקה מוקדמת? לכל היותר מעט לפני 90 יום מהסגירה
+        # האמיתית — ר-10 הוא תקרת שמירה, לא רצפה.
+        self.db.x("UPDATE invoices SET closed_at=COALESCE(owner_paid_at, synced_at, ?) "
+                  "WHERE status='closed' AND closed_at IS NULL AND purged_at IS NULL", (now,))
         for r in self.db.q("SELECT i.id FROM invoices i JOIN customers c ON c.id=i.customer_id "
                            "WHERE i.status='closed' AND i.purged_at IS NULL AND i.closed_at "
                            "IS NOT NULL AND i.closed_at<=? AND c.legal_hold IS NULL", (cutoff,)):
@@ -1454,6 +1567,13 @@ class CollectService:
                                "purged_at IS NULL", (c["id"],))["n"]
             if left or not self.db.one("SELECT 1 FROM invoices WHERE customer_id=?", (c["id"],)):
                 continue
+            # critic 158א: כרטיס דחוף פתוח ב«דורש טיפול שלך» ⇒ לא מתממים עכשיו (תקרה: 180 יום מהכרטיס),
+            # אחרת בעל העסק רואה כרטיס דחוף ריק (בלי שם, טלפון ותוכן). ה-purge ממשיך אחרי «טופל».
+            if self._has_open_card(c["id"]):
+                if not self.db.one("SELECT 1 FROM audit WHERE action='purge_deferred_open_card' "
+                                   "AND detail=?", (json.dumps({"customer_id": c["id"]}),)):
+                    self.audit("system", "purge_deferred_open_card", {"customer_id": c["id"]})
+                continue
             self.db.x("UPDATE messages SET body='', payload=NULL WHERE customer_id=?", (c["id"],))
             # QA: גם טיוטות (כתובת יעד + גוף + סיכום לבעל העסק), מצב שיחה וטוקני הסרה
             if self._table_exists("drafts"):
@@ -1465,18 +1585,62 @@ class CollectService:
             self.db.x("DELETE FROM link_tokens WHERE customer_id=?", (c["id"],))
             # critic סבב 75: גם יומן ה-dry-run בזיכרון (/outbox) — לפי הכתובות, לפני שמתממים אותן
             self._scrub_sent_log(self.db.one("SELECT phone, email FROM customers WHERE id=?", (c["id"],)))
+            self._scrub_shared_card_name(c["id"])
             self.db.x("UPDATE customers SET name=NULL, phone=NULL, email=NULL, blocked_phone=NULL,"
                       " blocked_email=NULL, purged_at=? WHERE id=?", (now, c["id"]))
             cust_n += 1
         # QA: הודעה משולח לא מוכר (customer_id=NULL) = PII של מי שאינו לקוח ⇒ 90 יום מקבלתה
-        unk = self.db.q("SELECT id FROM messages WHERE customer_id IS NULL AND direction='in' "
-                        "AND body<>'' AND created_at<=?", (cutoff,))
+        unk = self.db.q("SELECT id, intent, needs_owner, payload, created_at FROM messages WHERE customer_id IS NULL "
+                        "AND direction='in' AND body<>'' AND created_at<=?", (cutoff,))
+        floor = _iso(self.clock() - timedelta(days=2 * RETENTION_DAYS))
+        purged_unk = 0
         for m in unk:
-            self.db.x("UPDATE messages SET body='', payload=NULL WHERE id=?", (m["id"],))
+            if m["intent"] in _SHARED_CARD_INTENTS:
+                # מנהל 307: כרטיס 👥 דחוף פתוח ⇒ לא מרוקנים (כמו 158א, תקרה 180 יום); אחרת — גוף + שמות נמחקים,
+                # המזהים נשמרים (בלי שם ⇒ ה-web לא מציע אותו לשיוך; «אף אחד מהם» עדיין עובד)
+                if m["intent"] == _SHARED_URGENT_INTENT and m["needs_owner"] and m["created_at"] > floor:
+                    continue
+                self.db.x("UPDATE messages SET body='', payload=? WHERE id=?",
+                          (_scrub_linked_names(m["payload"]), m["id"]))
+            else:
+                self.db.x("UPDATE messages SET body='', payload=NULL WHERE id=?", (m["id"],))
+            purged_unk += 1
         # critic סבב 42 (ℹ️): מפתחות dedupe של webhooks גדלו לנצח. ספק לא שולח retry אחרי 90 יום,
         # ומזהה הודעת מייל יכול לשאת דומיין/שם שולח ⇒ אותו חלון שמירה.
         self.db.x("DELETE FROM webhook_dedupe WHERE at<=?", (cutoff,))
-        return inv_n, cust_n, len(unk)
+        return inv_n, cust_n, purged_unk
+
+    def _open_urgent_shared_cards(self, floor: str):
+        return self.db.q("SELECT id, payload FROM messages WHERE customer_id IS NULL AND intent=? AND "
+                         "needs_owner=1 AND created_at>?", (_SHARED_URGENT_INTENT, floor))
+
+    def _scrub_shared_card_name(self, customer_id: int) -> None:
+        """מנהל 307 (ר-10): לקוח שהותמם — השם שלו נמחק גם מ-payload של כרטיסי «כתובת משותפת» (customer_id=NULL,
+        ולכן לא נתפסו בהתממה). המזהה נשאר, כדי שהכרטיס לא יישבר."""
+        for m in self.db.q("SELECT id, payload FROM messages WHERE customer_id IS NULL AND intent IN (?,?)",
+                           _SHARED_CARD_INTENTS):
+            if customer_id in _linked_ids(m["payload"]):
+                self.db.x("UPDATE messages SET payload=? WHERE id=?",
+                          (_scrub_linked_names(m["payload"], only=customer_id), m["id"]))
+
+    def _has_open_card(self, customer_id: int) -> bool:
+        """critic 158א: כרטיס **דחוף** פתוח (טיוטה escalate='urgent' שבעל העסק עוד לא טיפל בה) ⇒ ההתממה נדחית.
+        כרטיס רגיל לא דוחה (אחרת PII נשמר לנצח על כרטיס שנשכח, וזו הפרת ר-10, כמו ב-157). תקרה: כרטיס שנוצר
+        לפני יותר מ-2×RETENTION_DAYS לא דוחה עוד, כדי שגם כרטיס דחוף שננטש לא ישמור PII לעולם."""
+        if not self._table_exists("drafts"):
+            return False
+        floor = _iso(self.clock() - timedelta(days=2 * RETENTION_DAYS))
+        # critic סבב 159: «טופל» על הכרטיס מאפס רק messages.needs_owner — הטיוטה הדחופה נשארה פתוחה ⇒ ההתממה נדחתה
+        # עד התקרה אף שבעל העסק סיים. הכרטיס = ההודעה ב«דורש טיפול»; טיוטה דחופה דוחה רק כל עוד הכרטיס עצמו פתוח.
+        # מנהל 307: כרטיס 👥 דחוף פתוח (customer_id=NULL, הלקוח ב-payload) ⇒ גם הוא דוחה — אחרת «שייכו» נכשל
+        # («כבר לא קיים») ובעל העסק מאבד את מי שכתב «אני בן 15».
+        if any(customer_id in _linked_ids(m["payload"]) for m in self._open_urgent_shared_cards(floor)):
+            return True
+        return self.db.one(
+            "SELECT 1 FROM drafts WHERE customer_id=? AND escalate='urgent' AND "
+            "status IN ('pending_approval','needs_owner') AND created_at>? AND EXISTS("
+            "SELECT 1 FROM messages WHERE customer_id=? AND needs_owner=1)",
+            (customer_id, floor, customer_id)) is not None
 
     def _scrub_sent_log(self, cust) -> None:
         """critic סבב 75 (ר-10): רשומות יומן ה-dry-run (`sender.sent`, /outbox) של לקוח שהותמם — נשחרות במקום:
@@ -1804,7 +1968,8 @@ class CollectService:
             self._mark_refresh_failed(r, "refresh_failed", str(e))
             return "failed"
         if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
-            self.db.x("UPDATE invoices SET status='closed' WHERE id=?", (inv["id"],))
+            self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?",
+                      (_iso(self.clock()), inv["id"]))   # critic 157
             self.audit("system", "refresh_closed", {"invoice": inv["id"]})
             return "closed"
         self.db.x("UPDATE invoices SET synced_at=? WHERE id=?", (_iso(self.clock()), inv["id"]))
@@ -1877,7 +2042,8 @@ class CollectService:
                 self.audit("system", "refresh_failed", {"invoice": inv["id"], "error": str(e)[:200]})
                 return False
             if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
-                self.db.x("UPDATE invoices SET status='closed' WHERE id=?", (inv["id"],))
+                self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?",
+                          (_iso(self.clock()), inv["id"]))   # critic 157
                 self._cancel_invoice(inv["id"], "invoice_closed")
             elif doc.amount_agorot != inv["amount_agorot"]:
                 self.db.x("UPDATE invoices SET amount_agorot=?, synced_at=? WHERE id=?",
@@ -1942,14 +2108,18 @@ class CollectService:
         if not inv or inv["purged_at"]:
             raise KeyError(code)
         cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
+        held = self._landing_held(cust)
         items = self._landing_items(inv)
+        if held:   # critic 166: השהיה מגינה ⇒ אין קישור תשלום, גם לא לחשבונית בודדת ברשימה
+            items = [i | {"pay_url": None} for i in items]
         total = sum(i["amount_agorot"] for i in items)
         links = {i["pay_url"] for i in items}
         return {"code": code, "business": self.s.business_name, "number": inv["number"],
                 "amount": templates.fmt_amount(inv["amount_agorot"], inv["currency"]),
                 "due": inv["due"], "open": bool(items),
                 "opted_out": bool(cust["opted_out"]),
-                "pay_url": self._payment_link(inv) if inv["status"] == "open" else None,
+                "pay_url": self._payment_link(inv) if inv["status"] == "open" and not held else None,
+                "held": held,
                 # critic 15.1/2.12: הודעה מאוחדת ⇒ העמוד מפרט את כל החשבוניות שבה, עם סה״כ
                 "invoices": [{k: v for k, v in i.items() if k != "pay_url"}
                              | {"can_pay": bool(i["pay_url"])} for i in items],
@@ -1958,6 +2128,12 @@ class CollectService:
                 # קישור תשלום אחד לכולן (עמוד קבוע של העסק) ⇒ כפתור אחד; אחרת כפתור לכל חשבונית
                 "pay_shared": len(items) > 1 and len(links) == 1 and None not in links,
                 "_cust": cust}
+
+    @staticmethod
+    def _landing_held(cust) -> bool:
+        """critic סבב 166: קישור /p/ שכבר נשלח ללקוח שסומן אחר כך קטין/מצוקה/פטירה/חדלות פירעון ⇒ העמוד
+        לא מציע תשלום, פריסה או «שילמתי» (ברוח 153: אין בקשת כסף בלי עין אנושית). הסרה נשארת."""
+        return (cust["paused_reason"] or "").split(":", 1)[0] in LANDING_HOLDS
 
     def _landing_items(self, inv) -> list[dict]:
         """החשבוניות הפתוחות שבתזכורת האחרונה שכוללת את החשבונית של הקוד (לפי מועד). אין תזכורת
@@ -1988,6 +2164,9 @@ class CollectService:
             return {"action": "stop", "ok": True}
         if action not in self.LANDING_TEXT:
             raise ValueError("פעולה לא מוכרת")
+        if info["held"]:
+            self.audit("customer", "landing_held", {"customer": cust["id"], "action": action})
+            raise ValueError("הפעולה אינה זמינה — בעל העסק ייצור איתכם קשר")
         text = self.LANDING_TEXT[action]
         if action == "plan" and installments:
             text += f" ב-{int(installments)} תשלומים"
@@ -2527,7 +2706,8 @@ class CollectService:
                 "methods": list(self.PAY_METHODS) if info["pay_url"] else [],
                 "pay_host": self.pay_destination(info["pay_url"])[0] if info["pay_url"] else "",
                 "pay_provider": self.pay_destination(info["pay_url"])[1] if info["pay_url"] else "",
-                "plan_options": [2, 3, 4, 6], "dry_run": True}
+                "held": info["held"],
+                "plan_options": [] if info["held"] else [2, 3, 4, 6], "dry_run": True}
 
     def payer_go(self, code: str, method: str) -> str:
         """⇒ עמוד התשלום של העסק (אמצעי התשלום נקבעים שם, לא אצלנו). יעד מאומת מול רשימת

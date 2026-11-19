@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass
 
 from .confusables import skeleton
@@ -77,9 +78,27 @@ _SENDER_BRANDS = re.compile(r"bank|leumi|poalim|discount|mizrahi|tefahot|mercant
                             r"yahav|massad|pagi|onezero|paybox|pepper|police|misim|^bit$|^bitpay", re.I)
 
 
+# critic 167: רשויות שמותרות בגוף הודעה («ביטוח לאומי» בהסבר) אבל לא כ**שם השולח/פותח** («מס הכנסה: שלום…»)
+NAME_ONLY_AUTHORITIES = (
+    r"מס[\s\-]+(?:ה)?הכנסה|ה?ביטוח[\s\-]+(?:ה)?לאומי|רשות[\s\-]+ה?אכיפה|מע[\"״']מ[\s\-]+ו?מכס|"
+    r"(?:אגף|מינהל|רשות)[\s\-]+ה?מכס"
+    r"|(?i:\b(?:income\s+tax|national\s+insurance|bituach\s+leumi)\b)"
+)
+
+
+def invisible_chars(text: str) -> bool:
+    """critic 167: תווי Cf (zero-width, בקרת כיווניות RLO/LRI…, BOM, soft hyphen) — מה שנבדק ≠ מה שמוצג."""
+    return any(unicodedata.category(ch) == "Cf" for ch in text or "")
+
+
 def business_name_violations(name: str) -> list[str]:
     """שם העסק (בהגדרות): צירוף בנק/רשות ⇒ חסום (התחזות). אפליקציות תשלום בשם העסק — מותרות."""
-    return [n for n, pat in INSTITUTION if re.search(pat, name or "")]
+    out = [n for n, pat in INSTITUTION if re.search(pat, name or "")]
+    if "brand_authority" not in out and re.search(NAME_ONLY_AUTHORITIES, name or ""):
+        out.append("brand_authority")
+    if invisible_chars(name):
+        out.append("invisible_chars")
+    return out
 
 
 def sender_id_violations(sender: str) -> list[str]:
@@ -179,3 +198,8 @@ def violations(text: str, r: Rules) -> list[str]:
     if r.channel == "sms" and len(text) > r.max_sms_chars:
         out.append("sms_too_long")
     return out
+
+
+# critic 165: סימון ב-messages.payload להודעה נכנסת של צד שלישי («מספר שגוי», גם ככוונה משנית ליד הסרה/גיל).
+# נכתב ב-inbox.handle_customer ונקרא ב-service.customer_data_export (תוכן הזר לא נמסר בבקשת עיון).
+THIRD_PARTY_PAYLOAD = '{"third_party": "wrong_person"}'

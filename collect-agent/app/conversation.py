@@ -432,8 +432,17 @@ def _guard(part: str) -> str:
 _INSOLVENT_ME = (r"(?<![\w])(?:פשטתי|פשטנו)\s+רגל(?![\w])|(?<![\w])(?:אני|אנחנו)\s+(?:כבר\s+|עכשיו\s+)?(?:פושט|פושטת|פושטי)\s+רגל(?![\w])"
                  r"|(?<![\w])הכריזו\s+(?:עלי|עליי|עלינו)\s+(?:כ)?(?:פושט|פושטת|פושטי)\s+רגל(?![\w])")
 # מצב רגיש בתוך cant_pay (מחלה/אשפוז/אבל) — משותף לתגית sensitive ולסדר הכוונות מול הצעה שנשלחה
+# מנהל 299: אבל באנגלית — קרוב משפחה שנפטר («my dad passed», «my mother died», «lost my father last week»).
+_EN_KIN = (r"(?:dad|father|mom|mum|mother|husband|wife|son|daughter|brother|sister|partner|grandma|grandpa"
+           r"|grandmother|grandfather|parent|baby|child|kid)")
+_EN_BEREAVE = (r"\b(?:my|our)\s+(?:\w+\s+)?" + _EN_KIN + r"s?\s+(?:just\s+|recently\s+|suddenly\s+)?(?:died\b|passed\s+away\b"
+               r"|passed(?=\s*(?:$|[,.!;:\-–—]|(?:last|this|yesterday|today|on|in|recently|earlier)\b)))"
+               r"|\b(?:lost|buried)\s+(?:my|our)\s+(?:\w+\s+)?" + _EN_KIN + r"\b(?!\s*['’]?s\b|\s+(?:card|phone|keys?|wallet|number))"
+               r"|\bsitting\s+shiva\b")
 _SENSITIVE_ILL = (r"חולה|מחלה|מאושפז|אשפוז|ניתוח|כימו|שבעה|(?:(?:אני|אנחנו|אנו|אנחנו עדיין|עדיין) ב?אבל|ימי (?:ה)?אבל|בתקופת (?:ה)?אבל|שנת (?:ה)?אבל|באבל)|נפטר|לעולמ|לוויה|בבית ה?חולימ|בבי\"?ח|בטיפול נמרצ"
-                  r"|\bpassed away\b|\bfuneral\b|\bmourning\b|\bhospital|\bsurgery\b|\bicu\b")
+                  r"|\bpassed away\b|\bfuneral\b|\bmourning\b|\bhospital|\bsurgery\b|\bicu\b"
+                  # מנהל 299 (qa18 q18-19 🔴): «my dad passed last week» ⇒ היה cant_pay רגיל (לא דחוף). «passed» בלי away
+                  r"|" + _EN_BEREAVE)
 # ר-6: חדלות פירעון (תגית insolvency)
 _INSOLVENCY_TAG = (r"פשיטת רגל|חדלות פירעון|צו כינוס|צו פתיחת הליכים|הליך חדלות|נאמן (?:בתיק|שמונה)|כונס נכסים"
                    r"|(?:תיק|תיקי) איחוד|איחוד תיקים|מעוקל|עיקול|דרך (?:ה)?לשכה|" + _INSOLVENT_ME)
@@ -476,6 +485,114 @@ _EN_NOT_MONEY_OBJ = (r"(?!\s*\?)(?!\s+(?:(?:my|our|his|her|their|the|a|an|this|t
                      r"(?!\s+(?:to|into)\s+(?:a\s+|an\s+)?(?:another|different|new|other)\b)")
 
 
+# מנהל 298 («הבא» AI מ-297): עתיד באנגלית — «I'll make the transfer tomorrow», «I will do the transfer on Sunday»,
+# «we're going to make the payment on Friday», «I'll have it transferred» ⇒ היה «לא ברור» (בלי מועד, בלי השהיה).
+# 🔴 וגרוע מזה: «I'll pay when I get paid», «I'll get the transfer done tomorrow», «transfer done tomorrow» ⇒ PAID_CLAIM
+# («טוען/ת ששילם/ה», התזכורות נעצרות) — למי שרק *מבטיח*. עכשיו: הבטחה; וטענת תשלום נבדקת בלי קטעי העתיד.
+_EN_FUT_AUX = (r"(?:i'?ll|ill|i\s+will|we'?ll|we\s+will|(?:i'?m|i\s+am|we'?re|we\s+are)\s+(?:going\s+to|gonna)|gonna)"
+               r"\s+(?:(?:just|definitely|surely|probably|try\s+to|be\s+able\s+to)\s+)?")
+_EN_FUT_XFER = re.compile(
+    r"\b" + _EN_FUT_AUX + r"(?:make|do|send|get|complete|process|initiate|arrange|set\s+up|put\s+through)\s+(?:the|a|an|my|our)\s+"
+    r"(?:bank\s+)?(?:transfer|wire(?:\s+transfer)?|payment|deposit)\b"
+    r"(?!\s+(?:of|for)\s+(?:my|our|his|her|the)\s+(?!payment|bill|invoice|balance|debt|amount)\w+)"
+    r"(?!\s+to\s+(?:my|our|his|her)\s+(?!account)\w+)"
+    r"(?:\s+(?:done|through|sent|made))?"
+    r"|\b" + _EN_FUT_AUX + r"have\s+(?:it|the\s+(?:money|payment|amount|balance))\s+(?:transferred|wired|sent|paid|deposited)\b", re.I)
+# «when I get paid» / «once we're paid» / «I get paid on the 10th» — המשכורת של הלקוח, לא תשלום לעסק
+_EN_GET_PAID = re.compile(r"\b(?:i|we)\s+(?:get|gets|got|am|'m|are|'re|will\s+be|'ll\s+be)\s+paid\b"
+                          r"|\b(?:get|gets|getting|be|being)\s+paid\b", re.I)
+
+
+# מנהל 303 («הבא» AI מ-302): «when I get paid» לבד ⇒ היה UNKNOWN (כרטיס לבעלים), גם במצב AWAITING_DATE,
+# ו«when I get paid on the 10th» בהודעה ראשונה ⇒ UNKNOWN בלי מועד. בעברית «כשאקבל משכורת» = הבטחה (עד איזה תאריך?).
+# עכשיו שוויון: הודעה שנפתחת בתנאי-משכורת (when/once/as soon as/after + I get paid / my salary / payday) ⇒ הבטחה.
+# שמרני: רק כשאין שום כוונה אחרת, בלי «?» ובלי שלילה («not when I get paid», «even when I get paid»).
+_EN_SALARY_COND = re.compile(
+    r"^\W*(?:(?:ok|okay|sure|so|well|probably|maybe|soon|hopefully|honestly|um+|hmm+|yeah|yes|fine)\W+)*"
+    r"(?:(?:when|once|as\s+soon\s+as|after|right\s+after|the\s+moment)\s+(?:i|we)\s+"
+    r"(?:(?:get|gets|'m|am|are|'re|will\s+get|'ll\s+get|will\s+be|'ll\s+be)\s+paid"
+    r"|(?:get|receive|will\s+get|'ll\s+get)\s+(?:my|our|the)\s+(?:salary|paycheck|pay\s*check|wages?|pay)"
+    r"|(?:'ve|have)\s+been\s+paid)"
+    r"|(?:after|on|by|right\s+after)\s+(?:my\s+|our\s+|the\s+)?(?:payday|pay\s+day|(?:next\s+)?pay\s*check|salary))\b", re.I)
+
+
+# מבקר 159: המשך שמבטל/עוין/מסתייג בתוך הבטחה ⇒ כרטיס לבעלים (טקסט מנורמל: אותיות סופיות רגילות)
+_PROMISE_HOSTILE_TAIL = (
+    r"\b(?:done\s+with\s+(?:you|u|this|your)|cancell?(?:ing|ed)?\s+(?:the|my|our)\s+(?:lessons?|classes|class|subscription|service|"
+    r"contract|membership|course)|last\s+time\s+i|promise\s+nothing|no\s+promises|pigs\s+fly|never\s+again|never\s+using\s+you"
+    r"|leaving\s+(?:you|your)|switching\s+to|(?<!like\s)(?<!as\s)(?<!same\s)last\s+time"
+    r"|(?:pull(?:ing|ed)?|tak(?:e|ing))\s+(?:my|our|the)\s+(?:kids?|son|daughter|child(?:ren)?|boy|girl)\s+out)\b"
+    # מבקר סבב 160: שוויון עברית⇄אנגלית + אותיות-שימוש (ו/ש/כש) — «ואבטל את החוג», «ותשכחו ממני»,
+    # «ואז אני עובר לסטודיו אחר», «עוברים למתחרים», «מוציא את הילד מהחוג»
+    r"|(?<![\w])(?<!לא\s)(?<!לא\sאני\s)(?:ו|ש|וש|כש)?(?:מבטל|מבטלת|מבטלימ|אבטל|נבטל|עוזב|עוזבת|עוזבימ|אעזוב|נעזוב)"
+    r"\s+(?:את\s+)?(?:ה)?(?:חוג|מנוי|שירות|שיעורימ|קורס|חוזה)"
+    r"|(?<![\w])(?<!לא\s)(?<!לא\sאני\s)(?:ו|ש|וש|כש)?(?:עובר|עוברת|עוברימ|אעבור|נעבור)\s+ל(?:ה)?"
+    r"(?:סטודיו|מתחרימ|מתחרה|מקומ\s+אחר|חוג\s+אחר|מורה\s+אחר|ספק\s+אחר|חברה\s+אחרת)"
+    r"|(?<![\w])(?<!לא\s)(?<!לא\sאני\s)(?:ו|ש|וש|כש)?(?:מוציא|מוציאה|מוציאימ|אוציא|נוציא)\s+(?:את\s+)?(?:ה)?"
+    r"(?:ילד|ילדה|ילדימ|בנ|בת|בנימ|בנות)\s+(?:שלי\s+|שלנו\s+)?מ(?:ה)?(?:חוג|שיעורימ|קורס|סטודיו|מנוי)"
+    r"|(?<![\w])(?:ו|ש|וש|כש)?(?:לא\s+מבטיח|לא\s+מבטיחה|לא\s+מבטיחימ|(?:ה)?פעמ\s+(?:ה)?אחרונה|נגמר\s+(?:לי\s+)?(?:איתכמ|מכמ)"
+    r"|גמרתי\s+איתכמ|תשכחו\s+ממני|שכחו\s+ממני)")
+
+
+# מבקר 161 («הבא» AI): שלילה באנגלית לפני הסמן — «I'm not switching», «I won't be cancelling the lessons»,
+# «it won't be the last time» — היה כרטיס מיותר (בעברית «לא מבטל»/«לא עובר» כבר שקט). השלילה נבדקת רק בתוך
+# הפסוקית (פסיק/נקודה/and/but מפסיקים) ורק עם מילות-מילוי מוגדרות, כך ש«not happy, switching» ו«not happy and
+# I'm switching» נשארים כרטיס. «done with you»/«never again»/«no promises» לא נשללים (שמרני: «I'm not done with you» ⇒ כרטיס).
+_EN_NEGATABLE_TAIL = re.compile(r"(?:switching|leaving|cancel|pull|tak|last\s+time)", re.I)
+_EN_TAIL_NEGATED = re.compile(
+    r"\b(?:not|never|won'?t|don'?t|doesn'?t|isn'?t|ain'?t|aren'?t|can'?t|wouldn'?t|didn'?t)\s+"
+    r"(?:(?:be|going|gonna|to|really|even|actually|ever|planning|plan|thinking|about|of|on|the)\s+){0,4}$", re.I)
+
+
+def _promise_hostile_tail(t: str) -> bool:
+    for m in _c(_PROMISE_HOSTILE_TAIL).finditer(t):
+        if _EN_NEGATABLE_TAIL.match(m.group(0)):
+            clause = re.split(r"[,.;!?]|\b(?:and|but|then|so)\b", t[:m.start()], flags=re.I)[-1]
+            if _EN_TAIL_NEGATED.search(clause):
+                continue
+        return True
+    return False
+
+def _en_salary_promise(t: str) -> bool:
+    m = _EN_SALARY_COND.search(t)
+    if not m or "?" in t or re.search(r"\b(?:not|never|even|unless|until|don'?t|won'?t|can'?t|no)\b",
+                                      t[:m.start()] + " " + t[m.end():]):
+        return False
+    # ההמשך: ריק, מועד, או פועל תשלום — «when I get paid I'll buy a phone» / «…I'll call you» ≠ הבטחה
+    rest = re.sub(r"^[\W_]+", "", t[m.end():])
+    return not rest or bool(re.match(
+        r"(?:on|by|this|next|in|around|at|before|which\s+is|that'?s|probably|hopefully|then|so|and|i\s+promise"
+        r"|(?:(?:and|then|so)\s+)?(?:i'?ll|i\s+will|we'?ll|we\s+will|i\s+can|we\s+can)\s+(?:\w+\s+)?"
+        r"(?:pay|transfer|send|settle|wire|cover|clear|deposit|sort\s+it|take\s+care|do\s+it|have\s+it)"
+        r"|(?:the\s+)?\d|(?:mon|tues|wednes|thurs|fri|satur|sun)day|tomorrow|tonight|end\s+of|early|mid|first|beginning)\b",
+        rest, re.I))
+
+
+# critic סבב 159: תנאי-משכורת בראש ההודעה הסתיר המשך של ביטול/עוינות/«לא מבטיח» ⇒ הבטחה שקטה («once I get paid
+# then I'm done with you people», «…on the 10th I'm cancelling the lessons», «כשאקבל משכורת אני מבטל את החוג»).
+# אותו המשך לבד מגיע לבעל העסק כ«לא ברור». עכשיו: תנאי-משכורת + סמן כזה ⇒ ההבטחה יורדת (UNKNOWN ⇒ כרטיס).
+_HE_SALARY_COND = (r"(?:כשת?יכנס|כשתכנס|ברגע ש(?:ת)?י?כנס|אחרי ש(?:ת)?י?כנס|כשאקבל|אחרי שאקבל) (?:ה)?(?:משכורת|כסף|תשלום)")
+_EN_SALARY_HOSTILE = re.compile(
+    r"\b(?:done\s+with|through\s+with|finished\s+with|cancel\w*|quit\w*|last\s+time|promise\s+nothing|nothing"
+    r"|pigs\s+(?:fly|can\s+fly)|hell\s+freezes|you\s+people|scam\w*|leav(?:e|ing)\s+(?:you|this|the)|unsubscrib\w*"
+    r"|no\s+longer|never\s+again|forget\s+(?:it|you|about)|screw\s+you|f\W*off|go\s+to\s+hell)\b", re.I)
+_HE_SALARY_HOSTILE = (r"(?<![\w])(?:מבטל|מבטלת|מבטלים|אבטל|נבטל|לבטל|ביטול|נגמר|נגמרה|נמאס|פעם אחרונה|לא מבטיח|לא מבטיחה"
+                      r"|לא מבטיחים|עוזב|עוזבת|עוזבים|אעזוב|מפסיק|מפסיקה|מפסיקים|אפסיק|לעולם לא|שכחו מזה|תשכחו|רמאי|נוכל)(?![\w])")
+
+
+def _salary_cond_hostile_tail(t: str) -> bool:
+    """תנאי-משכורת (אנגלית/עברית) + המשך של ביטול/עוינות/«לא מבטיח» — לא הבטחה שקטה."""
+    m = _EN_SALARY_COND.search(t)
+    if m and _EN_SALARY_HOSTILE.search(t[m.end():]):
+        return True
+    h = _s(_HE_SALARY_COND, t)
+    return bool(h and _s(_HE_SALARY_HOSTILE, t))
+
+
+def _strip_en_future(t: str) -> str:
+    return _EN_GET_PAID.sub(" ", _EN_FUT_XFER.sub(" ", t))
+
+
 RX: dict[Intent, re.Pattern[str]] = {
     Intent.DISTRESS: _rx(
         # critic סבב 115: «לא יכול לחיות ככה» (לא «לחיות בלי הקפה»)
@@ -496,6 +613,8 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"\b(?:can'?t|cannot)\s+(?:even\s+)?(?:afford|buy)\s+(?:food|groceries)\b", r"\bno\s+money\s+(?:even\s+)?for\s+food\b",
         r"אני גומר עם (?:זה|הכול|הכל|החיים)", r"לא רוצה לחיות", r"אין לי בשביל מה לחיות", r"לא רוצה (?:כבר |יותר )?כלום(?: מהחיים)?\W*$", r"לא רוצה (?:כבר |יותר )?כלום מהחיים", r"\bwant (?:it all|everything) to (?:end|stop)\b|\bend it all\b", r"(?:אין|בקושי יש) (?:לי|לנו) (?:מה )?(?:לאכול|אוכל)", r"(?:ה)?(?:כל|כול) נופל עליי", r"(?:אין לי כוח|לא יכול\w*) ל(?:קום|צאת) מה?(?:מיטה|בוקר)", r"(?:לקום|לצאת מהמיטה) בבוקר", r"(?:מרגיש|מרגישה) ש?אין טעם", r"אין טעם (?:לשום|לכלום|בכלום|לחיות)", r"אין לי כוח (?:יותר )?(?:לכלום|לשום דבר)", r"(?:ה)?(?:כל|כול|חיים|עולם)(?: שלי)? (?:קורס|קרס|מתפרק|מתמוטט)\w*(?! ה?(?:מזגן|מחשב|אתר|שרת))(?:\s+(?:עליי|עלי|לי)|\s*[,.!]|$)", r"(?:אני )?(?:מתפרק|מתפרקת|מתמוטט|מתמוטטת)(?![\w])", r"(?:אני )?על הקצה", r"(?:כבר )?לא מחזיק\w* מעמד", r"אין לי כוח (?:לכלום|לשום דבר|לחיים)", r"לא (?:מסוגל|מסוגלת|יכול|יכולה)\w* יותר(?: עם (?:זה|הכל|הכול|החיים))?(?:\s*[,.!]|$)", r"לא רואה (?:שום )?טעם (?:להמשיך|לחיות|בחיים|בכלום)", r"עדיף ש(?:לא אהיה|אמות|איעלם|אעלם)",
         r"(?:לא רוצה להיות|לא אהיה) (?:פה|כאן|בחיים) (?:יותר|בכלל)", r"לסיים את (?:החיים|הכול|הכל) (?:שלי)?$", r"לא יכול\w* (?:יותר )?עם (?:ה)?חיים", r"(?:בשביל מה|למה|סיבה|טעם|כוח) (?:לי )?(?:להמשיך )?לחיות",
+        # מנהל 299 (qa18 q18-19 🔴): «honestly I'm falling apart» = «אני מתפרק» (שכבר מצוקה בעברית). רק על הדובר
+        r"\b(?:i'?m|i\s+am|im|i\s+feel\s+like\s+i'?m)\s+(?:\w+\s+)?(?:falling\s+apart|breaking\s+down|at\s+my\s+breaking\s+point)\b",
         r"\bsuicid", r"kill myself",
         # מנהל 249 (qa7 x7-17): «thinking of killing myself» — נטיות + פגיעה עצמית
         r"\bkill(?:ing|ed)?\s+my\s*self\b", r"\bhurt(?:ing)?\s+my\s*self\b", r"\bself[- ]harm",
@@ -547,6 +666,13 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"^\W*(?:די|מספיק)\W+(?:ל?הודעות|עם ההודעות|לשלוח|עם הסמסים|עם המסרונים)\W*$",
         r"^\W*(?:אני )?לא מעוניינ\w*\W*$", r"\bremove me\b", r"\bplease stop\b",
         r"(?:תמחקו|מחקו|למחוק|תמחק|תמחקי|תוציאו|הוציאו|להוציא) (?:אותי|אותנו|את המספר|את הטלפון)",
+        # מנהל 299 (qa18 q18-24 🔴): «מאיפה יש לכם את המספר שלי?» ⇒ «תמחקו אותו בבקשה» היה UNKNOWN ⇒ ההסרה לא כובדה.
+        # «תמחקו אותו» כהודעה שלמה (בלי מושא אחר): אין דבר אחר למחוק בשיחת גבייה מלבד הפרטים — הסרה (צד מגן).
+        r"^\W*(?:אז\s+)?(?:תמחקו|מחקו|תמחק|תמחקי|נא\s+למחוק)\s+(?:לי\s+)?(?:אותו|אותה|אותמ)(?:\s+(?:בבקשה|מיד|עכשיו|מהמערכת"
+        r"|מהרשימה|מכל\s+מקומ|מהר))*\W*$",
+        # ואנגלית: «delete my number», «please delete me», «delete it» כהודעה שלמה
+        r"\b(?:delete|erase|remove)\s+(?:my\s+(?:number|phone|details|data|info|information|email|contact)|me\s+from)\b",
+        r"^\W*(?:please\s+|pls\s+|just\s+)?(?:delete|erase)\s+(?:me|it|this\s+number|this\s+contact)(?:\s+(?:please|pls|now|immediately))*\W*$",
         r"(?:אותי|אותנו) מה?רשימ",
         r"(?:די|תפסיקו|מספיק|הפסיקו)(?: כבר)?(?: עם)? (?:ה)?ספאם", r"(?:תסרו|תסירי|תסירו|תסרי)\s+(?:אותי|אותנו|את המספר|את הטלפון)",
         r"(?:לחדול|תחדלו|חדלו)\s+(?:מ|מלשלוח|ממשלוח|משליחת|מלפנות|מפנייה)\w*",
@@ -660,6 +786,13 @@ RX: dict[Intent, re.Pattern[str]] = {
         # מנהל הפעלה 247 (סט מוחזק #6): מחלוקת באנגלית — מוצר פגום / לא התקבל / ביטול / «לא משלם על זה»
         r"\b(?:arrived|came|is|was|it'?s)\s+(?:broken|damaged|defective|faulty)\b", r"\b(?:broken|damaged|defective|faulty)\s+(?:product|item|unit|goods)\b",
         r"\bnot\s+paying\s+(?:for\s+(?:this|that|it)|this|that)\b", r"\b(?:won'?t|will\s+not|refuse\s+to)\s+pay\b",
+        # מנהל 299 (qa18 q18-16 🔴): «charged for parts that were never replaced. I'm not paying until this is fixed.»
+        # ⇒ היה UNKNOWN (תזכורות ממשיכות על חשבונית שהלקוח חולק עליה). «until next month / I get paid» ≠ מחלוקת.
+        r"\bnot\s+(?:going\s+to\s+)?pay(?:ing)?\s+(?:\w+\s+){0,2}?(?:until|till|unless)\s+(?:(?:this|it|that|everything|the\s+\w+)"
+        r"\s+(?:is|are|gets?|has\s+been|have\s+been)\s+(?:\w+\s+)?(?:fixed|repaired|done|sorted|resolved|replaced|corrected|finished|completed)"
+        r"|you\s+(?:fix|repair|correct|sort|finish|complete|replace|redo)\w*)\b",
+        r"\bcharged\s+(?:me\s+|us\s+)?for\s+(?:\w+\s+){1,4}?(?:that|which)\s+(?:(?:was|were)\s+never|(?:was|were)\s*n'?t|(?:was|were)\s+not"
+        r"|never\s+got)\s+(?:\w+\s+)?(?:done|replaced|installed|delivered|fixed|provided|received|completed|used|performed)\b",
         r"\b(?:never|didn'?t|did\s+not)\s+(?:receive|get)\s+(?:the\s+|my\s+)?(?:product|item|order|goods|service)\b",
         r"\bi\s+cancell?ed\s+(?:the|my|this)\s+(?:order|subscription|service|contract)\b",
         r"(?:מחלוקת|ערעור|לא מסכים לשלם|לא מוכן לשלם|לא אשלם|לא מתכוונ\w* לשלם|לא משלם על)",
@@ -767,6 +900,7 @@ RX: dict[Intent, re.Pattern[str]] = {
         # מנהל 245 (qa2/qa3 פספוסים בטוחים): «יש לי קושי כלכלי», «נכנסתי למינוס ענק»
         r"(?:קושי|קשיים) (?:כלכלי|כלכליים|כספי|כספיים|בתזרים)", r"(?:נכנסתי|נכנסנו|ירדתי|ירדנו|נקלעתי|נקלענו) ל?(?:ה)?מינוס", r"(?<![\w])למינוס(?![\w])",
         r"(?:נפטר(?!(?:תי|נו|תם|תן)(?![\w]))|נפטרה|נפטרו|הלך לעולמו|הלכה לעולמה|הלוויה|לוויה)",  # מנהל 259: «נפטרתי מהחוב» ≠ אבל
+        _EN_BEREAVE,  # מנהל 299 (qa18 q18-19): «my dad passed last week» / «my father died» ⇒ היה unknown
         # מנהל 249 (qa7 x7-22/23/24): אובדן עבודה/יכולת, אבל ואשפוז באנגלית
         r"\b(?:lost|losing)\s+(?:my|our)\s+job\b", r"\blaid\s+off\b", r"\bunemployed\b",
         r"\b(?:can'?t|cannot|can\s+not|unable\s+to)\s+afford\b", r"\b(?:can'?t|cannot|unable\s+to)\s+pay\b(?!\s+(?:by|with|via|through|online|on\s+the|using)\b)",
@@ -1043,6 +1177,34 @@ _extend(Intent.HOW_TO_PAY,
         r"^\W*(?:אני\s+|אנחנו\s+)?(?:רוצה|רוצים|רוצָה|מעוניינ\w*|מבקש\w*)\s+(?:ל)?שלם(?:\s+(?:את\s+)?(?:זה|החוב|החשבונית|הכל|הכול))?"
         r"(?:\W+(?:איכ|איך|תודה|בבקשה))?\W*$",
         r"^\W*i\s+(?:want|wanna|would\s+like|'d\s+like)\s+to\s+pay(?:\s+(?:it|this|the\s+bill|now|today))?(?:\W+(?:how|thanks|please))?\W*$")
+# STATUS 297 «הבא» AI: עתיד של העברה = הבטחה — «I'll make the transfer tomorrow», «I will do the bank transfer on Sunday»,
+# «ill send the transfer friday», «אעשה את ההעברה מחר», «אבצע העברה ביום ראשון» ⇒ היו UNKNOWN (בלי השהיה, בלי מועד).
+# מנהל 298 (איחוד): האנגלית עברה ל-_EN_FUT_XFER (מסלול אחד, עם שומרי שאלה/שלילה/מושא-לא-כסף); כאן רק העברית.
+_extend(Intent.PROMISE,
+        r"(?<![\w])(?:אעשה|אבצע|נעשה|נבצע|אשלח|נשלח)\s+(?:את\s+)?(?:ה)?(?:העברה|העברה\s+הבנקאית|תשלומ)(?![\w])")
+# וסירוב לעשות אותה = כמו «לא אשלם» ⇒ מחלוקת: «I won't make the transfer», «לא אעשה את ההעברה»
+_extend(Intent.DISPUTE,
+        r"\b(?:won'?t|will\s+not|refuse\s+to|not\s+gonna|not\s+going\s+to)\s+(?:make|do|send|complete)\s+(?:the|a|any)\s+"
+        r"(?:bank\s+)?(?:transfer|wire|payment)\b(?!\s*(?:today|tonight|now|this\s+week|tomorrow|yet)\b)",
+        r"(?<![\w])(?:לא|לעולמ\s+לא)\s+(?:אעשה|אבצע|נעשה|נבצע|אשלח|נשלח)\s+(?:את\s+)?(?:ה)?(?:העברה|תשלומ)(?![\w])"
+        r"(?!\s*(?:היומ|הערב|עכשיו|השבוע|מחר|עדיינ))")   # «לא אעשה את ההעברה מחר, רק ביום ראשון» = דחייה, לא סירוב
+# סט #18 (qa18, ריצה עיוורת 18.11) — תיקון לפי מחלקות (טקסטים חדשים בבדיקות, לא טקסט הסט):
+#  · «Who's this?» / «whos this» ⇒ זיהוי (היה unknown)
+_extend(Intent.WHO_IS_THIS, r"^\W*(?:hi\W+|hey\W+|hello\W+)?who'?s\s+(?:this|that|it|texting|messaging)\b", r"^\W*whos\s+this\b")
+#  · מחלוקת על חיוב: «I'm not paying until this is fixed», «charged me for parts that were never replaced»
+_extend(Intent.DISPUTE,
+        r"\bnot\s+(?:paying|gonna\s+pay|going\s+to\s+pay)\s+(?:anything\s+|a\s+(?:cent|penny|dime)\s+)?(?:until|till|unless)\b"
+        r"(?!\s+(?:next|i\s+get|i'?m\s+paid|payday|pay\s*day|the\s+(?:\d|end|first|1st|15th)|my\s+(?:salary|paycheck|pay)|\d|monday"
+        r"|tuesday|wednesday|thursday|friday|sunday|saturday|tomorrow|after))",
+        r"\b(?:charged|billed|invoiced)\s+(?:me\s+|us\s+)?for\s+.{0,40}?\b(?:never|weren'?t|wasn'?t|were\s+not|was\s+not|not)\s+"
+        r"(?:replaced|done|installed|delivered|fixed|used|received|provided|completed)\b")
+#  · אבל במשפחה באנגלית: «my dad passed last week» (בלי away) ⇒ מצב רגיש דחוף; «I'm falling apart» ⇒ מצוקה
+_extend(Intent.DISTRESS, r"\b(?:i'?m|i\s+am|im)\s+(?:completely\s+|totally\s+|literally\s+|just\s+)?(?:falling\s+apart|breaking\s+down"
+                         r"|at\s+my\s+breaking\s+point|on\s+the\s+edge)\b")
+#  · «תמחקו אותו/אותה» (את המספר) ⇒ הסרה; לא כשמדובר בחוב/קנס/חשבונית («את הקנס תמחקו אותו»)
+_extend(Intent.OPT_OUT, r"^(?!.*(?:חוב|קנס|ריבית|חשבונ|סכומ|חיוב)).*(?<![\w])(?:תמחקו|מחקו|תמחק|תמחקי)\s+(?:אותו|אותה)(?![\w])")
+#  · «Payment will go out Thursday» / «payment will be sent tomorrow» ⇒ הבטחה
+_extend(Intent.PROMISE, r"\b(?:the\s+)?payment\s+will\s+(?:go\s+out|be\s+(?:sent|made|transferred|wired)|arrive|come\s+through)\b(?!\s+never)")
 # לולאה 17.11 בוקר (המשך לסבב 122): שגיאות כתיב באנגלית בכוונות מגינות — «stop txting», «stpo texting me»,
 # «unsubcribe», «reportin u to the polise», «i feel so hopless». מילת-פעולה של שליחה נדרשת אחרי stop (לא «stop worrying»).
 _extend(Intent.OPT_OUT,
@@ -1072,6 +1234,13 @@ _extend(Intent.OPT_OUT,
 # q13-13: «אני משלמת ב-20» (הווה + יום) = הבטחה; «אני משלמת כל חודש ב-10» ⇒ לא.
 _extend(Intent.PROMISE,
         r"(?:אני|אנחנו) (?:משלמ|משלמת|משלמימ|מעביר|מעבירה|מעבירימ) (?:(?:לכמ|את זה|את הכל|את הכול|את החוב) )?(?:ב|עד)\s*-?\s*(?:ה)?\d")
+# מנהל 299 (qa18 q18-30): «Payment will go out Thursday» / «the transfer will be sent on Sunday» ⇒ היה UNKNOWN (בלי
+# הבטחה) — ולצד «our lawyer confirmed the amount is correct» נשאר רק legal (דחוף, בלי מועד). פסיבי/נושא = התשלום.
+_extend(Intent.PROMISE,
+        r"\b(?:the\s+|my\s+|our\s+|your\s+)?(?:payment|transfer|money|check|cheque|wire|balance)\s+(?:will|'ll|is\s+going\s+to|should|shall)"
+        r"\s+(?:go\s+out|be\s+(?:sent|made|transferred|wired|paid|processed|deposited|released)|reach\s+you|arrive|hit\s+your\s+account)\b"
+        r"(?!\s*\?)",
+        r"\b(?:the\s+)?(?:payment|transfer)\s+goes\s+out\s+(?:on\s+)?(?:mon|tues|wednes|thurs|fri|sun|satur)day\b")
 # 🔴 q13-09: «אני על סף התמוטטות» ⇒ היה «לא ברור»; יחד עם «אשלם ב-20» נרשמה הבטחה בלי הסלמה.
 _extend(Intent.DISTRESS,
         r"על סף (?:ה)?(?:התמוטטות|קריסה|שבירה|ייאוש)(?![\w])",
@@ -1208,6 +1377,8 @@ _extend(Intent.OPT_OUT,
 _extend(Intent.DISTRESS, r"^\W*(?:i\s+)?can'?t\s+take\s+it\s+(?:no\s+more|anymore|any\s+more)\W*$")
 _extend(Intent.CANT_PAY, r"^\W*(?:i\s+have\s+|i\s+got\s+)?no\s+money\s+(?:rn|right\s+now|atm)\b")
 _extend(Intent.WHO_IS_THIS, r"^\W*who\s+(?:dis|dat|this)\W*$")
+# מנהל 299 (qa18 q18-14 🔴): «Who's this?» / «whos this» / «who’s this?» ⇒ היה UNKNOWN (רק «who is this» נתפס)
+_extend(Intent.WHO_IS_THIS, r"^\W*who\s*['’]?\s*s\s+(?:this|that|texting|messaging|writing|emailing)(?:\s+me)?\b")
 
 # ═══ critic סבב 147: סלנג צ׳אט בעברית — סירוב/הסרה/קטין בהודעה קצרה ═══
 _extend(Intent.DISPUTE, r"^\W*(?:אני\s+)?לא\s+(?:משלמ|משלמת|משלמימ)(?:\s+(?:וזהו|וזהו זה|בכלל|על זה|לכמ|כלומ|שקל|אגורה))*\W*$")
@@ -1895,9 +2066,14 @@ def _date_only(t: str, today: date) -> tuple[date | None, bool] | None:
 # רץ רק כשיש הסדר בשיחה (AWAITING_PLAN_REPLY / PLAN_PENDING_OWNER עם offered_plan).
 _CHG_VERB = (r"(?<![\w])(?:ש|ו|ה)?(?:להזיז|להעביר|לדחות|להקדימ|לשנות|לזוז|להוריד|להפחית|להגדיל|להקטינ|לעדכנ"
              r"|תזיזו|תעבירו|תדחו|תקדימו|תשנו|תורידו|תעדכנו|נזיז|נעביר|נדחה|נשנה|נוריד|אפשר שה?תשלומ)(?![\w])"
-             r"|\b(?:move|change|shift|push|postpone|reschedule|lower|reduce|delay)\b")
+             r"|\b(?:move|change|shift|push|postpone|reschedule|lower|reduce|delay)\b"
+             # מנהל 299 (qa18 q18-02): «Could the first installment be pushed back?» על הסדר מאושר ⇒ «pushed» לא נתפס ⇒
+             # PLAN_REQUEST רגיל ⇒ הצעה **חדשה וזהה** והמצב חזר ל-AWAITING_PLAN_REPLY. נטיות (בלי change — «changed my mind»)
+             r"|\b(?:mov|shift|push|postpon|reschedul|delay)(?:e|ed|es|ing|s|d)\b")
 _CHG_OBJ = (r"(?<![\w])(?:ש|ו|ב|ל|מ|את )?(?:ה)?(?:תשלומ|תשלומימ|הסדר|פריסה|תאריכ|תאריכימ|מועד|מועדימ|סכומ)(?![\w])"
-            r"|\b(?:payments?|installments?|instalments?|plan|dates?|amount)\b")
+            r"|\b(?:payments?|installments?|instalments?|plan|dates?|amount)\b"
+            # מנהל 299 (qa18 q18-01): «can we move the first one to next month?» ⇒ היה «לא זיהיתי»
+            r"|\b(?:first|second|third|fourth|last|next)\s+one\b")
 _CHG_ORD = (r"(?:ה)?תשלומ (?:ה)?(ראשונ|שני|שלישי|רביעי|חמישי|שישי|אחרונ|הבא|החודשי|הקרוב)(?![\w])"
             r"|\b(first|second|third|fourth|last|next|monthly) (?:payment|installment|instalment)\b")
 _ORD_N = {"ראשונ": 1, "first": 1, "שני": 2, "second": 2, "שלישי": 3, "third": 3, "רביעי": 4, "fourth": 4,
@@ -2225,7 +2401,7 @@ _PROMISE_VERB_HE = (r"(?:אשלם|נשלם|אעביר|נעביר|אסדר|נסד
                     r"|(?:אסגור|נסגור) (?:את )?(?:זה|החוב|החשבון|הכל|הכול|העניין|התשלום|היתרה))(?![\w])")
 # מנהל 260 (q12-27): «הן עוזרות לי לזכור :) אשלם ב-16» — סמיילי מפריד משפטים
 _CLAUSE_SPLIT = r"(?:[.!?;\n]|,(?!\d)|[:;]-?[()](?![\w])|[\u2600-\u27BF\U0001F300-\U0001FAFF])+"
-_PROMISE_VERB_EN = r"(?:i'?ll|i\s+will|we'?ll|we\s+will|i\s+can|can\s+i)\s+(?:pay|transfer|settle)"
+_PROMISE_VERB_EN = r"(?:i'?ll|i\s+will|we'?ll|we\s+will|i\s+can|can\s+i)\s+(?:pay|transfer|settle)|" + _EN_FUT_XFER.pattern
 
 
 def _promise_clause_day(t: str, today: date) -> date | None:
@@ -2280,7 +2456,12 @@ _KEEPS_LEGAL = (r"תביע|אתבע|לתבוע|נתבע|משטרה|בית ה?מ�
                 r"|(?:אפנה|נפנה|תפנו|פנו|תדברו|דברו|ידבר|שידבר|תתקשרו|יתקשר|שיתקשר)\w* (?:אליו|אליה|איתו|איתה|אליכם"
                 r"|לעורך|לעו|עם (?:ה)?(?:עורך|עו))|דרך (?:ה)?(?:עורך|עו\"ד)|מייצג|ייצוג"
                 r"|(?:גם )?(?:לי|לנו) יש (?:עורך|עו\"ד)|(?:אחרי|לאחר) ש(?:הוא|היא)? ?(?:י|ת)?(?:בדוק|בדק|עבור|עבר)"
-                r"|\bcourt\b|\bsue\b|\blawsuit|\bsmall claims|\bcomplaint|\bhandling (?:it|this)|\bbe in touch|\bcontact (?:him|her|them|my)|\brepresent")
+                r"|\bcourt\b|\bsue\b|\blawsuit|\bsmall claims|\bcomplaint|\bhandling (?:it|this)|\bbe in touch|\bcontact (?:him|her|them|my)|\brepresent"
+                # מנהל 299: «Our lawyer will contact you. Payment will go out Thursday.» ⇒ עו״ד פעיל בעתיד = נשאר legal
+                r"|\b(?:lawyer|attorney|solicitor|counsel)s?\s+(?:will|'ll|is\s+going\s+to|are\s+going\s+to|would\s+like\s+to)\b"
+                # qa18 AI (המשך): «our lawyer will contact you, I will pay thursday» ⇒ האיום נמחק בגלל ההבטחה
+                r"|\b(?:will|'ll|gonna|going\s+to)\s+(?:contact|call|reach\s+out\s+to|write\s+to|email|get\s+in\s+touch\s+with)\s+(?:you|u)\b"
+                r"|\blegal\s+action\b|\btake\s+(?:you|this)\s+to\b")
 
 
 # כוונות מגינות — כשהן בהודעה, לא מוסיפים פרשנות של הצעה נגדית (מנהל 267)
@@ -2365,6 +2546,20 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             continue
         if _hits(rx, t_plan if it == Intent.PLAN_REQUEST else t, negatable=it in NEGATABLE):
             found.add(it)
+    # מנהל 298: «I'll pay when I get paid» / «I'll get the transfer done» — טענת תשלום רק אם נשארת בלי קטעי העתיד
+    if Intent.PAID_CLAIM in found and re.search(r"[a-z]", t):
+        t_nf = _strip_en_future(t)
+        if t_nf != t and not _hits(RX[Intent.PAID_CLAIM], t_nf, negatable=True):
+            found.discard(Intent.PAID_CLAIM)
+    if Intent.PROMISE not in found and any(
+            not _NEG_BEFORE.search(t[max(0, m.start() - 22):m.start()])
+            and not re.search(r"\b(?:don'?t|do\s+not|doubt|not\s+sure|no\s+way)\b[^.,!?;\n]*$", t[:m.start()]) and "?" not in re.split(r"[.,!;\n]", t[m.end():])[0]
+            for m in _EN_FUT_XFER.finditer(t)):   # «I'll make the transfer tomorrow?» = שאלה; «…, how do I do it?» = הבטחה
+        found.add(Intent.PROMISE)
+    if not found and _en_salary_promise(t):   # מנהל 303: «when I get paid (on the 10th)»
+        found.add(Intent.PROMISE)
+    if Intent.PROMISE in found and _salary_cond_hostile_tail(t):   # critic סבב 159
+        found.discard(Intent.PROMISE)
     # critic סבב 136: «הילד חולה היום ולא יגיע לשיעור» = הודעת היעדרות, לא קושי בתשלום (היה cant_pay+sensitive ⇒ דחוף)
     if Intent.CANT_PAY in found and _s(r"(?<![\w])(?:הילד|הילדה|הבנ|הבת|הוא|היא|בני|בתי)(?: שלי)?\s+(?:\S+\s+)?חולה(?![\w])", t) \
             and _s(r"לא\s+(?:יגיע|תגיע|יבוא|תבוא|יהיה|תהיה)|(?<![\w])(?:ל|ב)?(?:שיעור|חוג|אימונ|תרגול)|יחסר|תחסר|נעדר"
@@ -2385,6 +2580,12 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
                                                      Intent.DISTRESS, Intent.MINOR, Intent.CANT_PAY}) and _s(r"^\W*(?:חלאס|די|די כבר|מספיק|מספיק כבר|enough)(?:\W+(?:נו|אחי|באמת|כבר|already))*"
                                           r"\s*(?:[,.!\n]|$)", (text or "").strip().replace("\r", "") or t):
         found.add(Intent.OPT_OUT)
+    # qa18 (q18-27): «stop the reminders for a week, I'll pay on the 16th» / «תפסיקו לשלוח לשבוע, אשלם ב-16» = השהיה זמנית
+    # + הבטחה, לא הסרה לצמיתות (כמו «leave me alone for a week»). בלי הבטחה — נשארת הסרה.
+    if Intent.OPT_OUT in found and Intent.PROMISE in found and _s(
+            r"\b(?:for|till|until)\s+(?:a|one|two|three|a\s+few|\d{1,2})\s*(?:day|week|month)s?\b|\buntil\s+(?:the\s+)?\d{1,2}"
+            r"|(?<![\w])(?:ל|עד\s+)(?:שבוע|שבועיימ|חודש|יומיימ|כמה\s+ימימ)(?![\w])", t):
+        found.discard(Intent.OPT_OUT)
     # «די» / «מספיק» לבד בשורה — רק כשאין בהודעה שום תוכן אחר («תודה\nמספיק», «שלום\n\nדי»); «די\nאני משלמת מחר» ≠
     if Intent.OPT_OUT not in found and "\n" in (text or "") and found <= {Intent.THANKS, Intent.UNKNOWN} and any(
             _fm(r"\W*(?:די|די כבר|מספיק|enough)(?:\W+(?:בבקשה|תודה|please))*\W*", normalize(ln))
@@ -2669,6 +2870,16 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
     if Intent.DISPUTE in found and _s(r"טעות (?:קטנה )?ב(?:שם|כתובת|איות|תאריך)", t) \
             and _s(r"(?:אבל|אך)\s+(?:זה |לא )?(?:בסדר|נורא|משנה|חשוב)|אשלם|אעביר|נשלם", t) and not _s(_KEEPS_DISPUTE, t):
         found.discard(Intent.DISPUTE)
+    # מנהל 299 (qa18 q18-27 🔴): «stop the reminders for a week, I'll pay on the 16th» ⇒ היה הסרה (קבועה!) ראשית — לקוח
+    # שמבטיח תשלום עם מועד ומבקש *הפסקה זמנית* הוסר לצמיתות. עצירה תחומה בזמן («for a week», «until the 16th», «for now»,
+    # «עד ה-16», «לשבוע») + הבטחה, בלי מילת תמידיות ⇒ הבטחה (ההבטחה ממילא משהה את התזכורות עד המועד). בלי הבטחה ⇒ כמו קודם.
+    if Intent.OPT_OUT in found and Intent.PROMISE in found \
+            and _s(r"\b(?:stop|pause|hold)\w*\s+(?:\w+\s+){0,3}?(?:for\s+(?:a|one|1|two|2|a\s+couple\s+(?:of\s+)?)?\s*(?:days?|weeks?|while|now)"
+                   r"|until|till|til)\b|(?:תפסיקו|תעצרו|עצרו|הפסיקו|תפסיק)\s+(?:\w+\s+){0,3}?(?:ל(?:שבוע|שבועיימ|כמה ימימ|יומיימ)|עד|בינתיימ)"
+                   r"(?![\w])", t) \
+            and not _s(r"\b(?:ever|forever|permanent\w*|unsubscribe|remove|delete|anymore|any\s+more|never|for\s+good)\b"
+                       r"|יותר|שוב|אף פעמ|בכלל|לעולמ|מהרשימה|להסיר|תסירו|הסירו|הסר(?![\w])|תמחקו", t):
+        found.discard(Intent.OPT_OUT)
     # "stop calling me sir/madam" = כינוי, לא בקשת הפסקת פנייה (self4)
     if Intent.OPT_OUT in found and _s(r"\bstop calling me (?:sir|madam|ma'?am|mr|mrs|ms|bro|dude|that|names|by)\b", t):
         found.discard(Intent.OPT_OUT)
@@ -2993,6 +3204,13 @@ def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
             escalate=max(d.escalate, Escalation.NORMAL, key=_esc_rank),
             tags=d.tags + ("protective_floor",),
             owner_actions=d.owner_actions + (f"לבדוק: בהודעה יש סימן ל-{names} שהמנוע לא אישר — להחליט אם לעצור",))
+    if t and d.intent == Intent.PROMISE and _promise_hostile_tail(t):
+        # מבקר סבב 159: «when I get paid then I'm done with you people», «…on the 10th I'm cancelling the lessons»,
+        # «…I promise nothing», «כשאקבל משכורת אני מבטל את החוג» ⇒ הבטחה שקטה (טיוטת «עד איזה תאריך?» בלי כרטיס),
+        # כשאותו המשך לבד היה מגיע לבעלים. ההבטחה נשמרת, אבל בעל העסק רואה כרטיס עם ההמשך.
+        d = replace(d, escalate=max(d.escalate, Escalation.NORMAL, key=_esc_rank), auto_send=False,
+                    tags=d.tags + ("promise_hostile_tail",),
+                    owner_actions=d.owner_actions + ("בהודעה יש גם ביטול/עוינות/«לא מבטיח» — לקרוא לפני שממשיכים",))
     if t and Intent.DISPUTE not in d.all_intents and _hits(_C133_DISPUTE, t) and _C133_VETO.search(t):
         # המשך לסבב 134: הווטו מונע מחלוקת-שווא **דחופה** («will pay» / «אשלם» / «כרטיס»), אבל תלונה אמיתית
         # באותה הודעה («I will pay but the technician never came») נבלעה — הבטחה בלי כרטיס. בלי מחלוקת ובלי

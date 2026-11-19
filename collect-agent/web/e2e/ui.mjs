@@ -146,7 +146,7 @@ try {
   const debts = await p.locator('#debts').textContent();
   for (const raw of ['send_unknown', 'promise', 'deceased', ':until='])
     ok(!debts.includes(raw), `טבלת החובות מציגה קוד גולמי: ${raw}`);
-  ok(/השליחה נקטעה באמצע/.test(debts) && /הבטיח\/ה לשלם · עד 20\.11\.2026/.test(debts) && /סימנתם: נפטר\/ה/.test(debts), 'נוסחי הסטטוס/השהיה חסרים');
+  ok(/השליחה נקטעה באמצע/.test(debts) && /הבטיח\/ה לשלם · עד 20\.11\.2026/.test(debts) && /נפטר\/ה \(לפי הודעה או סימון שלכם\)/.test(debts) && !/סימנתם:/.test(debts), 'נוסחי הסטטוס/השהיה חסרים');
   const sentCell = async n => (await p.locator('#debts tr', { hasText: n }).first().locator('td.sent').textContent()) ?? '';
   ok(mocked138[0] && mocked138[1], 'בהדגמה פחות מ-5 חשבוניות פתוחות');
   const c3 = await sentCell(mocked138[0]), c4 = await sentCell(mocked138[1]);

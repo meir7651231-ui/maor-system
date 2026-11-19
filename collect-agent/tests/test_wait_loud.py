@@ -182,7 +182,12 @@ def test_demo_server_crash_at_boot_fails_fast_with_log():
     hold.bind(("127.0.0.1", 0))
     hold.listen(1)
     port = hold.getsockname()[1]
-    env = {**os.environ, "SKIP_WEB": "1", "PORT": str(port), "GI_PORT": str(port + 7),
+    # מנהל 301: GI_PORT היה port+7 ⇒ ב-CI עמוס הפורט נתפס ע״י בדיקה אחרת והמוק נפל לפני השרת (ריצה 921).
+    # פורט פנוי אמיתי מהמערכת, משוחרר רגע לפני ההרצה.
+    with socket.socket() as gi:
+        gi.bind(("127.0.0.1", 0))
+        gi_port = gi.getsockname()[1]
+    env = {**os.environ, "SKIP_WEB": "1", "PORT": str(port), "GI_PORT": str(gi_port),
            "PATH": os.path.dirname(sys.executable) + os.pathsep + os.environ.get("PATH", "")}
     t0 = time.monotonic()
     try:

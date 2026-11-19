@@ -227,7 +227,7 @@ test('סיבת השהיה מוצגת בעברית, לעולם לא כקוד גו
   assert.doesNotMatch(src, /מושהה: \$\{/, 'נפילה לקוד גולמי');
 });
 
-import { BRAND as LOGO_BRAND, P as LOGO_P, PUBLIC_FILES, markInner, SLOGAN_INK } from '../src/brand/logo.ts';
+import { BRAND as LOGO_BRAND, P as LOGO_P, PUBLIC_FILES, markInner, SLOGAN_INK, UI_LOGO_END, UI_LOGO_START, uiLogoHtml, landingLogoSvg, landingFaviconLink, LANDING_FAVICON_START, LANDING_FAVICON_END } from '../src/brand/logo.ts';
 import { readdirSync } from 'node:fs';
 test('לוגו: מקור יחיד (עיצוב מאיר), ירוק רק במטבע, דיו לפי רקע, מזהים ייחודיים, קבצים ציבוריים מסונכרנים', () => {
   const light = markInner({ id: 'a' }), dark = markInner({ onDark: true, id: 'b' });
@@ -252,6 +252,24 @@ test('לוגו: מקור יחיד (עיצוב מאיר), ירוק רק במטב�
   const L = (h: string) => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
   const cr = (a: string, b: string) => { const [x, y] = [L(a), L(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
   assert.ok(cr(SLOGAN_INK.dark, LOGO_BRAND.navy) >= 4.5 && cr(SLOGAN_INK.light, '#FFFFFF') >= 4.5 && cr(LOGO_BRAND.cream, LOGO_BRAND.navy) >= 4.5, 'ניגודיות טקסט-הלוגו');
+  // /ui (app/ui.html) מציג את הלוגו הסופי מאותו מקור — לא את ה«ג» הישן (גבי עיצוב)
+  const uiHtml = readFileSync(new URL('../../app/ui.html', import.meta.url), 'utf8');
+  const ua = uiHtml.indexOf(UI_LOGO_START), ub = uiHtml.indexOf(UI_LOGO_END);
+  assert.ok(ua > 0 && ub > ua, 'app/ui.html: חסרים סמני הלוגו');
+  assert.equal(uiHtml.slice(ua + UI_LOGO_START.length, ub), uiLogoHtml(), 'app/ui.html: הלוגו סטה מ-brand/logo.ts — הריצו npm run logo');
+  assert.doesNotMatch(uiHtml, /M22 13h12a4 4 0 0 1 4 4v20/, 'app/ui.html: נשאר הלוגו הישן');
+  // דף-הנחיתה של השיווק + דפי הענף: הלוגו והפאביקון הסופיים מאותו מקור (לא ה«ג» הישן)
+  const land = readFileSync(new URL('../../marketing/landing/index.html', import.meta.url), 'utf8');
+  const blk = (h: string, a: string, b: string) => { const i = h.indexOf(a), j = h.indexOf(b); assert.ok(i > 0 && j > i, `חסרים סמנים ${a}`); return h.slice(i + a.length, j); };
+  assert.equal(blk(land, UI_LOGO_START, UI_LOGO_END), landingLogoSvg(), 'landing/index.html: הלוגו סטה — npm run logo');
+  assert.equal(blk(land, LANDING_FAVICON_START, LANDING_FAVICON_END), landingFaviconLink(), 'landing/index.html: הפאביקון סטה — npm run logo');
+  const forDir = new URL('../../marketing/landing/for/', import.meta.url);
+  for (const f of readdirSync(forDir).filter(n => n.endsWith('.html'))) {
+    const h = readFileSync(new URL(f, forDir), 'utf8');
+    assert.equal(blk(h, UI_LOGO_START, UI_LOGO_END), landingLogoSvg(), `landing/for/${f}: הלוגו סטה — python3 marketing/landing/for/build.py`);
+    assert.doesNotMatch(h, /M22 13h12a4 4 0 0 1 4 4v20/, `landing/for/${f}: לוגו ישן`);
+  }
+  assert.doesNotMatch(land, /M22 13h12|M22%2013h12/, 'landing/index.html: לוגו ישן (גם בפאביקון)');
   // אין עותק שני של הצורה בקוד
   const walk = (d: URL): string[] => readdirSync(d, { withFileTypes: true }).flatMap(e =>
     e.isDirectory() ? walk(new URL(`${e.name}/`, d)) : [new URL(e.name, d).pathname]);
@@ -1285,4 +1303,27 @@ test('critic 149: shared_contact_urgent חושף linked (id+שם) לכפתורי
   assert.deepEqual(n.linked, [{ id: 1, name: 'דנה כהן' }, { id: 2, name: 'יוסי לוי' }]);
   const { api } = await import('../src/api.ts');
   assert.equal(typeof api.assignShared, 'function');
+});
+
+test('גבייה סוכן 18.11: shared_contact_paid_claim מוצג עם linked לכפתורי שיוך', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const n = systemNotices([{ id: 9, customer_id: null, direction: 'in', channel: 'sms', body: 'שילמתי',
+    intent: 'shared_contact_paid_claim', created_at: '2026-11-18T09:00:00+02:00',
+    payload: JSON.stringify({ linked_customers: [{ id: 1, name: 'רונית' }, { id: 2, name: 'משה' }] }) }]);
+  assert.equal(n.length, 1);
+  assert.equal(n[0].icon, '👥');
+  assert.deepEqual((n[0] as { linked?: unknown }).linked, [{ id: 1, name: 'רונית' }, { id: 2, name: 'משה' }]);
+});
+
+// מנהל 310: ייצוא בקשת עיון — שם קובץ בטוח ותוכן כפי שהשרת החזיר
+import { dataExportFileName, dataExportText } from '../src/lib/dataExport.ts';
+test('dataExport: שם קובץ ASCII בלי שם הלקוח', () => {
+  assert.equal(dataExportFileName(7, '2026-11-19'), 'gabi-data-request-customer-7-2026-11-19.json');
+  assert.equal(dataExportFileName(NaN, 'bad'), 'gabi-data-request-customer-0-export.json');
+  assert.equal(dataExportFileName(-3, '../x'), 'gabi-data-request-customer-0-export.json');
+  assert.match(dataExportFileName(123456, '2026-01-02'), /^[\x20-\x7e]+$/);
+});
+test('dataExport: התוכן הוא בדיוק מה שהשרת החזיר', () => {
+  const d = { customer: { id: 1, name: 'דנה' }, invoices: [] };
+  assert.deepEqual(JSON.parse(dataExportText(d)), d);
 });

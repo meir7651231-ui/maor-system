@@ -100,7 +100,8 @@ class LegalHoldIn(BaseModel):
 PII_READ_ROUTES = frozenset({
     "/reminders", "/reminders/{rid}/preview", "/dashboard", "/customers", "/outbox",
     "/owner/inbox", "/plans", "/audit", "/conversation/drafts", "/access-log",
-    "/open-list"})   # שער רשימת הפתוחות: שמות לקוחות + סכומים
+    "/open-list",    # שער רשימת הפתוחות: שמות לקוחות + סכומים
+    "/customers/{cid}/data"})   # מנהל 309: ייצוא לבקשת עיון (סעיף 13)
 
 
 class InboundIn(BaseModel):
@@ -489,6 +490,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.get("/customers", dependencies=auth)
     def customers():
         return [dict(r) for r in svc.db.q("SELECT * FROM customers ORDER BY id")]
+
+    @app.get("/customers/{cid}/data", dependencies=auth)
+    def customer_data(cid: int, request: Request):                     # מנהל 309: זכות עיון
+        return guard(svc.customer_data_export, cid, request.state.actor)
 
     @app.post("/invoices/{iid}/mark-paid", dependencies=auth)
     def mark_paid(iid: int, request: Request):
@@ -1086,14 +1091,16 @@ def landing_page(info: dict | None) -> str:
     else:
         pay = (f'<a class="b p" href="{base}/pay">לתשלום מאובטח</a>' if info["pay_url"]
                else '<p class="m">בעל העסק יעדכן אתכם לגבי אפשרויות התשלום.</p>')
+    if info.get("held"):   # critic 166: השהיה מגינה ⇒ בלי תשלום/פריסה/«שילמתי»; הסרה נשארת
+        pay = '<p class="m" data-testid="landing-held">בעל העסק ייצור איתכם קשר אישית.</p>'
     opts = "".join(f'<option value="{n}">{n} תשלומים</option>' for n in (2, 3, 4, 6))
     stop = ('<p class="m">התזכורות האוטומטיות הופסקו.</p>' if info["opted_out"] else
             f'<form method="post" action="{base}/stop"><button class="b">הפסקת תזכורות</button></form>')
-    body = (head + f'<div class="amt">{e(amount)}</div>' + pay
-            + f'<form method="post" action="{base}/plan"><select name="n" aria-label="מספר תשלומים">'
-            + opts + '</select><button class="b">בקשת פריסה ללא תוספת</button></form>'
-            + f'<form method="post" action="{base}/paid"><button class="b">כבר שילמתי</button></form>'
-            + stop)
+    actions = "" if info.get("held") else (
+        f'<form method="post" action="{base}/plan"><select name="n" aria-label="מספר תשלומים">'
+        + opts + '</select><button class="b">בקשת פריסה ללא תוספת</button></form>'
+        + f'<form method="post" action="{base}/paid"><button class="b">כבר שילמתי</button></form>')
+    body = head + f'<div class="amt">{e(amount)}</div>' + pay + actions + stop
     # ר-13 (critic סבב 2): זה העמוד שקישור ה-SMS מוביל אליו («להפסקה: בקישור»), ולכן גם בו —
     # כמו ב-/u — למה קיבלתם, מי בעל השליטה ופרטיות (טיוטה לעו״ד)
     from . import legal

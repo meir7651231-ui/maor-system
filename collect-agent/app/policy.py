@@ -90,6 +90,9 @@ def amount_outlier(amount_agorot: int, history: list[int]) -> int | None:
 
 RETENTION_DAYS = 90                # ר-10: חוב סגור ⇒ מחיקה/התממה אחרי 90 יום (אלא legal hold)
 OWNER_HOLDS = ("minor", "deceased", "insolvency")   # ר-6: סימון בעל העסק = השהיה קשה
+# critic סבב 166 (ברוח 153): השהיה מגינה ⇒ עמוד החייב (/p, /pay) בלי כפתור תשלום ובלי «פריסה»/«שילמתי».
+# קטין / פטירה / חדלות פירעון / מצוקה — לא מבקשים כסף בלי עין אנושית. «הפסקת תזכורות» נשארת תמיד.
+LANDING_HOLDS = (*OWNER_HOLDS, "distress")
 
 
 @dataclass(frozen=True)

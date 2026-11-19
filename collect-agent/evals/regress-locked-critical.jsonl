@@ -44,3 +44,7 @@
 {"id": "lk44", "text": "reportin u to the polise", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
 {"id": "lk45", "text": "הסר אותי\nThanks", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
 {"id": "lk46", "text": "הסר את המספר שלי", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk47", "text": "not paying until you fix the leak", "ctx": {"channel": "sms"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "lk48", "text": "תמחקו אותו מהמערכת", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk49", "text": "our lawyer will contact you, I will pay thursday", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "lk50", "text": "my mom passed on sunday", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause"}, "critical": true}

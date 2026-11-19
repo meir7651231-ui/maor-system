@@ -272,10 +272,22 @@ const PAUSE_LABEL: Record<string, string> = {
   callback: 'ביקש/ה שתחזרו אליו/ה', wrong_person: 'כתב/ה שזה לא המספר הנכון', abusive: 'תגובה פוגענית. כדאי לטפל אישית',
   credit_review: 'יש זיכוי שלא שויך לחשבונית. בדקו במערכת החשבוניות ואז חדשו',
   // critic סבב 52: השהיות שבעל העסק סימן בעצמו קיבלו «מושהה עד שתבדקו»
-  minor: 'סימנתם: קטין/ה', deceased: 'סימנתם: נפטר/ה', insolvency: 'סימנתם: הליך חדלות פירעון',
+  // critic סבב 155: המנוע קובע אותן גם מהודעת הלקוח («אני בן 14») ⇒ לא «סימנתם», ואזהרה בחידוש (PROTECTIVE)
+  minor: 'קטין/ה (לפי הודעת הלקוח או סימון שלכם). פנו להורה, לא ללקוח',
+  deceased: 'נפטר/ה (לפי הודעה או סימון שלכם). אין לשלוח תזכורות',
+  insolvency: 'הליך חדלות פירעון (לפי הודעה או סימון שלכם). בדקו עם עו״ד לפני חידוש',
+  // critic סבב 155: סיבות בלי תווית הוצגו «מושהה עד שתבדקו»
+  shared_contact_urgent: 'הודעה דחופה מכתובת של כמה לקוחות. שייכו בכרטיס «כתובת משותפת»',
+  shared_contact_paid_claim: 'כתבו ששילמו מכתובת של כמה לקוחות. שייכו בכרטיס «כתובת משותפת»',
+  sensitive: 'כתב/ה על מצב רגיש (מחלה, אשפוז, אבל). כדאי לפנות אישית',
   // גבי מנוע סבב 10: סיבות שהמנוע מזהה מתשובת הלקוח
   channel_pref: 'ביקש/ה ערוץ אחר (מייל/SMS). עדכנו ערוץ ואז חדשו', foreign_language: 'כתב/ה בשפה זרה. כדאי לענות אישית',
 };
+/** critic סבב 155: סיבות שבהן חידוש עלול לשלוח תזכורת תשלום לקטין, לנפטר או למי שבהליך — אזהרה לפני החידוש. */
+const PROTECTIVE = new Set(['minor', 'deceased', 'insolvency', 'distress', 'sensitive', 'legal']);
+export function resumeWarning(reason: string): string | null {
+  return PROTECTIVE.has(reason.split(':until=')[0]) ? 'שימו לב: חידוש ישלח שוב תזכורות תשלום לאותו נייד/מייל. חדשו רק אחרי שבדקתם.' : null;
+}
 export function pauseLabel(reason: string): string {
   const [base, until] = reason.split(':until=');
   const txt = PAUSE_LABEL[base] ?? 'מושהה עד שתבדקו';
@@ -336,6 +348,7 @@ function NeedsYou() {
           <li key={`c${c.backendId}`} className="rounded-lg bg-amber-50 p-3 text-sm">
             <div className="font-bold"><span aria-hidden>⏸️</span> {c.name}</div>
             <div className="text-ink-700 text-xs mt-0.5">{pauseLabel(c.paused!)}</div>
+            {resumeWarning(c.paused!) && <div className="text-amber-800 text-xs mt-0.5 font-bold" data-testid="resume-warning">{resumeWarning(c.paused!)}</div>}
             <Button size="sm" variant={armed === `r${c.backendId}` ? 'dark' : 'outline'} className="mt-2"
               onClick={() => act(`r${c.backendId}`, () => api.resume(c.backendId!), `התזכורות ל${c.name} חודשו`)}>
               {armed === `r${c.backendId}` ? 'לחצו שוב לאישור' : '↻ חידוש תזכורות'}
