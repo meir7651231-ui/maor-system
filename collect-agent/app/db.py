@@ -92,6 +92,14 @@ CREATE TRIGGER IF NOT EXISTS access_log_no_update BEFORE UPDATE ON access_log
   BEGIN SELECT RAISE(ABORT, 'access_log is append-only'); END;
 CREATE TRIGGER IF NOT EXISTS access_log_no_delete BEFORE DELETE ON access_log
   BEGIN SELECT RAISE(ABORT, 'access_log is append-only'); END;
+-- מרשם בקשות עיון/תיקון/מחיקה (app/dsr.py, חוק הגנת הפרטיות §13–14). wipe מוחק אותו
+CREATE TABLE IF NOT EXISTS dsr (
+  id INTEGER PRIMARY KEY,
+  customer_id INTEGER, kind TEXT NOT NULL, channel TEXT NOT NULL,
+  received_at TEXT NOT NULL, due_at TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'open', done_at TEXT, note TEXT,
+  warned TEXT NOT NULL DEFAULT ''
+);
 -- יומן ביקורת = ראיה (מחלוקת/עו"ד) ⇒ הוספה בלבד, אין עדכון ואין מחיקה
 CREATE TRIGGER IF NOT EXISTS audit_no_update BEFORE UPDATE ON audit
   BEGIN SELECT RAISE(ABORT, 'audit is append-only'); END;

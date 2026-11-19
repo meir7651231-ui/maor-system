@@ -294,6 +294,10 @@ class ConversationInbox:
                   (cust["id"], channel, text, d.intent.value,
                    int(d.escalate != Escalation.NONE), compliance.THIRD_PARTY_PAYLOAD if third else None, _iso(now)))
         plan_id = self._apply_effects(cust, d, prior=ctx.state)
+        if not third:   # בקשה לפי חוק הגנת הפרטיות §13–14 ⇒ מרשם + מועד 30 יום (app/dsr.py). זר — לא
+            from . import dsr
+            for kind in dsr.detect(text):
+                dsr.open_request(self.svc, cust["id"], kind, channel)
         draft_id = None
         if d.reply or d.escalate != Escalation.NONE:
             # בלי טיוטה (למשל עו"ד) ⇒ כרטיס "דרוש טיפול" בתור, שבעל העסק יכול לענות ממנו בעצמו
