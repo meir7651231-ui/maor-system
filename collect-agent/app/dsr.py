@@ -78,19 +78,21 @@ def detect(text: str) -> list[str]:
             if _hit(rx, t, k == "deletion")]
 
 
-def _iso(dt: datetime) -> str:
-    return dt.isoformat(timespec="seconds")
-
-
-def _il_day(dt: datetime) -> date:
-    """critic 174: ימי לוח בשעון ישראל — המסך וההתראה מציגים **תאריך** יעד, ולכן גם הספירה לפי תאריך."""
-    return dt.astimezone(TZ).date() if dt.tzinfo else dt.date()
+def _local_day(dt: datetime) -> date:
+    """יום לוח בשעון ישראל (המסך מציג **תאריך** יעד — הספירה בימי לוח, לא ביחידות 24 שעות; critic 174)."""
+    return (dt.astimezone(TZ) if dt.tzinfo else dt).date()
 
 
 def days_left(due: datetime, now: datetime) -> int:
-    """0 = יום היעד עצמו («היום האחרון»), שלילי = עבר יום היעד. היה הפרש datetime ב-.days (יחידות 24 שעות) ⇒
-    «היום האחרון» יום לפני היעד, ו«באיחור» ביום היעד שמוצג על המסך."""
-    return (_il_day(due) - _il_day(now)).days
+    """0 = יום היעד עצמו; שלילי = באיחור (רק אחרי יום היעד). אחד למרשם, להתראות ולסימון איחור בסגירה."""
+    return (_local_day(due) - _local_day(now)).days
+
+
+_days_left = days_left
+
+
+def _iso(dt: datetime) -> str:
+    return dt.isoformat(timespec="seconds")
 
 
 def ensure_schema(db) -> None:
@@ -164,7 +166,7 @@ def sweep(svc: Any) -> int:
         stage = "late" if left < 0 else ("soon" if left <= WARN_DAYS else "")
         if not stage or stage in r["warned"].split(","):
             continue
-        kind_he, due_iso = KIND_HE[r["kind"]], _il_day(due).isoformat()
+        kind_he, due_iso = KIND_HE[r["kind"]], _local_day(due).isoformat()
         if stage == "late":
             msg = f"⚠️ בקשת {kind_he} עברה את המועד ({due_iso})."
         elif left == 0:
