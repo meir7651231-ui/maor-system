@@ -5,10 +5,11 @@ import { createServer } from 'node:http';
 import { readFileSync, existsSync } from 'node:fs';
 import { join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CHROME_EXE } from './chrome-path.mjs';
 
 // נתיב יחסי לריפו (כמו e2e/signup.mjs) — לא נתיב-מכונה קשיח
 const DIST = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
-const CHROME = process.env.CHROME_PATH ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const CHROME = CHROME_EXE;
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png' };
 
 const server = createServer((req, res) => {

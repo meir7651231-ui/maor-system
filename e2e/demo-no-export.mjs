@@ -25,10 +25,11 @@ import { createServer } from 'http';
 import { readFileSync, existsSync, statSync } from 'fs';
 import { join, extname, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { CHROME_EXE } from './chrome-path.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIST = process.env.DIST_DIR ?? join(HERE, '..', 'dist'); // DIST_DIR — עותק-פרטי (מבודד מ-build מקביל)
-const CHROME = process.env.CHROME_PATH ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const CHROME = CHROME_EXE;
 const DEBUG = !!process.env.DEBUG;
 const MIN_CLICKS = 40; // פחות מזה = הסריקה לא באמת עברה על המערכת
 

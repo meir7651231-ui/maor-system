@@ -8,12 +8,13 @@ import { createServer } from 'http';
 import { readFileSync, existsSync, statSync, mkdirSync } from 'fs';
 import { join, extname, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { CHROME_EXE } from './chrome-path.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIST = join(HERE, '..', 'dist');
 const SHOTS = join(HERE, 'shots-wave5');
 mkdirSync(SHOTS, { recursive: true });
-const CHROME = process.env.CHROME_PATH ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const CHROME = CHROME_EXE;
 
 const server = createServer((req, res) => {
   let p = join(DIST, decodeURIComponent(req.url.split('?')[0].split('#')[0]));
