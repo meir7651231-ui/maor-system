@@ -78,6 +78,7 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 #cm li{padding:12px 0;border-bottom:1px solid var(--line)}#cm li:last-child{border-bottom:0}#cm .sum{margin:8px 0;font-weight:600;white-space:pre-wrap;word-break:break-word}
 #cm .acts{margin:0 0 8px;padding-inline-start:18px;font-size:14px}#cm textarea{width:100%;min-height:72px;margin-top:4px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:inherit;font:inherit;box-sizing:border-box}
 #ds{margin-bottom:12px}#ds[hidden],#dsDone[hidden]{display:none}#ds ul{list-style:none;margin:0;padding:0}#ds li{padding:12px 0;border-bottom:1px solid var(--line)}#ds li:last-child{border-bottom:0}
+#rh{border:1px solid var(--bad)}#rh h2{color:var(--bad)}#rh label{display:block}#rh .lbl{font-size:13px;font-weight:600}#rh textarea{width:100%;min-height:56px;margin-top:4px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:inherit;font:inherit;box-sizing:border-box}
 #ds textarea{width:100%;min-height:56px;margin-top:4px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:inherit;font:inherit;box-sizing:border-box}#ds .hd{display:flex;flex-wrap:wrap;align-items:center;gap:8px}#ds .lbl{font-size:13px;font-weight:600}#ds .chip.late{background:var(--bad);color:#fff}#ds .chip.soon{background:var(--warn-bg);color:var(--warn)}
 #cm .hd{display:flex;flex-wrap:wrap;align-items:center;gap:8px}#cm .lbl{font-size:13px;font-weight:600}#cm .chip.urgent{background:var(--bad);color:#fff}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
@@ -105,6 +106,15 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
   <div class="note" id="holWarn" role="status" hidden></div>
   <!-- critic סבב 151: «דורש טיפול שלך» היה רק מספר ב-/ui — הרשימה והפעולות נמצאות ב-/app/ (אותה התחברות) -->
   <div class="note" id="oiNote" role="status" hidden><span id="oiMsg"></span> <a href="/app/#/dashboard" id="oiLink">במסך הניהול ←</a></div>
+  <!-- critic סבב 177: עצירת שליחה אחרי שחזור מגיבוי — עד היום רק API (POST /owner/restore-hold/release); ב-/ui לא נראתה
+       בכלל. כרטיס קבוע כל עוד העצירה פעילה (לא נסגר ב«טופל»), עם תיעוד ≥5 תווים ושחרור (בעל העסק בלבד — השרת אוכף) -->
+  <section class="card" id="rh" hidden role="alert" aria-labelledby="rhH"><h2 id="rhH">🛑 המערכת שוחזרה מגיבוי — השליחה ללקוחות עצורה</h2>
+    <p class="slogan" id="rhMsg"></p>
+    <label><span class="lbl">מה החלתם מחדש? (לפחות 5 תווים, נשמר בתיעוד)</span>
+    <textarea id="rhNote" rows="2" maxlength="500" aria-label="תיעוד ההסרות והמחיקות שהוחלו מחדש מאז הגיבוי"></textarea></label>
+    <div class="decide"><button class="primary" id="rhGo" disabled>חידוש השליחה</button></div>
+    <div class="err" id="rhErr" role="alert"></div></section>
+  <div class="note" id="rhDone" role="status" hidden></div>
   <div class="kpis" id="kpis"></div>
   <section class="card" id="ol" hidden aria-labelledby="olH"><h2 id="olH"></h2>
     <p class="slogan">לפני תזכורת ראשונה: מה עדיין פתוח, ומה כבר שולם בביט, במזומן או בהעברה? על מה שלא סימנתם לא תצא תזכורת.</p>
@@ -209,7 +219,7 @@ function skel(){if(got.d&&got.q)return;
   if(!got.q)$("#list").innerHTML=Array(3).fill(`<div class="card skitem" aria-hidden="true"><span class="sk w"></span>${SK}</div>`).join("");
   $("#dash").setAttribute("aria-busy","true");$("#list").setAttribute("aria-busy","true");$("#busyMsg").textContent="טוען נתונים…"}
 function lock(had){locked=true;stale=false;clearTimeout(rt);sel=shown=null;$("#detail").removeAttribute("aria-busy");try{sessionStorage.removeItem(TOK)}catch(e){}got={d:false,q:false};busyOff();
-  for(const i of ["#kpis","#debts","#list","#df","#dmore","#qf","#qmore"])$(i).innerHTML="";$("#olList").innerHTML="";olItems=[];olMark={};$("#ol").hidden=$("#olDone").hidden=true;$("#cmList").innerHTML="";$("#cmErr").textContent="";cmItems=[];cmBody={};cmAmt={};$("#cm").hidden=$("#cmDone").hidden=true;$("#dsList").innerHTML="";$("#dsErr").textContent="";dsItems=[];dsNote={};$("#ds").hidden=$("#dsDone").hidden=true;dQ=qQ="";for(const i of ["#dFind","#qFind"]){$(i).value="";$(i).hidden=true}$("#today").textContent="";
+  for(const i of ["#kpis","#debts","#list","#df","#dmore","#qf","#qmore"])$(i).innerHTML="";$("#olList").innerHTML="";olItems=[];olMark={};$("#ol").hidden=$("#olDone").hidden=true;$("#cmList").innerHTML="";$("#cmErr").textContent="";cmItems=[];cmBody={};cmAmt={};$("#cm").hidden=$("#cmDone").hidden=true;$("#dsList").innerHTML="";$("#dsErr").textContent="";dsItems=[];dsNote={};$("#ds").hidden=$("#dsDone").hidden=true;rhHold=null;rhBusy=false;$("#rhNote").value="";$("#rhErr").textContent="";$("#rh").hidden=$("#rhDone").hidden=true;dQ=qQ="";for(const i of ["#dFind","#qFind"]){$(i).value="";$(i).hidden=true}$("#today").textContent="";
   $("#detail").innerHTML='<div class="empty">בחרו תזכורת כדי לראות תצוגה מקדימה של SMS ומייל</div>';
   $("#loaderr").hidden=$("#wunk").hidden=$("#acterr").hidden=true;hdr();
   $("#lockMsg").textContent=had?"תוקף הכניסה פג. הנתונים הוסרו מהמסך. היכנסו שוב כדי להמשיך"
@@ -260,6 +270,7 @@ async function loadDash(ask){
   {const n=+t.owner_inbox||0;$("#oiMsg").textContent=n?`יש ${n} ${n===1?"פריט שדורש":"פריטים שדורשים"} טיפול שלך. הודעות מלקוחות מופיעות כאן למטה; התראות מערכת ופניות שלא שויכו ללקוח —`:"";
    $("#oiNote").hidden=!n}
   $("#kpis").innerHTML=k.map(([l,v,w])=>`<div class="card kpi ${w?"warn":""}"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("");
+  rhHold=d.restore_hold||null;drawHold();
   dRows=d.invoices;drawDebts();
   await loadOpen(t.open_unreviewed||0);
   await loadMsgs();
@@ -358,6 +369,20 @@ $("#cmList").addEventListener("click",async e=>{const b=e.target.closest("button
 // המשיכו (critic 172). כאן: רק הבקשות הפתוחות מ-GET /dsr (סדר השרת: המועד המוקדם ראשון), ימים שנותרו בימי לוח
 // (days_left של השרת, critic 174), וסגירה עם תיעוד ≥5 תווים (DsrDoneIn) ב-POST /dsr/{id}/done. תיעוד שמוקלד
 // נשמר בין רענונים; רענון לא מצייר מעל שדה שמקלידים בו.
+// critic סבב 177: עצירת שליחה אחרי שחזור. התיעוד שהוקלד שורד רענון (השדה סטטי ב-HTML, לא נבנה מחדש)
+const RH_MIN=5;let rhHold=null,rhBusy=false;
+function drawHold(){const h=rhHold;$("#rh").hidden=!h;if(!h)return;
+  $("#rhMsg").textContent=`שוחזר ב-${ddmm(h.restored_at)}. עד שתאשרו, גבי לא שולחת שום תזכורת או תשובה ללקוחות. `+
+    (h.ledger_applied?`${h.ledger_applied} הסרות שנוספו אחרי הגיבוי הוחזרו אוטומטית מיומן ההסרות. `:"")+
+    "לפני החידוש: החילו מחדש כל בקשת הסרה, מחיקה או התממה שהתקבלה מאז הגיבוי, ותעדו כאן מה בדקתם. רק בעל העסק יכול לחדש.";
+  btnHold()}
+function btnHold(){$("#rhGo").disabled=rhBusy||locked||$("#rhNote").value.trim().length<RH_MIN}
+$("#rhNote").addEventListener("input",btnHold);
+$("#rhGo").addEventListener("click",async()=>{const note=$("#rhNote").value.trim();if(rhBusy||!rhHold||note.length<RH_MIN)return;
+  rhBusy=true;btnHold();$("#rhErr").textContent="";$("#rhDone").hidden=true;
+  try{await api("/owner/restore-hold/release",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({note})})}
+  catch(err){rhBusy=false;btnHold();return failed(err,m=>{$("#rhErr").textContent="השליחה לא חודשה: "+m})}
+  rhBusy=false;$("#rhNote").value="";$("#rhDone").textContent="השליחה חודשה ותועדה. תזכורות מאושרות ייצאו בחלון השליחה הבא";$("#rhDone").hidden=false;await load()});
 const DSR_KIND={access:"עיון במידע",correction:"תיקון מידע",deletion:"מחיקת מידע"},DSR_MIN=5;
 let dsItems=[],dsNote={},dsBusy=null;
 // יום לוח בשעון ישראל (כמו _local_day בשרת): due_at ב-UTC אחרי 21:00/22:00 הוא כבר מחר בישראל (critic 174)

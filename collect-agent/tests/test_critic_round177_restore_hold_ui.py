@@ -10,8 +10,6 @@
 xfail(strict=True); הבקרה (העצירה פעילה אחרי שחזור) נשארת ירוקה."""
 from pathlib import Path
 
-import pytest
-
 from app.backup import create_backup, restore_backup
 from app.db import DB
 from app.secretbox import SecretBox, generate_key
@@ -27,7 +25,6 @@ def _restored(svc, clock, tmp_path):
     return CollectService(svc.s, DB(str(restore_backup(bk, tmp_path / "r.db", box))), gi=svc.gi, clock=clock)
 
 
-@pytest.mark.xfail(strict=True, reason="critic 177א: «טופל» על כרטיס השחזור מעלים אותו והעצירה נשארת בשקט")
 def test_hold_stays_visible_after_card_done(svc, clock, tmp_path):
     s2 = _restored(svc, clock, tmp_path)
     for m in s2.db.q("SELECT id FROM messages WHERE intent='restore_hold' AND needs_owner=1"):
@@ -37,7 +34,6 @@ def test_hold_stays_visible_after_card_done(svc, clock, tmp_path):
     assert still_card or "restore_hold" in str(s2.dashboard())
 
 
-@pytest.mark.xfail(strict=True, reason="critic 177ב: אין מסך שחרור לעצירת שחזור (לתיקון גבייה עיצוב)")
 def test_web_has_restore_hold_release():
     files = [*(ROOT / "web" / "src").rglob("*.ts*"), ROOT / "app" / "ui.html"]
     # רק קוד, לא הערות (ב-notices.ts הכתובת מופיעה בהערה בלבד)

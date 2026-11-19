@@ -113,7 +113,10 @@ export interface Dashboard {
   invoices: DashRow[];
   /** חלון השליחה + פקיעת לוח החגים (critic סבב 119). חסר בשרת ישן. */
   send_window?: SendWindow;
+  /** critic סבב 177: עצירת שליחה אחרי שחזור מגיבוי (null = אין). חסר בשרת ישן. */
+  restore_hold?: RestoreHold | null;
 }
+export interface RestoreHold { restored_at: string; ledger_applied: number }
 export interface PreviewMsg {
   channel: 'sms' | 'email'; provider: string; to: string; body: string;
   request: { headers?: Record<string, string> };
@@ -172,6 +175,8 @@ export const api = {
   dsrDone: (id: number, note: string) => j<DsrRow>(`/dsr/${id}/done`, { method: 'POST', body: JSON.stringify({ note }) }),
   plans: () => j<Plan[]>('/plans'),
   ownerInbox: () => j<OwnerMsg[]>('/owner/inbox'),
+  /** critic סבב 177ב: חידוש שליחה אחרי שחזור — בעל העסק בלבד (403 לעובד), תיעוד ≥5 תווים (422) */
+  releaseRestoreHold: (note: string) => j<unknown>('/owner/restore-hold/release', { method: 'POST', body: JSON.stringify({ note }) }),
   ownerDone: (id: number) => j<unknown>(`/owner/inbox/${id}/done`, { method: 'POST' }),
   // critic סבב 149: שיוך כרטיס כתובת משותפת (החלטה 5) — לקוח נבחר, או null = «אף אחד מהם»
   assignShared: (cardId: number, customerId: number | null) => j<unknown>(`/owner/shared-cards/${cardId}/assign`,

@@ -1417,3 +1417,15 @@ test('מנהל 323: התראת refresh_stuck (תזכורות מאושרות תק
   assert.equal(n[0].tone, 'warn');
   assert.match(n[0].title, /לא יוצאות/);
 });
+
+test('critic 177: עצירת שחזור — סף תיעוד, בעל העסק בלבד, טקסט בשעון ישראל', async () => {
+  const { holdCanRelease, holdOwnerOnly, holdText, HOLD_NOTE_MIN } = await import('../src/lib/restoreHold.ts');
+  assert.equal(HOLD_NOTE_MIN, 5);
+  assert.ok(!holdCanRelease('    abcd  ')); assert.ok(holdCanRelease('abcde'));
+  assert.ok(holdOwnerOnly({ actor: 'user:2', kind: 'user', name: 'עובד' }));
+  assert.ok(!holdOwnerOnly({ actor: 'owner', kind: 'owner', name: '' })); assert.ok(!holdOwnerOnly(null));
+  // 22:30Z ב-19.11 = 00:30 ב-20.11 בישראל
+  const t = holdText({ restored_at: '2026-11-19T22:30:00+00:00', ledger_applied: 3 });
+  assert.match(t, /שוחזר ב-20\.11\.2026/); assert.match(t, /3 הסרות/);
+  assert.doesNotMatch(holdText({ restored_at: '2026-11-19T10:00:00+00:00', ledger_applied: 0 }), /הסרות שנוספו/);
+});

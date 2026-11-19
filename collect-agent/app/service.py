@@ -1404,6 +1404,12 @@ class CollectService:
         if row["intent"] in ("shared_contact_urgent", "shared_contact_paid_claim"):
             # critic סבב 149: «טופל» על כרטיס כתובת משותפת = «אף אחד מהם» — אחרת ההשהיה נשארה על כל המקושרים לתמיד
             return {"id": mid, "done": True, **self.inbox.assign_shared_card(mid, None, actor=actor)}
+        if row["intent"] == restore_guard.HOLD_INTENT and restore_guard.active(self.db):
+            # critic סבב 177א: «טופל» הוריד את הכרטיס והעצירה נשארה בשקט ולתמיד. כל עוד העצירה פעילה הכרטיס נשאר;
+            # הוא יורד רק בשחרור המתועד (restore_guard.release). לא חריגה: «טופל» כפול/ישן לא מפיל את המסך.
+            self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "restore_hold_active"})
+            return {"id": mid, "done": False, "restore_hold": True,
+                    "reason": "השליחה עדיין עצורה אחרי השחזור. הכרטיס יורד רק בחידוש השליחה, עם תיעוד."}
         if self._self_dismiss_blocked(row, actor):
             self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "self_dismiss"})
             raise ValueError("את ההתראה על שינוי ההגדרות הרגישות צריך לסמן «טופל» עובד אחר — לא מי שביצע את השינוי.")
@@ -2723,7 +2729,8 @@ class CollectService:
             # critic סבב 150: /ui לא ראה את פקיעת לוח החגים (send_window הושמט) — שני שדות בלבד
             sw = full["send_window"]
             return {"today": full["today"], "trial": full["trial"], "totals": full["totals"], "invoices": inv,
-                    "holidays": {"until": sw["holidays_until"], "expiring": sw["holidays_expiring"]}}
+                    "holidays": {"until": sw["holidays_until"], "expiring": sw["holidays_expiring"]},
+                    "restore_hold": full["restore_hold"]}
         today = self.clock().date()
         rows = []
         # הפעלה 175: היו 3 שאילתות לכל חשבונית (תזכורת אחרונה / ספירת יוצאות / אחרונה שיצאה) + שאילתות
@@ -2818,7 +2825,11 @@ class CollectService:
             next_ok: str | None = _iso(self.policy.next_allowed(now))
         except ValueError:   # לוח החגים פג (fail-closed) ⇒ אין חלון; הדשבורד לא קורס
             next_ok = None
+        hold = restore_guard.active(self.db)
         return {
+            # critic סבב 177א: עצירת שליחה אחרי שחזור — באנר קבוע + טופס שחרור (/app/ ו-/ui) עד שבעל העסק משחרר
+            "restore_hold": None if hold is None else {
+                "restored_at": hold["restored_at"], "ledger_applied": hold["ledger_applied"]},
             "series": self._collection_series(today, closed_all),
             "today": today.isoformat(),
             "trial": self.trial(),
