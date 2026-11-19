@@ -69,6 +69,11 @@ REFRESH_STUCK_HOURS = 48
 REFRESH_STUCK_SHOW = 5
 
 
+OPTOUT_LEDGER_FAILED_TEXT = ("בקשת הסרה נקלטה וחסומה במערכת, אבל לא נרשמה ביומן ההסרות שמחוץ למסד הנתונים "
+                             "(בעיית כתיבה בשרת). אם תשחזרו בעתיד גיבוי, ההסרה הזו עלולה לא לחזור — ולקוח שביקש "
+                             "הסרה יקבל שוב תזכורת. פנו לתמיכה הטכנית לתיקון הרשאות היומן (OPTOUT_LEDGER).")
+
+
 def refresh_stuck_text(items: list[tuple[str, str, str]]) -> str:
     """(שם לקוח, מספר חשבונית, סיבה) ⇒ גוף ההתראה. טהור — נבדק ביחידה. עד 5 שמות, והשאר «ועוד N»."""
     n = len(items)
@@ -989,6 +994,7 @@ class CollectService:
                                             _iso(self.clock()))
             except OSError as e:
                 self.audit("system", "optout_ledger_failed", {"error": str(e)[:200]})
+                self._alert_ledger_failed()
         # critic סבב 59: הסרה לפי כתובת בלבד (כתובת משותפת שלא זוהה בה לקוח, חסימת ספק) לא עצרה טיוטה שנוסחה
         # קודם לאותה כתובת. בכוונות שמותרות אחרי הסרה (איך משלמים / עותק / חזרו אליי) השער מדלג על בדיקת
         # הכתובת ⇒ הטיוטה הייתה יוצאת לכתובת שביקשה הסרה. עכשיו: כל טיוטה ממתינה לכתובת הזו נעצרת.
@@ -2139,6 +2145,17 @@ class CollectService:
         self.db.x("UPDATE reminders SET block_reason=?, refresh_failed_since=COALESCE(refresh_failed_since,?) "
                   "WHERE id=?", (why, _iso(self.clock()), r["id"]))
         self.audit("system", why, {"reminder": r["id"], "error": err[:200]})
+
+    def _alert_ledger_failed(self) -> None:
+        """critic סבב 176 (חלק ב׳): כשל כתיבה ליומן ההסרות נרשם רק ב-audit ⇒ אחרי שחזור גיבוי ההסרה הזו לא
+        תוחזר, ואיש לא ידע. עכשיו: כרטיס אחד ב«דורש טיפול» (לא כפול כל עוד הקודם פתוח). ההסרה ב-DB עצמה כבר
+        נרשמה — השליחה לכתובת הזו חסומה גם בלי היומן. **בלי כתובת או שם** בגוף הכרטיס (היומן שומר גיבובים בלבד)."""
+        if self.db.one("SELECT 1 FROM messages WHERE intent='optout_ledger_failed' AND needs_owner=1"):
+            return
+        now = _iso(self.clock())
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
+                  "created_at) VALUES(NULL,'system','owner',?,'optout_ledger_failed',1,?,?)",
+                  (OPTOUT_LEDGER_FAILED_TEXT, "optout_ledger_failed:" + now, now))
 
     def _sweep_refresh_stuck(self) -> int:
         """מנהל 323 (פתוח-לביקורת מ-322): תזכורת מאושרת שלא יוצאת כבר יותר מ-REFRESH_STUCK_HOURS כי הרענון מול

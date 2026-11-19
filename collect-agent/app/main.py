@@ -271,6 +271,19 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         # דורש DB מוצפן במנוחה. נכשל סגור; חריגה רק בהחלטה מפורשת (ACK_PLAINTEXT_DB=1 — שער 5 🟡 עם תוכנית).
         raise SafetyError("REAL_DATA_ALLOWED=1 על DB לא מוצפן — הגדירו DB_ENCRYPTION=sqlcipher, "
                           "או ACK_PLAINTEXT_DB=1 בהחלטה מפורשת — legal/BETA-GATE.md שער 5")
+    if built_from_env and getattr(svc.s, "real_data_allowed", False) and os.environ.get("ACK_NO_OPTOUT_LEDGER") != "1":
+        # critic סבב 176: יומן ההסרות (OPTOUT_LEDGER, מחוץ ל-DB) הוא מה ששחזור גיבוי מחיל כדי לא להחזיר הסרות
+        # (ממצא 175). נתונים אמיתיים עלו בלעדיו בשקט ⇒ אחרי שחזור בעל העסק «מאשר שהחיל הסרות» בלי מקור.
+        # נכשל סגור, כמו שער 5; חריגה רק בהחלטה מפורשת (ACK_NO_OPTOUT_LEDGER=1) — legal/BETA-GATE.md שער 5א.
+        ledger = (svc.s.optout_ledger or "").strip()
+        if not ledger:
+            raise SafetyError("REAL_DATA_ALLOWED=1 בלי OPTOUT_LEDGER — שחזור גיבוי לא יחזיר הסרות שהתבקשו אחריו. "
+                              "הגדירו OPTOUT_LEDGER לקובץ מחוץ לתיקיית ה-DB והגיבויים, "
+                              "או ACK_NO_OPTOUT_LEDGER=1 בהחלטה מפורשת — legal/BETA-GATE.md שער 5א")
+        lp = Path(ledger)
+        if not lp.parent.is_dir() or not os.access(lp.parent, os.W_OK) or (lp.exists() and not os.access(lp, os.W_OK)):
+            # תיקייה חסרה / בלי הרשאת כתיבה ⇒ כל הסרה הייתה נכשלת ביומן. עדיף לא לעלות מאשר לגלות בשחזור.
+            raise SafetyError(f"OPTOUT_LEDGER לא ניתן לכתיבה ({lp.parent}) — צרו את התיקייה עם הרשאת כתיבה")
     # critic סבב 8: עובד הדמו (סיסמה ידועה מהסביבה + סוד TOTP בקובץ) נוצר על **כל** שירות כש-DEMO=1,
     # גם על DB אמיתי. אם הסביבה דולפת לפרודקשן, זו דלת אחורית. וגם: הפעלה מחדש עם DB קבוע קרסה
     # («משתמש כבר קיים»). עכשיו: רק על שירות הדמו שנבנה כאן, אף פעם לא בבטא אמיתית, ורק אם לא קיים.
