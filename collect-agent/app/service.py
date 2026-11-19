@@ -1106,6 +1106,8 @@ class CollectService:
         # באג: release_expired_pauses לא נקרא מאף מקום ⇒ "אשלם בחמישי" שלא שולם השהה לנצח
         self.inbox.release_expired_pauses()
         self._notify_trial_ending()
+        from . import dsr
+        dsr.sweep(self)   # בקשות עיון/תיקון/מחיקה: התראה 5 ימים לפני המועד ובאיחור
         self.purge_closed()   # ר-10: זול, פעם בסבב
         self._roll_episodes(now)
         created: list[int] = []

@@ -8,7 +8,8 @@
    כוונות: ‏`opt_out, wrong_person, legal, dispute, paid_claim, cant_pay, plan_request, plan_accept, plan_reject, promise, copy_request, how_to_pay, callback, who_is_this, abusive, thanks, distress, minor, unknown`.
    ציפיות אופציונליות: ‏`stop` (none/pause/permanent), ‏`escalate` (none/normal/urgent), ‏`reply` (true/false), ‏`tags` (למשל `foreign_language`), ‏`not` (כוונות שאסור שיופיעו).
 3. `critical: true` להסרה, מספר שגוי, מחלוקת, עו"ד, מצוקה, קטין, טענת תשלום — ולמלכודות (הודעה תמימה שאסור שתעצור/תסלים).
-4. commit **רק** של הקובץ, עם sha256 בהודעת ה-commit. לא להריץ את המנוע לפני ה-commit.
+4. commit **רק** של הקובץ (ושל שורת הנעילה בסעיף 5), עם sha256 בהודעת ה-commit. לא להריץ את המנוע לפני ה-commit.
+5. **באותו commit:** שורה ב-`SEALED` ב-`tests/test_heldout_integrity.py` (שם · כותב · `"(this)"` · sha256 — השורה חושפת רק hash, לא תוכן). בלי זה הבדיקה נכשלת, ועריכה מאוחרת של הסט לא הייתה נתפסת. תיקון מבני מתועד (לא כוונון ציפייה לפי המנוע) ⇒ מעדכנים את ה-sha וה-commit באותו commit של התיקון.
 
 ## מה גבי מנוע עושה
 מריץ **פעם אחת**: `python3 -m evals.harness --heldout evals/heldout/external-…jsonl`, ומוסיף את התוצאה ל-`RESULTS.md`:
