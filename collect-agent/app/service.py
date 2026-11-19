@@ -116,6 +116,30 @@ def _plan_not_proposed(status: str) -> ValueError:
 _B62 = "abcdefghijkmnpqrstuvwxyz23456789"  # אותיות קטנות+ספרות, בלי 0/o/1/l (קריא, ~31 ביט)
 
 
+# מנהל 307: כרטיסי «כתובת משותפת» (inbox.SHARED_CARDS — כאן כמחרוזות כדי לא לייבא את inbox)
+_SHARED_URGENT_INTENT = "shared_contact_urgent"
+_SHARED_CARD_INTENTS = (_SHARED_URGENT_INTENT, "shared_contact_paid_claim")
+
+
+def _linked_ids(payload) -> set:
+    try:
+        return {x.get("id") for x in json.loads(payload or "{}").get("linked_customers", [])}
+    except (ValueError, AttributeError, TypeError):
+        return set()
+
+
+def _scrub_linked_names(payload, only: int | None = None):
+    """שמות הלקוחות המקושרים ⇒ None (כולם, או רק `only`); המזהים ושאר ה-payload נשמרים. JSON פגום ⇒ NULL."""
+    try:
+        info = json.loads(payload or "{}")
+        for x in info.get("linked_customers", []):
+            if only is None or x.get("id") == only:
+                x["name"] = None
+        return json.dumps(info, ensure_ascii=False)
+    except (ValueError, AttributeError, TypeError):
+        return None
+
+
 def _iso(dt: datetime) -> str:
     return dt.astimezone(TZ).isoformat(timespec="seconds")
 
@@ -1479,18 +1503,43 @@ class CollectService:
             self.db.x("DELETE FROM link_tokens WHERE customer_id=?", (c["id"],))
             # critic סבב 75: גם יומן ה-dry-run בזיכרון (/outbox) — לפי הכתובות, לפני שמתממים אותן
             self._scrub_sent_log(self.db.one("SELECT phone, email FROM customers WHERE id=?", (c["id"],)))
+            self._scrub_shared_card_name(c["id"])
             self.db.x("UPDATE customers SET name=NULL, phone=NULL, email=NULL, blocked_phone=NULL,"
                       " blocked_email=NULL, purged_at=? WHERE id=?", (now, c["id"]))
             cust_n += 1
         # QA: הודעה משולח לא מוכר (customer_id=NULL) = PII של מי שאינו לקוח ⇒ 90 יום מקבלתה
-        unk = self.db.q("SELECT id FROM messages WHERE customer_id IS NULL AND direction='in' "
-                        "AND body<>'' AND created_at<=?", (cutoff,))
+        unk = self.db.q("SELECT id, intent, needs_owner, payload, created_at FROM messages WHERE customer_id IS NULL "
+                        "AND direction='in' AND body<>'' AND created_at<=?", (cutoff,))
+        floor = _iso(self.clock() - timedelta(days=2 * RETENTION_DAYS))
+        purged_unk = 0
         for m in unk:
-            self.db.x("UPDATE messages SET body='', payload=NULL WHERE id=?", (m["id"],))
+            if m["intent"] in _SHARED_CARD_INTENTS:
+                # מנהל 307: כרטיס 👥 דחוף פתוח ⇒ לא מרוקנים (כמו 158א, תקרה 180 יום); אחרת — גוף + שמות נמחקים,
+                # המזהים נשמרים (בלי שם ⇒ ה-web לא מציע אותו לשיוך; «אף אחד מהם» עדיין עובד)
+                if m["intent"] == _SHARED_URGENT_INTENT and m["needs_owner"] and m["created_at"] > floor:
+                    continue
+                self.db.x("UPDATE messages SET body='', payload=? WHERE id=?",
+                          (_scrub_linked_names(m["payload"]), m["id"]))
+            else:
+                self.db.x("UPDATE messages SET body='', payload=NULL WHERE id=?", (m["id"],))
+            purged_unk += 1
         # critic סבב 42 (ℹ️): מפתחות dedupe של webhooks גדלו לנצח. ספק לא שולח retry אחרי 90 יום,
         # ומזהה הודעת מייל יכול לשאת דומיין/שם שולח ⇒ אותו חלון שמירה.
         self.db.x("DELETE FROM webhook_dedupe WHERE at<=?", (cutoff,))
-        return inv_n, cust_n, len(unk)
+        return inv_n, cust_n, purged_unk
+
+    def _open_urgent_shared_cards(self, floor: str):
+        return self.db.q("SELECT id, payload FROM messages WHERE customer_id IS NULL AND intent=? AND "
+                         "needs_owner=1 AND created_at>?", (_SHARED_URGENT_INTENT, floor))
+
+    def _scrub_shared_card_name(self, customer_id: int) -> None:
+        """מנהל 307 (ר-10): לקוח שהותמם — השם שלו נמחק גם מ-payload של כרטיסי «כתובת משותפת» (customer_id=NULL,
+        ולכן לא נתפסו בהתממה). המזהה נשאר, כדי שהכרטיס לא יישבר."""
+        for m in self.db.q("SELECT id, payload FROM messages WHERE customer_id IS NULL AND intent IN (?,?)",
+                           _SHARED_CARD_INTENTS):
+            if customer_id in _linked_ids(m["payload"]):
+                self.db.x("UPDATE messages SET payload=? WHERE id=?",
+                          (_scrub_linked_names(m["payload"], only=customer_id), m["id"]))
 
     def _has_open_card(self, customer_id: int) -> bool:
         """critic 158א: כרטיס **דחוף** פתוח (טיוטה escalate='urgent' שבעל העסק עוד לא טיפל בה) ⇒ ההתממה נדחית.
@@ -1501,6 +1550,10 @@ class CollectService:
         floor = _iso(self.clock() - timedelta(days=2 * RETENTION_DAYS))
         # critic סבב 159: «טופל» על הכרטיס מאפס רק messages.needs_owner — הטיוטה הדחופה נשארה פתוחה ⇒ ההתממה נדחתה
         # עד התקרה אף שבעל העסק סיים. הכרטיס = ההודעה ב«דורש טיפול»; טיוטה דחופה דוחה רק כל עוד הכרטיס עצמו פתוח.
+        # מנהל 307: כרטיס 👥 דחוף פתוח (customer_id=NULL, הלקוח ב-payload) ⇒ גם הוא דוחה — אחרת «שייכו» נכשל
+        # («כבר לא קיים») ובעל העסק מאבד את מי שכתב «אני בן 15».
+        if any(customer_id in _linked_ids(m["payload"]) for m in self._open_urgent_shared_cards(floor)):
+            return True
         return self.db.one(
             "SELECT 1 FROM drafts WHERE customer_id=? AND escalate='urgent' AND "
             "status IN ('pending_approval','needs_owner') AND created_at>? AND EXISTS("
