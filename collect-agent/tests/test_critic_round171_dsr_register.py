@@ -8,7 +8,8 @@
    בקשה מכתובת משותפת («תמחקו את כל הפרטים שלי מהמאגר» מ-fam@ex.com) **לא** נרשמת עם קבלתה; היא נרשמת רק ביום
    השיוך, עם `received_at` = יום השיוך ⇒ המועד זז. נמדד: שיוך ביום 20 ⇒ due = יום 50 (במקום יום 30): בעל העסק
    רואה «נותרו 30 יום» כשבפועל נותרו 10. הצעה: מועד לפי `created_at` של הכרטיס/ההודעה המקורית (או רישום מיידי
-   כבקשה ללא לקוח, שמשויכת בשיוך). הבדיקות xfail(strict=True); הבקרות נשארות ירוקות."""
+   כבקשה ללא לקוח, שמשויכת בשיוך).
+   תוקן במנהל 319: הזיהוי הורחב; רישום מיידי בלי לקוח + קישור בשיוך — ה-xfail הוסרו."""
 from datetime import timedelta
 
 import pytest
@@ -21,7 +22,6 @@ MISSED = [("מחקו את המידע שלי", "deletion"), ("מבקש מחיקה
           ("אני רוצה לראות איזה מידע יש לכם עליי", "access")]
 
 
-@pytest.mark.xfail(strict=True, reason="critic 171א: ניסוח נפוץ של בקשת עיון/מחיקה לא נרשם במרשם (לתיקון בונה)")
 @pytest.mark.parametrize("text,kind", MISSED)
 def test_common_phrasing_opens_request(svc, text, kind):
     svc.sync()
@@ -45,7 +45,6 @@ def _shared(svc):
     return svc.email_webhook("fam@ex.com", "תמחקו את כל הפרטים שלי מהמאגר", "")
 
 
-@pytest.mark.xfail(strict=True, reason="critic 171ב: מועד בקשה מכתובת משותפת נספר מיום השיוך (לתיקון בונה)")
 def test_shared_request_due_counts_from_receipt(svc, clock):
     received = clock.now
     out = _shared(svc)

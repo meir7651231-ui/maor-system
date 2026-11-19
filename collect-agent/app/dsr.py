@@ -29,13 +29,20 @@ CREATE TABLE IF NOT EXISTS dsr (
 """
 
 # מזהים בקשה מפורשת לפי החוק, לא כל "מי אתם" או "תפסיקו" (אלה הסרה / מי זה — מסלולים אחרים)
+# critic 171א: גם «איזה מידע יש לכם עליי», «what information do you have about me», «מחקו/מחיקה של המידע»,
+# «delete my information», «erase my details» — ניסוחים נפוצים שלא נרשמו (ולכן לא רץ מועד 30 יום)
 _ACCESS = re.compile(r"(לעיין|עיון)\s+(ב|על\s+)?(כל\s+)?(ה)?(מידע|פרטים|נתונים)|סעיף\s*13|"
-                     r"מה\s+(ה)?מידע\s+(ש)?יש\s+לכם\s+עליי|אילו\s+פרטים\s+(ש)?יש\s+לכם|"
-                     r"\b(access|copy of)\s+(my|the)\s+(personal\s+)?data\b|\bsubject access\b", re.I)
+                     r"(מה|איזה|אילו)\s+(ה)?(מידע|פרטים|נתונים)\s+(ש)?יש\s+לכם\s+(עליי|עלי|לגביי)|"
+                     r"אילו\s+פרטים\s+(ש)?יש\s+לכם|"
+                     r"\b(access|copy of)\s+(my|the)\s+(personal\s+)?data\b|\bsubject access\b|"
+                     r"\bwhat\s+(personal\s+)?(information|data|info|details)\s+do\s+you\s+(have|hold|keep)"
+                     r"\s+(about|on)\s+me\b", re.I)
 _CORRECT = re.compile(r"(לתקן|תיקון)\s+(את\s+)?(ה)?(מידע|פרטים|נתונים)|סעיף\s*14|"
                       r"\b(correct|rectify)\s+(my|the)\s+(personal\s+)?(data|details)\b", re.I)
-_DELETE = re.compile(r"(למחוק|מחיקת|תמחקו)\s+(את\s+)?(כל\s+)?(ה)?(מידע|פרטים|נתונים)(\s+שלי)?(\s+מה?מאגר)?|"
-                     r"\b(delete|erase)\s+(all\s+)?(my\s+)?(personal\s+)?data\b", re.I)
+_DELETE = re.compile(r"(למחוק|מחיקת|מחיקה\s+של|תמחקו|מחקו)\s+(את\s+)?(כל\s+)?(ה)?(מידע|פרטים|נתונים)"
+                     r"(\s+שלי)?(\s+מה?מאגר)?|"
+                     r"\b(delete|erase)\s+(all\s+)?(of\s+)?(my\s+)?(personal\s+)?(data|information|info|details)\b",
+                     re.I)
 
 
 def detect(text: str) -> list[str]:
@@ -53,8 +60,11 @@ def ensure_schema(db) -> None:
 
 
 def open_request(svc: Any, customer_id: int | None, kind: str, channel: str,
-                 note: str = "") -> int | None:
-    """None ⇒ כבר יש בקשה פתוחה מאותו סוג ללקוח (לא פותחים כפולה)."""
+                 note: str = "", received_at: datetime | None = None) -> int | None:
+    """None ⇒ כבר יש בקשה פתוחה מאותו סוג ללקוח (לא פותחים כפולה).
+
+    received_at: מתי הבקשה התקבלה בפועל (critic 171ב — בקשה מכתובת משותפת נרשמת רק בשיוך, אבל המועד
+    החוקי נספר מקבלת ההודעה, לא מיום השיוך). ברירת מחדל: עכשיו. עתידי ⇒ עכשיו."""
     if kind not in KINDS:
         raise ValueError(f"סוג בקשה לא מוכר: {kind}")
     ensure_schema(svc.db)
@@ -62,6 +72,8 @@ def open_request(svc: Any, customer_id: int | None, kind: str, channel: str,
             "SELECT 1 FROM dsr WHERE customer_id=? AND kind=? AND status='open'", (customer_id, kind)):
         return None
     now = svc.clock()
+    if received_at is not None and received_at < now:
+        now = received_at
     due = now + timedelta(days=DUE_DAYS)
     rid = svc.db.x("INSERT INTO dsr(customer_id,kind,channel,received_at,due_at,note) "
                    "VALUES(?,?,?,?,?,?)", (customer_id, kind, channel, _iso(now), _iso(due),
