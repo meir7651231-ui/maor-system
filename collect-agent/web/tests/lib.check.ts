@@ -1347,7 +1347,7 @@ test('כרטיס ממייל לא מאומת מסומן באזהרה; מאומת 
   for (const id of [3, 4, 5]) { assert.ok(!by(id).unverified, String(id)); assert.ok(!by(id).body.includes('SPF'), String(id)); }
 });
 
-import { dsrView, dsrCanClose, dsrSorted, DSR_NO_CUSTOMER, type DsrRow } from '../src/lib/dsr.ts';
+import { dsrView, dsrCanClose, dsrSorted, DSR_NO_CUSTOMER, DSR_ANON_CUSTOMER, type DsrRow } from '../src/lib/dsr.ts';
 test('critic 172ב: מרשם DSR — ימים שנותרו/איחור/טופל, בלי לקוח ⇒ «כתובת משותפת», סגירה רק עם תיעוד ≥5', () => {
   const base: DsrRow = { id: 1, customer_id: 3, customer: 'דנה', kind: 'deletion', channel: 'sms', received_at: '2026-11-01T10:00:00',
     due_at: '2026-12-01T10:00:00', status: 'open', done_at: null, note: '', days_left: 12, overdue: false };
@@ -1368,6 +1368,13 @@ test('critic 172ב: מרשם DSR — ימים שנותרו/איחור/טופל, 
   assert.deepEqual(rows.map(r => r.id), [3, 2, 4, 1]);
 });
 
+test('critic 174 (נלווה): לקוח שהותמם (customer_id בלי שם) ≠ «כתובת משותפת — לשייך»', () => {
+  const r = { id: 3, customer_id: 7, customer: null, kind: 'deletion', channel: 'sms', received_at: '2026-11-08T10:00:00',
+    due_at: '2026-12-08T10:00:00', status: 'open', done_at: null, note: '', days_left: 9, overdue: false } as DsrRow;
+  const who = dsrView(r).who;
+  assert.notEqual(who, DSR_NO_CUSTOMER); assert.ok(who.startsWith(DSR_ANON_CUSTOMER) && who.includes('#7'));
+  assert.equal(dsrView({ ...r, customer_id: null }).who, DSR_NO_CUSTOMER);
+});
 test('critic 172ב: מסך המרשם מחובר — GET /dsr, POST /dsr/{id}/done, ב«תשובות לקוחות», וקישור מכרטיס ה-dsr', () => {
   const api = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
   assert.match(api, /j<DsrRow\[\]>\('\/dsr'\)/); assert.match(api, /\/dsr\/\$\{id\}\/done/);

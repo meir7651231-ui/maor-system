@@ -10,8 +10,10 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
+
+from app.policy import TZ
 
 DUE_DAYS = 30
 WARN_DAYS = 5
@@ -76,6 +78,16 @@ def detect(text: str) -> list[str]:
             if _hit(rx, t, k == "deletion")]
 
 
+def _local_day(dt: datetime) -> date:
+    """יום לוח בשעון ישראל (המסך מציג **תאריך** יעד — הספירה בימי לוח, לא ביחידות 24 שעות; critic 174)."""
+    return (dt.astimezone(TZ) if dt.tzinfo else dt).date()
+
+
+def _days_left(due: datetime, now: datetime) -> int:
+    """0 = יום היעד עצמו; שלילי = באיחור (רק אחרי יום היעד)."""
+    return (_local_day(due) - _local_day(now)).days
+
+
 def _iso(dt: datetime) -> str:
     return dt.isoformat(timespec="seconds")
 
@@ -133,7 +145,7 @@ def listing(svc: Any) -> list[dict]:
     out = []
     for r in svc.db.q("SELECT d.*, c.name customer FROM dsr d LEFT JOIN customers c ON c.id=d.customer_id "
                       "ORDER BY d.status='done', d.due_at"):
-        days = (datetime.fromisoformat(r["due_at"]) - now).days
+        days = _days_left(datetime.fromisoformat(r["due_at"]), now)
         out.append({**dict(r), "days_left": days if r["status"] == "open" else None,
                     "overdue": r["status"] == "open" and days < 0})
     return out
@@ -146,12 +158,13 @@ def sweep(svc: Any) -> int:
     n = 0
     for r in svc.db.q("SELECT * FROM dsr WHERE status='open'"):
         due = datetime.fromisoformat(r["due_at"])
-        stage = "late" if now > due else ("soon" if due - now <= timedelta(days=WARN_DAYS) else "")
+        left = _days_left(due, now)
+        stage = "late" if left < 0 else ("soon" if left <= WARN_DAYS else "")
         if not stage or stage in r["warned"].split(","):
             continue
         msg = (f"⚠️ בקשת {KIND_HE[r['kind']]} עברה את המועד ({due.date().isoformat()})."
                if stage == "late" else
-               f"נותרו {max((due - now).days, 0)} ימים להשיב לבקשת {KIND_HE[r['kind']]} "
+               f"נותרו {left} ימים להשיב לבקשת {KIND_HE[r['kind']]} "
                f"(עד {due.date().isoformat()}).")
         _owner_alert(svc, r["customer_id"], f"dsr:{r['id']}:{stage}", msg)
         svc.db.x("UPDATE dsr SET warned=? WHERE id=?",

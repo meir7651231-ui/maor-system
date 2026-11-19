@@ -9,6 +9,8 @@ export interface DsrRow {
 export const DSR_KIND: Record<string, string> = { access: 'עיון במידע', correction: 'תיקון מידע', deletion: 'מחיקת מידע' };
 /** בקשה מכתובת משותפת נרשמת בלי לקוח (מנהל 319) — עד השיוך מהכרטיס בסקירה. */
 export const DSR_NO_CUSTOMER = 'כתובת משותפת — לשייך מהכרטיס בסקירה';
+/** critic 174 (נלווה): לקוח שהותמם (customer_id קיים, השם נמחק) — אינו «כתובת משותפת»; אין מה לשייך. */
+export const DSR_ANON_CUSTOMER = 'לקוח שפרטיו נמחקו';
 export const DSR_NOTE_MIN = 5;
 const ddmm = (iso: string | null) => (iso ?? '').slice(0, 10).split('-').reverse().join('.');
 
@@ -22,7 +24,7 @@ export function dsrView(r: DsrRow): DsrView {
     : r.overdue ? `באיחור של ${-d} ${-d === 1 ? 'יום' : 'ימים'}`
     : d === 0 ? 'היום האחרון להשיב' : `נותרו ${d} ${d === 1 ? 'יום' : 'ימים'}`;
   const tone = !open ? 'done' : r.overdue ? 'late' : d <= 5 ? 'soon' : 'ok';
-  return { id: r.id, who: r.customer?.trim() || DSR_NO_CUSTOMER, kind: DSR_KIND[r.kind] ?? r.kind,
+  return { id: r.id, who: r.customer?.trim() || (r.customer_id != null ? `${DSR_ANON_CUSTOMER} (#${r.customer_id})` : DSR_NO_CUSTOMER), kind: DSR_KIND[r.kind] ?? r.kind,
     due: ddmm(r.due_at), state, tone, open };
 }
 /** פתוחות קודם (המוקדמת ביותר ראשונה, כמו השרת), ואז סגורות — החדשה ראשונה. */
