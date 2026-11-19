@@ -286,10 +286,13 @@ class ConversationInbox:
             # critic סבב 23 (ר-7): חשבונית מעל 3 שנים ⇒ שום תשובה לא יוצאת בלי אישור פרטני
             d = replace(d, auto_send=False, tags=d.tags + ("manual_only_old",),
                         owner_actions=d.owner_actions + ("יש חשבונית בת יותר מ-3 שנים — לאשר ידנית",))
+        # critic 165: «מספר שגוי» כוונה **משנית** (ליד הסרה/גיל) ⇒ סימון צד-שלישי ב-payload, כדי שייצוא בקשת
+        # העיון (customer_data_export) לא ימסור ללקוחה את תוכן ההודעה של הזר. ה-intent הראשי לא משתנה.
+        third = Intent.WRONG_PERSON in d.all_intents
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
-                  "created_at) VALUES(?,'in',?,?,?,?,?)",
+                  "payload,created_at) VALUES(?,'in',?,?,?,?,?,?)",
                   (cust["id"], channel, text, d.intent.value,
-                   int(d.escalate != Escalation.NONE), _iso(now)))
+                   int(d.escalate != Escalation.NONE), compliance.THIRD_PARTY_PAYLOAD if third else None, _iso(now)))
         plan_id = self._apply_effects(cust, d, prior=ctx.state)
         draft_id = None
         if d.reply or d.escalate != Escalation.NONE:

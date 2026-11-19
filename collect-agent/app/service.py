@@ -1486,30 +1486,39 @@ class CollectService:
         # critic 164: התכתבות עם זר שענה «מספר שגוי» היא מידע על **צד שלישי**, לא על הלקוח (סעיף 13 = מידע עליו).
         # ההודעה הנכנסת נשארת כשורה (התאריך = עובדה על הטיפול בחוב שלה) אבל בלי התוכן; טיוטת התשובה לזר
         # וההודעה היוצאת אליו לא נמסרות. שאילתות קבועות, בלי SQL דינמי.
+        # critic 165: «מספר שגוי» גם ככוונה משנית (ליד הסרה/גיל) ⇒ ה-intent הראשי הוא opt_out/minor. לכן צד
+        # שלישי מזוהה גם לפי סימון ה-payload של ההודעה הנכנסת, וטיוטה/הודעה יוצאת לפי הכתובת שנחסמה
+        # (blocked_phone/blocked_email = הכתובת של הזר; תזכורות שנשלחו אליה בשם הלקוחה נשארות).
+        blocked = {a for a in (normalize_il_phone(row["blocked_phone"] or ""),
+                               (row["blocked_email"] or "").strip().lower()) if a}
         try:
-            third_mids = {r["message_id"] for r in self.db.q(
-                "SELECT message_id FROM drafts WHERE customer_id=? AND intent='wrong_person' "
-                "AND message_id IS NOT NULL", (customer_id,))}
+            all_drafts = [dict(r) for r in self.db.q(
+                "SELECT id,channel,body,intent,status,created_at,sent_at,to_addr,message_id FROM drafts "
+                "WHERE customer_id=? ORDER BY id", (customer_id,))]
         except sqlite3.OperationalError:
-            third_mids = set()
+            all_drafts = []
+        drafts, third_mids = [], set()
+        for dr in all_drafts:
+            to_addr, mid = dr.pop("to_addr"), dr.pop("message_id")
+            addr = (normalize_il_phone(to_addr) if dr["channel"] == "sms" else (to_addr or "").strip().lower())
+            if dr["intent"] == "wrong_person" or (addr and addr in blocked):
+                if mid:
+                    third_mids.add(mid)
+                continue
+            drafts.append(dr)
         messages = []
-        for r in self.db.q("SELECT id,direction,channel,body,intent,created_at,delivery_status,message_id "
-                           "FROM messages WHERE customer_id=? ORDER BY id", (customer_id,)):
+        for r in self.db.q("SELECT id,direction,channel,body,intent,created_at,delivery_status,message_id,"
+                           "payload FROM messages WHERE customer_id=? ORDER BY id", (customer_id,)):
             m = dict(r)
+            payload = m.pop("payload") or ""
             if m.pop("message_id") in third_mids and m["direction"] == "out":
                 continue
-            if m["intent"] == "wrong_person":
+            if m["intent"] == "wrong_person" or (m["direction"] == "in" and payload == compliance.THIRD_PARTY_PAYLOAD):
                 m["body"] = self._EXPORT_THIRD_PARTY_NOTE
             messages.append(m)
         plans_ = [dict(r) for r in self.db.q(
             "SELECT id,invoice_id,installments,status,created_at FROM plans WHERE customer_id=? "
             "ORDER BY id", (customer_id,))]
-        try:
-            drafts = [dict(r) for r in self.db.q(
-                "SELECT id,channel,body,intent,status,created_at,sent_at FROM drafts "
-                "WHERE customer_id=? AND intent IS NOT 'wrong_person' ORDER BY id", (customer_id,))]
-        except sqlite3.OperationalError:
-            drafts = []
         self.audit(actor, "customer_data_export", {"customer": customer_id})
         return {"customer": customer, "invoices": invoices, "reminders": reminders,
                 "messages": messages, "plans": plans_, "drafts": drafts,

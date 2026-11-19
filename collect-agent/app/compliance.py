@@ -179,3 +179,8 @@ def violations(text: str, r: Rules) -> list[str]:
     if r.channel == "sms" and len(text) > r.max_sms_chars:
         out.append("sms_too_long")
     return out
+
+
+# critic 165: סימון ב-messages.payload להודעה נכנסת של צד שלישי («מספר שגוי», גם ככוונה משנית ליד הסרה/גיל).
+# נכתב ב-inbox.handle_customer ונקרא ב-service.customer_data_export (תוכן הזר לא נמסר בבקשת עיון).
+THIRD_PARTY_PAYLOAD = '{"third_party": "wrong_person"}'

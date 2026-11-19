@@ -6,14 +6,16 @@ opt_out / minor (ו-WRONG_PERSON משני — `_apply_effects` עדיין מוח
 ולכן ההודעה **בתוכנה המלא** נמסרת ללקוחה: «זה לא המספר של דנה, תפסיקו לשלוח לי», «wrong number, stop texting me»,
 «אני לא דנה, אל תשלחו לי יותר», ואף «טעות במספר. אני בן 13» — הצהרת גיל של קטין זר. [מאומת בהרצה]
 הצעה: לסמן את ההודעה כצד-שלישי לפי **כל** הכוונות (`d.all_intents`), למשל לשמור WRONG_PERSON ב-tags/payload או
-להחליף את intent ל-wrong_person כשהיא קיימת, ולסנן לפי זה. הבדיקות xfail(strict=True)."""
+להחליף את intent ל-wrong_person כשהיא קיימת, ולסנן לפי זה. הבדיקות xfail(strict=True).
+
+תוקן במנהל 312: ההודעה הנכנסת מסומנת ב-payload (`compliance.THIRD_PARTY_PAYLOAD`) כש-WRONG_PERSON באחת הכוונות;
+טיוטה לכתובת שנחסמה (blocked_phone/blocked_email, מנורמלת) וההודעה היוצאת שלה לא נמסרות. ראו גם test_mgr312."""
 import pytest
 
 MIXED = ["זה לא המספר של דנה, תפסיקו לשלוח לי", "wrong number, stop texting me",
          "אני לא דנה, אל תשלחו לי יותר", "טעות במספר. אני בן 13"]
 
 
-@pytest.mark.xfail(strict=True, reason="critic 165: wrong_person משני ⇒ תוכן הזר בייצוא העיון (לתיקון בונה)")
 @pytest.mark.parametrize("msg", MIXED)
 def test_wrong_person_secondary_not_exported(svc, msg):
     svc.sync()
