@@ -825,6 +825,19 @@ class CollectService:
         self.db.x("UPDATE invoices SET short_code=? WHERE id=?", (code, inv_row["id"]))
         return code
 
+    def revoke_short_codes(self, customer_id: int, why: str) -> int:
+        """מבקר סבב 163: הקוד הקצר (/p/{code}) נשלח לכתובת שהתבררה כשגויה ⇒ מי שמחזיק אותו הוא זר. הקוד
+        מבוטל (`short_code=NULL`) — העמוד מחזיר 404, והזר לא יכול לרשום «שילמתי»/«פריסה» בשם הלקוח. הלקוח
+        האמיתי יקבל קוד חדש בהודעה הבאה לכתובת המתוקנת (`_short_code` מנפיק מחדש כשהשדה ריק)."""
+        rows = self.db.q("SELECT id FROM invoices WHERE customer_id=? AND short_code IS NOT NULL",
+                         (customer_id,))
+        for r in rows:
+            self.db.x("UPDATE invoices SET short_code=NULL WHERE id=?", (r["id"],))
+        n = len(rows)
+        if n:
+            self.audit("system", "short_codes_revoked", {"customer": customer_id, "via": why, "n": n})
+        return n
+
     def short_url(self, inv_row) -> str:
         return f"{self.s.public_base_url}/p/{self._short_code(inv_row)}"
 

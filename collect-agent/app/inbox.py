@@ -171,6 +171,10 @@ class ConversationInbox:
         # הסרה / מספר שגוי ⇒ רשימת ההסרה לפי הכתובת (חל על כולם; זה לא שיוך — זו הכתובת עצמה)
         if {Intent.OPT_OUT, Intent.WRONG_PERSON} & found:
             self.svc.suppress(channel, sender, "shared_contact_opt_out")
+        if Intent.WRONG_PERSON in found:
+            # מבקר סבב 163: הקישורים שנשלחו לכתובת המשותפת — אצל מי שאומר שאינו האדם ⇒ מבוטלים לכל המקושרים
+            for c in linked:
+                self.svc.revoke_short_codes(c["id"], "shared_contact_wrong_person")
         if Intent.OPT_OUT in found:
             # review חור 1 (הכרעה שמרנית קודמת, נשמרת): «הסר» מכתובת משותפת ⇒ כל הערוצים של כל המקושרים
             # נעצרים. זו לא שיוך — עוצרים את כולם; בעל העסק יכול לחדש את מי שלא ביקש
@@ -299,6 +303,8 @@ class ConversationInbox:
                    if channel == "email" else
                    "UPDATE customers SET blocked_phone=phone, phone=NULL WHERE id=?")
             self.db.x(sql, (cust["id"],))
+            # מבקר סבב 163: הקישור /p/ שנשלח למספר השגוי — אצל זר ⇒ מבוטל
+            self.svc.revoke_short_codes(cust["id"], "wrong_number")
             self._wrong_number = False
         self._save_state(cust["id"], d, bump_turn=bool(d.reply))
         # מבקר סבב 99: כרטיס דחוף לא הודיע לבעלים מחוץ לאפליקציה ⇒ מייל קצר (בלי טקסט הלקוח, עם throttle)
