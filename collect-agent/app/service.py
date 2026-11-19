@@ -1463,7 +1463,10 @@ class CollectService:
     # מה שגבי מחזיקה על לקוח אחד. לא כולל: אסימונים (unsub_token, link_tokens — מפתחות גישה, לא מידע עליו),
     # payload פנימי של הודעות, וכרטיסי «כתובת משותפת» (customer_id=NULL — מכילים שמות של לקוחות אחרים).
     # הייצוא נרשם ב-access_log (PII_READ_ROUTES) וגם ב-audit (בלי תוכן).
-    _EXPORT_CUSTOMER_HIDE = frozenset({"unsub_token"})
+    # critic 164: blocked_phone/blocked_email = הכתובת של **מי שענה «מספר שגוי»** (צד שלישי), לא של הלקוח
+    _EXPORT_CUSTOMER_HIDE = frozenset({"unsub_token", "blocked_phone", "blocked_email"})
+    _EXPORT_THIRD_PARTY_NOTE = ("התקבלה הודעה ממספר/כתובת שאינם של הלקוח («מספר שגוי»). "
+                                "פרטי השולח ותוכן ההודעה לא נמסרים.")
 
     def customer_data_export(self, customer_id: int, actor: str = "owner") -> dict:
         row = self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,))
@@ -1480,24 +1483,39 @@ class CollectService:
             "FROM reminders r WHERE r.invoice_id IN (SELECT id FROM invoices WHERE customer_id=?) "
             "OR r.id IN (SELECT ri.reminder_id FROM reminder_invoices ri JOIN invoices i "
             "ON i.id=ri.invoice_id WHERE i.customer_id=?) ORDER BY r.id", (customer_id, customer_id))]
-        messages = [dict(r) for r in self.db.q(
-            "SELECT id,direction,channel,body,intent,created_at,delivery_status FROM messages "
-            "WHERE customer_id=? ORDER BY id", (customer_id,))]
+        # critic 164: התכתבות עם זר שענה «מספר שגוי» היא מידע על **צד שלישי**, לא על הלקוח (סעיף 13 = מידע עליו).
+        # ההודעה הנכנסת נשארת כשורה (התאריך = עובדה על הטיפול בחוב שלה) אבל בלי התוכן; טיוטת התשובה לזר
+        # וההודעה היוצאת אליו לא נמסרות. שאילתות קבועות, בלי SQL דינמי.
+        try:
+            third_mids = {r["message_id"] for r in self.db.q(
+                "SELECT message_id FROM drafts WHERE customer_id=? AND intent='wrong_person' "
+                "AND message_id IS NOT NULL", (customer_id,))}
+        except sqlite3.OperationalError:
+            third_mids = set()
+        messages = []
+        for r in self.db.q("SELECT id,direction,channel,body,intent,created_at,delivery_status,message_id "
+                           "FROM messages WHERE customer_id=? ORDER BY id", (customer_id,)):
+            m = dict(r)
+            if m.pop("message_id") in third_mids and m["direction"] == "out":
+                continue
+            if m["intent"] == "wrong_person":
+                m["body"] = self._EXPORT_THIRD_PARTY_NOTE
+            messages.append(m)
         plans_ = [dict(r) for r in self.db.q(
             "SELECT id,invoice_id,installments,status,created_at FROM plans WHERE customer_id=? "
             "ORDER BY id", (customer_id,))]
         try:
             drafts = [dict(r) for r in self.db.q(
                 "SELECT id,channel,body,intent,status,created_at,sent_at FROM drafts "
-                "WHERE customer_id=? ORDER BY id", (customer_id,))]
+                "WHERE customer_id=? AND intent IS NOT 'wrong_person' ORDER BY id", (customer_id,))]
         except sqlite3.OperationalError:
             drafts = []
         self.audit(actor, "customer_data_export", {"customer": customer_id})
         return {"customer": customer, "invoices": invoices, "reminders": reminders,
                 "messages": messages, "plans": plans_, "drafts": drafts,
                 "generated_at": _iso(self.clock()),
-                "note": "ייצוא לפי בקשת עיון (סעיף 13). מפתחות גישה וכרטיסים משותפים עם לקוחות אחרים "
-                        "אינם כלולים."}
+                "note": "ייצוא לפי בקשת עיון (סעיף 13). מפתחות גישה, כרטיסים משותפים עם לקוחות אחרים "
+                        "ופרטים של צד שלישי (מי שענה «מספר שגוי») אינם כלולים."}
 
     def purge_closed(self, actor: str = "system") -> dict[str, int]:
         """חוב סגור מעל 90 יום ⇒ ריקון תוכן ההודעות והתממת הלקוח (כשאין לו חוב פתוח),
