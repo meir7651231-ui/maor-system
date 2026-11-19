@@ -11,7 +11,7 @@
   - `legal/LAWYER-QUESTIONS.md`: **35** מחיקה פרטנית כשהחוב פתוח · **36** ייצוא בלי צד שלישי ושורת האירוע. BRIEF: 34⇒36.
   - נבנו מחדש: `legal/dist/gabi-legal-package.html`, ‏`marketing/{terms,privacy}.html` + `web/public`.
 - **בדיקות:** `tests/test_legal_docs_mgr315.py` (+6, נגזר מהקוד: `_EXPORT_CUSTOMER_HIDE`, ‏`policy.LANDING_HOLDS` — סיבת השהיה חדשה בלי עדכון המסמכים נכשלת, `business_name_violations`, אין נתיב DELETE ללקוח). **מוטציה:** על המסמכים הישנים 5/6 נופלות (השישית בודקת עקביות מונה השאלות). pytest **7313 עברו**, 19 דולגו · ruff נקי · ‏`evals.harness`/`evals.sequences` 100% · `demo.sh --check` ירוק.
-- **מיזוג (הפעלה 315):** אין ענפים חדשים עם שינוי ב-`collect-agent/` (40 הענפים האחרונים נבדקו מול merge-base: 0 קבצים). ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
+- **מיזוג (הפעלה 315):** מוזג `b5dbffff` (מבקר סבב 168: 167 תוקן ✓, אין ממצא חדש — נכנס לענף בזמן ההפעלה). אין ענפים חדשים עם שינוי ב-`collect-agent/` (40 הענפים האחרונים נבדקו מול merge-base: 0 קבצים). ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
 - **מצב לפי תפקיד:**
   - פיתוח: **הבא:** ניסוח הכרטיס ליד הסדר שנדחה (ממתין לביקורת) · בדיקת שם עסק קיים בעלייה (אם הביקורת תאשר).
   - עיצוב: **הבא:** בדיקה בעין של `pay-held` ב-390px · הודעת השגיאה בשדה שם העסק במובייל.
