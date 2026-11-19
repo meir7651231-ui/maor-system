@@ -1347,7 +1347,7 @@ test('כרטיס ממייל לא מאומת מסומן באזהרה; מאומת 
   for (const id of [3, 4, 5]) { assert.ok(!by(id).unverified, String(id)); assert.ok(!by(id).body.includes('SPF'), String(id)); }
 });
 
-import { dsrView, dsrCanClose, dsrSorted, DSR_NO_CUSTOMER, DSR_ANONYMIZED, type DsrRow } from '../src/lib/dsr.ts';
+import { dsrView, dsrCanClose, dsrSorted, DSR_NO_CUSTOMER, DSR_ANON_CUSTOMER, type DsrRow } from '../src/lib/dsr.ts';
 test('critic 172ב: מרשם DSR — ימים שנותרו/איחור/טופל, בלי לקוח ⇒ «כתובת משותפת», סגירה רק עם תיעוד ≥5', () => {
   const base: DsrRow = { id: 1, customer_id: 3, customer: 'דנה', kind: 'deletion', channel: 'sms', received_at: '2026-11-01T10:00:00',
     due_at: '2026-12-01T10:00:00', status: 'open', done_at: null, note: '', days_left: 12, overdue: false };
@@ -1360,8 +1360,6 @@ test('critic 172ב: מרשם DSR — ימים שנותרו/איחור/טופל, 
   const late = dsrView({ ...base, days_left: -3, overdue: true });
   assert.equal(late.state, 'באיחור של 3 ימים'); assert.equal(late.tone, 'late');
   assert.equal(dsrView({ ...base, customer_id: null, customer: null }).who, DSR_NO_CUSTOMER);
-  // critic סבב 174 (נלווה): לקוח שהותמם — יש customer_id בלי שם ⇒ לא «כתובת משותפת — לשייך» (אין מה לשייך)
-  for (const customer of [null, '', '   ']) assert.equal(dsrView({ ...base, customer_id: 7, customer }).who, DSR_ANONYMIZED);
   const done = dsrView({ ...base, status: 'done', done_at: '2026-11-19T09:00:00', days_left: null });
   assert.equal(done.state, 'טופל 19.11.2026'); assert.equal(done.open, false);
   assert.equal(dsrCanClose('    abcd '), false); assert.equal(dsrCanClose('נשלח'), false); assert.equal(dsrCanClose('נשלח קובץ'), true);
@@ -1370,9 +1368,36 @@ test('critic 172ב: מרשם DSR — ימים שנותרו/איחור/טופל, 
   assert.deepEqual(rows.map(r => r.id), [3, 2, 4, 1]);
 });
 
+test('critic 174 (נלווה): לקוח שהותמם (customer_id בלי שם) ≠ «כתובת משותפת — לשייך»', () => {
+  const r = { id: 3, customer_id: 7, customer: null, kind: 'deletion', channel: 'sms', received_at: '2026-11-08T10:00:00',
+    due_at: '2026-12-08T10:00:00', status: 'open', done_at: null, note: '', days_left: 9, overdue: false } as DsrRow;
+  const who = dsrView(r).who;
+  assert.notEqual(who, DSR_NO_CUSTOMER); assert.ok(who.startsWith(DSR_ANON_CUSTOMER) && who.includes('#7'));
+  assert.equal(dsrView({ ...r, customer_id: null }).who, DSR_NO_CUSTOMER);
+});
 test('critic 172ב: מסך המרשם מחובר — GET /dsr, POST /dsr/{id}/done, ב«תשובות לקוחות», וקישור מכרטיס ה-dsr', () => {
   const api = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
   assert.match(api, /j<DsrRow\[\]>\('\/dsr'\)/); assert.match(api, /\/dsr\/\$\{id\}\/done/);
   assert.match(readFileSync(new URL('../src/pages/Inbox.tsx', import.meta.url), 'utf8'), /<DsrRegister \/>/);
   assert.match(readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8'), /n\.intent === 'dsr'[\s\S]{0,80}#\/inbox\?dsr=1/);
+});
+
+// מנהל 322 (מבקר 170, פתוח-לביקורת): תזכורת מאושרת שלא יצאה כי הרענון מול המקור נכשל — היה: אין כלום
+// בטבלת החשבוניות, ובתצוגה המקדימה «⛔ חסום: refresh_failed» (קוד גולמי). page_cap (10,000+ קבלות) בנוסח ייעודי.
+import { REFRESH_LABEL } from '../src/api.ts';
+test('מנהל 322: refresh_failed / refresh_page_cap — תווית בטבלה ובתצוגה המקדימה, לא «חסום»', () => {
+  assert.equal(blockKind('refresh_failed'), 'refresh');
+  assert.equal(blockKind('refresh_page_cap'), 'refresh');
+  assert.match(REFRESH_LABEL.refresh_page_cap, /10,000/);
+  assert.match(REFRESH_LABEL.refresh_failed, /ננסה שוב/);
+  const base = { number: '1', customer: 'x', phone: '', email: '', due: '2026-10-01', status: 'open', days_overdue: 1, reminders_sent: 0, customer_block: null, amount_agorot: 100 };
+  const lr = (status: string, block_reason: string | null) => ({ id: 9, step: 1, status, template_key: 'friendly', sent_at: null, block_reason });
+  const m = fromDashboard({ today: '2026-11-19', totals: {} as Dashboard['totals'], invoices: [
+    { ...base, invoice_id: 1, last_reminder: lr('approved', 'refresh_page_cap') },
+    { ...base, invoice_id: 2, last_reminder: lr('approved', 'refresh_failed') },
+    { ...base, invoice_id: 3, last_reminder: lr('pending_approval', 'refresh_failed') },   // לא מאושרת ⇒ לא מוצג
+    { ...base, invoice_id: 4, last_reminder: lr('approved', 'refresh_page_cap'), customer_block: 'disputed' },  // ההשהיה גוברת
+    { ...base, invoice_id: 5, last_reminder: lr('approved', null) },
+  ] } as never, []);
+  assert.deepEqual(m.invoices.map(i => i.note), [REFRESH_LABEL.refresh_page_cap, REFRESH_LABEL.refresh_failed, undefined, 'במחלוקת', undefined]);
 });

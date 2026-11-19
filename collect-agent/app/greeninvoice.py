@@ -52,6 +52,11 @@ class GreenInvoiceError(RuntimeError):
     pass
 
 
+class PageCapError(GreenInvoiceError):
+    """מנהל 322: הסריקה הגיעה ל-max_pages והשרת מדווח על עוד עמודים (מבקר 170). נפרד מכשל רשת,
+    כדי שבעל העסק יראה סיבה אמיתית («יותר מדי קבלות מאז תאריך החשבונית»), לא «המקור לא זמין»."""
+
+
 def is_loopback_url(url: str) -> bool:
     from urllib.parse import urlparse
 
@@ -431,7 +436,7 @@ class GreenInvoiceClient:
             if page >= pages:
                 return
             if strict and page >= max_pages:
-                raise GreenInvoiceError(f"page_cap: {pages} pages > max_pages={max_pages} (types={list(types)})")
+                raise PageCapError(f"page_cap: {pages} pages > max_pages={max_pages} (types={list(types)})")
             page += 1
 
     def credits_for(self, doc_id: str, since=None, doc: Invoice | None = None) -> int:
@@ -475,7 +480,7 @@ class GreenInvoiceClient:
         fresh = b is not None and "t" in b and time.monotonic() - b["t"] <= self._BATCH_TTL
         if fresh and (b["since"] is None or (since is not None and since >= b["since"])):
             if b.get("error"):
-                raise GreenInvoiceError(b["error"])
+                raise b.get("error_cls", GreenInvoiceError)(b["error"])
             return [d for d in b["docs"] if since is None or d.issued is None or d.issued >= since]
         try:
             docs = list(self._iter_docs(types=RECEIPT_TYPES, statuses=RECEIPT_STATUSES, from_date=since,
@@ -483,7 +488,7 @@ class GreenInvoiceClient:
         except GreenInvoiceError as e:
             if b is not None:
                 b.clear()
-                b.update(t=time.monotonic(), since=since, docs=[], error=str(e))
+                b.update(t=time.monotonic(), since=since, docs=[], error=str(e), error_cls=type(e))
             raise
         if b is not None:
             b.clear()

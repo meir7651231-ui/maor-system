@@ -58,7 +58,8 @@ def test_credit_beyond_cap_blocks_send(svc, fake_gi):
     fake_gi.docs.extend(_foreign(10_001, typ=330))
     svc.dispatch()
     assert _to_dana(svc) == []
-    assert svc.db.one("SELECT COUNT(*) n FROM reminders WHERE block_reason='refresh_failed'")["n"] >= 1
+    # מנהל 322: page_cap מקבל סיבה נפרדת (refresh_page_cap) — אותה התנהגות, תווית אחרת לבעל העסק
+    assert svc.db.one("SELECT COUNT(*) n FROM reminders WHERE block_reason='refresh_page_cap'")["n"] >= 1
 
 
 def test_page_cap_failure_retries_next_run_not_lost(svc, fake_gi):

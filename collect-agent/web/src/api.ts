@@ -226,6 +226,13 @@ export const BLOCK_LABEL: Record<string, string> = {
   no_reply_to: 'ללקוח יש רק מייל ולא הוגדרה כתובת תשובה לעסק — להגדיר בהגדרות',
 };
 
+/** מנהל 322: תזכורת **מאושרת** שלא יצאה כי הרענון מול המקור נכשל (ר-4). לא חסימה ולא «לאשר מחדש» —
+ *  השרת מנסה שוב בכל ריצה. היה: /app/ לא הציג כלום, ו-/ui הציג «מושהה עד שתבדקו». זהה ל-BLOCK ב-app/ui.html. */
+export const REFRESH_LABEL: Record<string, string> = {
+  refresh_failed: 'מאושרת, ממתינה: לא הצלחנו לוודא את הסכום מול מערכת החשבוניות. ננסה שוב אוטומטית',
+  refresh_page_cap: 'מאושרת, ממתינה: יותר מ-10,000 קבלות/זיכויים מאז תאריך החשבונית, אי אפשר לוודא שלא שולמה. לבדוק ידנית',
+};
+
 /** critic סבב 32: סיבות שבהן התזכורת רק **חזרה לאישור** (השרת מאשר אותן). הממשק השבית אותן כ«חסום». */
 export const REAPPROVE_LABEL: Record<string, string> = {
   approval_expired: 'האישור הקודם פג (חיכה יותר מ-7 ימים) — לאשר מחדש',
@@ -241,9 +248,10 @@ export const DRIFT_LABEL = 'הסכום השתנה במקור, תחזור לאי�
 export const driftText = (d: { was: string | null; now: string }) =>
   `הסכום במקור השתנה${d.was ? ` מ-${d.was}` : ''} ל-${d.now} אחרי שאישרתם. התזכורת לא תישלח על הסכום הקודם: לפני השליחה היא תחזור אליכם לאישור עם הסכום המעודכן.`;
 
-/** 'hard' = אסור לאשר (כפתור מושבת) · 'reapprove' = מותר, עם הסבר · null = אין. לא מוכר ⇒ 'hard' (שמרני). */
-export function blockKind(b: string | null | undefined): 'hard' | 'reapprove' | null {
+/** 'hard' = אסור לאשר (כפתור מושבת) · 'reapprove' = מותר, עם הסבר · 'refresh' = כבר אושרה, ממתינה לרענון מול המקור · null = אין. לא מוכר ⇒ 'hard' (שמרני). */
+export function blockKind(b: string | null | undefined): 'hard' | 'reapprove' | 'refresh' | null {
   if (!b) return null;
+  if (b in REFRESH_LABEL) return 'refresh';   // מנהל 322: מאושרת וממתינה לרענון — לא «⛔ חסום: refresh_failed»
   return b in REAPPROVE_LABEL ? 'reapprove' : 'hard';
 }
 
@@ -277,7 +285,9 @@ export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
     const lastSent = ls ? { at: at || null, channels: sentChannels, unknown: !!ls.unknown } : undefined;
     // הפעלה 160: כמו טבלת החובות ב-/ui — רק לחשבונית פתוחה שהלקוח שלה לא מושהה (שם הסטטוס הוא ההשהיה)
     const drift = r.status === 'open' && !r.customer_block ? r.last_reminder?.amount_drift : null;
-    const blockNote = r.customer_block ? BLOCK_LABEL[r.customer_block] ?? r.customer_block : undefined;
+    const lr = r.last_reminder;
+    const refreshNote = r.status === 'open' && lr?.status === 'approved' && lr.block_reason ? REFRESH_LABEL[lr.block_reason] : undefined;
+    const blockNote = r.customer_block ? BLOCK_LABEL[r.customer_block] ?? r.customer_block : refreshNote;
     invoices.push({
       id: String(r.invoice_id), source: r.source === 'csv' ? 'csv' : 'api', number: r.number, customerId: cid, amount: r.amount_agorot / 100,
       issuedAt: r.due ?? d.today, dueAt: r.due ?? d.today, status, payUrl: '', reminders, note: blockNote,
