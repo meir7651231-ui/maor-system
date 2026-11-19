@@ -10,8 +10,10 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
+
+from .policy import TZ
 
 DUE_DAYS = 30
 WARN_DAYS = 5
@@ -80,6 +82,17 @@ def _iso(dt: datetime) -> str:
     return dt.isoformat(timespec="seconds")
 
 
+def _il_day(dt: datetime) -> date:
+    """critic 174: ימי לוח בשעון ישראל — המסך וההתראה מציגים **תאריך** יעד, ולכן גם הספירה לפי תאריך."""
+    return dt.astimezone(TZ).date() if dt.tzinfo else dt.date()
+
+
+def days_left(due: datetime, now: datetime) -> int:
+    """0 = יום היעד עצמו («היום האחרון»), שלילי = עבר יום היעד. היה הפרש datetime ב-.days (יחידות 24 שעות) ⇒
+    «היום האחרון» יום לפני היעד, ו«באיחור» ביום היעד שמוצג על המסך."""
+    return (_il_day(due) - _il_day(now)).days
+
+
 def ensure_schema(db) -> None:
     db.conn.executescript(SCHEMA)
 
@@ -123,7 +136,8 @@ def close_request(svc: Any, dsr_id: int, note: str, actor: str = "owner") -> dic
         raise ValueError("סגירת בקשה דורשת תיעוד קצר (מה נמסר/תוקן/נמחק ואיך)")
     svc.db.x("UPDATE dsr SET status='done', done_at=?, note=? WHERE id=?",
              (_iso(svc.clock()), note.strip()[:500], dsr_id))
-    svc.audit(actor, "dsr_closed", {"dsr": dsr_id, "late": svc.clock() > datetime.fromisoformat(r["due_at"])})
+    svc.audit(actor, "dsr_closed", {"dsr": dsr_id,
+                                    "late": days_left(datetime.fromisoformat(r["due_at"]), svc.clock()) < 0})
     return dict(svc.db.one("SELECT * FROM dsr WHERE id=?", (dsr_id,)))
 
 
@@ -133,7 +147,7 @@ def listing(svc: Any) -> list[dict]:
     out = []
     for r in svc.db.q("SELECT d.*, c.name customer FROM dsr d LEFT JOIN customers c ON c.id=d.customer_id "
                       "ORDER BY d.status='done', d.due_at"):
-        days = (datetime.fromisoformat(r["due_at"]) - now).days
+        days = days_left(datetime.fromisoformat(r["due_at"]), now)
         out.append({**dict(r), "days_left": days if r["status"] == "open" else None,
                     "overdue": r["status"] == "open" and days < 0})
     return out
@@ -146,13 +160,17 @@ def sweep(svc: Any) -> int:
     n = 0
     for r in svc.db.q("SELECT * FROM dsr WHERE status='open'"):
         due = datetime.fromisoformat(r["due_at"])
-        stage = "late" if now > due else ("soon" if due - now <= timedelta(days=WARN_DAYS) else "")
+        left = days_left(due, now)   # critic 174: אותה ספירה כמו המרשם — «באיחור» רק אחרי יום היעד
+        stage = "late" if left < 0 else ("soon" if left <= WARN_DAYS else "")
         if not stage or stage in r["warned"].split(","):
             continue
-        msg = (f"⚠️ בקשת {KIND_HE[r['kind']]} עברה את המועד ({due.date().isoformat()})."
-               if stage == "late" else
-               f"נותרו {max((due - now).days, 0)} ימים להשיב לבקשת {KIND_HE[r['kind']]} "
-               f"(עד {due.date().isoformat()}).")
+        kind_he, due_iso = KIND_HE[r["kind"]], _il_day(due).isoformat()
+        if stage == "late":
+            msg = f"⚠️ בקשת {kind_he} עברה את המועד ({due_iso})."
+        elif left == 0:
+            msg = f"היום היום האחרון להשיב לבקשת {kind_he} (עד {due_iso})."
+        else:
+            msg = f"נותרו {left} ימים להשיב לבקשת {kind_he} (עד {due_iso})."
         _owner_alert(svc, r["customer_id"], f"dsr:{r['id']}:{stage}", msg)
         svc.db.x("UPDATE dsr SET warned=? WHERE id=?",
                  (",".join(x for x in (r["warned"], stage) if x), r["id"]))

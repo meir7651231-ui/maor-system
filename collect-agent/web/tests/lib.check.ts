@@ -1394,3 +1394,14 @@ test('מנהל 322: refresh_failed / refresh_page_cap — תווית בטבלה 
   ] } as never, []);
   assert.deepEqual(m.invoices.map(i => i.note), [REFRESH_LABEL.refresh_page_cap, REFRESH_LABEL.refresh_failed, undefined, 'במחלוקת', undefined]);
 });
+
+// critic 174 (נלווית): לקוח שהותמם (customer_id קיים, customer=null) הוצג «כתובת משותפת — לשייך מהכרטיס» — אין מה לשייך.
+import { DSR_ANONYMIZED } from '../src/lib/dsr.ts';
+test('critic 174: מרשם DSR — לקוח שהותמם ≠ כתובת משותפת', () => {
+  const base: DsrRow = { id: 1, customer_id: 7, customer: null, kind: 'deletion', channel: 'sms', received_at: '2026-11-08T10:00:00+02:00',
+    due_at: '2026-12-08T10:00:00+02:00', status: 'open', done_at: null, note: '', days_left: 3, overdue: false };
+  assert.equal(dsrView(base).who, DSR_ANONYMIZED);
+  assert.equal(dsrView({ ...base, customer: '  ' }).who, DSR_ANONYMIZED);
+  assert.equal(dsrView({ ...base, customer_id: null }).who, DSR_NO_CUSTOMER);
+  assert.equal(dsrView({ ...base, customer: 'דנה' }).who, 'דנה');
+});
