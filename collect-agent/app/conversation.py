@@ -516,6 +516,15 @@ _EN_SALARY_COND = re.compile(
     r"|(?:after|on|by|right\s+after)\s+(?:my\s+|our\s+|the\s+)?(?:payday|pay\s+day|(?:next\s+)?pay\s*check|salary))\b", re.I)
 
 
+# מבקר 159: המשך שמבטל/עוין/מסתייג בתוך הבטחה ⇒ כרטיס לבעלים (טקסט מנורמל: אותיות סופיות רגילות)
+_PROMISE_HOSTILE_TAIL = (
+    r"\b(?:done\s+with\s+(?:you|u|this|your)|cancell?(?:ing|ed)?\s+(?:the|my|our)\s+(?:lessons?|classes|class|subscription|service|"
+    r"contract|membership|course)|last\s+time\s+i|promise\s+nothing|no\s+promises|pigs\s+fly|never\s+again|never\s+using\s+you"
+    r"|leaving\s+(?:you|your)|switching\s+to)\b"
+    r"|(?<![\w])(?<!לא\s)(?<!לא\sאני\s)(?:מבטל|מבטלת|מבטלימ|עוזב|עוזבת|עוזבימ)\s+(?:את\s+)?(?:ה)?(?:חוג|מנוי|שירות|שיעורימ|קורס|חוזה)"
+    r"|(?<![\w])(?:לא\s+מבטיח|לא\s+מבטיחה|לא\s+מבטיחימ|(?:ה)?פעמ\s+(?:ה)?אחרונה|נגמר\s+(?:לי\s+)?(?:איתכמ|מכמ)|גמרתי\s+איתכמ)")
+
+
 def _en_salary_promise(t: str) -> bool:
     m = _EN_SALARY_COND.search(t)
     if not m or "?" in t or re.search(r"\b(?:not|never|even|unless|until|don'?t|won'?t|can'?t|no)\b",
@@ -3167,6 +3176,13 @@ def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
             escalate=max(d.escalate, Escalation.NORMAL, key=_esc_rank),
             tags=d.tags + ("protective_floor",),
             owner_actions=d.owner_actions + (f"לבדוק: בהודעה יש סימן ל-{names} שהמנוע לא אישר — להחליט אם לעצור",))
+    if t and d.intent == Intent.PROMISE and _s(_PROMISE_HOSTILE_TAIL, t):
+        # מבקר סבב 159: «when I get paid then I'm done with you people», «…on the 10th I'm cancelling the lessons»,
+        # «…I promise nothing», «כשאקבל משכורת אני מבטל את החוג» ⇒ הבטחה שקטה (טיוטת «עד איזה תאריך?» בלי כרטיס),
+        # כשאותו המשך לבד היה מגיע לבעלים. ההבטחה נשמרת, אבל בעל העסק רואה כרטיס עם ההמשך.
+        d = replace(d, escalate=max(d.escalate, Escalation.NORMAL, key=_esc_rank), auto_send=False,
+                    tags=d.tags + ("promise_hostile_tail",),
+                    owner_actions=d.owner_actions + ("בהודעה יש גם ביטול/עוינות/«לא מבטיח» — לקרוא לפני שממשיכים",))
     if t and Intent.DISPUTE not in d.all_intents and _hits(_C133_DISPUTE, t) and _C133_VETO.search(t):
         # המשך לסבב 134: הווטו מונע מחלוקת-שווא **דחופה** («will pay» / «אשלם» / «כרטיס»), אבל תלונה אמיתית
         # באותה הודעה («I will pay but the technician never came») נבלעה — הבטחה בלי כרטיס. בלי מחלוקת ובלי
