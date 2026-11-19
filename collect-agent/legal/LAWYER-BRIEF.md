@@ -27,7 +27,7 @@
 3. רשימת תיקונים ל-`TERMS.md` ול-`PRIVACY.md`.
 
 ## מצורף (בתיקייה `legal/`)
-`TERMS.md` · `PRIVACY.md` · `DPA.md` · `INCIDENT-RUNBOOK.md` · `BETA-GATE.md` · `LAWYER-QUESTIONS.md` (כל השאלות, 34).
+`TERMS.md` · `PRIVACY.md` · `DPA.md` · `INCIDENT-RUNBOOK.md` · `BETA-GATE.md` · `LAWYER-QUESTIONS.md` (כל השאלות, 36).
 
 ## אחרי הפגישה
 ממלאים את `legal/SIGNOFF.json` (DPA חתום, השאלות שנענו). שער המעבר (`python3 -m app.golive`) נשאר סגור עד שזה מלא.
