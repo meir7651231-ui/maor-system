@@ -109,7 +109,7 @@ export function Landing() {
           {STEPS.map(([i, t, d], n) => (
             <div key={t} className="rounded-2xl border border-ink-200 bg-white p-6 relative">
               <div className="text-3xl">{i}</div>
-              <div className="absolute top-6 left-6 text-5xl font-extrabold text-ink-100 font-display">{n + 1}</div>
+              <div aria-hidden="true" className="absolute top-6 left-6 text-5xl font-extrabold text-ink-100 font-display">{n + 1}</div>
               <h3 className="text-xl font-extrabold mt-4">{t}</h3>
               <p className="text-ink-700 mt-2 leading-relaxed">{d}</p>
             </div>
@@ -127,7 +127,7 @@ export function Landing() {
                 'בין 08:00 ל-20:00. לא בשישי אחה״צ, לא בשבת ולא בחג.',
                 'בכל הודעה יש אפשרות הסרה, והיא נכבדת מיד.',
                 'בלי איומים ובלי שיווק. ניסוח עובדתי ומנומס.'].map(t => (
-                <li key={t} className="flex gap-3"><span className="text-brand-600 font-bold">✓</span>{t}</li>
+                <li key={t} className="flex gap-3"><span className="text-brand-700 font-bold">✓</span>{t}</li>
               ))}
             </ul>
             <div className="rounded-2xl bg-white shadow-card p-6 mt-8">
@@ -235,7 +235,7 @@ function HeroPhone() {
             סטודיו לוטם עיצוב: שלום אבי, חשבונית 1042 ע"ס 4,680 ₪ טרם סומנה כשולמה. לתשלום: <span className="text-info underline">{SITE_DOMAIN}/p/k3T9xQa</span> להפסקה: בקישור
           </div>
           <div className="bg-brand text-ink-900 rounded-2xl rounded-tl-md px-3 py-2 max-w-[70%] mr-auto">תודה, משלם עכשיו 🙏</div>
-          <div className="bg-white rounded-xl px-3 py-2 shadow-sm flex items-center gap-2 text-xs"><span className="text-brand-600 text-base">✓</span> שולם · ₪4,680 · התזכורות נעצרו</div>
+          <div className="bg-white rounded-xl px-3 py-2 shadow-sm flex items-center gap-2 text-xs"><span className="text-brand-700 text-base">✓</span> שולם · ₪4,680 · התזכורות נעצרו</div>
         </div>
       </div>
     </div>
