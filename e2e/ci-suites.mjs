@@ -45,6 +45,7 @@ export const PUSH = [
   'store-search-audit.mjs',
   'cloud2-truth-test.mjs',
   'p0-data-diag.mjs',
+  'lazy-modals-smoke.mjs', // 19.11: 11 מודאלים נטענים-בפתיחה (bundle-split) עדיין נפתחים
 ];
 
 /** ארוכים — לילי + ידני. */

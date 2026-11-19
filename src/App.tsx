@@ -20,24 +20,15 @@ import { isoToday } from './lib/date-util';
 import { freshenDemoDb } from './lib/demoFresh';
 import { todaySessions } from './components/home/homeData';
 import { Btn, Modal } from './components/ui';
-import { ImpactWall } from './components/wall/ImpactWall';
-import { MoneyTimer } from './components/timer/MoneyTimer';
-import { CashRegister } from './components/timer/CashRegister';
-import { BodyMap } from './components/timer/BodyMap';
-import { DedupModal } from './components/families/DedupModal';
-import { CallerLookup } from './components/CallerLookup';
 import { GuideModal } from './components/GuideModal';
 import { TourOverlay } from './components/TourOverlay';
 import { A11yFab } from './components/A11yFab';
 import { UpdateBanner } from './components/UpdateBanner';
 import { HomeView } from './components/home/HomeView';
-import { CommandPalette } from './components/palette/CommandPalette';
 import { DemoDrop } from './components/DemoDrop';
 import { DemoRibbon } from './components/DemoRibbon';
 import { DayGate } from './components/wheel/DayGate';
 import { ChangePasswordModal } from './components/cloud/ChangePasswordModal';
-import { NetCheckModal } from './components/cloud/NetCheckModal';
-import { SupportChatModal, SupportInbox, TeamChatModal } from './components/support/SupportChat';
 import { latestTeamAt, teamUnreadCount, type TeamMsg } from './lib/supportChat';
 import { AdminHub, HubButton } from './components/AdminHub';
 import { LockScreen } from './components/lock/LockScreen';
@@ -88,6 +79,19 @@ const loadPublicSite = () => import('./components/public/PublicSite');
 if (currentSiteDomain()) void loadPublicSite();
 const PublicSite = lazy(async () => ({ default: (await loadPublicSite()).PublicSite }));
 const LoginScreen = lazy(async () => ({ default: (await import('./components/cloud/LoginScreen')).LoginScreen }));
+
+// ⚡ 19.11.2026 (bundle-split): מודאלים שנפתחים רק בלחיצה — נטענים בפתיחה (chunk נפרד), לא בבנדל הראשי.
+const ImpactWall = lazy(async () => ({ default: (await import('./components/wall/ImpactWall')).ImpactWall }));
+const MoneyTimer = lazy(async () => ({ default: (await import('./components/timer/MoneyTimer')).MoneyTimer }));
+const CashRegister = lazy(async () => ({ default: (await import('./components/timer/CashRegister')).CashRegister }));
+const BodyMap = lazy(async () => ({ default: (await import('./components/timer/BodyMap')).BodyMap }));
+const DedupModal = lazy(async () => ({ default: (await import('./components/families/DedupModal')).DedupModal }));
+const CallerLookup = lazy(async () => ({ default: (await import('./components/CallerLookup')).CallerLookup }));
+const CommandPalette = lazy(async () => ({ default: (await import('./components/palette/CommandPalette')).CommandPalette }));
+const NetCheckModal = lazy(async () => ({ default: (await import('./components/cloud/NetCheckModal')).NetCheckModal }));
+const SupportChatModal = lazy(async () => ({ default: (await import('./components/support/SupportChat')).SupportChatModal }));
+const SupportInbox = lazy(async () => ({ default: (await import('./components/support/SupportChat')).SupportInbox }));
+const TeamChatModal = lazy(async () => ({ default: (await import('./components/support/SupportChat')).TeamChatModal }));
 const SiteEditorPage = lazy(async () => ({ default: (await import('./components/site/SiteEditorPage')).SiteEditorPage }));
 const SiteEditorLogin = lazy(async () => ({ default: (await import('./components/site/SiteEditorPage')).SiteEditorLogin }));
 const PendingApprovalScreen = lazy(async () => ({ default: (await import('./components/cloud/LoginScreen')).PendingApprovalScreen }));
@@ -1236,7 +1240,7 @@ export default function App() {
     <div className={'app-shell' + (shell === 'top' ? '' : ' shell-side')}>
       {shell === 'side' ? sideShell : shell === 'side-wide' ? sideWideShell : topShell}
 
-      {paletteOpen && featureOn(config, 'shell.palette') && <CommandPalette />}
+      {paletteOpen && featureOn(config, 'shell.palette') && <Suspense fallback={null}><CommandPalette /></Suspense>}
 
       {/* כניסת-הניהול (ADMINHUB) — נפתחת רק ממנהל-על (הכפתור מגודר canAdminHub);
           הבורר מנתב לכלים דרך ה-hash כך שהקישורים הישנים ממשיכים לעבוד */}
@@ -1329,10 +1333,10 @@ export default function App() {
           </div>
         </Modal>
       )}
-      {featureOn(config, 'shell.netcheck') && netCheckOpen && <NetCheckModal onClose={() => setNetCheckOpen(false)} />}
-      {featureOn(config, 'shell.support') && cloud.enabled && cloud.user && supportOpen && <SupportChatModal onClose={() => setSupportOpen(false)} />}
-      {supportInboxOpen && <SupportInbox onClose={() => setSupportInboxOpen(false)} />}
-      {teamChatOpen && <TeamChatModal onClose={() => { setTeamChatOpen(false); if (window.location.hash === '#teamchat') history.replaceState(null, '', window.location.pathname + window.location.search); }} />}
+      {featureOn(config, 'shell.netcheck') && netCheckOpen && <Suspense fallback={null}><NetCheckModal onClose={() => setNetCheckOpen(false)} /></Suspense>}
+      {featureOn(config, 'shell.support') && cloud.enabled && cloud.user && supportOpen && <Suspense fallback={null}><SupportChatModal onClose={() => setSupportOpen(false)} /></Suspense>}
+      {supportInboxOpen && <Suspense fallback={null}><SupportInbox onClose={() => setSupportInboxOpen(false)} /></Suspense>}
+      {teamChatOpen && <Suspense fallback={null}><TeamChatModal onClose={() => { setTeamChatOpen(false); if (window.location.hash === '#teamchat') history.replaceState(null, '', window.location.pathname + window.location.search); }} /></Suspense>}
       {/* תפריט-החשבון (UX סבב-א׳) — מייל, סטטוס-סנכרון כטקסט, יציאה בשני צעדים */}
       {userMenuOpen && cloud.user && (
         <Modal title="החשבון שלי" onClose={() => setUserMenuOpen(false)}>
@@ -1470,59 +1474,59 @@ export default function App() {
       )}
 
       {wallOpen && featureOn(config, 'home.impactwall') && (
-        <ImpactWall
+        <Suspense fallback={null}><ImpactWall
           onClose={() => {
             window.location.hash = '';
             setWallOpen(false);
           }}
-        />
+        /></Suspense>
       )}
 
       {timerOpen && featureOn(config, 'core.timer') && (
-        <MoneyTimer
+        <Suspense fallback={null}><MoneyTimer
           onClose={() => {
             window.location.hash = '';
             setTimerOpen(false);
           }}
-        />
+        /></Suspense>
       )}
 
       {cashboxOpen && featureOn(config, 'core.cashbox') && (
-        <CashRegister
+        <Suspense fallback={null}><CashRegister
           onClose={() => {
             window.location.hash = '';
             setCashboxOpen(false);
           }}
-        />
+        /></Suspense>
       )}
 
       {bodymapOpen && featureOn(config, 'core.bodymap') && (
-        <BodyMap
+        <Suspense fallback={null}><BodyMap
           onClose={() => {
             window.location.hash = '';
             setBodymapOpen(false);
           }}
-        />
+        /></Suspense>
       )}
 
       {dedupOpen && featureOn(config, 'settings.dedup') && (
-        <DedupModal
+        <Suspense fallback={null}><DedupModal
           onClose={() => {
             window.location.hash = '';
             setDedupOpen(false);
           }}
-        />
+        /></Suspense>
       )}
 
       {callerOpen && telephonyOn(config) && (
-        <CallerLookup
+        <Suspense fallback={null}><CallerLookup
           initialNumber={incomingNumber ?? undefined}
           onClose={() => {
             if (window.location.hash) window.location.hash = '';
             setCallerOpen(false);
             setIncomingNumber(null);
           }}
-        />
+        /></Suspense>
       )}
 
       {guideOpen && featureOn(config, 'shell.guide') && (
