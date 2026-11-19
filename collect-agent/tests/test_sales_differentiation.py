@@ -13,7 +13,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 FILES = [ROOT / "sales/call-script.md", ROOT / "sales/outreach-drafts.md", ROOT / "team/sales.md",
          ROOT / "sales/PACKAGE.md", ROOT / "sales/demo-script.md"]
-COMPETITOR_OBJECTION = re.compile(r"^\| \"[^|]*(morning|iCount|נודניק)[^|]*\" \|", re.I)
+COMPETITOR_OBJECTION = re.compile(r"^\| \"[^|]*(morning|iCount|נודניק|Invoice4U)[^|]*\" \|", re.I)
 
 
 def _objection_rows():
@@ -29,8 +29,9 @@ def test_both_competitor_objections_are_answered():
     rows = _objection_rows()
     script = [a for where, a, _ in rows if where.startswith("sales/call-script.md")]
     text = " ".join(q for *_, q in rows)
-    assert len(script) >= 2, "בתסריט חסר מענה ל-morning או ל-iCount"
-    assert "morning" in text and "iCount" in text
+    assert len(script) >= 3, "בתסריט חסר מענה ל-morning, ל-iCount או ל-Invoice4U"
+    # מחקר 19.11 (e8d6fa0, market.md §1.6): ל-Invoice4U יש «תזכורות לחשבוניות פתוחות» ב-₪21–99 ⇒ התנגדות צפויה
+    assert "morning" in text and "iCount" in text and "Invoice4U" in text
 
 
 def test_answers_use_real_differentiators_not_sms_or_shabbat():

@@ -168,3 +168,34 @@ def test_new_customer_with_receipt_only_is_not_a_debtor(svc, fake_gi):
     _approve_all(svc, svc.plan())
     svc.dispatch()
     assert _to_dana(svc) == []
+
+
+# ── fuzz 19.11: קבלה אחרי האישור, **בלי סנכרון** בין לבין (ה-cron של השליחה רץ לפני הסנכרון) ─────────────
+def test_receipt_after_approval_without_sync_holds_before_send(svc, fake_gi):
+    svc.sync()
+    _approve_all(svc, svc.plan())
+    fake_gi.docs.append(_receipt(7, linked=["doc1"]))   # אין svc.sync() — רק הרענון שלפני השליחה
+    svc.dispatch()
+    assert _to_dana(svc) == []                           # היה: התזכורת יצאה
+    c = svc.db.one("SELECT paused_reason FROM customers WHERE external_id='cl1'")
+    assert c["paused_reason"] == svc.CREDIT_REVIEW
+
+
+def test_unlinked_same_amount_receipt_after_approval_holds_before_send(svc, fake_gi):
+    svc.sync()
+    _approve_all(svc, svc.plan())
+    fake_gi.docs.append(_receipt(8))
+    svc.dispatch()
+    assert _to_dana(svc) == []
+
+
+def test_receipt_already_reviewed_by_owner_does_not_hold_again(svc, fake_gi, clock):
+    """בעל העסק בדק את הקבלה (התראה קיימת) וחידש ⇒ ההכרעה שלו; הרענון לא משהה שוב על אותה קבלה."""
+    fake_gi.docs.append(_receipt(9, linked=["doc1"]))
+    svc.sync()                                           # השהיה + התראה
+    cid = svc.db.one("SELECT id FROM customers WHERE external_id='cl1'")["id"]
+    svc.resume_customer(cid)
+    clock.now += timedelta(days=1)
+    _approve_all(svc, svc.plan())
+    svc.dispatch()
+    assert len(_to_dana(svc)) >= 1
