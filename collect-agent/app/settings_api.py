@@ -59,7 +59,7 @@ class SettingsIn(BaseModel):
     @field_validator("owner_name")
     @classmethod
     def _owner(cls, v: str | None) -> str | None:
-        if v is not None and re.search(r"[<>{}\\]|https?://", v):
+        if v is not None and (re.search(r"[<>{}\\]|https?://", v) or compliance.invisible_chars(v)):
             raise ValueError("שם לא תקין")
         return v
 
@@ -68,6 +68,9 @@ class SettingsIn(BaseModel):
     def _name(cls, v: str | None) -> str | None:
         if v is None:
             return v
+        # critic 167: תו בלתי-נראה/היפוך כיוון ⇒ הנמען רואה טקסט אחר ממה שנבדק — דוחים לפני כל בדיקה
+        if compliance.invisible_chars(v):
+            raise ValueError("שם העסק כולל תווים בלתי-נראים או תווי כיווניות — יש להקליד אותו מחדש")
         v = " ".join(v.split())
         if re.search(r"[<>{}\\]|https?://", v):
             raise ValueError("שם העסק לא יכול לכלול קישור או תווים מיוחדים")

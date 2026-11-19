@@ -16,7 +16,7 @@ ZW, RLO = chr(0x200B), chr(0x202E)   # בלי תווים בלתי-נראים א�
 SPOOF = [f"ב{ZW}נ{ZW}ק לאומי", f"סטודיו {RLO}ריאמ", f"סטודיו{ZW}מאיר", "מס הכנסה", "ביטוח לאומי"]
 
 
-@pytest.mark.xfail(strict=True, reason="critic 167: שם עסק מתחזה/בלתי-נראה מתקבל (לתיקון בונה)")
+
 @pytest.mark.parametrize("name", SPOOF)
 def test_spoof_business_name_rejected(svc, name):
     with pytest.raises((ValueError, PermissionError)):
