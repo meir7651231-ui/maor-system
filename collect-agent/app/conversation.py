@@ -513,7 +513,10 @@ _EN_SALARY_COND = re.compile(
     r"(?:(?:get|gets|'m|am|are|'re|will\s+get|'ll\s+get|will\s+be|'ll\s+be)\s+paid"
     r"|(?:get|receive|will\s+get|'ll\s+get)\s+(?:my|our|the)\s+(?:salary|paycheck|pay\s*check|wages?|pay)"
     r"|(?:'ve|have)\s+been\s+paid)"
-    r"|(?:after|on|by|right\s+after)\s+(?:my\s+|our\s+|the\s+)?(?:payday|pay\s+day|(?:next\s+)?pay\s*check|salary))\b", re.I)
+    r"|(?:after|on|by|right\s+after)\s+(?:my\s+|our\s+|the\s+)?(?:payday|pay\s+day|(?:next\s+)?pay\s*check|salary)"
+    # STATUS «הבא» AI (וריאציות 303): «once my salary comes in», «when my paycheck comes», «when the salary arrives»
+    r"|(?:when|once|as\s+soon\s+as|after|the\s+moment)\s+(?:my|our|the)\s+(?:salary|paycheck|pay\s*check|wages?|pay|money)"
+    r"\s+(?:comes?(?:\s+in|\s+through)?|arrives?|lands?|hits|clears?|goes\s+in|is\s+in|gets?\s+in))\b", re.I)
 
 
 # מבקר 159: המשך שמבטל/עוין/מסתייג בתוך הבטחה ⇒ כרטיס לבעלים (טקסט מנורמל: אותיות סופיות רגילות)
@@ -571,7 +574,9 @@ def _en_salary_promise(t: str) -> bool:
 # critic סבב 159: תנאי-משכורת בראש ההודעה הסתיר המשך של ביטול/עוינות/«לא מבטיח» ⇒ הבטחה שקטה («once I get paid
 # then I'm done with you people», «…on the 10th I'm cancelling the lessons», «כשאקבל משכורת אני מבטל את החוג»).
 # אותו המשך לבד מגיע לבעל העסק כ«לא ברור». עכשיו: תנאי-משכורת + סמן כזה ⇒ ההבטחה יורדת (UNKNOWN ⇒ כרטיס).
-_HE_SALARY_COND = (r"(?:כשת?יכנס|כשתכנס|ברגע ש(?:ת)?י?כנס|אחרי ש(?:ת)?י?כנס|כשאקבל|אחרי שאקבל) (?:ה)?(?:משכורת|כסף|תשלום)")
+_HE_SALARY_COND = (r"(?:(?:כשת?יכנס|כשתכנס|ברגע ש(?:ת)?י?כנס|אחרי ש(?:ת)?י?כנס|כשאקבל|אחרי שאקבל) (?:ה)?(?:משכורת|כסף|תשלום)"
+                   # וריאציות 303: סדר הפוך — «כשהמשכורת תיכנס», «ברגע שהכסף ייכנס»
+                   r"|(?:כש|ברגע ש|אחרי ש)(?:ה)?(?:משכורת|כסף|תשלום) (?:ת|י)?י?כנס)")
 _EN_SALARY_HOSTILE = re.compile(
     r"\b(?:done\s+with|through\s+with|finished\s+with|cancel\w*|quit\w*|last\s+time|promise\s+nothing|nothing"
     r"|pigs\s+(?:fly|can\s+fly)|hell\s+freezes|you\s+people|scam\w*|leav(?:e|ing)\s+(?:you|this|the)|unsubscrib\w*"
@@ -959,6 +964,7 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"(?:אפשר|אפשרי|ניתן) (?:לדחות|להמתין|לחכות)", r"(?:לדחות|דחייה) (?:את התשלום|ל|עד)",
         r"(?:הכסף|התשלום) (?:יגיע|יעבור|יצא|ייכנס|יוסדר|ישולם)", r"(?:ישולם|תשולם|יועבר) (?:עד|ב|תוך)",
         r"(?:כשת?יכנס|כשתכנס|ברגע ש(?:ת)?י?כנס|אחרי ש(?:ת)?י?כנס|כשאקבל|אחרי שאקבל) (?:ה)?(?:משכורת|כסף|תשלום)",
+        r"(?:כש|ברגע ש|אחרי ש)(?:ה)?(?:משכורת|כסף|תשלום) (?:ת|י)?י?כנס",   # וריאציות 303: «כשהמשכורת תיכנס»
         r"(?:בתחילת|בסוף|באמצע) (?:ה)?חודש", r"\bwill pay\b",
         # מנהל 256 (q10-06): «עדיף לי בעצם לשלם הכל לחודש הבא» ⇒ unknown
         r"(?:עדיף|נוח|מעדיף|מעדיפה|מעדיפים)\s+(?:לי\s+|לנו\s+)?(?:(?:בעצם|יותר|כבר|רק)\s+)?לשלם(?:\s+(?:את\s+)?(?:הכל|הכול|הכל ביחד|בבת אחת|הכול ביחד))?\s+(?:ב|ל|עד|אחרי|בעוד|תוך)"
@@ -3517,7 +3523,11 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             tags.append("partial")
             got = f" ({fmt_amount(paid, ctx.currency)})" if paid else ""
             reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! רשמנו שהעברתם חלק מהסכום{got}. "
-                     f"נבדוק מול הרישומים ונחזור אליכם לגבי היתרה. "
+                     f"נבדוק מול הרישומים ונחזור אליכם לגבי "
+                     + ("חלוקת היתרה לתשלומים" if Intent.PLAN_REQUEST in allset else "היתרה")
+                     # STATUS «הבא» AI (q17-12): «שילמתי 400, אפשר לחלק את היתרה ל-2?» — הבקשה לא נענתה בתשובה.
+                     # לא מציעים הסדר לפני שבעל העסק אימת את התשלום (הסדר על כל החוב היה שגוי) — רק מאשרים שהבקשה התקבלה.
+                     + ". "
                      f"אם יש אסמכתא — אפשר לשלוח כאן.{sig}")
             summary = (f"{name} טוען/ת ששילם/ה חלק{got} מתוך {total}. לבדוק ולעדכן יתרה.")
         else:
