@@ -5,6 +5,7 @@ export interface Notice { id: number; icon: string; title: string; body: string;
 
 const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }> = {
   trial_ending: { icon: '⏳', title: 'תקופת הניסיון מסתיימת בקרוב', tone: 'warn' },
+  dsr: { icon: '📄', title: 'בקשת עיון/תיקון/מחיקה — יש מועד להשיב', tone: 'warn' },
   max_reminders: { icon: '✋', title: 'נשלחו 3 תזכורות — מומלץ קשר אישי', tone: 'warn' },
   manual_only_old: { icon: '🗂️', title: 'חשבונית ישנה — טיפול ידני בלבד', tone: 'info' },
   no_due_date: { icon: '📅', title: 'חשבונית בלי תאריך — אין תזכורות עליה', tone: 'warn' },
