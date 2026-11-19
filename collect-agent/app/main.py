@@ -1004,6 +1004,29 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(422, "customer_id: מספר לקוח או null")
         return guard(lambda: inbox.assign_shared_card(card_id, cid, actor=request.state.actor))
 
+    # critic 175: DB ששוחזר מגיבוי עולה עם שליחה עצורה עד שבעל העסק מאשר שהחיל מחדש הסרות/מחיקות מאז הגיבוי
+    @app.get("/owner/restore-hold", dependencies=auth)
+    def restore_hold_status():
+        return {"hold": svc.restore_hold()}
+
+    @app.post("/owner/restore-hold/release", dependencies=auth)
+    async def restore_hold_release(request: Request):
+        if request.state.actor != "owner":
+            raise HTTPException(403, "רק בעל העסק מחדש שליחה אחרי שחזור")
+        try:
+            body = await request.json()
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        note = body.get("note") if isinstance(body, dict) else None
+        if not isinstance(note, str):
+            raise HTTPException(422, "note: תיעוד של מה שהוחל מחדש")
+        try:
+            return svc.release_restore_hold(note, actor=request.state.actor)
+        except KeyError:
+            raise HTTPException(404, "אין עצירת שחזור פעילה") from None
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
+
     @app.post("/conversation/drafts/{did}/reject", dependencies=auth)
     def conversation_reject(did: int, request: Request):
         return guard(lambda: inbox.reject_draft(did, actor=request.state.actor))

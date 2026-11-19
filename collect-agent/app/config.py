@@ -69,6 +69,8 @@ class Settings:
     public_base_url: str = "https://gabi.example"   # לקישורי הסרה
     trial_start: str = ""        # ISO; ריק ⇒ אין מגבלת ניסיון (מנוי פעיל / הדגמה)
     trial_days: int = 14
+    # critic 175: יומן הסרות מחוץ ל-DB (גיבובים בלבד) — מוחל מחדש אחרי שחזור גיבוי. ריק ⇒ אין יומן
+    optout_ledger: str = ""
     price_ils_month: int = 119    # הכרעת מאיר 6.11: ₪119/חודש או ₪1,190/שנה, כולל מע״מ ככל שחל
     price_ils_year: int = 1190
     real_data_allowed: bool = False  # שער בטא 4 (legal/BETA-GATE.md): כבוי ⇒ ייבוא רק של נתוני דמו מסומנים
@@ -180,6 +182,7 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         email_webhook_key=e.get("EMAIL_WEBHOOK_KEY", ""),
         trial_start=e.get("TRIAL_START", ""),
         trial_days=int(e.get("TRIAL_DAYS", "14")),
+        optout_ledger=e.get("OPTOUT_LEDGER", "").strip(),
         real_data_allowed=e.get("REAL_DATA_ALLOWED", "0").strip().lower() in ("1", "true", "yes"),
         sms_two_way=e.get("SMS_TWO_WAY", "0").strip().lower() in ("1", "true", "yes"),
         email_from=e.get("EMAIL_FROM", "no-reply@example.com"),

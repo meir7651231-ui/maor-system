@@ -11,8 +11,6 @@ dispatch ⇒ **SMS ומייל נשלחו לדנה** שביקשה הסרה. זו 
 מאז הגיבוי. xfail(strict=True); הבקרה (השחזור עצמו מדויק) נשארת ירוקה."""
 from datetime import timedelta
 
-import pytest
-
 from app.backup import create_backup, restore_backup
 from app.db import DB
 from app.secretbox import SecretBox, generate_key
@@ -31,7 +29,6 @@ def _restore_after_optout(svc, clock, tmp_path):
     return CollectService(svc.s, DB(str(dest)), gi=svc.gi, clock=clock)
 
 
-@pytest.mark.xfail(strict=True, reason="critic 175: שחזור גיבוי מבטל הסרה ⇒ תזכורת למי שביקש הסרה (לתיקון בונה)")
 def test_no_reminder_to_opted_out_after_restore(svc, clock, tmp_path):
     s2 = _restore_after_optout(svc, clock, tmp_path)
     clock.now += timedelta(days=3)

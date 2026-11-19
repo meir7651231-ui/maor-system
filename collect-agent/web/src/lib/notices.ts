@@ -23,6 +23,8 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   // critic סבב 49: התראת הסכום החריג (הפעלה 123) הופיעה ככותרת כללית «הודעה מגבי» בטון מידע
   amount_check: { icon: '🔢', title: 'סכום חריג מאוד מהרגיל ללקוח — לבדוק לפני אישור', tone: 'warn' },
   doc_malformed: { icon: '🧾', title: 'מסמכים עם נתון לא תקין — דולגו, ולא נסגרה אף חשבונית', tone: 'warn' },
+  // critic 175: DB שוחזר מגיבוי — כל השליחה עצורה עד שבעל העסק מאשר (POST /owner/restore-hold/release)
+  restore_hold: { icon: '🛑', title: 'המערכת שוחזרה מגיבוי — השליחה ללקוחות עצורה', tone: 'warn' },
   sms_undelivered: { icon: '📵', title: 'SMS לא נמסר', tone: 'warn' },
   credit_review: { icon: '🧾', title: 'זיכוי שלא שויך לחשבונית — לבדיקתך', tone: 'warn' },
   // חיוב דרך אורביט (8.11.2026): חסד / סיום / ביטול — הגוף כולל קישור לחיוב באורביט

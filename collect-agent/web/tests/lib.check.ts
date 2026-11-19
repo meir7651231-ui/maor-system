@@ -1401,3 +1401,11 @@ test('מנהל 322: refresh_failed / refresh_page_cap — תווית בטבלה 
   ] } as never, []);
   assert.deepEqual(m.invoices.map(i => i.note), [REFRESH_LABEL.refresh_page_cap, REFRESH_LABEL.refresh_failed, undefined, 'במחלוקת', undefined]);
 });
+
+test('critic 175: התראת restore_hold מוצגת עם כותרת ייעודית', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const n = systemNotices([{ id: 3, customer_id: null, direction: 'system', channel: 'owner', body: '🛑 שוחזר',
+    intent: 'restore_hold', created_at: '2026-11-19T09:00:00+02:00' }]);
+  assert.equal(n[0].icon, '🛑');
+  assert.match(n[0].title, /שוחזרה מגיבוי/);
+});

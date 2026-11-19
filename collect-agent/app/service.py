@@ -12,7 +12,7 @@ from dataclasses import replace
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
-from . import compliance, orbit_entitlement, paylinks, plans, templates
+from . import compliance, orbit_entitlement, paylinks, plans, restore_guard, templates
 from .channels import (
     DryRunSender,
     Message,
@@ -958,6 +958,14 @@ class CollectService:
         self.db.x("INSERT OR IGNORE INTO suppressions(hash,channel,reason,created_at) "
                   "VALUES(?,?,?,?)", (self.addr_hash(channel, addr), channel, reason,
                                       _iso(self.clock())))
+        if self.s.optout_ledger:
+            # critic 175: גם מחוץ ל-DB, כדי ששחזור גיבוי לא יבטל את ההסרה. כשל בכתיבה ליומן לא מבטל את
+            # ההסרה ב-DB (היא כבר נרשמה) — רק נרשם ב-audit
+            try:
+                restore_guard.ledger_append(self.s.optout_ledger, self.addr_hash(channel, addr), channel, reason,
+                                            _iso(self.clock()))
+            except OSError as e:
+                self.audit("system", "optout_ledger_failed", {"error": str(e)[:200]})
         # critic סבב 59: הסרה לפי כתובת בלבד (כתובת משותפת שלא זוהה בה לקוח, חסימת ספק) לא עצרה טיוטה שנוסחה
         # קודם לאותה כתובת. בכוונות שמותרות אחרי הסרה (איך משלמים / עותק / חזרו אליי) השער מדלג על בדיקת
         # הכתובת ⇒ הטיוטה הייתה יוצאת לכתובת שביקשה הסרה. עכשיו: כל טיוטה ממתינה לכתובת הזו נעצרת.
@@ -980,6 +988,8 @@ class CollectService:
     def gate(self, cust, channel: str, to: str, *, opt_out_ack: bool = False) -> str | None:
         """כל הודעה יוצאת עוברת כאן: תזכורת, תשובה, אישור פריסה. None ⇒ מותר עכשיו.
         'outside_window' ⇒ מותר מאוחר יותר (נשאר בתור); כל ערך אחר ⇒ אסור."""
+        if restore_guard.active(self.db):
+            return "restore_hold"   # critic 175: DB משוחזר — עד שבעל העסק מאשר שהחיל הסרות/מחיקות מאז הגיבוי
         if not self.trial()["active"]:
             return "trial_expired"
         if not opt_out_ack and (cust["opted_out"] or self.suppressed(channel, to)):
@@ -1815,8 +1825,8 @@ class CollectService:
         now = self.clock()
         out: list[dict] = []
         self._flush_urgent_owner_email()   # critic סבב 102: לפני חלון השליחה — התראה לבעלים לא תלויה בשעות הלקוח
-        if not self.policy.can_send_at(now) or not self.trial()["active"]:
-            return out
+        if not self.policy.can_send_at(now) or not self.trial()["active"] or restore_guard.active(self.db):
+            return out   # critic 175: אחרי שחזור — התזכורות והתשובות המאושרות ממתינות (לא מבוטלות) עד החידוש
         # critic סבב 13: ה-cron היחיד במפרט הוא dispatch. תשובות והצעות פריסה שבעל העסק אישר מחוץ
         # לחלון חיכו ל-/conversation/flush ידני, כלומר בפועל לא יצאו לעולם. עכשיו גם הן יוצאות כאן,
         # דרך אותו שער שליחה (הסרה, שעות, שבת וחג, ניסיון).
@@ -2474,6 +2484,15 @@ class CollectService:
                       "status IN ('needs_owner','pending_approval')", (f"{actor}:opt_out", customer_id))
         self.audit(actor, "owner_opt_out", {"customer": customer_id})
         return dict(self.db.one("SELECT id, opted_out FROM customers WHERE id=?", (customer_id,)))
+
+    def restore_hold(self) -> dict | None:
+        """critic 175: שחזור גיבוי שעוד לא שוחרר (שליחה עצורה) — לתצוגה ב-/app/."""
+        return restore_guard.active(self.db)
+
+    def release_restore_hold(self, note: str, actor: str = "owner") -> dict:
+        out = restore_guard.release(self.db, actor=actor, note=note, at=_iso(self.clock()))
+        self.audit(actor, "restore_hold_released", {"restored_at": out["restored_at"]})
+        return out
 
     def _opt_out(self, cid: int, how: str) -> None:
         self.db.x("UPDATE customers SET opted_out=1 WHERE id=?", (cid,))
