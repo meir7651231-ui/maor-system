@@ -200,7 +200,7 @@ export interface PayerView {
   /** critic 166: השהיה מגינה (קטין/מצוקה/פטירה/חדלות פירעון) ⇒ בלי תשלום/פריסה/«שילמתי»; הסרה נשארת */
   held?: boolean;
   /** ר-13: «למה קיבלתם» ופרטיות — אותו מקור כמו /p ו-/u בשרת (legal.privacy_points) */
-  legal?: { why: string; controller: string; use: string; retention: string; contact: string; label: string };
+  legal?: { why: string; controller: string; use: string; retention: string; hold?: string; contact: string; label: string };
 }
 export interface PayerInvoice { number: string; due: string | null; amount: string; amount_agorot: number; code: string; can_pay: boolean }
 // review חור 4: כפתור ניטרלי אחד לעמוד התשלום של העסק (בלי Bit/Apple — סימני מסחר)

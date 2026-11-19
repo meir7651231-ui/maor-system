@@ -114,7 +114,7 @@ export function Pay({ code }: { code: string }) {
           <details className="mt-3 rounded-2xl bg-white shadow-card p-4 text-sm text-ink-700">
             <summary id="why-privacy" className="cursor-pointer py-2.5 -my-2.5 font-bold text-ink-900">פרטיות ומחיקת מידע</summary>
             <div className="mt-3 space-y-2 leading-relaxed">
-              <p>{v.legal.controller}</p><p>{v.legal.use}</p><p>{v.legal.retention}</p><p>{v.legal.contact}</p>
+              <p>{v.legal.controller}</p><p>{v.legal.use}</p><p>{v.legal.retention}</p>{v.legal.hold && <p>{v.legal.hold}</p>}<p>{v.legal.contact}</p>
               <p className="text-xs text-ink-500"><span className="rounded border border-ink-200 px-1.5">{v.legal.label}</span></p>
             </div>
           </details>
