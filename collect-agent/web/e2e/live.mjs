@@ -289,6 +289,19 @@ try {
     ok((await rowsNow()).length > want.length, '«הכול» לא החזיר את שאר החשבוניות');
     p.off('request', onReq);
     ok(req174 === 0, `הסינון שלח ${req174} בקשות לשרת: ${urls174.join(', ')}`);
+    // מנהל 310: «⬇ ייצוא מידע (בקשת עיון)» ⇒ קובץ JSON שהוא בדיוק GET /customers/{cid}/data, בלי unsub_token
+    {
+      const btn = p.getByTestId('data-export').first();
+      const [dl] = await Promise.all([p.waitForEvent('download'), btn.click()]);
+      ok(/^gabi-data-request-customer-\d+-\d{4}-\d{2}-\d{2}\.json$/.test(dl.suggestedFilename()), `שם קובץ הייצוא: ${dl.suggestedFilename()}`);
+      const { readFileSync } = await import('node:fs');
+      const got = JSON.parse(readFileSync(await dl.path(), 'utf8'));
+      const cid = got.customer?.id;
+      ok(cid != null, 'בקובץ הייצוא אין customer.id');
+      ok(JSON.stringify(got) === JSON.stringify(await api(`/customers/${cid}/data`)), 'קובץ הייצוא שונה מתשובת השרת');
+      ok(!JSON.stringify(got).includes('unsub_token'), 'קובץ הייצוא חושף unsub_token');
+      console.log(`  ✓ ייצוא בקשת עיון: ${dl.suggestedFilename()}`);
+    }
     await p.goto(base + '/app/#/dashboard');
     await p.getByTestId('needs-you').waitFor();
     console.log(`  ✓ סינון «מושהים (${want.length})» בטבלת החשבוניות`);

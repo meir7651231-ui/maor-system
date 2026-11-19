@@ -164,6 +164,8 @@ export const api = {
   // הפעלה 181: רק מה שהדשבורד מציג (6 האחרונות) — לא כל היומן בכל רענון
   outbox: (limit = 6) => j<{ dry_run: true; messages: OutMsg[]; total?: number }>(`/outbox?limit=${limit}`),
   resume: (cid: number) => j<unknown>(`/customers/${cid}/resume`, { method: 'POST' }),
+  /** מנהל 310: בקשת עיון — כל המידע על לקוח אחד (קריאה בלבד; נרשם ב-access_log וב-audit בשרת) */
+  customerData: (cid: number) => j<Record<string, unknown>>(`/customers/${cid}/data`),
   plans: () => j<Plan[]>('/plans'),
   ownerInbox: () => j<OwnerMsg[]>('/owner/inbox'),
   ownerDone: (id: number) => j<unknown>(`/owner/inbox/${id}/done`, { method: 'POST' }),

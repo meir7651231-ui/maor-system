@@ -1314,3 +1314,16 @@ test('גבייה סוכן 18.11: shared_contact_paid_claim מוצג עם linked 
   assert.equal(n[0].icon, '👥');
   assert.deepEqual((n[0] as { linked?: unknown }).linked, [{ id: 1, name: 'רונית' }, { id: 2, name: 'משה' }]);
 });
+
+// מנהל 310: ייצוא בקשת עיון — שם קובץ בטוח ותוכן כפי שהשרת החזיר
+import { dataExportFileName, dataExportText } from '../src/lib/dataExport.ts';
+test('dataExport: שם קובץ ASCII בלי שם הלקוח', () => {
+  assert.equal(dataExportFileName(7, '2026-11-19'), 'gabi-data-request-customer-7-2026-11-19.json');
+  assert.equal(dataExportFileName(NaN, 'bad'), 'gabi-data-request-customer-0-export.json');
+  assert.equal(dataExportFileName(-3, '../x'), 'gabi-data-request-customer-0-export.json');
+  assert.match(dataExportFileName(123456, '2026-01-02'), /^[\x20-\x7e]+$/);
+});
+test('dataExport: התוכן הוא בדיוק מה שהשרת החזיר', () => {
+  const d = { customer: { id: 1, name: 'דנה' }, invoices: [] };
+  assert.deepEqual(JSON.parse(dataExportText(d)), d);
+});
