@@ -99,6 +99,7 @@ pre.tpl{{white-space:pre-wrap;background:var(--soft);border-radius:12px;padding:
   <h2>רוצה שזה יקרה לבד?</h2>
   <p>גבי מתחבר למערכת החשבוניות שלך (חשבונית ירוקה, iCount או רווחית) ומכין את התזכורות האלה כל בוקר. אתה מאשר כל הודעה. ₪119 לחודש או ₪1,190 לשנה, כולל מע״מ ככל שחל. 14 ימי ניסיון בלי כרטיס אשראי.</p>
   <a class="btn primary" href="../landing/index.html#price">לפרטים</a>
+  <p><a href="../faq/index.html" style="color:var(--green-dark);display:inline-block;padding:10px 0">שאלות נפוצות</a></p>
 </div></section>
 </main>
 <footer><div class="wrap"><span>© 2026 גבי – תזכורות תשלום · [שם החברה בע״מ · ח.פ. ___ · כתובת: ימולאו לפני השקה]</span>

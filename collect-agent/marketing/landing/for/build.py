@@ -164,6 +164,7 @@ def page(vertical: str) -> str:
 <section class="block"><div class="wrap" style="max-width:780px">
   <h2 class="center">שאלות</h2>
   {faq}
+  <p class="center"><a href="../../faq/index.html" style="color:var(--green-dark);display:inline-block;padding:10px 0">לכל השאלות הנפוצות</a></p>
 </div></section>
 </main>
 <footer><div class="wrap">
