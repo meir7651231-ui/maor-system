@@ -48,3 +48,6 @@
 {"id": "lk48", "text": "תמחקו אותו מהמערכת", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
 {"id": "lk49", "text": "our lawyer will contact you, I will pay thursday", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
 {"id": "lk50", "text": "my mom passed on sunday", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "lk51", "text": "It's not a wrong number, I'll pay on Monday", "ctx": {"channel": "sms"}, "expect": {"intent": "promise"}, "critical": true}
+{"id": "lk52", "text": "we filed for bankruptcy last week", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "lk53", "text": "my daughter is 12 and she answered", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent"}, "critical": true}

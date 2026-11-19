@@ -286,6 +286,18 @@ class ConversationInbox:
             # critic סבב 23 (ר-7): חשבונית מעל 3 שנים ⇒ שום תשובה לא יוצאת בלי אישור פרטני
             d = replace(d, auto_send=False, tags=d.tags + ("manual_only_old",),
                         owner_actions=d.owner_actions + ("יש חשבונית בת יותר מ-3 שנים — לאשר ידנית",))
+        if d.plan:
+            row = self.db.one("SELECT paused_reason, disputed FROM customers WHERE id=?", (cust["id"],))
+            base = ((row["paused_reason"] if row else "") or "").split(":", 1)[0]
+            if base in _HARD_PAUSES or (row and row["disputed"]):
+                # qa19 (q19-06 🔴): «אני בן 14» ⇒ קטין דחוף, ואחריו «אפשר לשלם בתשלומים?» ⇒ המנוע (שלא מכיר את ההשהיה)
+                # הציע הסדר ונוצר הסדר לקטין. השהיה קשה (קטין/פטירה/חדלות/מצוקה/עו״ד/מחלוקת) ⇒ אין הסדר ואין הצעה —
+                # כרטיס לבעל העסק בלבד.
+                d = replace(d, plan=(), reply=None, auto_send=False, next_state=State.AWAITING_OWNER,
+                            escalate=max(d.escalate, Escalation.NORMAL, key=lambda e: _ESC_ORDER.index(e)),
+                            tags=d.tags + ("plan_held_protected",),
+                            owner_actions=d.owner_actions + (
+                                f"בקשת פריסה בזמן השהיה ({base or 'מחלוקת'}) — לא הוצע הסדר; לבדוק לפני כל הצעה",))
         # critic 165: «מספר שגוי» כוונה **משנית** (ליד הסרה/גיל) ⇒ סימון צד-שלישי ב-payload, כדי שייצוא בקשת
         # העיון (customer_data_export) לא ימסור ללקוחה את תוכן ההודעה של הזר. ה-intent הראשי לא משתנה.
         third = Intent.WRONG_PERSON in d.all_intents
@@ -761,6 +773,7 @@ _MONEY_INTENTS = {Intent.PLAN_REQUEST.value, Intent.PLAN_ACCEPT.value, Intent.PL
                   Intent.CANT_PAY.value, Intent.HOW_TO_PAY.value, Intent.PROMISE.value,
                   Intent.PAID_CLAIM.value}
 # השהיות "קשות": רק בעל העסק משחרר, ולא מוחלפות בסיבה רכה יותר
+_ESC_ORDER = (Escalation.NONE, Escalation.NORMAL, Escalation.URGENT)
 _HARD_PAUSES = ("minor", "deceased", "insolvency", "distress", "legal", "dispute")
 
 

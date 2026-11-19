@@ -191,7 +191,9 @@ def main(argv: list[str]) -> int:
 def heldout(argv: list[str]) -> int:
     """מוחזק-בצד: דיוק על טקסט חדש, בנפרד מרגרסיה. לא בשער pytest — לא מכווננים עליו.
     מה שחשוב ביותר: טעויות בטוחות-בעצמן (המנוע החליט על כוונה אחרת במקום 'לא ברור ⇒ בעל העסק')."""
-    paths = [Path(p) for p in argv] or sorted((HERE / "heldout").glob("*.jsonl"))
+    # קובצי *-seq.jsonl הם רצפים (turns) — רצים דרך evals.sequences, לא כאן
+    paths = [Path(p) for p in argv] or sorted(p for p in (HERE / "heldout").glob("*.jsonl")
+                                              if not p.name.endswith("-seq.jsonl"))
     for p in paths:
         res = run(p)
         rep = report(res, p.name)

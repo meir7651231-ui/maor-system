@@ -444,7 +444,8 @@ _SENSITIVE_ILL = (r"חולה|מחלה|מאושפז|אשפוז|ניתוח|כימ�
                   # מנהל 299 (qa18 q18-19 🔴): «my dad passed last week» ⇒ היה cant_pay רגיל (לא דחוף). «passed» בלי away
                   r"|" + _EN_BEREAVE)
 # ר-6: חדלות פירעון (תגית insolvency)
-_INSOLVENCY_TAG = (r"פשיטת רגל|חדלות פירעון|צו כינוס|צו פתיחת הליכים|הליך חדלות|נאמן (?:בתיק|שמונה)|כונס נכסים"
+_INSOLVENCY_TAG = (r"\binsolvency\b|\bbankrupt(?:cy)?\b|\breceivership\b|\bliquidation\b|\bdebts?\s+(?:are\s+|were\s+)?(?:all\s+)?frozen\b|"
+                   r"פשיטת רגל|חדלות פירעון|צו כינוס|צו פתיחת הליכים|הליך חדלות|נאמן (?:בתיק|שמונה)|כונס נכסים"
                    r"|(?:תיק|תיקי) איחוד|איחוד תיקים|מעוקל|עיקול|דרך (?:ה)?לשכה|" + _INSOLVENT_ME)
 _RESERVIST_NOW = r"מילואים|צו 8|צו שמונה"
 
@@ -1211,6 +1212,23 @@ _extend(Intent.DISTRESS, r"\b(?:i'?m|i\s+am|im)\s+(?:completely\s+|totally\s+|li
 _extend(Intent.OPT_OUT, r"^(?!.*(?:חוב|קנס|ריבית|חשבונ|סכומ|חיוב)).*(?<![\w])(?:תמחקו|מחקו|תמחק|תמחקי)\s+(?:אותו|אותה)(?![\w])")
 #  · «Payment will go out Thursday» / «payment will be sent tomorrow» ⇒ הבטחה
 _extend(Intent.PROMISE, r"\b(?:the\s+)?payment\s+will\s+(?:go\s+out|be\s+(?:sent|made|transferred|wired)|arrive|come\s+through)\b(?!\s+never)")
+# סט #19 (qa19, עיוור 19.11) — מחלקות: חדלות פירעון באנגלית (דחוף); «Hi who is this?»; הבטחה דרך צד שלישי
+# («my 15 year old will drop off the cash tomorrow»).
+_extend(Intent.CANT_PAY,
+        r"\b(?:insolvency|bankruptcy|bankrupt|receivership|liquidation)\b(?!\s+(?:lawyer|attorney)\s+(?:said|says)\s+pay)",
+        r"\b(?:debts?|accounts?|payments?)\s+(?:are|is|were|was|have\s+been|has\s+been)\s+(?:all\s+)?frozen\b")
+_extend(Intent.WHO_IS_THIS, r"^\W*(?:hi|hey|hello|hiya)\W+who\s+(?:is|are)\s+(?:this|you)\b")
+# קטין שענה בטלפון של ההורה (אנגלית): «my son is 15 and he answered», «my kid answered, hes 13», «this phone belongs to
+# my 14 year old». הורה שמזכיר את גיל הילד («my 15 year old is in your class / will drop off the cash») — לא קטין.
+_extend(Intent.MINOR,
+        r"\bmy\s+(?:son|daughter|kid|child|boy|girl)\s+(?:is|'s|who'?s|who\s+is)\s+(?:only\s+)?(?:1[0-7]|[1-9])\b.{0,30}?"
+        r"\b(?:answered|replied|texted|wrote|responded|has\s+(?:this|the|my)\s+phone|uses\s+this\s+(?:phone|number))\b",
+        r"\bmy\s+(?:son|daughter|kid|child)\s+(?:answered|replied|texted|wrote|responded)\b.{0,25}?\b(?:he|she)\s*(?:'?s|\s+is)\s+"
+        r"(?:only\s+)?(?:1[0-7]|[1-9])\b",
+        r"\b(?:this|the)\s+(?:phone|number)\s+(?:belongs\s+to|is)\s+(?:my\s+)?(?:1[0-7]|[1-9])[\s-]*(?:year[\s-]*old|yo|y/o)\b")
+_extend(Intent.PROMISE,
+        r"\b(?:will|'ll|gonna|going\s+to)\s+(?:drop\s+off|bring|hand\s+over|deliver|come\s+by\s+with)\s+(?:the\s+)?"
+        r"(?:cash|money|payment|check|cheque)\b")
 # לולאה 17.11 בוקר (המשך לסבב 122): שגיאות כתיב באנגלית בכוונות מגינות — «stop txting», «stpo texting me»,
 # «unsubcribe», «reportin u to the polise», «i feel so hopless». מילת-פעולה של שליחה נדרשת אחרי stop (לא «stop worrying»).
 _extend(Intent.OPT_OUT,
@@ -2592,6 +2610,13 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
             r"\b(?:for|till|until)\s+(?:a|one|two|three|a\s+few|\d{1,2})\s*(?:day|week|month)s?\b|\buntil\s+(?:the\s+)?\d{1,2}"
             r"|(?<![\w])(?:ל|עד\s+)(?:שבוע|שבועיימ|חודש|יומיימ|כמה\s+ימימ)(?![\w])", t):
         found.discard(Intent.OPT_OUT)
+    # qa19 (q19-27 🔴): «Not the wrong number, just bad timing. Paying Friday.» / «זה לא מספר שגוי» ⇒ היה מספר שגוי
+    # **לצמיתות** (הלקוח יורד מהגבייה). שלילה צמודה ⇒ לא מספר שגוי, אם אין סימן אחר.
+    if Intent.WRONG_PERSON in found:
+        _neg_wn = (r"\b(?:(?:it'?s|this\s+is|that'?s)\s+)?(?:not|isn'?t|is\s+not|ain'?t)\s+(?:the\s+|a\s+)?wrong\s+(?:number|person|guy|email)\b"
+                   r"|(?<![\w])(?:זה\s+|זו\s+)?לא\s+(?:ה)?(?:מספר|טלפונ)\s+(?:ה)?(?:שגוי|לא\s+נכונ)(?![\w])")
+        if _s(_neg_wn, t) and not _hits(RX[Intent.WRONG_PERSON], re.sub(_c(_neg_wn), " ", t)):
+            found.discard(Intent.WRONG_PERSON)
     # «די» / «מספיק» לבד בשורה — רק כשאין בהודעה שום תוכן אחר («תודה\nמספיק», «שלום\n\nדי»); «די\nאני משלמת מחר» ≠
     if Intent.OPT_OUT not in found and "\n" in (text or "") and found <= {Intent.THANKS, Intent.UNKNOWN} and any(
             _fm(r"\W*(?:די|די כבר|מספיק|enough)(?:\W+(?:בבקשה|תודה|please))*\W*", normalize(ln))
