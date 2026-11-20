@@ -2592,32 +2592,34 @@ class CollectService:
         return {"ok": True, **out, "email_verified": auth["verified"]}
 
     def _email_complaint(self, c: dict) -> dict:
-        """תלונת ספאם ⇒ suppress למייל שגבי שלחה (לפי ה-Message-ID המקורי שבדוח) + התראה לבעל העסק, פעם אחת.
-        SMS לא נעצר אוטומטית — התלונה על המייל, ההחלטה של בעל העסק.
+        """תלונת ספאם ⇒ suppress למייל שאליו נשלחה ההודעה + התראה לבעל העסק, פעם אחת. SMS לא נעצר אוטומטית.
 
-        critic סבב 189: הזיהוי הוא שורת `Feedback-Type:` בגוף — כל אחד יכול לכתוב אותה (גם בלי DMARC), ו-
-        `Original-Rcpt-To` נשלט ע״י השולח ⇒ «תלונה» מזויפת הסירה לצמיתות את המייל של לקוח אחר + כרטיס כוזב.
-        עכשיו הסרה **רק** כשהדוח מצביע על Message-ID של מייל שיצא מגבי, והכתובת המוסרת היא זו שאליה המייל
-        יצא בפועל (לא מה שכתוב ב-Original-Rcpt-To). בלי התאמה ⇒ כרטיס «דיווח לא מאומת» לבעל העסק, בלי הסרה."""
-        row = None
+        critic סבב 189 (🟠) + הכרעת ראש צוות: כל שולח יכול לכתוב `Feedback-Type: abuse` + `Original-Rcpt-To: <לקוח אחר>`
+        ⇒ הסרה קבועה של המייל של הלקוח + כרטיס כוזב. עכשיו תלונה נקלטת **רק** כשהיא מתייחסת למייל ששלחנו: ה-Message-ID
+        המקורי תואם רשומת שליחה שלנו, ו-Original-Rcpt-To (כשמופיע) תואם לכתובת שאליה המייל נשלח בפועל. אחרת ⇒ audit
+        בלבד (בלי כתובות), שום דבר לא נעצר. בלי Original-Rcpt-To (שדה אופציונלי ב-RFC 5965) ⇒ הכתובת מהרשומה שלנו."""
+        row = sent_to = None
         for mid in c["message_ids"]:
-            row = self.db.one("SELECT m.customer_id, m.payload, c.email FROM messages m LEFT JOIN customers c ON "
-                              "c.id=m.customer_id WHERE m.direction='out' AND m.channel='email' "
-                              "AND m.provider_id=?", (mid,))
+            row = self.db.one("SELECT customer_id, payload FROM messages WHERE direction='out' AND channel='email' "
+                              "AND provider_id=?", (mid,))
             if row:
+                try:
+                    sent_to = clean_email(json.loads(row["payload"] or "{}").get("to") or "")
+                except ValueError:
+                    sent_to = None
                 break
-        if row is None:
-            return self._email_complaint_unverified(c)
-        cid = row["customer_id"]
-        try:
-            addr = json.loads(row["payload"] or "{}").get("to") or row["email"] or ""
-        except (ValueError, AttributeError):
-            addr = row["email"] or ""
-        if not addr:
-            self.audit("system", "email_complaint_unmatched", {"type": c["type"]})
-            return {"complaint": "unmatched"}
+        why = ("no_message_id" if not c["message_ids"] else "not_our_message" if row is None else
+               "no_recipient_on_record" if not sent_to else
+               "recipient_mismatch" if c["recipient"] and clean_email(c["recipient"]) != sent_to else None)
+        if why:
+            self.audit("system", "email_complaint_unverified", {"type": c["type"], "reason": why})
+            return {"complaint": "unverified", "reason": why}
+        addr, cid = sent_to, row["customer_id"]
         already = self.suppressed("email", addr)
         self.suppress("email", addr, "spam_complaint")
+        if cid is None:
+            row = self.db.one("SELECT id FROM customers WHERE lower(email)=?", (addr.lower(),))
+            cid = row["id"] if row else None
         if not already and cid is not None:
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                       "created_at) VALUES(?,'system','email',?, 'email_complaint', 1, ?)",
@@ -2625,23 +2627,6 @@ class CollectService:
                        "SMS ממשיך עד שתחליט/י אחרת.", _iso(self.clock())))
         self.audit("system", "email_complaint", {"customer": cid, "type": c["type"]})
         return {"complaint": "suppressed", "customer": cid}
-
-    def _email_complaint_unverified(self, c: dict) -> dict:
-        """critic 189: «תלונת ספאם» שלא מצביעה על מייל שגבי שלחה — לא מסירים (אולי זיוף). אם הכתובת שייכת
-        ללקוח ⇒ כרטיס אחד פתוח לבעל העסק (לא כרטיס לכל דוח — הצפה), בלי ייחוס «הלקוח סימן כספאם»."""
-        addr = c["recipient"]
-        row = self.db.one("SELECT id FROM customers WHERE lower(email)=?", (addr.lower(),)) if addr else None
-        cid = row["id"] if row else None
-        if cid is not None and not self.db.one(
-                "SELECT 1 FROM messages WHERE customer_id=? AND intent='email_complaint_unverified' "
-                "AND needs_owner=1", (cid,)):
-            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
-                      "created_at) VALUES(?,'system','email',?, 'email_complaint_unverified', 1, ?)",
-                      (cid, "התקבל דיווח «ספאם» על כתובת המייל של הלקוח, אבל הוא לא תואם אף מייל שנשלח ממך "
-                       "(אולי מזויף). מיילים לא נעצרו. אם הלקוח ביקש להפסיק — הסר/י אותו ידנית.",
-                       _iso(self.clock())))
-        self.audit("system", "email_complaint_unverified", {"customer": cid, "type": c["type"]})
-        return {"complaint": "unverified", "customer": cid}
 
     def _email_bounce(self, b: dict) -> dict:
         """bounce ⇒ המייל היוצא שחזר: לפי Message-ID המקורי (מדויק), אחרת המייל האחרון לנמען.
