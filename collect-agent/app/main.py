@@ -295,6 +295,16 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                            os.environ.get("DEMO_USER_PASSWORD", ""))
         if os.environ.get("DEMO_USER_SECRET_FILE"):
             Path(os.environ["DEMO_USER_SECRET_FILE"]).write_text(reg["totp_secret"])
+    # מנהל 330: עובדת דמו שנייה (תמיד staff) — כדי שמסע הדפדפן של «צוות ותפקידים» ילחץ על הכפתורים
+    # (מינוי/הורדה/השבתה/הפעלה מחדש) ולא רק יראה את הבעלים האחרון. אותם שומרים בדיוק: שירות דמו בלבד,
+    # לא בבטא אמיתית, ורק אחרי שבעל העסק כבר קיים (אחרת היא הייתה הופכת לבעלים הראשון).
+    if demo_service and os.environ.get("DEMO_STAFF_EMAIL") and \
+            os.environ.get("REQUIRE_USER_LOGIN") != "1" and \
+            svc.db.one("SELECT 1 FROM users WHERE role='owner' AND active=1") and \
+            not svc.db.one("SELECT 1 FROM users WHERE email=?",
+                           (os.environ["DEMO_STAFF_EMAIL"].strip().lower(),)):
+        users.create(os.environ["DEMO_STAFF_EMAIL"], "עובדת דמו",
+                     os.environ.get("DEMO_STAFF_PASSWORD", ""), role="staff")
 
     def owner(request: Request) -> None:
         presented = security.bearer(request.headers.get("authorization"))
