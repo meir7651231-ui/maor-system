@@ -49,7 +49,7 @@ class Message:
 
 
 def build_adapters(*, provider: str = "019", username: str = "", token: str = "", sender: str = "",
-                   backup_username: str = "", backup_token: str = "",
+                   backup_username: str = "", backup_token: str = "", inforu_dlr_url: str = "",
                    email_from: str = "no-reply@example.com", smtp_host: str = "smtp.example",
                    test_endpoint: bool = True):
     """adapters של integrations במצב dry-run (בלי transport). מפתחות חסרים ⇒ UNSET (תצוגה בלבד).
@@ -60,7 +60,7 @@ def build_adapters(*, provider: str = "019", username: str = "", token: str = ""
     def mk(name: str, user: str, tok: str):
         if name == "019":
             return Sms019(user or UNSET, tok or UNSET, sender, test_endpoint=test_endpoint)
-        return SMS_ADAPTERS[name](user or UNSET, tok or UNSET, sender)
+        return SMS_ADAPTERS[name](user or UNSET, tok or UNSET, sender, dlr_url=inforu_dlr_url)
     chain = [mk(provider, username, token), mk(backup, backup_username, backup_token)]
     return chain, SmtpEmail(smtp_host, 587, "", "", email_from)
 
@@ -232,26 +232,57 @@ _DSN_RECIPIENT = re.compile(r"^(?:final|original)-recipient:\s*(?:rfc822;\s*)?<?
 _DSN_STATUS = re.compile(r"^status:\s*([245])\.\d{1,3}\.\d{1,3}", re.IGNORECASE | re.MULTILINE)
 _ARF_MSGID = re.compile(r"^(?:original-)?message-id:\s*<*([^<>\s]+@[^<>\s]+?)>*\s*$", re.IGNORECASE | re.MULTILINE)
 _MSGID = re.compile(r"^message-id:\s*(<[^<>\s]+@[^<>\s]+>)", re.IGNORECASE | re.MULTILINE)
+# NDR קריא בלבד (Exchange/Outlook; learn.microsoft.com «How to interpret an Exchange NDR»): בלי Status:/
+# Final-Recipient: — הקוד מופיע בתוך שורת האבחון («#5.7.1 smtp;530 5.7.1 …») והנמען בשורה שאחרי הכותרת
+_ENH_CODE = re.compile(r"(?<![\d.])([245])\.(\d{1,3})\.(\d{1,3})(?![\d.])")
+_NDR_RCPT = re.compile(r"(?:delivery has failed to these recipients or groups:|"
+                       r"your message (?:to|wasn't delivered to|couldn't be delivered to))\s*<?"
+                       r"([^\s<>;:,]+@[^\s<>;:,]*[A-Za-z0-9])", re.IGNORECASE)
+# כתובת שלא קיימת (לחסום מייל אליה) ≠ דחייה מסיבת מדיניות/אבטחה 5.7.x (הכתובת תקינה — לא לחסום)
+_DEAD_DIAG = re.compile(r"user unknown|unknown user|no such (?:user|mailbox|recipient)|recipient not found|"
+                        r"does not exist|doesn't exist|not a registered|invalid recipient|address rejected|"
+                        r"mailbox (?:not found|unavailable)|account (?:that you tried to reach )?does not exist",
+                        re.IGNORECASE)
 
 
 def parse_bounce(sender: str, text: str, subject: str = "") -> dict[str, Any] | None:
-    """הודעת החזרה של שרת דואר ⇒ {recipient, permanent, message_ids}; תשובה רגילה ⇒ None.
+    """הודעת החזרה של שרת דואר ⇒ {recipient, permanent, address_invalid, code, message_ids}; תשובה ⇒ None.
 
-    זיהוי שמרני: גם שולח של מערכת דואר (MAILER-DAEMON/postmaster) **או** נושא של החזרה, **וגם** גוף
-    שנראה כמו DSN (Final-Recipient/Status). לקוח שכותב «Status: 5.1.1» בתשובה רגילה ⇒ לא bounce.
-    Status 5.x.x ⇒ קבוע (כתובת שגויה) · 4.x.x ⇒ עיכוב זמני (לא כשל)."""
+    זיהוי שמרני: שולח של מערכת דואר (MAILER-DAEMON/postmaster) **או** נושא של החזרה, **וגם** גוף של
+    DSN (Final-Recipient/Status, RFC 3464) **או** NDR קריא עם קוד משופר (Exchange). לקוח שכותב
+    «Status: 5.1.1» בתשובה רגילה ⇒ לא bounce (אין שולח/נושא של החזרה).
+    permanent: 5.x.x ⇒ כן · 4.x.x ⇒ עיכוב. address_invalid (לחסום מייל לכתובת): 5.1.x / 5.2.1 / אבחון
+    «user unknown»… — **לא** 5.7.x (מדיניות/אבטחה: הכתובת קיימת)."""
     local = parse_address(sender).split("@", 1)[0].lower()
     if not (local in _BOUNCE_SENDERS or _BOUNCE_SUBJECT.search(subject or "")):
         return None
-    st = _DSN_STATUS.search(text or "")
-    rec = _DSN_RECIPIENT.search(text or "")
-    if not st and not rec:
-        return None
-    permanent = (st.group(1) == "5") if st else True     # בלי Status אבל עם Final-Recipient ⇒ כשל
-    # bounce מזויף (20.11, אנלוגי ל-critic 189): ה-Message-ID המקורי הוא ההוכחה — גם Original-Message-ID, מנורמל ל-<id>
-    ids = [f"<{x}>" for x in _ARF_MSGID.findall(text or "")]
-    return {"recipient": clean_email(rec.group(1)) if rec else "", "permanent": permanent,
-            "message_ids": list(dict.fromkeys(ids))}
+    body = text or ""
+    st = _DSN_STATUS.search(body)
+    rec = _DSN_RECIPIENT.search(body)
+    enh = None
+    if st:
+        enh = _ENH_CODE.search(body[st.start():])
+    elif not rec:
+        enh = _ENH_CODE.search(body)            # NDR קריא בלבד
+        if not enh:
+            return None
+    else:
+        enh = _ENH_CODE.search(body)
+    code = ".".join(enh.groups()) if enh else ""
+    cls = code.split(".")[0] if code else ("5" if rec else "")
+    permanent = cls == "5"
+    recipient = clean_email(rec.group(1)) if rec else ""
+    if not recipient:
+        m = _NDR_RCPT.search(body + " ")
+        recipient = clean_email(m.group(1)) if m else ""
+    subj = code.split(".")[1] if code else ""
+    address_invalid = permanent and (subj == "1" or code == "5.2.1" or bool(_DEAD_DIAG.search(body)))
+    if permanent and subj == "7":
+        address_invalid = False                 # 5.7.x = מדיניות/אבטחה, לא כתובת מתה
+    return {"recipient": recipient, "permanent": permanent, "address_invalid": address_invalid,
+            # bounce מזויף (20.11, אנלוגי ל-critic 189): ה-Message-ID המקורי הוא ההוכחה (השירות מאמת מול היומן) —
+            # גם Original-Message-ID, מנורמל ל-<id> (בלי סוגריים / סוגריים כפולים)
+            "code": code, "message_ids": list(dict.fromkeys(f"<{x}>" for x in _ARF_MSGID.findall(body)))}
 
 
 # ---------- תלונת ספאם (ARF / feedback loop, RFC 5965) ----------

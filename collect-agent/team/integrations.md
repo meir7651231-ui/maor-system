@@ -229,3 +229,31 @@ GREENINVOICE_API_ID=… GREENINVOICE_API_SECRET=… python3 -I scripts/gi_contra
 **הערה:** כדי לקבל את הדוחות האלה צריך להירשם ל-feedback loop אצל ספקי הדואר (Yahoo/Microsoft וכו'). זו הרשמה, ולכן היא אצל מאיר ביום ההשקה. Gmail לא שולח ARF לשולחים קטנים, ולכן כפתור ההסרה בלחיצה אחת (List-Unsubscribe) נשאר ההגנה העיקרית מולו.
 
 **הוכחה:** `tests/test_email_complaint.py` (9 בדיקות) · מוטציות 2/2 נתפסות.
+
+## 17. מיפוי bounce / ARF / DLR לכל הספקים שבשימוש, מול התיעוד שלהם (20.11)
+**ספקים בשימוש:**
+- **SMS:** 019 (ראשי), InforU (גיבוי).
+- **מייל:** SMTP בלבד. ה-bounce וה-ARF חוזרים כמייל דרך `/webhooks/email`. Resend קיים כ-adapter אבל לא מחובר לשירות, ולכן לא מופה.
+
+| ספק / סוג | נכנס דרך | ממופה ל- | תיעוד |
+|---|---|---|---|
+| 019 DLR | `/webhooks/sms/019` | `delivery_report` + קטגוריה (`DLR_019_CODES`) | docs.019sms.co.il (push-api, errors-and-status) |
+| 019 blacklist / קוד 201 | אותו webhook | suppress SMS + opt-out | docs.019sms.co.il |
+| InforU DLR | `/webhooks/sms/inforu` | `delivery_report` | inforu.co.il («ממשקי API»): `DeliveryNotificationUrl` בלבד |
+| מייל bounce (DSN / NDR) | `/webhooks/email` | `_email_bounce` ⇒ `email_bounces` (רק כתובת מתה) | RFC 3464 נספח E · Microsoft «How to interpret an Exchange NDR» |
+| מייל ARF | `/webhooks/email` | `_email_complaint` ⇒ `suppressions` (30א) | RFC 5965 נספח B |
+
+**חמישה באגים שנמצאו מול התיעוד ותוקנו:**
+1. **DLR אמיתי של 019 נבלע.** בתיעוד אין `type` בגוף ההודעה (ה-URL מוגדר לכל סוג push בנפרד), ולכן הוא נחשב incoming_sms בלי טקסט. **בנוסף**, הקודים המספריים (102 = נמסר, 103 = פג תוקף…) מופו ל-unknown. עכשיו יש זיהוי לפי צורה (shipment_id+status בלי message), רמז `?type=` ב-URL, וטבלת הקודים המלאה.
+2. **קטגוריה.** ‏7 (אין יתרה), 16 (שעת שליחה), 18 (הודעה לא חוקית), 998 ו-999 מתריעים `sms_account_issue` («בעיה בחשבון הספק»), ולא «מספר שגוי». ‏747 (מחוץ לכיסוי) נחשב זמני, בלי התראה. ‏201 (נחסם לפי בקשה) מטופל כמו blacklist.
+3. **InforU לא היה שולח DLR בכלל**, כי לא העברנו `DeliveryNotificationUrl` בבקשת השליחה. עכשיו הוא מוגדר ל-`<PUBLIC_BASE_URL>/webhooks/sms/inforu?k=<SMS_WEBHOOK_KEY>`.
+4. **NDR של Exchange בטקסט קריא בלבד** (בלי `Status:`/`Final-Recipient:`) לא זוהה, ונכנס כ«שולח לא מוכר». עכשיו הקוד המשופר והנמען מחולצים מהטקסט.
+5. **5.7.x (מדיניות/אבטחה) חסם כתובת תקינה.** עכשיו `address_invalid` מסמן רק 5.1.x, ‏5.2.1, או אבחון של «user unknown»/«recipient not found». עם 5.7.x ההודעה עדיין נכשלת והבעלים מקבלים התראה, אבל הכתובת לא נחסמת.
+
+**לביום ההשקה (מאיר / הגדרת חשבון):** ב-019 מגדירים push_url לכל סוג בנפרד: `…/webhooks/sms/019?k=<KEY>&type=dlr`, ‏`&type=incoming_sms` ו-`&type=blacklist`.
+
+**לא אומת:** גוף ה-DLR של InforU וטבלת הקודים שלו לא מופיעים בתיעוד הקריא (apidoc הוא מעטפת JS), ולכן המפענח נשאר סובלני ולא מאומת. גם גוף ה-bounce של Gmail לא מופיע בתיעוד, ולכן הדוגמה שלו סינתטית ומסומנת ככזו.
+
+**הוכחה:**
+- `tests/test_delivery_feedback_docs.py` (48 בדיקות): טבלת הקודים של 019 כולה, הדוגמה מהתיעוד דרך ה-webhook, DSN מ-RFC 3464 (Simple, Multi, Gateway, Delayed), ה-NDR של Microsoft מילה במילה, ARF מ-RFC 5965 B.1/B.2, ו-`DeliveryNotificationUrl`.
+- מוטציות 6/6: זיהוי DLR לפי צורה · רמז type · חסימת 5.7 · `DeliveryNotificationUrl` · קטגוריית «אין יתרה» · ARF.

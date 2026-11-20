@@ -34,3 +34,34 @@ def test_control_complaint_on_our_message_suppresses(svc, clock):
     svc.email_webhook("fbl@mailbox-provider.example",
                       f"Feedback-Type: abuse\nOriginal-Rcpt-To: c1@example.com\nMessage-ID: <{mid}>\n", "fbl-1")
     assert svc.suppressed("email", "c1@example.com")
+
+
+# ---- מנהל 340: בדיקות נוספות מעל התיקון של vigilant-brown (a2abaf95) — מנהל 340 תיקן במקביל; נבחר התיקון
+# שכבר היה בענף האינטגרציה (מחמיר יותר: Original-Rcpt-To שלא תואם ⇒ לא מאומת), הבדיקות האלה נשמרו כשמירה.
+
+def test_forged_complaint_has_no_false_attribution(svc):
+    svc.sync()
+    r = svc.email_webhook("yossi@example.net", "Feedback-Type: abuse\nOriginal-Rcpt-To: c1@example.com\n", "f1",
+                          auth_results=FAIL)
+    assert r["complaint"] == "unverified"
+    assert not svc.db.q("SELECT 1 FROM messages WHERE intent='email_complaint'")   # אין «הלקוח סימן כספאם»
+
+
+def test_own_message_id_with_other_rcpt_suppresses_nobody(svc, clock):
+    """Message-ID אמיתי של מייל ללקוח א׳ + Original-Rcpt-To של לקוח ב׳ ⇒ אף אחד לא מוסר (דוח לא עקבי)."""
+    svc.sync()
+    clock.now += timedelta(days=3)
+    for rid in svc.plan():
+        try:
+            svc.approve(rid, confirm_open=True)
+        except (ValueError, PermissionError):
+            pass
+    svc.dispatch()
+    sent = [m for m in svc.sender.sent if m.get("provider_message_id") and "@" in m["to"]]
+    a = sent[0]
+    other = next(m["to"] for m in sent if m["to"] != a["to"])
+    svc.email_webhook("fbl@mailbox-provider.example",
+                      f"Feedback-Type: abuse\nOriginal-Rcpt-To: {other}\nMessage-ID: <{a['provider_message_id']}>\n",
+                      "fbl-x")
+    assert not svc.suppressed("email", a["to"])
+    assert not svc.suppressed("email", other)

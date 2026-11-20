@@ -102,8 +102,11 @@ class InforUSms(SmsAdapter):
     contract_verified = CONTRACT_VERIFIED_INFORU
     URL = "https://capi.inforu.co.il/api/v2/SMS/SendSms"
 
-    def __init__(self, username: str, api_token: str, sender: str, **kw) -> None:
+    def __init__(self, username: str, api_token: str, sender: str, *, dlr_url: str = "", **kw) -> None:
         _live_guard(self.provider, self.contract_verified, kw.get("transport"))
+        # התיעוד (inforu.co.il «ממשקי API»): ה-DLR נשלח ב-POST לכתובת שבשדה DeliveryNotificationUrl
+        # של בקשת השליחה. בלעדיה InforU לא שולח דוח מסירה בכלל.
+        self.dlr_url = dlr_url
         super().__init__(**kw)
         if not username or not api_token:
             raise IntegrationError("InforU: חסרים INFORU_USERNAME/INFORU_TOKEN")
@@ -116,6 +119,8 @@ class InforUSms(SmsAdapter):
         body = {"Data": {"Message": msg.text,
                          "Recipients": [{"Phone": il_mobile_local(msg.to)}],
                          "Settings": {"Sender": self.sender}}}
+        if self.dlr_url:
+            body["Data"]["Settings"]["DeliveryNotificationUrl"] = self.dlr_url
         if msg.idempotency_key:  # שדה-מזהה של הלקוח — לאמת את השם המדויק מול InforU
             body["Data"]["Settings"]["CustomerMessageId"] = msg.idempotency_key
         return httpx.Request("POST", self.URL, json=body, headers={
@@ -195,16 +200,45 @@ _DLR_FAILED = {"failed", "undeliv", "undelivered", "rejected", "rejectd", "expir
 _DLR_PENDING = {"pending", "sent", "enroute", "accepted", "acceptd"}
 
 
+# טבלת «DLR statuses» של 019 (https://docs.019sms.co.il/sms/errors-and-status.html, נקרא 20.11.2026)
+# ⇒ (מצב, קטגוריה). recipient = הבעיה אצל הנמען (מספר/מכשיר) · account = אצלנו/בחשבון הספק (יתרה,
+# הרשאה, הודעה לא חוקית) — לא «מספר שגוי» · blocked = הנמען חסם · transient = זמני, בלי התראה.
+DLR_019_CODES: dict[str, tuple[str, str | None]] = {
+    "-1": ("unknown", None),          # נשלח - ללא אישור מסירה
+    "0": ("delivered", None), "102": ("delivered", None),
+    "2": ("unknown", None),           # Timeout
+    **{c: ("failed", "recipient") for c in ("1", "3", "4", "5", "6")},     # נכשל / נכשל סלולר
+    "7": ("failed", "account"),       # אין יתרה
+    "14": ("failed", "recipient"),    # store&forward נכשל סלולר
+    "15": ("failed", "recipient"),    # מספר כשר
+    "16": ("failed", "account"),      # אין הרשאת שעת שליחה
+    "17": ("failed", "blocked"),      # חסום להודעות פירסומיות
+    "18": ("failed", "account"),      # הודעה לא חוקית
+    **{str(c): ("failed", "recipient") for c in (101, 103, 104, 105, 106, 107, 108, *range(109, 133))},
+    "201": ("failed", "blocked"),     # נחסם לפי בקשה
+    "747": ("failed", "transient"),   # מנוי נמצא מחוץ לכיסוי רשת מקומית
+    "998": ("failed", "account"),     # אין הרשאה
+    "999": ("failed", "account"),     # שגיאה לא ידועה (אצל הספק)
+}
+
+
+def dlr_019_category(fields: dict[str, str]) -> str | None:
+    return DLR_019_CODES.get(jstr(fields.get("status")).strip(), (None, None))[1]
+
+
 def parse_019_dlr(fields: dict[str, str]) -> tuple[str, str]:
     """דוח מסירה של 019 ⇒ (מזהה ההודעה אצל הספק, delivered|failed|pending|unknown).
 
-    ⚠️ חוזה לא מאומת (כמו השליחה): שמות השדות והקודים לפי התיעוד הציבורי בלבד. סובלני לשמות
-    (shipment_id/msg_id/id) ולמילות סטטוס נפוצות. קוד מספרי שאינו מוכר ⇒ 'unknown' — **לא** פועלים
-    עליו (לא מסמנים נכשל) עד שיהיה מסמך רשמי."""
+    שדות וקודים לפי התיעוד הציבורי של 019 (push-api + errors-and-status, 20.11.2026): shipment_id +
+    status מספרי ⇒ DLR_019_CODES. עדיין לא נבדק מול חשבון (CONTRACT_VERIFIED_019=False). סובלני גם
+    למילות סטטוס (SMPP). קוד שלא בטבלה ⇒ 'unknown' — **לא** פועלים עליו."""
     pid = (fields.get("shipment_id") or fields.get("msg_id") or fields.get("message_id")
            or fields.get("id") or "").strip()
     raw = (fields.get("status_text") or fields.get("dlr_status") or fields.get("status")
            or "").strip().lower()
+    code = jstr(fields.get("status")).strip()
+    if code in DLR_019_CODES:                       # הקוד המספרי המתועד גובר על מילים
+        return pid, DLR_019_CODES[code][0]
     if raw in _DLR_DELIVERED:
         st = "delivered"
     elif raw in _DLR_FAILED:

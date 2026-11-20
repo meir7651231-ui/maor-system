@@ -269,7 +269,11 @@ def build_dry_sender(s: Settings) -> DryRunSender:
                                 sender=s.sms_sender_id, email_from=s.email_from,
                                 smtp_host=s.smtp_host or "smtp.example",
                                 backup_username=s.sms_backup_username,
-                                backup_token=s.sms_backup_token)
+                                backup_token=s.sms_backup_token,
+                                # InforU שולח DLR רק לכתובת שבבקשה (DeliveryNotificationUrl);
+                                # בלי מפתח ה-webhook סגור ⇒ אין טעם לשלוח כתובת
+                                inforu_dlr_url=(f"{s.public_base_url}/webhooks/sms/inforu?k={s.sms_webhook_key}"
+                                                if s.sms_webhook_key else ""))
     return DryRunSender(sms=sms, email=email, reply_to=s.email_reply_to)
 
 
@@ -2657,24 +2661,29 @@ class CollectService:
             dead = json.loads(row["payload"] or "{}").get("to") or b["recipient"]
         except (ValueError, AttributeError):
             dead = b["recipient"]
-        if dead:
+        if dead and b.get("address_invalid", True):
+            # רק כתובת שלא קיימת (5.1.x / 5.2.1 / «user unknown»). 5.7.x = מדיניות/אבטחה: הכתובת תקינה
             self.db.x("INSERT OR IGNORE INTO email_bounces(hash,created_at) VALUES(?,?)",
                       (self.addr_hash("email", dead), now))
+            text = ("המייל ללקוח חזר (הכתובת לא קיימת או חסומה). מיילים לכתובת הזו נעצרו; SMS ממשיך. "
+                    "אחרי תיקון הכתובת בחשבונית ירוקה המיילים יחזרו לכתובת החדשה.")
+        else:
+            text = (f"המייל ללקוח נדחה על ידי שרת הדואר שלו ({b.get('code') or 'דחייה'}: מדיניות/אבטחה), "
+                    "אבל הכתובת קיימת — היא לא נחסמה. אם זה חוזר, כדאי לברר עם הלקוח.")
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at)"
-                  " VALUES(?,'system','email',?, 'email_bounced', 1, ?)",
-                  (row["customer_id"], "המייל ללקוח חזר (הכתובת לא קיימת או חסומה). מיילים לכתובת הזו "
-                   "נעצרו; SMS ממשיך. אחרי תיקון הכתובת בחשבונית ירוקה המיילים יחזרו לכתובת החדשה.", now))
-        self.audit("system", "email_bounced", {"message": row["id"]})
+                  " VALUES(?,'system','email',?, 'email_bounced', 1, ?)", (row["customer_id"], text, now))
+        self.audit("system", "email_bounced", {"message": row["id"], "code": b.get("code", ""),
+                                               "address_invalid": bool(b.get("address_invalid", True))})
         return {"bounce": "failed", "matched": True}
 
-    def sms_webhook_019(self, raw: bytes) -> dict:
+    def sms_webhook_019(self, raw: bytes, *, type_hint: str = "") -> dict:
         try:
-            return self._sms_webhook_019(raw)
+            return self._sms_webhook_019(raw, type_hint=type_hint)
         except Exception:
             self._release_webhook("019:" + hashlib.sha256(raw).hexdigest())
             raise
 
-    def _sms_webhook_019(self, raw: bytes) -> dict:
+    def _sms_webhook_019(self, raw: bytes, *, type_hint: str = "") -> dict:
         import hashlib
         from urllib.parse import parse_qs
 
@@ -2683,7 +2692,10 @@ class CollectService:
         if not self._claim_webhook(key) or self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
             return {"ok": True, "duplicate": True}
         f = {k: v[0] for k, v in parse_qs(raw.decode("utf-8", "replace")).items()}
-        kind = f.get("type", "incoming_sms")
+        # התיעוד של 019: ה-URL מוגדר לכל סוג push בנפרד, ובגוף ה-DLR **אין** type. בלי זיהוי לפי צורה, DLR
+        # אמיתי (shipment_id+status, בלי message) נחשב incoming_sms בלי טקסט ⇒ נבלע בשקט
+        kind = f.get("type") or type_hint or (
+            "dlr" if f.get("shipment_id") and "status" in f and "message" not in f else "incoming_sms")
         if kind == "blacklist" and f.get("phone"):
             # מבקר סבב 3: גם מספר שעוד לא ב-DB נחסם (לקוח שיתווסף אחר כך עם המספר לא יקבל SMS)
             self.suppress("sms", f["phone"], "carrier_blacklist")
@@ -2693,10 +2705,19 @@ class CollectService:
         elif kind == "incoming_sms" and f.get("phone") and f.get("message") is not None:
             res = {"ok": True, "kind": kind, **self.inbound("sms", f["phone"], f["message"])}
         elif kind == "dlr":
-            from .integrations.sms import parse_019_dlr
+            from .integrations.sms import dlr_019_category, parse_019_dlr
             pid, st = parse_019_dlr(f)
-            res = {"ok": True, "kind": kind, **self.delivery_report("019", pid, st)} if pid \
+            cat = dlr_019_category(f)
+            res = {"ok": True, "kind": kind, **self.delivery_report("019", pid, st, category=cat)} if pid \
                 else {"ok": True, "kind": kind, "ignored": True}
+            if cat == "blocked" and f.get("status", "").strip() == "201" and res.get("matched"):
+                # 201 «נחסם לפי בקשה» = כמו push מסוג blacklist ⇒ אותו טיפול: עצירת SMS למספר
+                row = self.db.one("SELECT c.phone FROM messages m JOIN customers c ON c.id=m.customer_id "
+                                  "WHERE m.direction='out' AND m.provider='019' AND m.provider_id=?", (pid,))
+                if row and row["phone"]:
+                    self.suppress("sms", row["phone"], "carrier_blacklist")
+                    for cust in self._find_customers("sms", row["phone"]):
+                        self._opt_out(cust["id"], "carrier_blacklist")
         else:
             res = {"ok": True, "kind": kind, "ignored": True}
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
@@ -2879,7 +2900,8 @@ class CollectService:
                    redact_tokens(message_to_json(msg)), _iso(now),
                    provider, pid or None, "sent" if pid else None))
 
-    def delivery_report(self, provider: str, provider_id: str, status: str) -> dict:
+    def delivery_report(self, provider: str, provider_id: str, status: str, *,
+                        category: str | None = None) -> dict:
         """DLR מהספק ⇒ עדכון ההודעה היוצאת. 'failed' ⇒ התראה לבעל העסק (לא הסרה אוטומטית:
         מספר שלא קיבל יכול להיות תקלה זמנית אצל המפעיל — ההחלטה של בעל העסק)."""
         row = self.db.one("SELECT * FROM messages WHERE direction='out' AND provider=? AND "
@@ -2891,12 +2913,18 @@ class CollectService:
         now = _iso(self.clock())
         self.db.x("UPDATE messages SET delivery_status=?, delivery_at=? WHERE id=?",
                   (status, now, row["id"]))
-        if status == "failed":
+        if status == "failed" and category != "transient":   # זמני (מחוץ לכיסוי) ⇒ בלי התראה
+            intent, text = {
+                "account": ("sms_account_issue", "ה-SMS לא יצא בגלל בעיה בחשבון אצל ספק ה-SMS (יתרה, הרשאה "
+                            "או תוכן ההודעה) — לא בגלל מספר הלקוח. כדאי לבדוק את חשבון הספק."),
+                "blocked": ("sms_undelivered", "ה-SMS נחסם אצל הנמען או אצל המפעיל (חסימה לפי בקשה)."),
+            }.get(category or "", ("sms_undelivered", "ה-SMS לא נמסר ללקוח (דוח מסירה מהספק). "
+                                   "כדאי לבדוק את המספר בחשבונית ירוקה."))
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
-                      "created_at) VALUES(?,'system','sms',?, 'sms_undelivered', 1, ?)",
-                      (row["customer_id"], "ה-SMS לא נמסר ללקוח (דוח מסירה מהספק). "
-                       "כדאי לבדוק את המספר בחשבונית ירוקה.", now))
-            self.audit("system", "sms_undelivered", {"message": row["id"], "provider": provider})
+                      "created_at) VALUES(?,'system','sms',?, ?, 1, ?)",
+                      (row["customer_id"], text, intent, now))
+            self.audit("system", intent, {"message": row["id"], "provider": provider,
+                                          "category": category or "recipient"})
         return {"matched": True, "status": status}
 
     def resume_customer(self, customer_id: int, actor: str = "owner") -> dict:
