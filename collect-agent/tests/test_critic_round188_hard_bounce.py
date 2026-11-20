@@ -80,3 +80,43 @@ def test_gate_reason_is_email_bounced(svc, clock):
     cust = svc.db.one("SELECT * FROM customers WHERE lower(email)=?", (DANA_MAIL,))
     assert svc.gate(cust, "email", DANA_MAIL) in ("email_bounced", "outside_window")
     assert svc.gate(cust, "email", "new-addr@example.com") != "email_bounced"
+
+
+# ───────── גבי משפט: מזעור — סימון bounce לא נשמר אחרי שהלקוח הותמם (ר-10) ─────────
+def _close_and_purge(svc, clock, fake_gi, doc_id="doc1"):
+    fake_gi.docs[:] = [d for d in fake_gi.docs if d["id"] != doc_id]
+    svc.sync()
+    clock.now += timedelta(days=91)
+    svc.purge_closed()
+
+
+def test_bounce_mark_deleted_when_customer_purged(svc, clock, fake_gi):
+    _first_mail_and_bounce(svc, clock, "5.1.1")
+    assert svc.email_bounced(DANA_MAIL)
+    _close_and_purge(svc, clock, fake_gi)
+    assert svc.db.one("SELECT purged_at FROM customers WHERE external_id='cl1'")["purged_at"]
+    assert svc.db.one("SELECT COUNT(*) n FROM email_bounces")["n"] == 0
+
+
+def test_bounce_mark_kept_while_another_live_customer_shares_address(svc, clock, fake_gi):
+    from tests.conftest import gi_doc
+    _first_mail_and_bounce(svc, clock, "5.1.1")
+    other = gi_doc(9, client_id="cl-shared", name="משה כהן", phone="052-9998887", due="2026-12-30")
+    other["client"]["emails"] = [DANA_MAIL]
+    fake_gi.docs.append(other)
+    svc.sync()
+    _close_and_purge(svc, clock, fake_gi)
+    assert svc.email_bounced(DANA_MAIL)          # הכתובת עדיין מתה עבור הלקוח החי
+
+
+def test_spam_complaint_suppression_survives_purge(svc, clock, fake_gi):
+    """תלונת ספאם = סירוב (30א) ⇒ נשמרת גם אחרי ההתממה (שונה מ-bounce)."""
+    svc.sync()
+    clock.now += timedelta(days=3)
+    _cycle(svc)
+    mid = [m for m in svc.sender.sent if m["to"] == DANA_MAIL][0]["provider_message_id"]
+    arf = (f"Feedback-Type: abuse\nOriginal-Rcpt-To: {DANA_MAIL}\nMessage-ID: <{mid}>\n")
+    svc.email_webhook("fbl@isp.example", arf, "arf-1", subject="Abuse report")
+    assert svc.suppressed("email", DANA_MAIL)
+    _close_and_purge(svc, clock, fake_gi)
+    assert svc.suppressed("email", DANA_MAIL)
