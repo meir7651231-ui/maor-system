@@ -869,7 +869,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         def progress(r):   # מנהל 334: הסדר שאושר/הוחמץ/הושלם — כמה שולם ומה הבא, לכרטיס «הסדרי תשלומים»
             return svc.plan_progress(r) if r["status"] in ("approved", "missed", "completed") else None
         return [{**dict(r), "installments": json.loads(r["installments"]), "amount_check": check(r),
-                 "progress": progress(r)}
+                 "progress": progress(r), "currency": svc.plan_currency(r)}
                 for r in svc.db.q("SELECT * FROM plans ORDER BY id")]
 
     @app.post("/plans/{pid}/approve", dependencies=auth)

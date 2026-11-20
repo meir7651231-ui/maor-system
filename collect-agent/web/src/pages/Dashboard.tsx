@@ -231,8 +231,8 @@ function PlansCard() {
                 aria-label={`שולם ${pct}% מההסדר`}>
                 <div className="h-full bg-brand" style={{ width: `${pct}%` }} />
               </div>
-              <div className="text-xs text-ink-700 mt-1"><span className="num">{fmtIls(pr.paid_agorot / 100)}</span> מתוך <span className="num">{fmtIls(pr.total_agorot / 100)}</span> · <span className="num">{pr.done}/{pr.count}</span> תשלומים</div>
-              <div className={`text-xs mt-0.5 ${p.status === 'missed' ? 'text-amber-900 font-bold' : 'text-ink-500'}`} data-testid="plan-next">{nextLine(pr, today, fmtIls)}</div>
+              <div className="text-xs text-ink-700 mt-1"><span className="num">{fmtMoney(pr.paid_agorot / 100, p.currency)}</span> מתוך <span className="num">{fmtMoney(pr.total_agorot / 100, p.currency)}</span> · <span className="num">{pr.done}/{pr.count}</span> תשלומים</div>
+              <div className={`text-xs mt-0.5 ${p.status === 'missed' ? 'text-amber-900 font-bold' : 'text-ink-500'}`} data-testid="plan-next">{nextLine(pr, today, n => fmtMoney(n, p.currency))}</div>
               <div className="text-xs text-ink-500 mt-0.5">{b.hint}</div>
             </li>
           );
@@ -407,9 +407,9 @@ function NeedsYou() {
           return (
             <li key={`p${p.id}`} className="rounded-lg bg-brand-50 p-3 text-sm">
               <div className="font-bold">💳 הצעת פריסה · {nameOfCustomer(p.customer_id)} · חשבונית <span className="num">{numOf(p.invoice_id)}</span></div>
-              <div className="text-xs text-ink-700 mt-0.5">{p.installments.length} תשלומים ללא ריבית · סה״כ {fmtIls(total)}</div>
+              <div className="text-xs text-ink-700 mt-0.5">{p.installments.length} תשלומים ללא ריבית · סה״כ {fmtMoney(total, p.currency)}</div>
               <ol className="text-xs text-ink-500 mt-1 space-y-0.5">
-                {p.installments.map(x => <li key={x.n}><span className="num">{x.n}. {x.due.split('-').reverse().join('.')}</span> — {fmtIls(x.amount_agorot / 100)}</li>)}
+                {p.installments.map(x => <li key={x.n}><span className="num">{x.n}. {x.due.split('-').reverse().join('.')}</span> — {fmtMoney(x.amount_agorot / 100, p.currency)}</li>)}
               </ol>
               {(p.amount_check?.length ?? 0) > 0 && (
                 <label className="mt-2 flex items-start gap-2 text-xs rounded-lg bg-red-50 text-red-900 px-2 py-1.5" data-testid="plan-confirm-amount">

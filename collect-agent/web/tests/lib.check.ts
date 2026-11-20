@@ -1498,3 +1498,19 @@ test('הסדרים: אחוז ושורת «הבא»', () => {
   assert.equal(nextLine(p, '2026-11-20', fmt), 'תשלום 1 מתוך 3 · 400₪ · 10.11.2026 (באיחור של 10 ימים)');
   assert.equal(nextLine({ ...p, next: null }, '2026-11-20', fmt), 'כל התשלומים התקבלו');
 });
+test('הסדרים: מטבע ההסדר (מבקר 185 🔴) — הסדר בדולר לא מוצג בשקלים', async () => {
+  const p: PlanProgress = { total_agorot: 50000, paid_agorot: 0, open_agorot: 50000, done: 0, count: 2, next: { n: 1, due: '2026-11-10', amount_agorot: 25000 }, currency: 'USD' };
+  const line = nextLine(p, '2026-11-10', n => fmtMoney(n, p.currency));
+  assert.ok(line.includes('$') && !line.includes('₪'), line);
+  // שומר-מקור: בכרטיסי ההסדר (מוצע + «הסדרי תשלומים») אין fmtIls — רק fmtMoney עם מטבע ההסדר
+  const { readFileSync } = await import('node:fs');
+  const src = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  const plansCard = src.slice(src.indexOf('data-testid="plan"'), src.indexOf('data-testid="plan"') + 2500);
+  const proposedCard = src.slice(src.indexOf('💳 הצעת פריסה'), src.indexOf('💳 הצעת פריסה') + 900);
+  for (const [name, card, end] of [['plans', plansCard, '</li>'], ['proposed', proposedCard, '</ol>']] as const) {
+    const chunk = card.split(end)[0];
+    assert.ok(chunk.length > 100, name);
+    assert.ok(!/fmtIls\(/.test(chunk), `${name}: fmtIls בכרטיס הסדר`);
+    assert.ok(/fmtMoney\([^)]*p\.currency\)/.test(chunk), `${name}: בלי מטבע ההסדר`);
+  }
+});

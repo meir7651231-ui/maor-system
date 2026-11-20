@@ -3,8 +3,10 @@
 export type PlanProgress = {
   total_agorot: number; paid_agorot: number; open_agorot: number; done: number; count: number;
   next: { n: number; due: string; amount_agorot: number } | null;
+  /** מבקר 185 🔴: מטבע ההסדר (חסר ⇒ ILS, תאימות לשרת ישן) */
+  currency?: string;
 };
-export type PlanRow = { id: number; status: string; progress?: PlanProgress | null };
+export type PlanRow = { id: number; status: string; progress?: PlanProgress | null; currency?: string };
 
 export type PlanTone = 'good' | 'warn' | 'done';
 /** תג מצב. רק המצבים שמוצגים בכרטיס; `proposed` (ב«דורש טיפול»), `superseded`/`rejected`/אחר ⇒ null. */

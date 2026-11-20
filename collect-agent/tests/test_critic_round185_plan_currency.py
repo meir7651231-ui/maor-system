@@ -6,10 +6,8 @@
 אומרת **«2 תשלומים של 250 ₪»** (וגם בנוסח המלא «1. 2026-11-15 — 250 ₪»), וכרטיס «הוחמץ» לבעל העסק: «(250 ₪…) היתרה
 הפתוחה: 500 ₪». [מאומת בהרצה.] לקוח שמשלם לפי ההודעה משלם 500 ₪ במקום $500 — הודעת כסף שגויה שיוצאת ללקוח בשם
 העסק, ובעל העסק מאשר אותה מתוך כרטיס שמציג את אותו סכום שגוי. הצעה: להעביר את מטבע החשבוניות (`invs[0]["currency"]`)
-לכל `fmt_amount` במסלולי ההסדר. xfail(strict=True); הבקרה (שקל) נשארת ירוקה."""
+לכל `fmt_amount` במסלולי ההסדר. תוקן במנהל 335 (`plan_currency`); הבקרה (שקל) נשארת ירוקה."""
 from datetime import timedelta
-
-import pytest
 
 
 def _usd(fake_gi):
@@ -17,7 +15,6 @@ def _usd(fake_gi):
     fake_gi.docs[0]["amount"] = "500.00"
 
 
-@pytest.mark.xfail(strict=True, reason="critic 185: אישור הסדר בדולר נשלח ללקוח בשקלים (לתיקון בונה)")
 def test_usd_plan_offer_sent_in_dollars(svc, fake_gi):
     _usd(fake_gi)
     svc.sync()
@@ -27,7 +24,6 @@ def test_usd_plan_offer_sent_in_dollars(svc, fake_gi):
     assert "₪" not in sent and "$" in sent, sent
 
 
-@pytest.mark.xfail(strict=True, reason="critic 185: כרטיס «הוחמץ» להסדר בדולר מציג שקלים (לתיקון בונה)")
 def test_usd_plan_missed_card_in_dollars(svc, fake_gi, clock):
     _usd(fake_gi)
     svc.sync()

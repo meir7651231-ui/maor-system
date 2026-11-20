@@ -75,15 +75,15 @@ OPTOUT_LEDGER_FAILED_TEXT = ("בקשת הסרה נקלטה וחסומה במער
 
 
 def plan_missed_text(name: str | None, n: int, of: int, amount_agorot: int, due: str, open_agorot: int,
-                     still_paused: bool = False) -> str:
+                     still_paused: bool = False, currency: str = "ILS") -> str:
     """מנהל 332: כרטיס לבעל העסק כשתשלום בהסדר לא התקבל. בלי פרטי קשר — רק שם, כמו שאר הכרטיסים.
     fuzz ב׳ (20.11): still_paused ⇒ ללקוח השהיה אחרת («שילמתי»/מחלוקת/רגיש…) — לא מבטיחים שהתזכורות חוזרות."""
     who = name or "לקוח"
     tail = ("ההסדר סומן «הוחמץ». ללקוח יש השהיה נוספת (למשל «שילמתי» או מחלוקת), ולכן התזכורות לא חוזרות עד "
             "שתבדקו ותחדשו אותן — אפשר גם להציע הסדר חדש." if still_paused else
             "ההסדר סומן «הוחמץ» והתזכורות הרגילות חוזרות לאישורכם — אפשר גם להציע הסדר חדש.")
-    return (f"הסדר התשלומים של {who} לא נשמר: תשלום {n} מתוך {of} ({templates.fmt_amount(amount_agorot)}, "
-            f"מועד {due}) לא התקבל. היתרה הפתוחה: {templates.fmt_amount(open_agorot)}. " + tail)
+    return (f"הסדר התשלומים של {who} לא נשמר: תשלום {n} מתוך {of} ({templates.fmt_amount(amount_agorot, currency)}, "
+            f"מועד {due}) לא התקבל. היתרה הפתוחה: {templates.fmt_amount(open_agorot, currency)}. " + tail)
 
 
 def refresh_stuck_text(items: list[tuple[str, str, str]]) -> str:
@@ -1987,6 +1987,12 @@ class CollectService:
     def _plan_invoice_ids(self, p) -> list[int]:
         return json.loads(p["invoice_ids"]) if p["invoice_ids"] else [p["invoice_id"]]
 
+    def plan_currency(self, p) -> str:
+        """מבקר 185 🔴: מטבע ההסדר = מטבע חשבונית העוגן. הסדר תמיד חד-מטבעי (`open_debt` מחזיר 0 על מטבעות
+        מעורבים ⇒ אין הצעה), ולכן העוגן מייצג את כולן. בלי זה כל `fmt_amount` במסלולי ההסדר נפל ל-₪."""
+        r = self.db.one("SELECT currency FROM invoices WHERE id=?", (p["invoice_id"],))
+        return (r["currency"] if r and r["currency"] else "ILS")
+
     def plan_progress(self, p) -> dict:
         """מנהל 334: התקדמות הסדר לתצוגה — אותו חישוב «שולם» של `_sweep_plans` (סה״כ ההסדר פחות היתרה הפתוחה
         בחשבוניות שלו), כדי שהמסך והסריקה לא יחלקו. `next` = התשלום הראשון שעוד לא כוסה במצטבר (None = כוסו כולם)."""
@@ -2004,7 +2010,7 @@ class CollectService:
             elif nxt is None:
                 nxt = {"n": i["n"], "due": i["due"], "amount_agorot": i["amount_agorot"]}
         return {"total_agorot": total, "paid_agorot": paid, "open_agorot": max(0, open_now),
-                "done": done, "count": len(items), "next": nxt}
+                "done": done, "count": len(items), "next": nxt, "currency": self.plan_currency(p)}
 
     # השהיות שנוצרו מהשיחה על ההסדר עצמו — משתחררות כשההסדר הוחמץ (שאר ההשהיות לא)
     PLAN_PAUSES = ("plan_request", "plan_accept", "cant_pay")
@@ -2082,7 +2088,8 @@ class CollectService:
                 self.audit("system", "plan_missed_pause_released", {"plan": p["id"], "was": reason.split(":", 1)[0]})
                 reason = ""
             body = plan_missed_text(cust["name"] if cust else None, late["n"], len(items), late["amount_agorot"],
-                                    late["due"], open_now, still_paused=bool(reason))
+                                    late["due"], open_now, still_paused=bool(reason),
+                                    currency=self.plan_currency(p))
             now = _iso(self.clock())
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
                       "created_at) VALUES(?,'system','owner',?,'plan_missed',1,?,?)",
@@ -3184,13 +3191,14 @@ class CollectService:
             self.audit("system", "plan_amount_changed", {"plan": plan_id, "plan_total": total,
                                                          "now": now_total})
             raise ValueError("היתרה השתנתה מאז שההסדר הוצע — נדרשת הצעה חדשה")
+        cur = self.plan_currency(p)   # מבקר 185 🔴: $500 יצא ללקוח כ-«250 ₪»
         what = (f"לחשבונית {invs[0]['number']}" if len(invs) == 1 else
                 f"ל-{len(invs)} חשבוניות פתוחות ({', '.join(r['number'] for r in invs)}, "
-                f"סה״כ {templates.fmt_amount(total)})")
+                f"סה״כ {templates.fmt_amount(total, cur)})")
         # ב-SMS בלי רשימת מספרים (אורך): רק כמה חשבוניות והסה״כ
         what_sms = what if len(invs) == 1 else \
-            f"ל-{len(invs)} חשבוניות פתוחות (סה״כ {templates.fmt_amount(total)})"
-        lines = "\n".join(f"{i['n']}. {i['due']} — {templates.fmt_amount(i['amount_agorot'])}"
+            f"ל-{len(invs)} חשבוניות פתוחות (סה״כ {templates.fmt_amount(total, cur)})"
+        lines = "\n".join(f"{i['n']}. {i['due']} — {templates.fmt_amount(i['amount_agorot'], cur)}"
                           for i in items)
         text = (f"שלום {cust['name']}, הצעת פריסה {what} ללא תוספת:\n{lines}\n"
                 "השיבו \"מאשר\" ובעל העסק יאשר סופית.")
@@ -3199,8 +3207,8 @@ class CollectService:
         if channel == "sms":
             # מבקר סבב 3 (🔴): לוח מלא של 6 תשלומים = 4+ חלקי SMS ⇒ קריסה. ב-SMS נוסח מקוצר
             first, rest = items[0]["amount_agorot"], items[-1]["amount_agorot"]
-            sched = (f"{len(items)} תשלומים של {templates.fmt_amount(rest)}" if first == rest else
-                     f"{len(items)} תשלומים: {templates.fmt_amount(first)} ואז {templates.fmt_amount(rest)}")
+            sched = (f"{len(items)} תשלומים של {templates.fmt_amount(rest, cur)}" if first == rest else
+                     f"{len(items)} תשלומים: {templates.fmt_amount(first, cur)} ואז {templates.fmt_amount(rest, cur)}")
             body = (f"{self.s.business_name}: הצעת פריסה {what_sms} ללא תוספת: {sched}, "
                     f"החל מ-{items[0]['due']}. להסרה: {unsub}")
         else:
