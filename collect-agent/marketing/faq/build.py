@@ -25,6 +25,7 @@ from app import compliance, conversation, policy, templates  # noqa: E402
 from app.config import Settings  # noqa: E402
 
 S = Settings()
+DOMAIN = json.loads((ROOT / "marketing/launch/launch.json").read_text(encoding="utf-8"))["domain"]
 DAY_FROM, DAY_TO = (f"{t:%H:%M}" for t in policy.DAY)
 FRI_TO = f"{policy.WINDOWS[4][1]:%H:%M}"
 CHANNEL_HE = {"sms": "SMS", "email": "מייל"}
@@ -43,7 +44,7 @@ def _stops(text: str) -> bool:
 
 def _sms_has_stop_option() -> bool:
     f = templates.fields(biz="סטודיו נועה", name="דני כהן", num="1043", amount_agorot=180000, currency="ILS",
-                         link="https://pay.example/x", unsub="https://gabi.example/u/x", short="https://gabi.example/p/AbC1234")
+                         link="https://pay.example/x", unsub=f"https://{DOMAIN}/u/x", short=f"https://{DOMAIN}/p/AbC1234")
     return all("להפסקה" in templates.render_sms(st, f) for st in templates.STEPS)
 
 

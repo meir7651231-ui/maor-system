@@ -114,3 +114,24 @@ def test_readiness_catches_team_side_problem(tmp_path):
     p.write_text(p.read_text(encoding="utf-8") + "\nhttps://other.example/x\n", encoding="utf-8")
     probs = check.readiness(root=root)
     assert any("other.example" in x for x in probs), probs
+
+
+def test_every_marketing_asset_with_domain_or_placeholder_is_switched():
+    """מאמר SEO 07 נוסף עם `[קישור לדף]` ולא נכנס לרשימה ⇒ set_domain היה מדלג עליו, והבדיקות למעלה (שעוברות
+    רק על הרשימה) לא היו רואות. נועל: כל נכס שיווק עם הדומיין או placeholder נמצא ב-launch.json; מחוללים
+    (.py) קוראים את הדומיין מ-launch.json ולא כותבים אותו ביד."""
+    ph = CFG["link_placeholders"] + CFG["domain_placeholders"] + [CFG["domain"]]
+    skip = ("marketing/launch/", "marketing/ads/", "marketing/video/compose/")
+    missing, hard = [], []
+    for p in sorted((ROOT / "marketing").rglob("*")):
+        rel = p.relative_to(ROOT).as_posix()
+        if not p.is_file() or rel.startswith(skip) or p.name in ("SIGN-OFF.md", "README.md") or "__pycache__" in rel:
+            continue
+        t = p.read_text(encoding="utf-8", errors="ignore") if p.suffix in (".md", ".html", ".py", ".mjs") else ""
+        if p.suffix == ".py":
+            if CFG["domain"] in t:
+                hard.append(rel)
+        elif any(x in t for x in ph) and rel not in CFG["files"]:
+            missing.append(rel)
+    assert not missing, f"נכסים עם דומיין/placeholder שלא ברשימת launch.json: {missing}"
+    assert not hard, f"מחוללים עם דומיין קשיח (לקרוא מ-launch.json): {hard}"
