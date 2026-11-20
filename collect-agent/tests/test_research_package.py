@@ -105,3 +105,27 @@ def test_fit_model_arithmetic_and_beta_verdicts():
     assert len(rows) == 30 and set(verdicts) <= {"✅", "🟡", "❌"}
     counts = {v: verdicts.count(v) for v in "✅🟡❌"}
     assert f"✅ {counts['✅']} · 🟡 {counts['🟡']} · ❌ {counts['❌']}" in txt, counts
+
+
+def test_sender_id_rules_documented_and_enforced_in_code():
+    """market.md §4.7: כלל שם השולח (≤11 לטיניים, בלי עברית) מתועד עם מקור — וגם נאכף בקוד.
+    אם הקוד יתחיל לקבל שם שולח בעברית/ארוך, או שהמסמך יאבד את המקור — נכשל."""
+    from app.integrations.base import IntegrationError
+    from app.integrations.sms import validate_sender
+    sec = MARKET.split("### 4.7")[1].split("## 6.")[0]
+    assert "עד 11 תווים" in sec and "בלי עברית" in sec and "textme.co.il" in sec
+    assert "אימות זהות" in sec and "beta-kit" in sec
+    assert validate_sender("StudioMeir") == "StudioMeir"
+    for bad in ("סטודיו", "StudioMeir12", "Studio@Meir"):
+        try:
+            validate_sender(bad)
+        except IntegrationError:
+            continue
+        raise AssertionError(f"שם שולח לא תקין התקבל: {bad!r}")
+    assert "§4.7" in RFQ
+
+
+def test_distribution_section_sourced():
+    sec = MARKET.split("### 2.5")[1].split("## 3.")[0]
+    assert "greeninvoice.co.il/integrations" in sec and "ניהול קליניקות" in sec
+    assert "לא נעשתה שום פנייה" in sec

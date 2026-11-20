@@ -25,7 +25,8 @@ const b = await launchChromium(chromium);
 try {
   // שני לקוחות שקיבלו מייל ביומן הדמו, עם חשבונית פתוחה
   const dash = await api('/dashboard');
-  const mailed = new Set((await api('/outbox')).messages.filter(m => m.channel === 'email').map(m => m.to.toLowerCase()));
+  const sentMail = (await api('/outbox')).messages.filter(m => m.channel === 'email');
+  const mailed = new Set(sentMail.map(m => m.to.toLowerCase()));
   const open = dash.invoices.filter(r => r.status === 'open' && r.email && mailed.has(r.email.toLowerCase()));
   const byMail = [...new Map(open.map(r => [r.email.toLowerCase(), r])).values()];
   ok(byMail.length >= 2, 'פחות משני לקוחות עם מייל שיצא: ' + byMail.length);
@@ -36,9 +37,12 @@ try {
   let r = await hook({ sender: 'MAILER-DAEMON@mx.example', subject: 'Undelivered Mail Returned to Sender', message_id: 'e2e-bounce',
     text: `Final-Recipient: rfc822; ${bounced.email}\nAction: failed\nStatus: 5.1.1\n` });
   { const j = await r.json(); ok(r.ok && j.bounce === 'failed', 'ה-bounce לא נקלט: ' + r.status + ' ' + JSON.stringify(j)); }
+  // critic 189: תלונה נקלטת רק עם Message-ID של מייל ששלחנו לאותה כתובת
+  const spamMid = sentMail.find(m => m.to.toLowerCase() === spam.email.toLowerCase())?.provider_message_id;
+  ok(spamMid, 'אין provider_message_id למייל שיצא ללקוח הספאם');
   r = await hook({ sender: 'fbl@isp.example', subject: 'Email Abuse Report', message_id: 'e2e-arf',
-    text: `Feedback-Type: abuse\nUser-Agent: ISP-FBL/1.0\nVersion: 1\nOriginal-Rcpt-To: ${spam.email}\nArrival-Date: Thu, 19 Nov 2026 08:00:00 +0200` });
-  ok(r.ok && (await r.json()).complaint === 'suppressed', 'תלונת הספאם לא נקלטה');
+    text: `Feedback-Type: abuse\nUser-Agent: ISP-FBL/1.0\nVersion: 1\nOriginal-Rcpt-To: ${spam.email}\nArrival-Date: Thu, 19 Nov 2026 08:00:00 +0200\nMessage-ID: <${spamMid}>` });
+  { const j = await r.json(); ok(r.ok && j.complaint === 'suppressed', 'תלונת הספאם לא נקלטה: ' + JSON.stringify(j)); }
   const st = Object.fromEntries((await api('/dashboard')).invoices.map(x => [x.customer, x.email_state]));
   ok(st[bounced.customer] === 'bounced' && st[spam.customer] === 'spam' && st[clean.customer] == null, 'מצבי השרת: ' + JSON.stringify(st));
   ok((await api('/dashboard?view=list')).invoices.some(x => x.email_state === 'spam'), 'view=list בלי email_state');

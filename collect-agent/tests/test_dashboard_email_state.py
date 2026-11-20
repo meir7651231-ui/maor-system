@@ -48,8 +48,9 @@ def test_soft_bounce_is_not_bounced(svc, clock):
 def test_spam_complaint_marks_spam_and_wins_over_bounce(svc, clock):
     mid = _send_one(svc, clock)
     _bounce(svc, mid, "5.1.1")
+    # critic 189: תלונה נקלטת רק עם Message-ID של מייל ששלחנו לאותה כתובת
     arf = ("Feedback-Type: abuse\nUser-Agent: ISP-FBL/1.0\nVersion: 1\n"
-           f"Original-Rcpt-To: {DANA_MAIL}\nArrival-Date: Thu, 19 Nov 2026 08:00:00 +0200")
+           f"Original-Rcpt-To: {DANA_MAIL}\nArrival-Date: Thu, 19 Nov 2026 08:00:00 +0200\nMessage-ID: <{mid}>")
     svc.email_webhook("fbl@isp.example", arf, "arf-x", subject="Email Abuse Report")
     assert _states(svc) == {"spam"}        # ספאם = סירוב (סעיף 30א) — גובר על «חזר»
 

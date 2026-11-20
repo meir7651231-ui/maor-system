@@ -230,6 +230,7 @@ _BOUNCE_SUBJECT = re.compile(
 _DSN_RECIPIENT = re.compile(r"^(?:final|original)-recipient:\s*(?:rfc822;\s*)?<?([^\s<>;]+@[^\s<>;]+?)>?\s*$",
                             re.IGNORECASE | re.MULTILINE)
 _DSN_STATUS = re.compile(r"^status:\s*([245])\.\d{1,3}\.\d{1,3}", re.IGNORECASE | re.MULTILINE)
+_ARF_MSGID = re.compile(r"^message-id:\s*<*([^<>\s]+@[^<>\s]+?)>*\s*$", re.IGNORECASE | re.MULTILINE)
 _MSGID = re.compile(r"^message-id:\s*(<[^<>\s]+@[^<>\s]+>)", re.IGNORECASE | re.MULTILINE)
 
 
@@ -264,8 +265,11 @@ def parse_complaint(sender: str, text: str, subject: str = "") -> dict[str, Any]
     if not m:
         return None
     rec = _ARF_RCPT.search(text or "")
+    # critic 189: ה-Message-ID של המייל המקורי הוא ההוכחה שהתלונה על מייל ששלחנו (השירות מאמת מול היומן) —
+    # מנורמל ל-<id> גם כשהדוח כתב אותו בלי סוגריים או עם סוגריים כפולים
+    ids = [f"<{x}>" for x in _ARF_MSGID.findall(text or "")]
     return {"recipient": clean_email(rec.group(1)) if rec else "",
-            "message_ids": _MSGID.findall(text or ""), "type": m.group(1).lower()}
+            "message_ids": list(dict.fromkeys(ids)), "type": m.group(1).lower()}
 
 
 def parse_address(raw: str) -> str:

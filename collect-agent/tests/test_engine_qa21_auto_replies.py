@@ -54,3 +54,23 @@ def test_protective_inside_auto_reply_wins(text, intent):
 def test_auto_reply_outside_flow_unchanged():
     d = _d(AUTO[0], state="idle")
     assert "auto_reply_state_kept" not in d.tags
+
+
+# המשך (20.11 צהריים): אחרי «עד מתי?» / בהמתנה לבעלים — מענה אוטומטי «away until 30 November» הפך
+# להבטחה ל-30.11 מתוך מכונה. עכשיו: בלי הבטחה, המצב נשמר.
+@pytest.mark.parametrize("text", ["Automatic reply: I'm away until 30 November 2026. I will respond on my return.",
+                                  "Out of office until December 3. I will reply when I am back.",
+                                  "הודעה אוטומטית: אני בחופשה עד 2.12, אחזור לאחר מכן"])
+@pytest.mark.parametrize("state", ["awaiting_date", "awaiting_owner"])
+def test_auto_reply_return_date_is_not_promise(text, state):
+    d = _d(text, state=state)
+    assert d.intent != Intent.PROMISE and d.promise_date is None and d.next_state == State(state)
+
+
+# «עד <תאריך>» של היעדרות ≠ מועד תשלום כשיש מועד אחר; התאריך היחיד ⇒ נשמר
+@pytest.mark.parametrize("text,days", [("Auto-reply: away until Dec 1. Payment will be sent on the 20th.", 12),
+                                       ("אני בחופשה עד 15.11. אשלם ב-20 לחודש", 12),
+                                       ("I'll be off until the 20th, I'll pay then", 12)])
+def test_absence_until_vs_payment_date(text, days):
+    d = _d(text, state="awaiting_date")
+    assert d.intent == Intent.PROMISE and d.promise_date == TODAY + timedelta(days=days)
