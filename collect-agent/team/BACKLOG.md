@@ -13,6 +13,9 @@
 - ✅ DLR של InforU (גיבוי): `/webhooks/sms/inforu` — SMS שיצא בגיבוי ולא נמסר ⇒ התראה לבעל העסק (היה: נשאר 'sent' לנצח). התאמה לפי מזהה InforU או CustomerMessageId שלנו. — `ffd4c86`
 - ✅ מייל שחזר (bounce/DSN): המייל המקורי ⇒ «לא נמסר» + התראה לבעל העסק, במקום כרטיס «שולח לא מוכר». התאמה לפי Message-ID המקורי או הנמען; 4.x.x ⇒ עיכוב, לא כשל. — `6207384`
 - ✅ תלונת ספאם על מייל (ARF, RFC 5965) ⇒ suppress למייל של הנמען + התראה לבעל העסק (30א: סימון ספאם = סירוב); SMS לא נעצר אוטומטית. — `feaf6bd`
+- ✅ bounce/ARF/DLR ממופים לכל ספק שבשימוש מול התיעוד (019 · InforU · SMTP/DSN/NDR · ARF): DLR של 019 בלי type נבלע + קודים מספריים ⇒ unknown · InforU בלי DeliveryNotificationUrl · NDR של Exchange לא זוהה · 5.7.x חסם כתובת תקינה — תוקנו (team/integrations §17). — `92f4fab`
+- ✅ bounce מזויף (QA סט #22 / critic 190): DSN נקלט רק עם Message-ID של מייל שלנו + Final-Recipient תואם + בלי כשל אימות מפורש; אחרת audit בלבד. נפילה ל«המייל האחרון לנמען» הוסרה. — `ceb012d`
+- 🧱 019: הגדרת push_url לכל סוג (`&type=dlr|incoming_sms|blacklist`) ביום ההשקה — מאיר/חשבון.
 - 🧱 מסמך API של InforU (DLR + קודים) — מאיר, יחד עם 019.
 - 🧱 מסמך API של 019 + חשבון בדיקה (מאיר).
 
