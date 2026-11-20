@@ -40,6 +40,12 @@
 - **מצב הכיסוי:** דפדפן — 14 מסכי /app/ (דסקטופ+390px), /ui, /p/, /u/ (בהיר+כהה), 5 דפי נחיתה, מסך DSR; סטטי — כל רכיבי `web/src`; tokens — `/ui` (40 צירופים) ותגיות סטטוס. web 109/109.
 - **פתוח:** 🧱 אישור הלוגו הסופי (מאיר). אין פריטי עיצוב פתוחים אחרים ב-BACKLOG או ב-xfail.
 
+
+## ✅ גבי מנוע · עו״ד מכתובת משותפת — מחיקה נרשמת, ניסוח עו״ד באנגלית דחוף (20.11 — qa20 q20-27 + וריאציות)
+- **החורים:** (1) «Erase every record you keep about my client» ⇒ `dsr.detect` = `[]` ⇒ מועד 30 יום לא רץ. (2) «I represent one of your customers… cease contact» / «cease and desist» / «we represent your customer» ⇒ unknown בלי הסלמה; «stop contacting my client» ⇒ הסרה בלי דחיפות; «cease contact» ⇒ unknown.
+- **התיקון:** `app/dsr.py` — מחיקה של «every/all record(s)/files/data … you keep/hold … about/on <me/my client/my son…>» (עוגן חובה; שלילה חלה). `app/conversation.py` — LEGAL לניסוחי עו״ד (בלי «my client» לבד — קבלן), OPT_OUT ל-«cease (all further) contact/communication». `evals/sequences.py` — בכרטיס כתובת משותפת משווים את הכוונה שזוהתה (`detected`), לא את סוג הכרטיס.
+- **בדיקות:** `tests/test_engine_shared_legal_dsr.py` (18; 11 נכשלו לפני) כולל מסלול מלא: כרטיס דחוף detected=legal ⇒ הבקשה נרשמת עם קבלתה ⇒ שיוך: disputed=1, הבקשה מקושרת, לא נשלח דבר · lk58–60 · qa20 **31/31**, סטים 9–19 ללא שינוי (לפני/אחרי) · pytest **7953 עברו** · ruff/evals ירוקים.
+- **פתוח:** «dont cease contact» ⇒ הסרה (עקבי עם «dont stop texting», המחמיר מנצח) · q19-14 (תווית מצב, לא מזיק).
 ## ✅ גבייה סוכן · בקשות עיון בניסוח יומיומי נרשמות במרשם §13 (מנהל 333, 20.11 — מבקר 183 🟡)
 - **החור (מבקר 183):** «what do you know about me», «show me my data», «אני רוצה לדעת מה אתם יודעים עליי» ⇒ `dsr.detect` החזיר `[]` ⇒ אין רישום ואין מועד 30 יום.
 - **התיקון:** `app/dsr.py` → `_ACCESS` קיבל 4 חלופות, כולן עם עוגן אישי: «מה אתם יודעים/יודעת עליי» · «what (else) do/did you (guys) know/have/hold… about/on me» · «show/send/give/email me (a copy of) (all) my (personal) data/information/info/records» · «תראו/שלחו (לי) את (כל) המידע/הנתונים שלי/עליי». בלי עוגן ⇒ לא נרשם: «show me my invoice», «send me my receipt», «what do you know about my debt», «שלחו לי את פרטי התשלום», «מה אתם יודעים על החוב». השלילה הקיימת חלה («I don't need you to show me my data», «לא צריך לשלוח לי את המידע שלי» ⇒ `[]`).

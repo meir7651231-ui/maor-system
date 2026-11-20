@@ -55,3 +55,6 @@
 {"id": "lk55", "text": "מי זה? טעות במספר, לא מכיר", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person"}, "critical": true}
 {"id": "lk56", "text": "wrong number, please stop messaging me", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent", "escalate": "normal"}, "critical": true}
 {"id": "lk57", "text": "This is the wrong email address. Stop emailing me.", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent", "escalate": "normal"}, "critical": true}
+{"id": "lk58", "text": "please cease and desist", "ctx": {"channel": "email"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "lk59", "text": "we represent your customer in this matter", "ctx": {"channel": "email"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "lk60", "text": "cease all further communication with me", "ctx": {"channel": "sms"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}

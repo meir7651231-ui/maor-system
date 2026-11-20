@@ -156,8 +156,14 @@ def run_seq(seq: dict) -> list[str]:
             else:
                 out = svc.inbound(ch, ADDR[ch], turn["text"])
             d = seen[-1] if seen else None
-            if "intent" in e and out["intent"] != e["intent"]:
-                fails.append(f"{tag} intent {out['intent']}≠{e['intent']}")
+            # גבי מנוע 20.11 (q20-27): בכתובת משותפת `intent` הוא סוג הכרטיס (shared_contact_*), לא כוונה — הכוונה
+            # שזוהתה נמצאת ב-`detected` (עו״ד ⇒ legal, דחוף). משווים אותה; סוג הכרטיס עצמו עדיין נבדק כשמצפים לו.
+            got_intent = out["intent"]
+            if got_intent.startswith("shared_contact_") and out.get("detected") and \
+                    not e.get("intent", "").startswith("shared_contact_"):
+                got_intent = out["detected"]
+            if "intent" in e and got_intent != e["intent"]:
+                fails.append(f"{tag} intent {got_intent}≠{e['intent']}")
             if "state" in e and _state(svc) != e["state"]:
                 fails.append(f"{tag} state {_state(svc)}≠{e['state']}")
             if "state_not" in e and _state(svc) == e["state_not"]:   # מנהל 278: מלכודת — המצב הזה אסור
