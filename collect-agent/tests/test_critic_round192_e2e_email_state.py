@@ -8,12 +8,9 @@ collect-agent.yml:224`).
 לשלוח `Original-Message-ID: <provider_message_id>` של המייל שיצא ללקוח. xfail(strict=True) על מקור ה-e2e."""
 from pathlib import Path
 
-import pytest
-
 E2E = Path(__file__).resolve().parents[1] / "web" / "e2e" / "app-email-state.mjs"
 
 
-@pytest.mark.xfail(strict=True, reason="critic 192: e2e app-email-state שולח DSN בלי Message-ID ⇒ CI אדום")
 def test_e2e_bounce_carries_our_message_id():
     src = E2E.read_text(encoding="utf-8")
     start = src.index("MAILER-DAEMON@")

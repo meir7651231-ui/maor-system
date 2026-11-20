@@ -34,8 +34,11 @@ try {
   const clean = dash.invoices.find(r => r.status === 'open' && r.customer !== bounced.customer && r.customer !== spam.customer);
   ok(clean, 'אין לקוח ביקורת');
   ok(dash.invoices.every(r => r.email_state == null), 'email_state לא ריק לפני האירועים');
+  // critic 192: מאז 190א (ceb012d8) bounce נקלט רק עם Message-ID של מייל ששלחנו לאותה כתובת (אחרת «לא מאומת»)
+  const bounceMid = sentMail.find(m => m.to.toLowerCase() === bounced.email.toLowerCase())?.provider_message_id;
+  ok(bounceMid, 'אין provider_message_id למייל שיצא ללקוח ה-bounce');
   let r = await hook({ sender: 'MAILER-DAEMON@mx.example', subject: 'Undelivered Mail Returned to Sender', message_id: 'e2e-bounce',
-    text: `Final-Recipient: rfc822; ${bounced.email}\nAction: failed\nStatus: 5.1.1\n` });
+    text: `Final-Recipient: rfc822; ${bounced.email}\nAction: failed\nStatus: 5.1.1\nOriginal-Message-ID: <${bounceMid}>\n` });
   { const j = await r.json(); ok(r.ok && j.bounce === 'failed', 'ה-bounce לא נקלט: ' + r.status + ' ' + JSON.stringify(j)); }
   // critic 189: תלונה נקלטת רק עם Message-ID של מייל ששלחנו לאותה כתובת
   const spamMid = sentMail.find(m => m.to.toLowerCase() === spam.email.toLowerCase())?.provider_message_id;
