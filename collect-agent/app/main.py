@@ -88,6 +88,10 @@ class DraftEdit(BaseModel):
     confirm_amount: bool = False   # critic סבב 48: סכום חריג ⇒ אישור מפורש
 
 
+class EmailBounceIn(BaseModel):
+    confirm: bool                     # True = הכתובת לא תקינה (חסימת מייל) · False = המיילים חוזרים
+
+
 class HoldIn(BaseModel):
     reason: Literal["minor", "deceased", "insolvency"]
     note: str = Field("", max_length=500)
@@ -589,6 +593,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             svc.audit(request.state.actor, "owner_hold_resume_refused", {"customer": cid})
             raise HTTPException(403, "רק בעל העסק יכול לבטל השהיה שהוא סימן (קטין / פטירה / חדלות פירעון)")
         return guard(svc.resume_customer, cid, request.state.actor)
+
+    @app.post("/customers/{cid}/email-bounce", dependencies=auth)
+    def customer_email_bounce(cid: int, b: EmailBounceIn, request: Request):   # q22-04: הכרעת בעל העסק
+        return guard(svc.confirm_email_bounce, cid, b.confirm, request.state.actor)
 
     @app.post("/customers/{cid}/opt-out", dependencies=auth)
     def customer_opt_out(cid: int, request: Request):                  # critic סבב 97

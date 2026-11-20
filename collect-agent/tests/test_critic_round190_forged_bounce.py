@@ -29,7 +29,9 @@ def test_forged_dsn_without_our_message_id_does_not_block(svc, clock):
     _send_first(svc, clock)
     svc.email_webhook("MAILER-DAEMON@evil.example", "Final-Recipient: rfc822; c1@example.com\nStatus: 5.1.1\n", "fb1",
                       subject="Undelivered Mail Returned to Sender", auth_results=FAIL)
-    assert not svc.email_bounced("c1@example.com")
+    # הכרעת מקשר (q22-04, 20.11): זיוף לא חוסם **לצמיתות** — לכל היותר השהיית מייל + כרטיס עד הכרעת בעל העסק
+    assert not svc.email_bounce_confirmed("c1@example.com")
+    assert svc.db.q("SELECT 1 FROM messages WHERE intent='email_bounce_review' AND needs_owner=1")
 
 
 def test_control_dsn_with_our_message_id_blocks(svc, clock):
