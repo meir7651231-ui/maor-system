@@ -868,8 +868,12 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                      "currency": i["currency"]} for i, u in svc._amount_outliers(invs)]
         def progress(r):   # מנהל 334: הסדר שאושר/הוחמץ/הושלם — כמה שולם ומה הבא, לכרטיס «הסדרי תשלומים»
             return svc.plan_progress(r) if r["status"] in ("approved", "missed", "completed") else None
+        # מנהל 336: `customer` = שם הלקוח לכרטיס ההסדרים ב-/ui (שאין לו רשימת לקוחות משלו); נמחק (§14) ⇒ ""
+        names = {c["id"]: c["name"] or "" for c in svc.db.q(
+            "SELECT id, name FROM customers WHERE id IN (SELECT customer_id FROM plans)")}
         return [{**dict(r), "installments": json.loads(r["installments"]), "amount_check": check(r),
-                 "progress": progress(r), "currency": svc.plan_currency(r)}
+                 "progress": progress(r), "currency": svc.plan_currency(r),
+                 "customer": names.get(r["customer_id"], "")}
                 for r in svc.db.q("SELECT * FROM plans ORDER BY id")]
 
     @app.post("/plans/{pid}/approve", dependencies=auth)

@@ -81,6 +81,8 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 #rh{border:1px solid var(--bad)}#rh h2{color:var(--bad)}#rh label{display:block}#rh .lbl{font-size:13px;font-weight:600}#rh textarea{width:100%;min-height:56px;margin-top:4px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:inherit;font:inherit;box-sizing:border-box}
 #ds textarea{width:100%;min-height:56px;margin-top:4px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:inherit;font:inherit;box-sizing:border-box}#ds .hd{display:flex;flex-wrap:wrap;align-items:center;gap:8px}#ds .lbl{font-size:13px;font-weight:600}#ds .chip.late{background:var(--bad);color:#fff}#ds .chip.soon{background:var(--warn-bg);color:var(--warn)}
 #cm .hd{display:flex;flex-wrap:wrap;align-items:center;gap:8px}#cm .lbl{font-size:13px;font-weight:600}#cm .chip.urgent{background:var(--bad);color:#fff}
+#pl{margin-bottom:12px}#pl[hidden]{display:none}#pl ul{list-style:none;margin:0;padding:0}#pl li{padding:10px 0;border-bottom:1px solid var(--line)}#pl li:last-child{border-bottom:0}#pl .hd{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+#pl .bar{height:8px;border-radius:999px;background:var(--chip);overflow:hidden;margin:8px 0 4px}#pl .bar span{display:block;height:100%;background:var(--brand)}#pl .chip.good{background:var(--sms);color:var(--ink)}#pl .nx{font-size:13px;margin-top:2px}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 </style>
 </head>
@@ -130,6 +132,11 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
     <p class="slogan">לפי חוק הגנת הפרטיות צריך להשיב תוך 30 יום. «✓ טופל» על ההתראה סוגר רק את ההודעה; הבקשה נסגרת כאן, עם תיעוד קצר של מה נעשה.</p>
     <ul id="dsList"></ul><div class="err" id="dsErr" role="alert"></div></section>
   <div class="note" id="dsDone" role="status" hidden></div>
+  <!-- מנהל 336: כרטיס «הסדרי תשלומים» גם ב-/ui (קריאה בלבד) — עד היום רק ב-/app/ (מנהל 334). הסדר שאושר נעלם מהמסך
+       הפשוט, והסדר שהוחמץ (התזכורות חזרו) לא הוסבר בשום מקום -->
+  <section class="card" id="pl" hidden aria-labelledby="plH"><h2 id="plH">הסדרי תשלומים</h2>
+    <p class="slogan">הסדרים שאישרתם — כמה כבר שולם ומה התשלום הבא.</p>
+    <ul id="plList"></ul><div class="err" id="plErr" role="alert"></div></section>
   <section class="card"><div class="row"><h2>חובות פתוחים וסטטוס תזכורות</h2><span class="slogan" id="today"></span></div><input type="search" class="find" id="dFind" placeholder="חיפוש לפי שם לקוח, מספר חשבונית או טלפון" aria-label="חיפוש בחובות" autocomplete="off" hidden><div class="qf" id="df" role="group" aria-label="סינון החובות"></div>
     <div class="tbl"><table><thead><tr><th>לקוח</th><th>חשבונית</th><th>סכום</th><th>מועד</th><th>איחור</th>
     <th>תזכורות שנשלחו</th><th>סטטוס אחרון</th></tr></thead><tbody id="debts"></tbody></table></div><div id="dmore"></div></section>
@@ -219,7 +226,7 @@ function skel(){if(got.d&&got.q)return;
   if(!got.q)$("#list").innerHTML=Array(3).fill(`<div class="card skitem" aria-hidden="true"><span class="sk w"></span>${SK}</div>`).join("");
   $("#dash").setAttribute("aria-busy","true");$("#list").setAttribute("aria-busy","true");$("#busyMsg").textContent="טוען נתונים…"}
 function lock(had){locked=true;stale=false;clearTimeout(rt);sel=shown=null;$("#detail").removeAttribute("aria-busy");try{sessionStorage.removeItem(TOK)}catch(e){}got={d:false,q:false};busyOff();
-  for(const i of ["#kpis","#debts","#list","#df","#dmore","#qf","#qmore"])$(i).innerHTML="";$("#olList").innerHTML="";olItems=[];olMark={};$("#ol").hidden=$("#olDone").hidden=true;$("#cmList").innerHTML="";$("#cmErr").textContent="";cmItems=[];cmBody={};cmAmt={};$("#cm").hidden=$("#cmDone").hidden=true;$("#dsList").innerHTML="";$("#dsErr").textContent="";dsItems=[];dsNote={};$("#ds").hidden=$("#dsDone").hidden=true;rhHold=null;rhBusy=false;$("#rhNote").value="";$("#rhErr").textContent="";$("#rh").hidden=$("#rhDone").hidden=true;dQ=qQ="";for(const i of ["#dFind","#qFind"]){$(i).value="";$(i).hidden=true}$("#today").textContent="";
+  for(const i of ["#kpis","#debts","#list","#df","#dmore","#qf","#qmore"])$(i).innerHTML="";$("#olList").innerHTML="";olItems=[];olMark={};$("#ol").hidden=$("#olDone").hidden=true;$("#cmList").innerHTML="";$("#cmErr").textContent="";cmItems=[];cmBody={};cmAmt={};$("#cm").hidden=$("#cmDone").hidden=true;$("#dsList").innerHTML="";$("#dsErr").textContent="";dsItems=[];dsNote={};$("#ds").hidden=$("#dsDone").hidden=true;$("#plList").innerHTML="";$("#plErr").textContent="";plItems=[];plToday="";$("#pl").hidden=true;rhHold=null;rhBusy=false;$("#rhNote").value="";$("#rhErr").textContent="";$("#rh").hidden=$("#rhDone").hidden=true;dQ=qQ="";for(const i of ["#dFind","#qFind"]){$(i).value="";$(i).hidden=true}$("#today").textContent="";
   $("#detail").innerHTML='<div class="empty">בחרו תזכורת כדי לראות תצוגה מקדימה של SMS ומייל</div>';
   $("#loaderr").hidden=$("#wunk").hidden=$("#acterr").hidden=true;hdr();
   $("#lockMsg").textContent=had?"תוקף הכניסה פג. הנתונים הוסרו מהמסך. היכנסו שוב כדי להמשיך"
@@ -275,6 +282,7 @@ async function loadDash(ask){
   await loadOpen(t.open_unreviewed||0);
   await loadMsgs();
   await loadDsr();
+  await loadPlans(d.today);
 }
 // הפעלה 214: שער «אישור רשימת הפתוחות» (critic 79) — ב-/app/ יש כרטיס (OpenListCard), אבל בעל עסק שעובד רק
 // ב-/ui (הדשבורד הפשוט, גם מה ש-demo.sh פותח בלי build) לא ראה כלום: חשבונית חדשה מסנכרון/CSV ממתינה לאישור,
@@ -480,6 +488,31 @@ function sched(){clearTimeout(rt);if(!stale||locked||document.hidden)return;
   rt=setTimeout(()=>{if(!loading)load(false)},RETRY_MS[Math.min(rn++,RETRY_MS.length-1)])}
 addEventListener("online",()=>{if(stale&&!locked){rn=0;load(false)}});
 document.addEventListener("visibilitychange",()=>{if(document.hidden)clearTimeout(rt);else if(stale&&!locked)load(false)});
+// מנהל 336: «הסדרי תשלומים» ב-/ui — אותו סדר ואותם תגים כמו web/src/lib/plans.ts (334): הוחמצו ראשונים, פעילים לפי
+// מועד התשלום הבא, עד 3 שהושלמו (החדשים). סכומים במטבע ההסדר (מבקר 185) דרך fmtCur. קריאה בלבד; כשל ⇒ שגיאה בכרטיס.
+const PL_BADGE={approved:["פעיל","good","גבי לא שולח תזכורות על החוב הזה כל עוד משלמים לפי הלוח"],
+  missed:["תשלום לא התקבל","pending","התזכורות הרגילות חזרו — ממתינות לאישורכם"],completed:["הושלם","","כל התשלומים בהסדר התקבלו"]},
+  PL_ORD={missed:0,approved:1,completed:2},PL_DONE=3;
+let plItems=[],plToday="";
+function plVisible(a){const s=a.filter(p=>p.status in PL_ORD&&p.progress),nd=p=>(p.progress.next&&p.progress.next.due)||"9";
+  const done=s.filter(p=>p.status==="completed").sort((x,y)=>y.id-x.id).slice(0,PL_DONE);
+  return [...s.filter(p=>p.status!=="completed").sort((x,y)=>PL_ORD[x.status]-PL_ORD[y.status]||nd(x).localeCompare(nd(y))||x.id-y.id),...done]}
+const plPct=p=>p.total_agorot>0?Math.max(0,Math.min(100,Math.floor(p.paid_agorot*100/p.total_agorot))):0;
+function plNext(p,today,c){if(!p.next)return "כל התשלומים התקבלו";
+  const late=today?Math.round((Date.parse(today+"T12:00:00")-Date.parse(p.next.due+"T12:00:00"))/864e5):0;
+  const b=`תשלום ${p.next.n} מתוך ${p.count} · ${fmtCur(p.next.amount_agorot,c)} · ${p.next.due.split("-").reverse().join(".")}`;
+  return late>0?`${b} (באיחור של ${late} ${late===1?"יום":"ימים"})`:b}
+const plWho=p=>(p.customer||"").trim()||`לקוח שפרטיו נמחקו (#${p.customer_id})`;
+async function loadPlans(today){if(today)plToday=today;
+  try{plItems=plVisible(await api("/plans",{},false));$("#plErr").textContent=""}
+  catch(e){if(e.auth)return;$("#plErr").textContent="ההסדרים לא נטענו: "+e.message}
+  drawPlans()}
+function drawPlans(){$("#pl").hidden=!plItems.length&&!$("#plErr").textContent;
+  $("#plList").innerHTML=plItems.map(p=>{const [l,tone,hint]=PL_BADGE[p.status],pr=p.progress,c=p.currency||pr.currency||"ILS",pct=plPct(pr);
+    return `<li data-pid="${p.id}" data-status="${esc(p.status)}"><div class="hd"><strong>${esc(plWho(p))}</strong><span class="chip ${tone}">${esc(l)}</span></div>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="שולם ${pct}% מההסדר"><span style="width:${pct}%"></span></div>
+      <div class="slogan">${esc(fmtCur(pr.paid_agorot,c))} מתוך ${esc(fmtCur(pr.total_agorot,c))} · ${pr.done}/${pr.count} תשלומים</div>
+      <div class="nx${p.status==="missed"?" late":""}" data-next>${esc(plNext(pr,plToday,c))}</div>${p.status==="completed"?"":`<div class="slogan">${esc(hint)}</div>`}</li>`}).join("")}
 async function load(ask=true){
   if(ask&&!locked)skel();
   loading++;let d,q;try{[d,q]=await Promise.allSettled([loadDash(ask),api("/reminders?view=list",{},ask)])}finally{loading--}
