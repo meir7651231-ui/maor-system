@@ -1566,7 +1566,7 @@ test('q21-19: «בדוק ואשר» על מועד מעבר ל-14 — מזוהה 
 });
 
 test('מבקר 195: חידוש השהיית-בעלים נעול לעובד/ת בלבד', async () => {
-  const { resumeOwnerOnly } = await import('../src/lib/ownerOnly.ts');
+  const { resumeOwnerOnly } = await import('../src/lib/roles.ts');
   const staff = { actor: 'user:2', kind: 'user' as const, name: 'עובד' };
   const ownerUser = { ...staff, owner: true };
   const token = { actor: 'owner', kind: 'owner' as const, name: 'בעלים' };
@@ -1576,6 +1576,20 @@ test('מבקר 195: חידוש השהיית-בעלים נעול לעובד/ת ב
   assert.equal(resumeOwnerOnly(ownerUser, 'deceased'), false);
   assert.equal(resumeOwnerOnly(token, 'deceased'), false);
   assert.equal(resumeOwnerOnly(null, 'deceased'), false);
+});
+
+test('מבקר 195א: «✓ טופל» על התראת-ביטחון — נעול לעובד/ת בלבד, שאר ההתראות פתוחות', async () => {
+  const { noticeDoneLocked } = await import('../src/lib/roles.ts');
+  const staff = { actor: 'user:2', kind: 'user' as const, name: 'עובד' };
+  const ownerUser = { ...staff, owner: true };
+  const token = { actor: 'owner', kind: 'owner' as const, name: 'בעלים' };
+  assert.equal(noticeDoneLocked(staff, 'settings_changed'), true);
+  assert.equal(noticeDoneLocked(staff, 'max_reminders'), false);
+  assert.equal(noticeDoneLocked(ownerUser, 'settings_changed'), false);
+  assert.equal(noticeDoneLocked(token, 'settings_changed'), false);
+  assert.equal(noticeDoneLocked(null, 'settings_changed'), false);
+  const dash = await (await import('node:fs/promises')).readFile(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  assert.match(dash, /noticeDoneLocked\(me, n\.intent\) \?/);
 });
 
 test('מבקר 195ג (+194): פעולות בעל העסק בלבד — עובד/ת רואה נעול, בעלים/קוד-בעלים/לא-נטען רואים פתוח', async () => {

@@ -50,12 +50,13 @@ def _change_as(svc, actor, link=NEW_LINK):
 
 
 def test_changer_cannot_dismiss_own_alert_when_another_worker_exists(svc):
+    # מבקר 195ב: «אחר» = בעל עסק פעיל אחר (עובד/ת לא סוגר/ת בכלל — 195א)
     users = Users(svc.db, svc.clock)
     users.create("a@example.co.il", "א", PW)
-    users.create("b@example.co.il", "ב", PW)
+    users.create("b@example.co.il", "ב", PW, role="owner")
     mid = _change_as(svc, "user:1")
 
-    with pytest.raises(ValueError, match="עובד אחר"):
+    with pytest.raises(ValueError, match="בעל עסק אחר"):
         svc.owner_message_done(mid, "user:1")
     assert svc.db.one("SELECT needs_owner FROM messages WHERE id=?", (mid,))["needs_owner"] == 1
     assert svc.db.q("SELECT 1 FROM audit WHERE action='owner_message_done_refused'")
@@ -65,7 +66,7 @@ def test_changer_cannot_dismiss_own_alert_when_another_worker_exists(svc):
 def test_refusal_is_409_over_http_and_other_worker_closes_it(svc):
     from app import totp
     users = Users(svc.db, svc.clock)
-    regs = [users.create(e, e[0], PW) for e in ("a@example.co.il", "b@example.co.il")]
+    regs = [users.create(e, e[0], PW, role="owner") for e in ("a@example.co.il", "b@example.co.il")]
     api = TestClient(create_app(svc, owner_token=OWNER_TOKEN))
 
     def login(i, shift):
@@ -79,7 +80,7 @@ def test_refusal_is_409_over_http_and_other_worker_closes_it(svc):
     assert api.put("/api/settings", json={"payment_link": NEW_LINK}, headers=ha).status_code == 200
     mid = [m for m in api.get("/owner/inbox", headers=ha).json() if m["intent"] == "settings_changed"][0]["id"]
     r = api.post(f"/owner/inbox/{mid}/done", headers=ha)
-    assert r.status_code == 409 and "עובד אחר" in r.text, r.text
+    assert r.status_code == 409 and "בעל עסק אחר" in r.text, r.text
     assert api.post(f"/owner/inbox/{mid}/done", headers=hb).status_code == 200
 
 
@@ -213,13 +214,13 @@ def test_purge_records_who_triggered_it(svc):
 
 
 def test_unlinker_cannot_dismiss_own_unlink_alert(svc):
-    """critic סבב 73: אותו כלל של הפעלה 199 גם להתראת הניתוק — מי שניתק לא סוגר אותה בעצמו כשיש עובד אחר."""
+    """critic סבב 73: אותו כלל של הפעלה 199 גם להתראת הניתוק — מי שניתק לא סוגר אותה בעצמו כשיש בעל עסק אחר."""
     users = Users(svc.db, svc.clock)
     users.create("a@example.co.il", "א", PW)
-    users.create("b@example.co.il", "ב", PW)
+    users.create("b@example.co.il", "ב", PW, role="owner")
     svc.notify_owner_sensitive("הקישור לאורביט נותק על ידי user:1", "user:1")
     mid = svc.db.one("SELECT id FROM messages WHERE intent='settings_changed' ORDER BY id DESC")["id"]
-    with pytest.raises(ValueError, match="עובד אחר"):
+    with pytest.raises(ValueError, match="בעל עסק אחר"):
         svc.owner_message_done(mid, "user:1")
     assert svc.owner_message_done(mid, "user:2")["done"]
 

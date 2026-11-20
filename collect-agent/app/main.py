@@ -947,7 +947,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/owner/inbox/{mid}/done", dependencies=auth)
     def owner_inbox_done(mid: int, request: Request):   # critic סבב 34: «טופל» ⇒ יורד מ«דורש טיפול שלך»
-        return guard(svc.owner_message_done, mid, request.state.actor)
+        try:
+            return guard(svc.owner_message_done, mid, request.state.actor)
+        except OwnerOnly as e:   # מבקר 195א: התראת-ביטחון של בעל העסק — עובד/ת ⇒ 403
+            raise HTTPException(403, str(e)) from e
 
     @app.get("/plans", dependencies=auth)
     def list_plans():

@@ -17,7 +17,7 @@ import { ALREADY_PLAN, alreadyDone, failPrefix, type Already } from '../lib/fail
 import { mockAmountCheck } from '../lib/policy.ts';
 import { areaPath, cumulative, otherInSeries, toBars, type Bar } from '../lib/series.ts';
 import { BOUNCE_REVIEW } from '../lib/notices.ts';
-import { OWNER_ONLY_TAG, resumeOwnerOnly } from '../lib/ownerOnly.ts';
+import { OWNER_ONLY_TAG, noticeDoneLocked, resumeOwnerOnly } from '../lib/roles.ts';
 
 const AGING_COLOR: Record<Aging, string> = { notDue: 'bg-ink-400', d0_30: 'bg-due', d31_60: 'bg-late', d61_90: 'bg-red-500', d90p: 'bg-red-700' };
 
@@ -395,6 +395,12 @@ function NeedsYou() {
                 <Button size="sm" variant={armed === `a${n.id}-none` ? 'dark' : 'outline'} data-testid="notice-assign-none"
                   onClick={() => act(`a${n.id}-none`, () => api.assignShared(n.id, null), 'סומן: אף אחד מהם — התזכורות חודשו')}>
                   {armed === `a${n.id}-none` ? 'לחצו שוב לאישור' : 'אף אחד מהם'}</Button>
+              </div>
+            ) : noticeDoneLocked(me, n.intent) ? (
+              // מבקר 195א: התראת-הביטחון מיועדת לבעל העסק — עובד/ת רואה אותה, לא סוגר/ת (השרת: 403)
+              <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="notice-done-locked">
+                <Button size="sm" variant="outline" disabled title="רק בעל העסק סוגר את ההתראה הזו">✓ טופל</Button>
+                <span data-testid="owner-only-badge" className="whitespace-nowrap rounded-full bg-ink-100 px-2 py-0.5 text-xs font-bold text-ink-700">{OWNER_ONLY_TAG}</span>
               </div>
             ) : (
             <Button size="sm" variant={armed === `n${n.id}` ? 'dark' : 'outline'} className="mt-2" data-testid="notice-done"
