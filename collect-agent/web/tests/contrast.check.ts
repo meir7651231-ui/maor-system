@@ -69,3 +69,32 @@ test('באנר פקיעת לוח החגים: כל צירוף טקסט/רקע ב�
   }
   assert.doesNotMatch(src, /text-(amber|orange|red)-[3-5]00\b/, 'גוון טקסט בהיר מדי בבאנר');
 });
+
+// גבי עיצוב: משטחים שמופיעים רק במצבים מסוימים (שחזור מגיבוי, DSR, התראות, באנרים) לא נראים בסריקת הדפדפן
+// של הדמו ⇒ סריקה סטטית: כל bg-X + text-Y באותו className (בלי וריאנטים hover:/sm:) בכל src/**/*.tsx ≥4.5:1.
+const COLOR = '(?:[a-z]+-(?:50|100|200|300|400|500|600|700|800|900|950)|brand|cream|white|paid|due|late|critical|info|(?:due|late|critical)-ink|ink-\\d+|brand-\\d+)';
+export function staticPairs(src: string): { fg: string; bg: string; r: number; cls: string }[] {
+  const out: { fg: string; bg: string; r: number; cls: string }[] = [];
+  for (const m of src.matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g)) {
+    const cls = m[1] ?? m[2], c = cls.split(/\s+/).filter(x => !x.includes(':'));
+    const pick = (p: string) => c.map(x => x.match(new RegExp(`^${p}-(${COLOR})$`))?.[1]).filter((x): x is string => !!x);
+    for (const bg of pick('bg')) for (const fg of pick('text')) {
+      let r: number; try { r = ratio(fg, bg); } catch { continue; }   // צבע שאינו token (למשל text-white/80) ⇒ לא נבדק
+      out.push({ fg, bg, r, cls });
+    }
+  }
+  return out;
+}
+
+test('סריקה סטטית: כל bg/text באותו className ב-src עוברים AA (כולל משטחים מותנים)', () => {
+  const files: string[] = [];
+  const walk = (d: string) => { for (const n of readdirSync(d)) { const p = join(d, n); if (statSync(p).isDirectory()) walk(p); else if (n.endsWith('.tsx')) files.push(p); } };
+  walk(join(WEB, 'src'));
+  const all = files.flatMap(f => staticPairs(readFileSync(f, 'utf8')).map(x => ({ ...x, f: f.replace(WEB, '') })));
+  assert.ok(all.length >= 40, `נבדקו רק ${all.length} צירופים — הסריקה לא רצה?`);
+  const bad = all.filter(x => x.r < 4.5).map(x => `${x.f}: text-${x.fg} על bg-${x.bg} = ${x.r.toFixed(2)}`);
+  assert.deepEqual(bad, []);
+  // הסורק עצמו תופס הפרה (מוטציה): אפור בהיר על לבן, ירוק-מילוי על שמנת
+  const planted = staticPairs('<p className="bg-white text-ink-400 p-2">x</p><b className={`bg-cream text-brand ${y}`}>y</b>');
+  assert.deepEqual(planted.filter(x => x.r < 4.5).map(x => x.fg), ['ink-400', 'brand']);
+});
