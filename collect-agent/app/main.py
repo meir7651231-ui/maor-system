@@ -423,13 +423,18 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         from .demo import FixedClock
 
         @app.post("/demo/advance", dependencies=auth)
-        def demo_advance(days: int):
+        def demo_advance(days: int, request: Request):
+            # מבקר 188: `auth` מקבל גם עובד/ת מחובר/ת בתפקיד staff — «אימות בעלים» לא נאכף, ועובדת דמו הזיזה את
+            # השעון לכולם (ופגה את הסשנים שלהם). עכשיו בעל העסק בלבד, כמו /team ו-restore-hold.
+            if not request.state.is_owner:
+                raise HTTPException(403, "רק בעל העסק מזיז את שעון ההדגמה")
             if not isinstance(svc.clock, FixedClock):
                 raise HTTPException(409, "שעון ההדגמה לא קבוע")
             if not 1 <= days <= 90:
                 raise HTTPException(422, "days: 1–90")
             svc.clock.now += timedelta(days=days)
-            svc.audit("owner:demo", "demo_clock_advanced", {"days": days})
+            # מבקר 188: השחקן האמיתי (פסאודונים user:N או owner), לא «owner:demo» קבוע — אחרת היומן לא מגלה מי הזיז
+            svc.audit(request.state.actor, "demo_clock_advanced", {"days": days})
             # הניסיון של הדמו (14 יום מ-DEMO_TRIAL_START) נגמר אחרי הזזה ארוכה ⇒ svc.plan() לא רץ בכלל. מחזירים את
             # המצב כדי שבדיקה תיכשל בהסבר ולא ב«ההסדר לא הוחמץ» (מסלול שנמצא בכתיבת הבדיקה הזו).
             return {"today": svc.clock().date().isoformat(), "trial_active": bool(svc.trial()["active"])}
