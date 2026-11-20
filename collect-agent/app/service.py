@@ -74,12 +74,16 @@ OPTOUT_LEDGER_FAILED_TEXT = ("בקשת הסרה נקלטה וחסומה במער
                              "הסרה יקבל שוב תזכורת. פנו לתמיכה הטכנית לתיקון הרשאות היומן (OPTOUT_LEDGER).")
 
 
-def plan_missed_text(name: str | None, n: int, of: int, amount_agorot: int, due: str, open_agorot: int) -> str:
-    """מנהל 332: כרטיס לבעל העסק כשתשלום בהסדר לא התקבל. בלי פרטי קשר — רק שם, כמו שאר הכרטיסים."""
+def plan_missed_text(name: str | None, n: int, of: int, amount_agorot: int, due: str, open_agorot: int,
+                     still_paused: bool = False) -> str:
+    """מנהל 332: כרטיס לבעל העסק כשתשלום בהסדר לא התקבל. בלי פרטי קשר — רק שם, כמו שאר הכרטיסים.
+    fuzz ב׳ (20.11): still_paused ⇒ ללקוח השהיה אחרת («שילמתי»/מחלוקת/רגיש…) — לא מבטיחים שהתזכורות חוזרות."""
     who = name or "לקוח"
-    return (f"הסדר התשלומים של {who} לא נשמר: תשלום {n} מתוך {of} ({templates.fmt_amount(amount_agorot)}, "
-            f"מועד {due}) לא התקבל. היתרה הפתוחה: {templates.fmt_amount(open_agorot)}. "
+    tail = ("ההסדר סומן «הוחמץ». ללקוח יש השהיה נוספת (למשל «שילמתי» או מחלוקת), ולכן התזכורות לא חוזרות עד "
+            "שתבדקו ותחדשו אותן — אפשר גם להציע הסדר חדש." if still_paused else
             "ההסדר סומן «הוחמץ» והתזכורות הרגילות חוזרות לאישורכם — אפשר גם להציע הסדר חדש.")
+    return (f"הסדר התשלומים של {who} לא נשמר: תשלום {n} מתוך {of} ({templates.fmt_amount(amount_agorot)}, "
+            f"מועד {due}) לא התקבל. היתרה הפתוחה: {templates.fmt_amount(open_agorot)}. " + tail)
 
 
 def refresh_stuck_text(items: list[tuple[str, str, str]]) -> str:
@@ -798,7 +802,11 @@ class CollectService:
         if self.db.one("SELECT 1 FROM messages WHERE intent=? AND message_id=?",
                        (self.CREDIT_REVIEW, mid)):
             return 0
-        if not cust["paused_reason"]:
+        old = cust["paused_reason"] or ""
+        # fuzz ב׳ (20.11): קבלה/זיכוי על לקוח שכבר מושהה **השהיה רכה** (הסדר שנולד בשיחה, או הבטחה שפגה לבד —
+        # `:until=`) לא נרשמה ⇒ כשההשהיה הרכה השתחררה (הסדר הוחמץ / המועד עבר) התזכורת יצאה למי שכנראה שילם,
+        # והרענון שלפני השליחה לא השהה שוב (ההתראה כבר קיימת). credit_review גובר על השהיה רכה; השהיה קשה נשארת.
+        if not old or old.split(":", 1)[0] in self.PLAN_PAUSES or ":until=" in old:
             self.db.x("UPDATE customers SET paused_reason=? WHERE id=?",
                       (self.CREDIT_REVIEW, cust["id"]))
         for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cust["id"],)):
@@ -1979,6 +1987,24 @@ class CollectService:
     def _plan_invoice_ids(self, p) -> list[int]:
         return json.loads(p["invoice_ids"]) if p["invoice_ids"] else [p["invoice_id"]]
 
+    # השהיות שנוצרו מהשיחה על ההסדר עצמו — משתחררות כשההסדר הוחמץ (שאר ההשהיות לא)
+    PLAN_PAUSES = ("plan_request", "plan_accept", "cant_pay")
+
+    # כוונות שמחייבות בדיקת בעל העסק לפני תזכורת. paid_claim אינה השהיה «קשה» (_keeps_old_pause), ולכן בקשת
+    # הסדר אחריה דורסת אותה — fuzz ב׳ זרע 5170: «כבר שולם» ⇒ «אפשר בתשלומים?» ⇒ ההסדר הוחמץ ⇒ תזכורת למי שטען ששילם
+    _PROTECTIVE_INTENTS = ("paid_claim", "dispute", "legal", "minor", "distress", "deceased", "insolvency",
+                           "sensitive", "opt_out", "wrong_person")
+
+    def _protective_since_resume(self, cid: int) -> bool:
+        """הלקוח כתב משהו מגן (שילמתי / מחלוקת / מצוקה …) או שנמצאה קבלה/זיכוי לבדיקה, מאז שבעל העסק חידש אותו
+        לאחרונה (או מאז ומעולם)."""
+        last = self.db.one("SELECT MAX(at) at FROM audit WHERE action='resume_customer' "
+                           "AND json_extract(detail,'$.customer')=?", (cid,))["at"] or ""
+        # זרע 5494: גם התראת קבלה/זיכוי (credit_review) — בקשת הסדר אחריה דורסת את ההשהיה שלה
+        return self.db.one("SELECT 1 FROM messages WHERE customer_id=? AND created_at>? AND ("
+                           "(direction='in' AND intent IN (SELECT value FROM json_each(?))) OR intent=?)",
+                           (cid, last, json.dumps(self._PROTECTIVE_INTENTS), self.CREDIT_REVIEW)) is not None
+
     def _sweep_plans(self) -> dict[str, list[int]]:
         """מנהל 332 (מבקר סבב 183 🟠): להסדר לא היה מחזור-חיים — `approved` (= ההצעה נשלחה) חסם כל תזכורת **לתמיד**,
         גם כשכל המועדים עברו והחשבונית פתוחה, ובלי כרטיס לבעל העסק; וגם ללקוח שהתעלם מההצעה. עכשיו בכל סבב תכנון:
@@ -2025,9 +2051,19 @@ class CollectService:
                 continue
             if self.db.update("UPDATE plans SET status='missed' WHERE id=? AND status='approved'", (p["id"],)) != 1:
                 continue
-            cust = self.db.one("SELECT name FROM customers WHERE id=?", (p["customer_id"],))
+            cust = self.db.one("SELECT name, paused_reason FROM customers WHERE id=?", (p["customer_id"],))
+            # fuzz ב׳ (20.11): הסדר שנולד בשיחה («אפשר בתשלומים?» / «אין לי כסף» / «מאשר») השהה את הלקוח
+            # (plan_request / cant_pay / plan_accept) — וההשהיה נשארה לנצח אחרי שההסדר הוחמץ, בזמן שהכרטיס הבטיח
+            # «התזכורות חוזרות». משחררים רק השהיה **של ההסדר**; «שילמתי», מחלוקת, הסרה וכל השאר — נשארים.
+            reason = (cust["paused_reason"] or "") if cust else ""
+            if reason.split(":", 1)[0] in self.PLAN_PAUSES and not self._protective_since_resume(p["customer_id"]) \
+                    and self.db.update(
+                    "UPDATE customers SET paused_reason=NULL WHERE id=? AND paused_reason=?",
+                    (p["customer_id"], reason)) == 1:
+                self.audit("system", "plan_missed_pause_released", {"plan": p["id"], "was": reason.split(":", 1)[0]})
+                reason = ""
             body = plan_missed_text(cust["name"] if cust else None, late["n"], len(items), late["amount_agorot"],
-                                    late["due"], open_now)
+                                    late["due"], open_now, still_paused=bool(reason))
             now = _iso(self.clock())
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
                       "created_at) VALUES(?,'system','owner',?,'plan_missed',1,?,?)",
