@@ -578,6 +578,11 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.get("/customers/{cid}/data", dependencies=auth)
     def customer_data(cid: int, request: Request):                     # מנהל 309: זכות עיון
+        # הכרעת ראש צוות (20.11): ייצוא כל המידע על לקוח = בעל העסק בלבד (בעל השליטה; מזעור גישה לפי תקנות
+        # האבטחה). עובד/ת ⇒ 403 + audit. בקשת העיון עצמה נרשמת במרשם (dsr) והמועד נספר — בעל העסק מייצא ומשיב.
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, "data_export_refused", {"customer": cid})
+            raise HTTPException(403, "רק בעל העסק מייצא את המידע על לקוח (בקשת עיון)")
         return guard(svc.customer_data_export, cid, request.state.actor)
 
     @app.post("/invoices/{iid}/mark-paid", dependencies=auth)

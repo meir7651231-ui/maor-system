@@ -1,5 +1,10 @@
 // מנהל 310: ייצוא כל המידע על לקוח אחד (בקשת עיון, סעיף 13) — מעל GET /customers/{cid}/data (מנהל 309).
 // החלק הטהור: שם הקובץ ותוכנו. ההורדה עצמה (DOM) ב-downloadJson.
+import type { Me } from '../api.ts';
+
+/** הכרעת ראש צוות 20.11: ייצוא = בעל העסק בלבד. עובד/ת מחובר/ת ⇒ במקום הכפתור הסבר (השרת מחזיר 403).
+ *  me=null (מוק/לפני טעינה) ⇒ לא חוסמים במסך; השרת אוכף. אותו דפוס כמו holdOwnerOnly/settingsOwnerOnly. */
+export const exportOwnerOnly = (me: Me | null) => me?.kind === 'user' && me.owner !== true;
 
 /** שם קובץ ASCII בלבד: מזהה הלקוח והתאריך, בלי השם.
  *  1) Chromium מתעלם מ-download="…" עם עברית ושומר «download» בלי סיומת (נתפס ב-e2e/live.mjs).
