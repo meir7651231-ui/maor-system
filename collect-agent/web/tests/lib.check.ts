@@ -1514,3 +1514,18 @@ test('הסדרים: מטבע ההסדר (מבקר 185 🔴) — הסדר בדו�
     assert.ok(/fmtMoney\([^)]*p\.currency\)/.test(chunk), `${name}: בלי מטבע ההסדר`);
   }
 });
+
+test('גבי עיצוב: מצב המייל בשורת הלקוח — חזר / ספאם, פעולת תיקון לפי המקור, אחרת כלום', async () => {
+  const { emailStateView } = await import('../src/lib/emailState.ts');
+  for (const s of [null, undefined, '', 'opted_out', 'x']) assert.equal(emailStateView(s as never, 'api'), null);
+  const b = emailStateView('bounced', 'api')!;
+  assert.match(b.title, /לא פעילה/); assert.match(b.body, /SMS ממשיך/); assert.match(b.body, /מערכת החשבוניות/);
+  assert.equal(b.action.href, '#/settings');
+  const bc = emailStateView('bounced', 'csv')!;
+  assert.match(bc.body, /CSV/); assert.match(bc.action.text, /ייבוא/);
+  const sp = emailStateView('spam', 'api')!;
+  assert.match(sp.title, /ספאם/);
+  // ספאם = סירוב: לא מציעים «לשלוח שוב», רק תיקון כתובת אם היא של אדם אחר
+  assert.match(sp.body, /לא שולחים עוד מייל/); assert.match(sp.body, /אדם אחר/);
+  assert.doesNotMatch(sp.body + sp.action.text, /שלח(ו)? שוב|לחדש מייל/);
+});

@@ -12,6 +12,7 @@ from datetime import timedelta
 
 FAIL = "mx.example; spf=fail; dkim=fail; dmarc=fail"
 
+
 def _send_first(svc, clock):
     svc.sync()
     clock.now += timedelta(days=3)
@@ -22,11 +23,14 @@ def _send_first(svc, clock):
             pass
     svc.dispatch()
 
+
+# תוקן (גבי חיבורים, 20.11): DSN נקלט רק עם Message-ID של מייל שלנו + נמען תואם + בלי כשל אימות מפורש
 def test_forged_dsn_without_our_message_id_does_not_block(svc, clock):
     _send_first(svc, clock)
     svc.email_webhook("MAILER-DAEMON@evil.example", "Final-Recipient: rfc822; c1@example.com\nStatus: 5.1.1\n", "fb1",
                       subject="Undelivered Mail Returned to Sender", auth_results=FAIL)
     assert not svc.email_bounced("c1@example.com")
+
 
 def test_control_dsn_with_our_message_id_blocks(svc, clock):
     _send_first(svc, clock)

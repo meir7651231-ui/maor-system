@@ -6,7 +6,8 @@ export type Step = 'friendly' | 'plan_offer' | 'final';
 export type InvoiceStatus = 'open' | 'reminded' | 'promised' | 'paid' | 'disputed';
 
 export interface Customer { id: string; name: string; phone?: string; email?: string; contact?: string; optedOut?: boolean;
-  /** בחי: מזהה הלקוח בשרת + סיבת השהיה ('paid_claim' וכו׳) */ backendId?: number; paused?: string | null }
+  /** בחי: מזהה הלקוח בשרת + סיבת השהיה ('paid_claim' וכו׳) */ backendId?: number; paused?: string | null;
+  /** גבי עיצוב: 'bounced' / 'spam' מ-/dashboard */ emailState?: 'bounced' | 'spam' | null }
 export interface Reminder { at: string; step: Step; channel: Channel; status: 'sent' | 'delivered' | 'opened' | 'replied' | 'failed' }
 export interface Invoice {
   id: string;

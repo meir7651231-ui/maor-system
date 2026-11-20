@@ -1,9 +1,8 @@
 """גבייה סוכן · אותו חור כמו critic 189, ב-bounce (20.11): מנהל 339 (critic 188) הוסיף «אחרי bounce קבוע לא שולחים
 עוד מייל לכתובת». הזיהוי דרש רק שם-משתמש של מערכת דואר (`mailer-daemon@` **בכל דומיין**) + `Final-Recipient`, ובלי
 Message-ID נפל ל«המייל האחרון לנמען» ⇒ כל אחד יכול היה לכבות את ערוץ המייל של לקוח + כרטיס כוזב «המייל חזר».
-עכשיו (באנלוגיה להכרעת ראש הצוות ל-189): bounce נקלט רק כשה-Message-ID המקורי (Message-ID / Original-Message-ID)
-תואם מייל ששלחנו; אחרת audit בלבד. הכתובת שנחסמת = הכתובת שאליה **אנחנו** שלחנו (Final-Recipient יכול להיות שונה
-בהעברה/כינוי — לכן לא נדרשת התאמה שלו)."""
+עכשיו (באנלוגיה להכרעת ראש הצוות ל-189; מאוחד עם ceb012d): bounce נקלט רק כשה-Message-ID המקורי (Message-ID /
+Original-Message-ID) תואם מייל ששלחנו, Final-Recipient (כשמופיע) תואם לכתובת שאליה שלחנו, ואין כשל אימות מפורש."""
 from datetime import timedelta
 
 FAIL = "mx.example; spf=fail; dkim=fail; dmarc=fail"
@@ -55,8 +54,16 @@ def test_real_bounce_with_original_message_id_blocks(svc, clock):
     assert r.get("bounce") == "failed" and _blocked(svc)
 
 
-def test_real_bounce_double_brackets_and_forwarded_final_recipient(svc, clock):
+def test_real_bounce_double_brackets(svc, clock):
     mid = _sent(svc, clock).strip("<>")
-    r = svc.email_webhook("MAILER-DAEMON@mx.example", _dsn("forwarded@elsewhere.example", f"Message-ID: <<{mid}>>"),
+    r = svc.email_webhook("MAILER-DAEMON@mx.example", _dsn(DANA, f"Message-ID: <<{mid}>>"),
                           "rb-2", subject="Undelivered Mail Returned to Sender")
-    assert r.get("bounce") == "failed" and _blocked(svc)          # הכתובת שאנחנו שלחנו אליה, לא ה-Final-Recipient
+    assert r.get("bounce") == "failed" and _blocked(svc)
+
+
+def test_final_recipient_must_match_sent_address(svc, clock):
+    """אחרי האיחוד עם ceb012d (מחמיר): Final-Recipient שונה מהכתובת ששלחנו אליה ⇒ unverified (לא נחסם)."""
+    mid = _sent(svc, clock)
+    r = svc.email_webhook("MAILER-DAEMON@mx.example", _dsn("forwarded@elsewhere.example", f"Message-ID: {mid}"),
+                          "rb-3", subject="Undelivered Mail Returned to Sender")
+    assert r.get("bounce") == "unverified" and not _blocked(svc)

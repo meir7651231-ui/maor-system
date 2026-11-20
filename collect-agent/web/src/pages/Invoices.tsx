@@ -1,3 +1,4 @@
+import { EmailStateNote } from '../components/EmailStateNote.tsx';
 import { Fragment, useMemo, useState } from 'react';
 import { useApp } from '../store.tsx';
 import { daysOverdue, fmtDate, fmtMoney, fmtTotal } from '../lib/format.ts';
@@ -92,7 +93,8 @@ export function Invoices() {
                         onClick={() => exportData(c.backendId!, c.name)}
                         title="לבקשת עיון של הלקוח: קובץ עם כל המידע ששמור עליו בגבי (חשבוניות, תזכורות, הודעות, הסדרים)"
                         className="mt-1 min-h-9 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-ink-500 underline hover:text-ink-700 cursor-pointer disabled:opacity-50 disabled:cursor-wait">
-                        {exporting === c.backendId ? 'מכין קובץ…' : '⬇ ייצוא מידע (בקשת עיון)'}</button>}</td>
+                        {exporting === c.backendId ? 'מכין קובץ…' : '⬇ ייצוא מידע (בקשת עיון)'}</button>}
+                      {live && i.status !== 'paid' && <EmailStateNote state={c.emailState} source={i.source} />}</td>
                     <td className="px-4 py-3"><span className="num">{i.number}</span>{i.source === 'csv' && <span className="ms-1.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5" title="יובאה מקובץ CSV — לא מתעדכנת לבד">CSV</span>}</td>
                     <td className="px-4 py-3 font-bold whitespace-nowrap">{fmtMoney(i.amount, i.currency)}</td>
                     <td className="px-4 py-3 num">{fmtDate(i.dueAt)}</td>

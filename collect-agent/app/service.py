@@ -1034,6 +1034,22 @@ class CollectService:
         return bool(addr) and self.db.one("SELECT 1 FROM suppressions WHERE hash=?",
                                           (self.addr_hash(channel, addr),)) is not None
 
+    def email_states(self) -> Callable[[str | None], str | None]:
+        """גבי עיצוב: מצב כתובת המייל לתצוגה בטבלת החובות — 'spam' (הלקוח סימן ספאם ⇒ suppress, סעיף 30א,
+        לא שולחים שוב למייל הזה) · 'bounced' (bounce קבוע ⇒ הכתובת לא קיימת; לתקן במקור ⇒ גיבוב חדש) · None.
+        שתי שאילתות לכל הדשבורד (לא לכל שורה — test_queries_do_not_grow_with_sent_rows); הגיבוב בזיכרון."""
+        spam = {r["hash"] for r in self.db.q("SELECT hash FROM suppressions WHERE channel='email' "
+                                             "AND reason='spam_complaint'")}
+        bounced = ({r["hash"] for r in self.db.q("SELECT hash FROM email_bounces")}
+                   if self._table_exists("email_bounces") else set())
+
+        def state(addr: str | None) -> str | None:
+            if not addr:
+                return None
+            h = self.addr_hash("email", addr)
+            return "spam" if h in spam else "bounced" if h in bounced else None
+        return state
+
     def email_bounced(self, addr: str) -> bool:
         """critic 188: הכתובת החזירה bounce קבוע ⇒ לא שולחים אליה מייל (מוניטין שליחה + כתובת שתוקצה מחדש)."""
         return bool(addr) and self._table_exists("email_bounces") and self.db.one(
@@ -2563,6 +2579,7 @@ class CollectService:
             return {"ok": True, **self._email_complaint(complaint)}
         bounce = parse_bounce(sender, text, subject)
         if bounce is not None:
+            bounce["auth"] = email_auth_verdict(auth_results)
             # מייל שחזר: לא תשובת לקוח (לא «שולח לא מוכר»). מסמנים את המייל המקורי ומתריעים לבעל העסק
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
                       " VALUES(NULL,'webhook','email','bounce',?,?)", (key, _iso(self.clock())))
@@ -2633,23 +2650,33 @@ class CollectService:
         return {"complaint": "suppressed", "customer": cid}
 
     def _email_bounce(self, b: dict) -> dict:
-        """bounce ⇒ המייל היוצא שחזר: לפי Message-ID המקורי (מדויק), אחרת המייל האחרון לנמען.
-        5.x.x ⇒ 'failed' + התראה (פעם אחת) · 4.x.x ⇒ 'delayed', בלי התראה. בלי הסרה אוטומטית."""
-        row = None
+        """bounce ⇒ המייל היוצא שחזר. 5.x.x ⇒ 'failed' + התראה (פעם אחת) · 4.x.x ⇒ 'delayed'.
+
+        critic 190 / QA סט #22 (כמו ARF ב-189): DSN נקלט **רק** כשהוא מתייחס למייל ששלחנו — ה-Message-ID המקורי
+        (בכותרות המוחזרות / Original-Message-ID) תואם רשומת שליחה, ו-Final-Recipient (כשמופיע) תואם לכתובת שאליה
+        נשלח בפועל — ושום אימות של הדומיין לא **נכשל** במפורש (spf/dkim/dmarc=fail). אחרת ⇒ audit בלבד, בלי שינוי
+        מצב. בלי Authentication-Results בכלל ⇒ נקלט (ה-Message-ID האקראי הוא ההגנה מזיוף; נרשם auth_missing).
+        אין יותר נפילה ל«המייל האחרון לנמען» — זה מה שאפשר לזייף."""
+        row = sent_to = None
         for mid in b["message_ids"]:
             row = self.db.one("SELECT * FROM messages WHERE direction='out' AND channel='email' "
                               "AND provider_id=?", (mid,))
             if row:
+                try:
+                    sent_to = clean_email(json.loads(row["payload"] or "{}").get("to") or "")
+                except ValueError:
+                    sent_to = None
                 break
-        if row is None:
-            # bounce מזויף (20.11, באנלוגיה להכרעת ראש הצוות ל-critic 189): היה נפילה ל«המייל האחרון לנמען» לפי
-            # Final-Recipient ⇒ כל שולח `mailer-daemon@<כל דומיין>` כיבה את ערוץ המייל של לקוח (critic 188)
-            # + כרטיס כוזב.
-            # עכשיו רק Message-ID של מייל ששלחנו; אחרת audit בלבד, בלי כתובות.
-            self.audit("system", "email_bounce_unverified", {"permanent": b["permanent"],
-                                                              "reason": "not_our_message" if b["message_ids"]
-                                                              else "no_message_id"})
-            return {"bounce": "unverified"}
+        auth = b.get("auth") or {"verified": False, "spf": "none", "dkim": "none", "dmarc": "none"}
+        failed_auth = not auth["verified"] and "fail" in (auth["spf"], auth["dkim"], auth["dmarc"])
+        why = ("no_message_id" if not b["message_ids"] else "not_our_message" if row is None else
+               "recipient_mismatch" if b["recipient"] and sent_to and clean_email(b["recipient"]) != sent_to else
+               "auth_failed" if failed_auth else None)
+        if why:
+            self.audit("system", "email_bounce_unverified", {"permanent": b["permanent"], "reason": why})
+            return {"bounce": "unverified", "reason": why}
+        if auth["verified"] is False and not failed_auth:
+            self.audit("system", "email_bounce_auth_missing", {"message": row["id"]})
         if not b["permanent"]:
             return {"bounce": "delayed", "matched": True}
         if row["delivery_status"] == "failed":
@@ -2977,7 +3004,7 @@ class CollectService:
     # id/step/status/block_reason/amount_drift (בלי invoice_ids/template_key/sent_at), ובלי series/send_window.
     DASH_LIST_INVOICE = ("invoice_id", "number", "customer", "customer_id", "paused_reason", "phone",
                          "amount_agorot", "currency", "due", "status", "days_overdue", "reminders_sent",
-                         "last_sent", "last_reminder", "customer_block")
+                         "last_sent", "last_reminder", "customer_block", "email_state")
     DASH_LIST_LAST = ("id", "step", "status", "block_reason", "amount_drift")
 
     def dashboard(self, view: str | None = None) -> dict:
@@ -3018,6 +3045,7 @@ class CollectService:
 
         def _channels(message_id: str | None) -> list[str]:
             return sorted({c for m in (message_id or "").split(",") if m for c in chans.get(m, ())})
+        estate = self.email_states()           # גבי עיצוב: מצב המייל — שתי שאילתות לכל הטבלה
         for r in self.db.q("SELECT i.*, c.name cname, c.phone cphone, c.email cemail, "
                            "c.opted_out, c.disputed, c.paused_reason FROM invoices i "
                            "JOIN customers c ON c.id=i.customer_id ORDER BY i.due, i.id"):
@@ -3053,7 +3081,9 @@ class CollectService:
                     # הפעלה 159: טבלת החובות הציגה «מאושרת» לתזכורת שהסכום שלה השתנה במקור, בזמן שהתור
                     # (157) כבר סימן אותה כמי שתחזור לאישור. אותו חישוב כמו ב-/preview וב-/reminders.
                     "amount_drift": self.reminder_amount_drift(last)},
-                "customer_block": block})
+                "customer_block": block,
+                # גבי עיצוב: «המייל חזר» / «סימן ספאם» בטבלה + פעולת תיקון (רק מצב, בלי הכתובת ב-view=list)
+                "email_state": estate(r["cemail"])})
         open_rows = [x for x in rows if x["status"] == "open"]
         outbox = self.sender.sent
         closed_all = self.db.q("SELECT amount_agorot, currency, closed_at FROM invoices "

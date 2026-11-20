@@ -57,17 +57,22 @@ def test_hard_bounce_marks_failed_and_alerts_owner(svc, sent_mail):
 
 
 def test_matches_by_original_message_id(svc, sent_mail):
-    if not sent_mail["provider_id"]:
-        pytest.skip("אין Message-ID שמור")
-    r = svc.email_webhook("postmaster@other.example", _dsn("someone-else@x.example",
-                                                           msgid=sent_mail["provider_id"]),
-                          "dsn-2", subject="Delivery Status Notification (Failure)")
-    assert r.get("bounce") == "failed" and _bounce_alerts(svc, sent_mail["customer_id"])
+    """ה-Message-ID המקורי מצביע על המייל שלנו; Final-Recipient של כתובת אחרת ⇒ לא מקבלים (critic 190)."""
+    ok = svc.email_webhook("postmaster@other.example", _dsn(sent_mail["cemail"], msgid=sent_mail["provider_id"]),
+                           "dsn-2", subject="Delivery Status Notification (Failure)")
+    assert ok.get("bounce") == "failed" and _bounce_alerts(svc, sent_mail["customer_id"])
+
+
+def test_recipient_mismatch_is_rejected(svc, sent_mail):
+    r = svc.email_webhook("postmaster@other.example", _dsn("someone-else@x.example", msgid=sent_mail["provider_id"]),
+                          "dsn-2b", subject="Delivery Status Notification (Failure)")
+    assert r == {"ok": True, "bounce": "unverified", "reason": "recipient_mismatch"}
+    assert not svc.email_bounced(sent_mail["cemail"])
 
 
 def test_soft_bounce_is_not_failure(svc, sent_mail):
-    r = svc.email_webhook("MAILER-DAEMON@mx.example.com", _dsn(sent_mail["cemail"], "4.2.2", sent_mail["provider_id"]),
-                          "dsn-3",
+    r = svc.email_webhook("MAILER-DAEMON@mx.example.com",
+                          _dsn(sent_mail["cemail"], "4.2.2", msgid=sent_mail["provider_id"]), "dsn-3",
                           subject="Delivery Status Notification (Delay)")
     assert r.get("bounce") == "delayed"
     assert svc.db.one("SELECT delivery_status FROM messages WHERE id=?", (sent_mail["id"],))[0] != "failed"

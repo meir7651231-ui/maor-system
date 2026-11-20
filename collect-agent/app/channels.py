@@ -230,8 +230,23 @@ _BOUNCE_SUBJECT = re.compile(
 _DSN_RECIPIENT = re.compile(r"^(?:final|original)-recipient:\s*(?:rfc822;\s*)?<?([^\s<>;]+@[^\s<>;]+?)>?\s*$",
                             re.IGNORECASE | re.MULTILINE)
 _DSN_STATUS = re.compile(r"^status:\s*([245])\.\d{1,3}\.\d{1,3}", re.IGNORECASE | re.MULTILINE)
-_ARF_MSGID = re.compile(r"^(?:original-)?message-id:\s*<*([^<>\s]+@[^<>\s]+?)>*\s*$", re.IGNORECASE | re.MULTILINE)
-_MSGID = re.compile(r"^message-id:\s*(<[^<>\s]+@[^<>\s]+>)", re.IGNORECASE | re.MULTILINE)
+_ARF_MSGID = re.compile(r"^message-id:\s*<*([^<>\s]+@[^<>\s]+?)>*\s*$", re.IGNORECASE | re.MULTILINE)
+# Message-ID של ההודעה המקורית בתוך ה-DSN/ARF (בכותרות המוחזרות, או Original-Message-ID). מנורמל ל-<id>
+_MSGID_RAW = re.compile(r"^(?:original-)?message-id:\s*<*([^<>\s]+@[^<>\s]+?)>*\s*$", re.IGNORECASE | re.MULTILINE)
+
+
+class _MsgIds:
+    @staticmethod
+    def findall(text: str) -> list[str]:
+        out: list[str] = []
+        for m in _MSGID_RAW.findall(text or ""):
+            v = f"<{m}>"
+            if v not in out:
+                out.append(v)
+        return out
+
+
+_MSGID = _MsgIds()
 # NDR קריא בלבד (Exchange/Outlook; learn.microsoft.com «How to interpret an Exchange NDR»): בלי Status:/
 # Final-Recipient: — הקוד מופיע בתוך שורת האבחון («#5.7.1 smtp;530 5.7.1 …») והנמען בשורה שאחרי הכותרת
 _ENH_CODE = re.compile(r"(?<![\d.])([245])\.(\d{1,3})\.(\d{1,3})(?![\d.])")
@@ -280,9 +295,7 @@ def parse_bounce(sender: str, text: str, subject: str = "") -> dict[str, Any] | 
     if permanent and subj == "7":
         address_invalid = False                 # 5.7.x = מדיניות/אבטחה, לא כתובת מתה
     return {"recipient": recipient, "permanent": permanent, "address_invalid": address_invalid,
-            # bounce מזויף (20.11, אנלוגי ל-critic 189): ה-Message-ID המקורי הוא ההוכחה (השירות מאמת מול היומן) —
-            # גם Original-Message-ID, מנורמל ל-<id> (בלי סוגריים / סוגריים כפולים)
-            "code": code, "message_ids": list(dict.fromkeys(f"<{x}>" for x in _ARF_MSGID.findall(body)))}
+            "code": code, "message_ids": _MSGID.findall(body)}
 
 
 # ---------- תלונת ספאם (ARF / feedback loop, RFC 5965) ----------

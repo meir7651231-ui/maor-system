@@ -257,3 +257,17 @@ GREENINVOICE_API_ID=… GREENINVOICE_API_SECRET=… python3 -I scripts/gi_contra
 **הוכחה:**
 - `tests/test_delivery_feedback_docs.py` (48 בדיקות): טבלת הקודים של 019 כולה, הדוגמה מהתיעוד דרך ה-webhook, DSN מ-RFC 3464 (Simple, Multi, Gateway, Delayed), ה-NDR של Microsoft מילה במילה, ARF מ-RFC 5965 B.1/B.2, ו-`DeliveryNotificationUrl`.
 - מוטציות 6/6: זיהוי DLR לפי צורה · רמז type · חסימת 5.7 · `DeliveryNotificationUrl` · קטגוריית «אין יתרה» · ARF.
+
+## 18. bounce מזויף — DSN נקלט רק כשהוא על מייל שלנו (QA סט #22 · critic 190)
+**החור:** DSN מ-`MAILER-DAEMON@<כל דומיין>` עם `Final-Recipient` של לקוחה סימן את הכתובת «מתה» דרך הנפילה ל«המייל האחרון לנמען», בלי Message-ID שלנו ובלי אימות. כך אפשר היה להשתיק כל לקוחה. זה אותו דפוס כמו ARF ב-189.
+
+**התיקון** (`_email_bounce`) ⇒ נקלט רק כש:
+1. ה-Message-ID המקורי (בכותרות המוחזרות או ב-`Original-Message-ID`, גם `<<id>>`) תואם מייל ששלחנו.
+2. `Final-Recipient`, כשהוא מופיע, תואם לכתובת שאליה המייל נשלח.
+3. אין כשל אימות **מפורש** (`spf/dkim/dmarc=fail`).
+
+אחרת: audit `email_bounce_unverified` (עם reason, בלי כתובות), ושום מצב לא משתנה.
+
+**בלי Authentication-Results בכלל:** ה-DSN נקלט ונרשם `email_bounce_auth_missing`. ה-Message-ID נוצר אקראית (make_msgid), ולכן רק מי שקיבל את המייל מכיר אותו, ויכול להשתיק לכל היותר את עצמו. דרישת אימות חיובי הייתה מפילה DSN אמיתי משרתים קטנים שלא חותמים.
+
+**הוכחה:** `tests/test_bounce_authenticity.py` (7 בדיקות): 4 זיופים לא משנים מצב, DSN אמיתי מסמן, `Original-Message-ID`, וקליטה כשאין כותרת אימות. ה-xfail של critic 190 הפך לירוק והוסר. מוטציות: בלי בדיקת אימות ⇒ נכשל · בלי בדיקת נמען ⇒ נכשל.
