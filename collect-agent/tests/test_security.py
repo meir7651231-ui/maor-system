@@ -355,6 +355,7 @@ ALLOWED_HOSTS = {
 }
 # כתובות תיעוד ציבורי שמצוטטות ב-docstrings (מקור החוזה) — לא יעד של אף קריאה בקוד
 DOC_ONLY_HOSTS = {"apiv3.icount.co.il", "documenter.getpostman.com", "developers.hyp.co.il",
+                  "docs.019sms.co.il",          # תיעוד DLR של 019 (רק בהערות/טבלת הקודים)
                   "www.greeninvoice.co.il"}
 
 

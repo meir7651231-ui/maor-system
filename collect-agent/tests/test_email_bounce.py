@@ -92,4 +92,6 @@ def test_customer_reply_is_not_a_bounce():
 ])
 def test_parse_bounce_variants(sender, subject):
     b = parse_bounce(sender, "Final-Recipient: rfc822; a@b.example\nStatus: 5.1.1", subject)
-    assert b == {"recipient": "a@b.example", "permanent": True, "message_ids": []}
+    assert {k: b[k] for k in ("recipient", "permanent", "message_ids")} == \
+        {"recipient": "a@b.example", "permanent": True, "message_ids": []}
+    assert b["code"] == "5.1.1" and b["address_invalid"] is True

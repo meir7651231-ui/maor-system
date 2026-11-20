@@ -696,7 +696,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         raw = await request.body()
         if len(raw) > MAX_WEBHOOK_BODY:
             raise HTTPException(413, "too large")
-        return svc.sms_webhook_019(raw)
+        # 019 מגדירים URL לכל סוג push (dlr/incoming_sms/blacklist) ובגוף אין type ⇒ ?type= ב-URL שמוגדר אצלם
+        hint = request.query_params.get("type", "")
+        return svc.sms_webhook_019(raw, type_hint=hint if hint in ("dlr", "incoming_sms", "blacklist") else "")
 
     @app.post("/webhooks/sms/inforu")
     async def inforu_webhook(request: Request):
