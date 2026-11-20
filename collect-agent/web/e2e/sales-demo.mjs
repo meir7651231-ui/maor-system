@@ -13,7 +13,9 @@ const TOKEN = (await import('node:crypto')).randomBytes(32).toString('base64url'
 const api = async (path, init = {}) => (await fetch(base + path, { ...init, headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json', ...init.headers } })).json();
 await assertPortFree(PORT);
 const srv = spawnServer('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
-  { cwd: root, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN, PORT: String(PORT) }, stdio: srvStdio('server-sales-demo') });
+  { cwd: root, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN, PORT: String(PORT),
+    // S7: שעון ההדגמה זז קדימה (/demo/advance); ניסיון שמתחיל 15.11 נשאר פעיל אחרי ההזזה
+    DEMO_CLOCK: '1', DEMO_TRIAL_START: '2026-11-15' }, stdio: srvStdio('server-sales-demo') });
 const b = await launchChromium(pw.chromium);
 const errors = [];
 const watch = pg => { pg.on('pageerror', e => errors.push(String(e))); pg.on('console', m => m.type() === 'error' && !/fonts\.g/.test(m.text()) && errors.push(m.text())); };
@@ -94,6 +96,23 @@ try {
       await plan.getByRole('button', { name: 'לחצו שוב לאישור' }).click();
       await p.getByText('ההצעה אושרה').waitFor();
       ok((await api('/outbox')).messages.length === before + 1, 'הצעת הפריסה לא יצאה פעם אחת בדיוק');
+    },
+    // S7 · «ומה אם הוא לא עומד בהסדר?» ⇒ השעון זז אל מעבר לתשלום הראשון + 7 ימי חסד ⇒ «תשלום לא התקבל»
+    S7: async () => {
+      const plan = (await api('/plans')).find(x => x.status === 'approved');
+      ok(plan, 'אין הסדר מאושר מ-S6');
+      const today = (await api('/dashboard')).today;
+      const gap = Math.round((Date.parse(plan.installments[0].due) - Date.parse(today)) / 864e5) + 8;
+      const adv = await api(`/demo/advance?days=${gap}`, { method: 'POST' });
+      ok(adv.trial_active, 'הניסיון של הדמו נגמר אחרי ההזזה: ' + JSON.stringify(adv));
+      await api('/plan', { method: 'POST' });
+      ok((await api('/plans')).find(x => x.id === plan.id).status === 'missed', 'בשרת ההסדר לא סומן כהוחמץ');
+      await p.goto(base + '/app/#/dashboard'); await p.reload();
+      const row = p.getByTestId('plans').locator('[data-testid="plan"][data-status="missed"]');
+      await row.waitFor();
+      ok((await row.getByTestId('plan-badge').textContent()).includes('תשלום לא התקבל'), 'אין תג «תשלום לא התקבל»');
+      ok((await row.getByTestId('plan-next').textContent()).includes('באיחור'), 'אין «באיחור» בשורת התשלום הבא');
+      await row.scrollIntoViewIfNeeded(); await shot(p, 'S7');
     },
   };
   for (const [id, run] of Object.entries(STEPS)) {
