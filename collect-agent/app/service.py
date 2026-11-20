@@ -688,10 +688,13 @@ class CollectService:
             cid = self.db.one("SELECT id FROM customers WHERE external_id=?", (cust_ext,))["id"]
             self.db.x(
                 "INSERT INTO invoices(external_id,number,doc_type,amount_agorot,currency,issued,"
-                "due,customer_id,status,payment_url,synced_at,source,credit_agorot) "
-                "VALUES(?,?,?,?,?,?,?,?, 'open', ?, ?, ?, ?) "
+                "due,customer_id,status,payment_url,synced_at,source,credit_agorot,due_estimated) "
+                "VALUES(?,?,?,?,?,?,?,?, 'open', ?, ?, ?, ?, ?) "
                 "ON CONFLICT(external_id) DO UPDATE SET amount_agorot=excluded.amount_agorot, "
-                "due=excluded.due, synced_at=excluded.synced_at, "
+                # מועד שבעל העסק תיקן ברשימת הפתוחות (due_owner_at) לא נדרס בסנכרון, וגם לא חוזר ל«מוערך»
+                "due=CASE WHEN invoices.due_owner_at IS NOT NULL THEN invoices.due ELSE excluded.due END, "
+                "due_estimated=CASE WHEN invoices.due_owner_at IS NOT NULL THEN 0 "
+                "ELSE excluded.due_estimated END, synced_at=excluded.synced_at, "
                 # שער רשימת הפתוחות: «שולם» שסימן בעל העסק (ביט/העברה) לא נפתח מחדש בסנכרון,
                 # גם אם המסמך עדיין פתוח בחשבונית ירוקה
                 "status=CASE WHEN invoices.owner_paid_at IS NOT NULL THEN invoices.status "
@@ -704,7 +707,7 @@ class CollectService:
                 (inv.external_id, inv.number, inv.doc_type, inv.amount_agorot, inv.currency,
                  inv.issued.isoformat() if inv.issued else None,
                  inv.due.isoformat() if inv.due else None, cid, inv.payment_url, now, source,
-                 inv.credit_agorot))
+                 inv.credit_agorot, int(bool(getattr(inv, "due_estimated", False)))))
         held = self._hold_for_credit_review(review)
         if no_id:
             self._notify_docs_without_id(no_id)
@@ -1234,26 +1237,45 @@ class CollectService:
     def open_list(self) -> dict:
         """החשבוניות הפתוחות שממתינות לאישור בעל העסק לפני תזכורת ראשונה."""
         rows = self.db.q("SELECT i.id, i.number, i.amount_agorot, i.currency, i.due, i.source, "
-                         "i.open_reviewed_at, c.name customer FROM invoices i JOIN customers c "
-                         "ON c.id=i.customer_id WHERE i.status='open' ORDER BY i.due, i.id")
-        items = [dict(r) for r in rows]
+                         "i.due_estimated, i.open_reviewed_at, c.name customer FROM invoices i "
+                         "JOIN customers c ON c.id=i.customer_id WHERE i.status='open' ORDER BY i.due, i.id")
+        # due_estimated: אין מועד במקור ⇒ הנפקה+30. גלוי, כדי שבעל העסק יתקן לפני «עדיין פתוח» (POST עם due)
+        items = [{**dict(r), "due_estimated": bool(r["due_estimated"])} for r in rows]
         return {"enabled": self.s.open_review,
                 "pending": [x for x in items if not x["open_reviewed_at"]],
                 "confirmed": [x for x in items if x["open_reviewed_at"]]}
 
     def confirm_open_list(self, still_open: list[int], paid: list[int],
-                          actor: str = "owner") -> dict:
+                          actor: str = "owner", due: dict[int, str] | None = None) -> dict:
         """בעל העסק מסמן: still_open ⇒ מותר לתזכר · paid ⇒ שולם מחוץ למערכת (ביט/העברה), נסגר כאן
-        ולא יתוזכר. כל חשבונית פתוחה ממתינה עד שמסומנת. חשבונית בשני הצדדים ⇒ שגיאה."""
+        ולא יתוזכר. כל חשבונית פתוחה ממתינה עד שמסומנת. חשבונית בשני הצדדים ⇒ שגיאה.
+        due = {id: YYYY-MM-DD}: תיקון מועד התשלום (בעיקר למועד מוערך) — רק לחשבונית שמסומנת «עדיין פתוח».
+        התיקון מבטל את ה«מוערך» ונשמר מול הסנכרון (due_owner_at)."""
         if set(still_open) & set(paid):
             raise ValueError("אותה חשבונית סומנה גם «פתוחה» וגם «שולמה»")
+        due = due or {}
+        if set(due) - set(still_open):
+            raise ValueError("תיקון מועד רק לחשבונית שמסומנת «עדיין פתוח»")
+        fixed: dict[int, str] = {}
+        for iid, d in due.items():
+            try:
+                fixed[iid] = date.fromisoformat(d).isoformat() if isinstance(d, str) and len(d) == 10 \
+                    else ""
+            except ValueError:
+                fixed[iid] = ""
+            if not fixed[iid]:
+                raise ValueError(f"מועד לא תקין לחשבונית {iid} (YYYY-MM-DD)")
         now = _iso(self.clock())
-        done = {"confirmed": [], "paid": []}
+        done: dict = {"confirmed": [], "paid": [], "due_fixed": []}
         for iid in still_open + paid:
             inv = self._invoice(iid)
             if inv is None or inv["status"] != "open":
                 raise ValueError(f"חשבונית {iid} לא קיימת או לא פתוחה")
         for iid in still_open:
+            if iid in fixed:
+                self.db.x("UPDATE invoices SET due=?, due_estimated=0, due_owner_at=? WHERE id=?",
+                          (fixed[iid], now, iid))
+                done["due_fixed"].append(iid)
             self.db.x("UPDATE invoices SET open_reviewed_at=? WHERE id=?", (now, iid))
             done["confirmed"].append(iid)
         for iid in paid:
@@ -1918,6 +1940,8 @@ class CollectService:
                 "needs_confirm_open": any(i["source"] == "csv" for i in invs),
                 # הפעלה 135: `/app/` הציג תזכורת מאוחדת כחשבונית העוגן בלבד (מספר אחד, סכום חלקי)
                 "numbers": [i["number"] for i in invs],
+                # הכרעת רכז: אילו מהחשבוניות בתזכורת על מועד מוערך (הנפקה+30, לא מועד מהמקור)
+                "due_estimated": [i["number"] for i in invs if i["due_estimated"]],
                 **totals,
                 "messages": [self.sender.preview(m) for m in msgs]}
 
@@ -3114,7 +3138,8 @@ class CollectService:
     # `view="list"` = אותם ערכים, רק השדות ש-`/ui` מציג: בלי email/source לחשבונית, ובתזכורת האחרונה רק
     # id/step/status/block_reason/amount_drift (בלי invoice_ids/template_key/sent_at), ובלי series/send_window.
     DASH_LIST_INVOICE = ("invoice_id", "number", "customer", "customer_id", "paused_reason", "phone",
-                         "amount_agorot", "currency", "due", "status", "days_overdue", "reminders_sent",
+                         "amount_agorot", "currency", "due", "due_estimated", "status", "days_overdue",
+                         "reminders_sent",
                          "last_sent", "last_reminder", "customer_block", "email_state")
     DASH_LIST_LAST = ("id", "step", "status", "block_reason", "amount_drift")
 
@@ -3177,6 +3202,8 @@ class CollectService:
                 "customer_id": r["customer_id"], "paused_reason": r["paused_reason"],
                 "phone": r["cphone"], "email": r["cemail"], "amount_agorot": r["amount_agorot"],
                 "currency": r["currency"], "due": r["due"], "status": r["status"],
+                # הכרעת רכז: מועד מוערך (הנפקה+30) גלוי ⇒ תג «מועד מוערך» בממשק
+                "due_estimated": bool(r["due_estimated"]),
                 # web: חשבונית CSV ⇒ תיבת «הסכום עדיין פתוח» לפני אישור (confirm_open)
                 "source": r["source"],
                 "days_overdue": (today - due).days if due and r["status"] == "open" else 0,
