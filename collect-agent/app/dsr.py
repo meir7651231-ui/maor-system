@@ -33,17 +33,41 @@ CREATE TABLE IF NOT EXISTS dsr (
 # מזהים בקשה מפורשת לפי החוק, לא כל "מי אתם" או "תפסיקו" (אלה הסרה / מי זה — מסלולים אחרים)
 # critic 171א: גם «איזה מידע יש לכם עליי», «what information do you have about me», «מחקו/מחיקה של המידע»,
 # «delete my information», «erase my details» — ניסוחים נפוצים שלא נרשמו (ולכן לא רץ מועד 30 יום)
+# מנהל 331 (סט QA #20, 9 בקשות שלא נרשמו ⇒ המועד החוקי לא רץ): הלקוחות כותבים בציווי ולא בשם-הפעולה —
+# «שלחו לי את כל המידע שיש לכם עליי», «מחקו בבקשה את הפרטים שלי», «תקנו את הפרטים שלי», «Send me all the data you
+# hold about me», «erase everything you have on me», «Delete my phone number», «forget me — remove me from your
+# system». עוגן «עליי/about me» נדרש לעיון (אחרת «שלחו לי את פרטי התשלום» היה נרשם); «מהרשימה/from your list» =
+# הסרה, לא מחיקה. שלילה חלה עכשיו על **שלושת** הסוגים («אני לא מבקשת לעיין», «אין צורך לתקן» נרשמו).
+_ABOUT_ME_HE = r"(?:עליי|עלי|לגביי|אודותיי|אודותי)"
+_HOLD_HE = r"(?:ש)?(?:יש\s+לכם|אתם\s+מחזיקים|אתם\s+שומרים|שמור(?:ים)?\s+אצלכם|נשמר(?:ו)?\s+אצלכם)"
+_DATA_EN = r"(?:personal\s+)?(?:information|data|info|details|records)"
+_HOLD_EN = r"(?:that\s+|which\s+)?(?:you\s+)?(?:have|hold|keep|store|have\s+stored|are\s+holding|collected)"
+_FILL_REQ_HE = r"(?:(?:בבקשה|נא|כבר|מיד|מייד|עכשיו|לי|לנו)\s+)*"
 _ACCESS = re.compile(r"(לעיין|עיון)\s+(ב|על\s+)?(כל\s+)?(ה)?(מידע|פרטים|נתונים)|סעיף\s*13|"
                      r"(מה|איזה|אילו)\s+(ה)?(מידע|פרטים|נתונים)\s+(ש)?יש\s+לכם\s+(עליי|עלי|לגביי)|"
                      r"אילו\s+פרטים\s+(ש)?יש\s+לכם|"
+                     r"(מידע|פרטים|נתונים)\s+" + _HOLD_HE + r"\s+" + _ABOUT_ME_HE + r"|"
                      r"\b(access|copy of)\s+(my|the)\s+(personal\s+)?data\b|\bsubject access\b|"
                      r"\bwhat\s+(personal\s+)?(information|data|info|details)\s+do\s+you\s+(have|hold|keep)"
-                     r"\s+(about|on)\s+me\b", re.I)
+                     r"\s+(about|on)\s+me\b|"
+                     r"\b" + _DATA_EN + r"\s+" + _HOLD_EN + r"\s+(?:about|on)\s+me\b", re.I)
 _CORRECT = re.compile(r"(לתקן|תיקון)\s+(את\s+)?(ה)?(מידע|פרטים|נתונים)|סעיף\s*14|"
-                      r"\b(correct|rectify)\s+(my|the)\s+(personal\s+)?(data|details)\b", re.I)
-_DELETE = re.compile(r"(למחוק|מחיקת|מחיקה\s+של|תמחקו|מחקו)\s+(את\s+)?(כל\s+)?(ה)?(מידע|פרטים|נתונים)"
+                      r"(תקנו|תתקנו|תקני|תתקני|עדכנו|תעדכנו)\s+" + _FILL_REQ_HE + r"(את\s+)?(ה)?(מידע|פרטים|נתונים)"
+                      r"(\s+שלי|\s+" + _ABOUT_ME_HE + r")?|"
+                      r"\b(correct|rectify)\s+(my|the)\s+(personal\s+)?(data|details)\b|"
+                      r"\b(correct|rectify)\s+my\s+(personal\s+)?(data|details|information|info|records?|"
+                      r"address(\s+details)?|name)\b", re.I)
+_DELETE = re.compile(r"(למחוק|מחיקת|מחיקה\s+של|תמחקו|מחקו|תמחקי|תמחק)\s+" + _FILL_REQ_HE +
+                     r"(את\s+)?(כל\s+)?(ה)?(מידע|פרטים|נתונים)"
                      r"(\s+שלי)?(\s+מה?מאגר)?|"
-                     r"\b(delete|erase)\s+(all\s+)?(of\s+)?(my\s+)?(personal\s+)?(data|information|info|details)\b",
+                     r"(למחוק|תמחקו|מחקו|תמחקי|תמחק)\s+" + _FILL_REQ_HE + r"אותי\s+(לגמרי\s+)?מה?(מאגר|מערכת|רשומות)|"
+                     r"\b(delete|erase)\s+(all\s+)?(of\s+)?(my\s+)?(personal\s+)?(data|information|info|details)\b|"
+                     r"\b(delete|erase|wipe|purge|remove)\s+(all\s+)?(of\s+)?my\s+(phone\s+number|number|email"
+                     r"(\s+address)?|records)\s+(and\s+\w+\s+)?from\s+your\s+(records|system|database|files)\b|"
+                     r"\b(delete|erase|wipe|purge|remove)\s+(everything|all)\s+(that\s+)?(you\s+)?(have|hold|keep|store)"
+                     r"\s+(on|about)\s+me\b|"
+                     r"\bremove\s+me\s+(completely\s+)?from\s+your\s+(system|database|records|files)\b|"
+                     r"\bforget\s+(about\s+)?me\b(?!\s+(?:not|for|until|till)\b)|\bright\s+to\s+(be\s+forgotten|erasure)\b",
                      re.I)
 
 
@@ -75,7 +99,7 @@ def _hit(rx: re.Pattern, t: str, negation: bool) -> bool:
 def detect(text: str) -> list[str]:
     t = text or ""
     return [k for k, rx in (("access", _ACCESS), ("correction", _CORRECT), ("deletion", _DELETE))
-            if _hit(rx, t, k == "deletion")]
+            if _hit(rx, t, True)]   # מנהל 331: שלילה לכל הסוגים («לא מבקשת לעיין», «אין צורך לתקן»)
 
 
 def _local_day(dt: datetime) -> date:

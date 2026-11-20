@@ -677,6 +677,10 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"^\W*(?:אז\s+)?(?:תמחקו|מחקו|תמחק|תמחקי|נא\s+למחוק)\s+(?:לי\s+)?(?:אותו|אותה|אותמ)(?:\s+(?:בבקשה|מיד|עכשיו|מהמערכת"
         r"|מהרשימה|מכל\s+מקומ|מהר))*\W*$",
         # ואנגלית: «delete my number», «please delete me», «delete it» כהודעה שלמה
+        # מנהל 331 (qa20 q20-13): «Please do not delete my details, I still need the invoices» ⇒ היה הסרה לצמיתות
+        # (_NEG_BEFORE עברי בלבד). שלילה אנגלית צמודה לפועל ⇒ לא הסרה; «don't delete my number, stop texting» —
+        # נתפס בחוק ה-stop שלמעלה.
+        r"(?<!\bnot )(?<!n't )(?<!\bdont )(?<!\bnever )"
         r"\b(?:delete|erase|remove)\s+(?:my\s+(?:number|phone|details|data|info|information|email|contact)|me\s+from)\b",
         r"^\W*(?:please\s+|pls\s+|just\s+)?(?:delete|erase)\s+(?:me|it|this\s+number|this\s+contact)(?:\s+(?:please|pls|now|immediately))*\W*$",
         r"(?:אותי|אותנו) מה?רשימ",
