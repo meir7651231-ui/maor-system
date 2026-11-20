@@ -10,10 +10,10 @@
 import { readFileSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
-// תקרה נוכחית: 150KB gzip (נמדד 131.5KB אחרי טעינת-11-מודאלים-בפתיחה, 19.11.2026 + מרווח-סחף).
+// תקרה נוכחית: 130KB gzip (נמדד 112.8KB אחרי הוצאת מנוע-הטלפוניה מהבית, 20.11.2026 + מרווח-סחף).
 // היסטוריה (יורדת-בלבד): ‏520K (אחרי חילוץ-Firebase, נמדד 498K) ⇒ ‏180K (נמדד 153K, פיצול-chunks ‏#13)
-// ⇒ ‏150K (נמדד 131.5K; לפני: 159.7K = 89% מ-180K).
-const ENTRY_GZIP_BUDGET = 150_000;
+// ⇒ ‏150K (נמדד 131.5K; לפני: 159.7K = 89% מ-180K) ⇒ ‏130K (נמדד 112.8K, closure.ts דק).
+const ENTRY_GZIP_BUDGET = 130_000;
 
 const html = readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8');
 const m = /assets\/(index-[^"']+\.js)/.exec(html);
