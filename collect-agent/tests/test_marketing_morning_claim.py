@@ -18,7 +18,9 @@ PLACES = {"marketing/landing/index.html": "כל בוקר: רשימה מוכנה"
           "web/src/pages/Landing.tsx": "כל בוקר: רשימה מוכנה",
           "marketing/posts.md": "כל בוקר מחכה לך רשימה",
           "marketing/emails-trial.md": "כל בוקר תחכה לך רשימה",
-          "marketing/landing/for/build.py": "כל בוקר תזכורת מוכנה"}
+          "marketing/landing/for/build.py": "כל בוקר תזכורת מוכנה",
+          "marketing/seo/01-how-to-ask-client-to-pay.md": "מכין כל בוקר תזכורות כאלה",
+          "marketing/seo/02-client-didnt-pay.md": "ומכין לך כל בוקר את התזכורות"}
 
 
 @pytest.mark.parametrize("rel", PLACES)
