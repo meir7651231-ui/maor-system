@@ -7,8 +7,7 @@
 (`RestoreHoldBanner` / `holdOwnerOnly`) מוצג לו «רק בעל העסק (בכניסה עם קוד הגישה של העסק)» — קוד שבבטא סגור.
 התוצאה בפרודקשן: אחרי כל שחזור הגבייה נעצרת **לתמיד**. [מאומת בהרצה: REQUIRE_USER_LOGIN=1, כניסה+TOTP ⇒ 403.]
 הצעה: תפקיד בעלים לעובד (`users.role='owner'`, או מייל בעל העסק בהגדרות) ו-`actor` שמכבד אותו; השער בודק תפקיד ולא
-מחרוזת. xfail(strict=True); הבקרה (בלי REQUIRE_USER_LOGIN, הטוקן המשותף ⇒ owner ⇒ שחרור עובד) נשארת ירוקה."""
-import pytest
+מחרוזת. תוקן במנהל 327 (users.role); הבקרה (בלי REQUIRE_USER_LOGIN, הטוקן המשותף ⇒ owner ⇒ שחרור עובד) נשארת ירוקה."""
 from fastapi.testclient import TestClient
 
 from app import restore_guard, totp
@@ -23,7 +22,6 @@ def _hold(svc):
     restore_guard.mark_restored(svc.db.conn, at="2026-11-08T10:00:00+02:00", source="b.gbk", ledger_rows=1, applied=0)
 
 
-@pytest.mark.xfail(strict=True, reason="critic 179: בבטא (REQUIRE_USER_LOGIN=1) אף אחד לא יכול לשחרר עצירת שחזור")
 def test_business_owner_can_release_with_login(svc, clock, monkeypatch):
     reg = Users(svc.db, svc.clock).create("owner@studio.example", "בעל העסק", PW)
     _hold(svc)

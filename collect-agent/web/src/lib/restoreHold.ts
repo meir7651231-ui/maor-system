@@ -4,8 +4,9 @@ import type { Me, RestoreHold } from '../api.ts';
 /** כמו restore_guard.NOTE_MIN — השרת דוחה (422) תיעוד קצר יותר */
 export const HOLD_NOTE_MIN = 5;
 export const holdCanRelease = (note: string) => note.trim().length >= HOLD_NOTE_MIN;
-/** רק הטוקן המשותף (owner) משחרר — השרת מחזיר 403 לעובד. me=null (מוק/לפני טעינה) ⇒ לא חוסמים בממשק; השרת אוכף. */
-export const holdOwnerOnly = (me: Me | null) => me?.kind === 'user';
+/** רק בעל העסק משחרר: הטוקן המשותף, או (critic 179) עובד מחובר בתפקיד בעלים — השרת מחזיר 403 לשאר.
+ *  me=null (מוק/לפני טעינה) ⇒ לא חוסמים בממשק; השרת אוכף. */
+export const holdOwnerOnly = (me: Me | null) => me?.kind === 'user' && me.owner !== true;
 
 const ddmm = (iso: string) => {
   const d = new Date(iso);

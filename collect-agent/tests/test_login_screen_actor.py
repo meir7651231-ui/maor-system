@@ -74,7 +74,8 @@ def test_shared_token_still_audited_as_owner(env):
 def test_auth_me_and_logout_audited(env):
     svc, api, h, me = env
     assert api.get("/auth/me").status_code == 401
-    assert api.get("/auth/me", headers=h).json() == {"actor": me, "kind": "user", "name": "דנה לוי"}
+    assert api.get("/auth/me", headers=h).json() == {"actor": me, "kind": "user", "name": "דנה לוי",
+                                                     "owner": True}  # ראשונה ⇒ בעלים (179)
     assert api.get("/auth/me", headers=AUTH).json()["kind"] == "owner"
     # /auth/me לא רושם צפייה במידע אישי (אין בו מידע על חייבים)
     assert not svc.db.q("SELECT 1 FROM access_log WHERE route='/auth/me'")

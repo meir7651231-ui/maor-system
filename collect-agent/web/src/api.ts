@@ -72,7 +72,7 @@ export async function logoutRequest(): Promise<void> {
 }
 
 /** מי מחובר: עובד (שם תצוגה) או הטוקן המשותף (owner). */
-export interface Me { actor: string; kind: 'user' | 'owner'; name: string }
+export interface Me { actor: string; kind: 'user' | 'owner'; name: string; /** critic 179: עובד מחובר בתפקיד בעלים */ owner?: boolean }
 
 export interface Health { status: string; dry_run: boolean; sms_provider: string; channels: string[]; /** REQUIRE_USER_LOGIN=1 ⇒ אין קוד משותף */ login_required?: boolean }
 /** בקאנד חי? רק אם מצהיר dry_run — אחרת מסרבים להתחבר (מעקה: הממשק לא מדבר עם שרת ששולח באמת). */

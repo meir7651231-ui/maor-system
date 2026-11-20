@@ -305,6 +305,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                 raise HTTPException(401, "נדרש אימות", headers={"WWW-Authenticate": "Bearer"})
             actor = "owner"
         request.state.actor = actor
+        # critic 179: «בעל העסק» = הטוקן המשותף **או** עובד מחובר בתפקיד owner (בבטא הטוקן המשותף סגור)
+        request.state.is_owner = actor == "owner" or (presented is not None and users.is_owner(presented))
         # תיעוד צפייה במידע אישי (legal/BETA-GATE.md שער 6): השחקן הוא העובד המחובר
         route = getattr(request.scope.get("route"), "path", "")
         if request.method == "GET" and route in PII_READ_ROUTES:
@@ -335,7 +337,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         """מי מחובר (לממשק): עובד ⇒ שם התצוגה שלו; טוקן משותף ⇒ owner. לא נרשם ביומן הצפייה."""
         t = security.bearer(request.headers.get("authorization"))
         me = users.whoami(t) if t else None
-        return me or {"actor": request.state.actor, "kind": "owner", "name": ""}
+        return me or {"actor": request.state.actor, "kind": "owner", "name": "", "owner": True}
 
     @app.post("/auth/logout")
     def auth_logout(request: Request):
@@ -1024,7 +1026,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/owner/restore-hold/release", dependencies=auth)
     async def restore_hold_release(request: Request):
-        if request.state.actor != "owner":
+        if not request.state.is_owner:
             raise HTTPException(403, "רק בעל העסק מחדש שליחה אחרי שחזור")
         try:
             body = await request.json()

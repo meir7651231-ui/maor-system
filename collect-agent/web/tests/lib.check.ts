@@ -1424,6 +1424,9 @@ test('critic 177: עצירת שחזור — סף תיעוד, בעל העסק ב�
   assert.ok(!holdCanRelease('    abcd  ')); assert.ok(holdCanRelease('abcde'));
   assert.ok(holdOwnerOnly({ actor: 'user:2', kind: 'user', name: 'עובד' }));
   assert.ok(!holdOwnerOnly({ actor: 'owner', kind: 'owner', name: '' })); assert.ok(!holdOwnerOnly(null));
+  // critic 179: בבטא הטוקן המשותף סגור — עובד מחובר בתפקיד בעלים משחרר
+  assert.ok(!holdOwnerOnly({ actor: 'user:1', kind: 'user', name: 'בעל העסק', owner: true }));
+  assert.ok(holdOwnerOnly({ actor: 'user:2', kind: 'user', name: 'עובד', owner: false }));
   // 22:30Z ב-19.11 = 00:30 ב-20.11 בישראל
   const t = holdText({ restored_at: '2026-11-19T22:30:00+00:00', ledger_applied: 3 });
   assert.match(t, /שוחזר ב-20\.11\.2026/); assert.match(t, /3 הסרות/);

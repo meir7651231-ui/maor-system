@@ -28,7 +28,7 @@ export function RestoreHoldBanner() {
       <p className="font-extrabold text-critical-ink"><span aria-hidden>🛑</span> המערכת שוחזרה מגיבוי — השליחה ללקוחות עצורה</p>
       <p className="text-sm">{holdText(restoreHold)}</p>
       {userOnly ? (
-        <p className="text-sm font-bold" data-testid="restore-hold-owner-only">רק בעל העסק (בכניסה עם קוד הגישה של העסק) יכול לחדש את השליחה.</p>
+        <p className="text-sm font-bold" data-testid="restore-hold-owner-only">רק בעל העסק יכול לחדש את השליחה — בקשו ממנו להיכנס עם החשבון שלו.</p>
       ) : (
         <>
           <label className="block">

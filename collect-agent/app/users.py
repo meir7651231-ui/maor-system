@@ -19,6 +19,7 @@ MAX_FAILS = 5            # לכל (חשבון, IP)
 MAX_FAILS_GLOBAL = 50    # לחשבון מכל המקורות יחד (התקפה מבוזרת)
 LOCK_MIN = 15
 MIN_PW = 10
+ROLES = ("owner", "staff")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
@@ -69,7 +70,21 @@ class Users:
             SecretBox.from_env() if os.environ.get(ENV_VAR) else None)
         with db.lock:
             db.conn.executescript(SCHEMA)
+            # critic סבב 179: תפקיד בעלים לעובד מחובר. בבטא (REQUIRE_USER_LOGIN=1) הטוקן המשותף סגור, ולכן
+            # פעולות «בעל העסק בלבד» (שחרור עצירת שחזור) חייבות תפקיד ולא את המחרוזת "owner".
+            cols = {r[1] for r in db.conn.execute("PRAGMA table_info(users)")}
+            if "role" not in cols:
+                db.conn.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'staff'")
             db.conn.commit()
+        self._bootstrap_owner()
+
+    def _bootstrap_owner(self) -> None:
+        """DB קיים בלי בעלים פעיל (נוצר לפני 179) ⇒ העובד הוותיק הפעיל (id נמוך) הוא בעל העסק — אותו כלל
+        כמו ב-create: מי שהקים את המערכת ראשון. שינוי: `python -m app.users role <email> owner|staff`."""
+        if self.db.one("SELECT 1 FROM users WHERE role='owner' AND active=1") is None:
+            first = self.db.one("SELECT id FROM users WHERE active=1 ORDER BY id LIMIT 1")
+            if first is not None:
+                self.db.x("UPDATE users SET role='owner' WHERE id=?", (first["id"],))
 
     def _now(self) -> datetime:
         return self.clock()
@@ -77,21 +92,47 @@ class Users:
     def count(self) -> int:
         return self.db.one("SELECT COUNT(*) c FROM users")["c"]
 
-    def create(self, email: str, name: str, password: str) -> dict:
-        """מחזיר את סוד ה-TOTP וה-URI פעם אחת (להקמה באפליקציית אימות)."""
+    def create(self, email: str, name: str, password: str, role: str | None = None) -> dict:
+        """מחזיר את סוד ה-TOTP וה-URI פעם אחת (להקמה באפליקציית אימות).
+        role: 'owner'/'staff'; None ⇒ המשתמש הראשון (כשאין בעלים פעיל) הוא בעל העסק, כל השאר עובדים."""
         email = email.strip().lower()
+        if role is not None and role not in ROLES:
+            raise ValueError(f"תפקיד: {' / '.join(ROLES)}")
         if "@" not in email or len(password) < MIN_PW:
             raise ValueError(f"מייל תקין וסיסמה של {MIN_PW}+ תווים")
         if self.box is None and os.environ.get("REQUIRE_USER_LOGIN") == "1":
             raise ValueError(f"בטא אמיתית: אין יצירת משתמש בלי מפתח הצפנה ({ENV_VAR})")
         sec = totp.new_secret()
         stored = self.box.encrypt(sec, context=_totp_ctx(email)) if self.box else sec
+        if role is None:
+            role = "staff" if self.db.one("SELECT 1 FROM users WHERE role='owner' AND active=1") else "owner"
         try:
-            self.db.x("INSERT INTO users(email,name,pw_hash,totp_secret,created_at) VALUES(?,?,?,?,?)",
-                      (email, name.strip()[:80], hash_pw(password), stored, self._now().isoformat()))
+            self.db.x("INSERT INTO users(email,name,pw_hash,totp_secret,created_at,role) VALUES(?,?,?,?,?,?)",
+                      (email, name.strip()[:80], hash_pw(password), stored, self._now().isoformat(), role))
         except Exception as e:  # UNIQUE
             raise ValueError("משתמש כבר קיים") from e
-        return {"email": email, "totp_secret": sec, "otpauth": totp.otpauth_uri(sec, email)}
+        return {"email": email, "role": role, "totp_secret": sec, "otpauth": totp.otpauth_uri(sec, email)}
+
+    def set_role(self, email: str, role: str) -> None:
+        if role not in ROLES:
+            raise ValueError(f"תפקיד: {' / '.join(ROLES)}")
+        email = email.strip().lower()
+        u = self.db.one("SELECT id, role, active FROM users WHERE email=?", (email,))
+        if u is None:
+            raise KeyError(email)
+        if role == "staff" and u["role"] == "owner" and self.db.one(
+                "SELECT COUNT(*) c FROM users WHERE role='owner' AND active=1 AND id<>?", (u["id"],))["c"] == 0:
+            # בלי בעלים פעיל אף אחד לא משחרר עצירת שחזור (critic 179) — לא מורידים את האחרון
+            raise ValueError("זה בעל העסק הפעיל היחיד — קודם מנו בעלים אחר")
+        self.db.x("UPDATE users SET role=? WHERE id=?", (role, u["id"]))
+
+    def is_owner(self, token: str) -> bool:
+        """סשן תקף של עובד פעיל בתפקיד בעלים."""
+        if self.actor(token) is None:
+            return False
+        r = self.db.one("SELECT u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=?",
+                        (token_hash(token),))
+        return r is not None and r["role"] == "owner"
 
     def login(self, email: str, password: str, code: str, ip: str = "") -> str | None:
         """טוקן סשן, או None. הודעת כשל אחת לכל סיבה (בלי חשיפת קיום משתמש).
@@ -153,9 +194,10 @@ class Users:
         actor = self.actor(token)
         if actor is None:
             return None
-        r = self.db.one("SELECT u.name FROM sessions s JOIN users u ON u.id=s.user_id "
+        r = self.db.one("SELECT u.name, u.role FROM sessions s JOIN users u ON u.id=s.user_id "
                         "WHERE s.token_hash=?", (token_hash(token),))
-        return {"actor": actor, "kind": "user", "name": r["name"] if r else ""}
+        return {"actor": actor, "kind": "user", "name": r["name"] if r else "",
+                "owner": bool(r and r["role"] == "owner")}
 
     def _secret(self, u) -> str:
         stored = u["totp_secret"]
@@ -184,7 +226,9 @@ class Users:
                   (email.strip().lower(),))
 
 
-if __name__ == "__main__":  # python -m app.users <email> <name>  (סיסמה מ-USER_PASSWORD) ⇒ מדפיס סוד TOTP פעם אחת
+if __name__ == "__main__":
+    # python -m app.users <email> <name> [owner|staff]  (סיסמה מ-USER_PASSWORD) ⇒ מדפיס סוד TOTP פעם אחת
+    # python -m app.users role <email> owner|staff       ⇒ שינוי תפקיד (critic 179)
     import sys
     from datetime import datetime
 
@@ -193,4 +237,9 @@ if __name__ == "__main__":  # python -m app.users <email> <name>  (סיסמה מ
 
     _s = load_settings()
     _u = Users(DB(_s.db_path), lambda: datetime.now(TZ))
-    print(_u.create(sys.argv[1], sys.argv[2], os.environ["USER_PASSWORD"]))
+    if sys.argv[1] == "role":
+        _u.set_role(sys.argv[2], sys.argv[3])
+        print({"email": sys.argv[2].strip().lower(), "role": sys.argv[3]})
+    else:
+        print(_u.create(sys.argv[1], sys.argv[2], os.environ["USER_PASSWORD"],
+                        sys.argv[3] if len(sys.argv) > 3 else None))
