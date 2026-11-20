@@ -2576,19 +2576,29 @@ class CollectService:
         return {"ok": True, **out, "email_verified": auth["verified"]}
 
     def _email_complaint(self, c: dict) -> dict:
-        """תלונת ספאם ⇒ suppress למייל של הנמען (לפי Original-Rcpt-To, או לפי ה-Message-ID המקורי)
-        + התראה לבעל העסק, פעם אחת. SMS לא נעצר אוטומטית — התלונה על המייל, ההחלטה של בעל העסק."""
-        addr, cid = c["recipient"], None
+        """תלונת ספאם ⇒ suppress למייל שאליו נשלחה ההודעה + התראה לבעל העסק, פעם אחת. SMS לא נעצר אוטומטית.
+
+        critic סבב 189 (🟠) + הכרעת ראש צוות: כל שולח יכול לכתוב `Feedback-Type: abuse` + `Original-Rcpt-To: <לקוח אחר>`
+        ⇒ הסרה קבועה של המייל של הלקוח + כרטיס כוזב. עכשיו תלונה נקלטת **רק** כשהיא מתייחסת למייל ששלחנו: ה-Message-ID
+        המקורי תואם רשומת שליחה שלנו, ו-Original-Rcpt-To (כשמופיע) תואם לכתובת שאליה המייל נשלח בפועל. אחרת ⇒ audit
+        בלבד (בלי כתובות), שום דבר לא נעצר. בלי Original-Rcpt-To (שדה אופציונלי ב-RFC 5965) ⇒ הכתובת מהרשומה שלנו."""
+        row = sent_to = None
         for mid in c["message_ids"]:
-            row = self.db.one("SELECT m.customer_id, c.email FROM messages m JOIN customers c ON "
-                              "c.id=m.customer_id WHERE m.direction='out' AND m.channel='email' "
-                              "AND m.provider_id=?", (mid,))
+            row = self.db.one("SELECT customer_id, payload FROM messages WHERE direction='out' AND channel='email' "
+                              "AND provider_id=?", (mid,))
             if row:
-                cid, addr = row["customer_id"], addr or row["email"]
+                try:
+                    sent_to = clean_email(json.loads(row["payload"] or "{}").get("to") or "")
+                except ValueError:
+                    sent_to = None
                 break
-        if not addr:
-            self.audit("system", "email_complaint_unmatched", {"type": c["type"]})
-            return {"complaint": "unmatched"}
+        why = ("no_message_id" if not c["message_ids"] else "not_our_message" if row is None else
+               "no_recipient_on_record" if not sent_to else
+               "recipient_mismatch" if c["recipient"] and clean_email(c["recipient"]) != sent_to else None)
+        if why:
+            self.audit("system", "email_complaint_unverified", {"type": c["type"], "reason": why})
+            return {"complaint": "unverified", "reason": why}
+        addr, cid = sent_to, row["customer_id"]
         already = self.suppressed("email", addr)
         self.suppress("email", addr, "spam_complaint")
         if cid is None:

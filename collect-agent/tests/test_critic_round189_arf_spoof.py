@@ -11,12 +11,9 @@
 לאותו נמען; אחרת — כרטיס «דיווח לא מאומת» בלי הסרה. xfail(strict=True); הבקרה (תלונה שמצביעה על מייל שנשלח) ירוקה."""
 from datetime import timedelta
 
-import pytest
-
 FAIL = "mx.example; spf=fail; dkim=fail; dmarc=fail"
 
 
-@pytest.mark.xfail(strict=True, reason="critic 189: «תלונת ספאם» מזויפת מכל שולח מסירה מייל של לקוח אחר (לתיקון בונה)")
 def test_forged_complaint_does_not_suppress_other_customer(svc):
     svc.sync()
     svc.email_webhook("yossi@example.net", "Feedback-Type: abuse\nOriginal-Rcpt-To: c1@example.com\n", "",
