@@ -98,7 +98,8 @@ def test_traps(t, want):
                                     ("עד ה-15 לנובמבר", date(2026, 11, 15))])
 def test_awaiting_date_named_month_is_promise(t, want, ch):
     d = respond(t, build_ctx({"channel": ch, **DATE}))
-    assert d.intent == Intent.PROMISE and d.next_state.value == "promised" and d.promise_date == want
+    assert d.intent == Intent.PROMISE and d.next_state.value == "promised" and \
+            (d.requested_date or d.promise_date) == want
     assert f"{want.day}.{want.month}" in d.reply
 
 
@@ -106,9 +107,12 @@ def test_awaiting_date_named_month_is_promise(t, want, ch):
 @pytest.mark.parametrize("t,want", [("אשלם ב-15 בדצמבר", date(2026, 12, 15)),
                                     ("I'll pay on the 3rd of January", date(2027, 1, 3))])
 def test_far_named_date_goes_to_owner_with_right_date(t, want, ch):
-    """מעבר ל-max_defer_days (14) ⇒ בעל העסק מאשר; התאריך בכרטיס הוא מה שהלקוח כתב (לא חודש קודם)."""
+    """מעבר ל-max_defer_days (14) ⇒ בעל העסק מאשר; התאריך בכרטיס הוא מה שהלקוח כתב (לא חודש קודם).
+    הכרעת ראש צוות q21-19 (20.11): ההבטחה מתקבלת עד 14 יום (promised) + כרטיס «בדוק ואשר» — לא awaiting_owner."""
     d = respond(t, build_ctx({"channel": ch}))
-    assert d.intent == Intent.PROMISE and d.next_state.value == "awaiting_owner" and d.promise_date == want
+    assert d.intent == Intent.PROMISE and d.next_state.value == "promised" and \
+            (d.requested_date or d.promise_date) == want
+    assert "promise_over_limit" in d.tags and d.escalate.value == "normal"
     assert f"{want.day}.{want.month}" in d.owner_summary
 
 

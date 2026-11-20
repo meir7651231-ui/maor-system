@@ -163,6 +163,9 @@ class Decision:
     next_state: State
     plan: tuple[Installment, ...] = ()
     promise_date: date | None = None
+    # הכרעת ראש צוות q21-19: הבטחה מעבר ל-max_defer_days ⇒ promise_date = המועד שהתקבל (עד max_defer_days),
+    # requested_date = מה שהלקוח ביקש — ממתין ל«בדוק ואשר» של בעל העסק
+    requested_date: date | None = None
     paid_agorot: int | None = None    # סכום שהלקוח טוען ששילם
     owner_summary: str = ""
     owner_actions: tuple[str, ...] = ()
@@ -2455,7 +2458,9 @@ _CORRECTION_STRIP = (r"^\W*(?:אמ (?:זה|זאת) (?:\w+\W+){0,3}?(?=(?:אני 
 
 
 def _owner_correction_day(t: str, ctx: Context) -> date | None:
-    if ctx.state != State.AWAITING_OWNER or not re.search(_c(_CORRECTION_LEAD), t):
+    # הכרעת ראש צוות q21-19 (20.11): מועד רחוק ⇒ PROMISED (מתקבל עד max_defer_days + «בדוק ואשר»), לא AWAITING_OWNER ⇒
+    # תיקון/הקדמה («טוב אני יכולה להקדים, ב-20», «כלומר ב-15») חייב להיתפס גם במצב PROMISED
+    if ctx.state not in (State.AWAITING_OWNER, State.PROMISED) or not re.search(_c(_CORRECTION_LEAD), t):
         return None
     u = re.sub(_c(_CORRECTION_STRIP), "", t)
     u = re.sub(r"^\W*(?:(?:oh|ok|okay|no)\W+)?(?:(?:actually|sorry|correction|i\s+meant)\b\W*)+", "", u)
@@ -2833,7 +2838,8 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         if d is not None or (_vague and ctx.state == State.AWAITING_DATE and (
                 _s(_HOLIDAY_VAGUE, t) or _s(_NEXT_WD_VAGUE, t) or re.search(_NEXT_WD_VAGUE_EN, t))):
             found.add(Intent.PROMISE)
-    if ctx is not None and ctx.state == State.AWAITING_OWNER and _owner_correction_day(t, ctx) is not None:
+    if ctx is not None and ctx.state in (State.AWAITING_OWNER, State.PROMISED) and \
+            _owner_correction_day(t, ctx) is not None:
         found.add(Intent.PROMISE)   # מנהל 257: «בעצם ב-25» אחרי מועד שהועבר לבעלים = עדכון המועד
     # מנהל 253 (qa9 q9-28/משלים): «אפשר לשלם ב-18 בנובמבר?», «Can I pay next week?» = בקשת דחייה עם מועד, לא «איך משלמים»
     if ctx is not None and (_s(r"(?:אפשר|אוכל|אני יכול\w*|ניתן|מותר)\s+(?:ל)?(?:שלם|לשלם|להעביר|לסדר|לדחות)", t)
@@ -3482,6 +3488,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
     state = ctx.state
     plan: tuple[Installment, ...] = ()
     promise_date: date | None = None
+    requested_date: date | None = None
     paid: int | None = None
     summary = ""
     actions: list[str] = []
@@ -3986,15 +3993,24 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                     summary = (f"{name} דחה/תה את הצעת הפריסה ({plan_lines(ctx.offered_plan, ctx.currency)}) "
                                f"והתחייב/ה לשלם הכל עד {_he_date(dd)}. ההצעה בוטלה; התזכורות הושהו עד אז.")
             else:
-                reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}. נבדוק את המועד שביקשתם "
-                         f"ונחזור אליכם.{sig}")
+                # הכרעת ראש צוות q21-19 (20.11): הבטחה מעבר ל-max_defer_days **מתקבלת עד max_defer_days** (לא נדחית
+                # אוטומטית מעבר לכך) + כרטיס «בדוק ואשר» לבעל העסק: מאשר ⇒ ההשהיה עד המועד המבוקש; מסרב ⇒ התזכורות
+                # חוזרות אחרי max_defer_days. max_defer_days עצמו לא השתנה.
+                cap = ctx.today + timedelta(days=p.max_defer_days)
+                # סט #21b (מאותה הכרעה): ההבטחה שנרשמת = המועד שהתקבל (cap); המבוקש — requested_date, לבעל העסק
+                promise_date, requested_date = cap, dd
+                reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! רשמנו שהתשלום צפוי עד "
+                         f"{_he_date(dd)}. עד {_he_date(cap)} לא נשלח תזכורות, ונעדכן אתכם לגבי המועד המבוקש.{sig}")
+                pause_until = cap + timedelta(days=1)
                 bump(Escalation.NORMAL, Stop.PAUSE)
-                state = State.AWAITING_OWNER
-                summary = (f"{name} מבקש/ת לדחות עד {_he_date(dd)} ({days} ימים) — מעל {p.max_defer_days} "
-                           f"הימים שמותר לי לאשר לבד.")
+                state = State.PROMISED
+                tags.append("promise_over_limit")
+                summary = (f"{name} התחייב/ה לשלם עד {_he_date(dd)} ({days} ימים) — מעל {p.max_defer_days} הימים "
+                           f"שמותר לי לאשר לבד. קיבלתי עד {_he_date(cap)}: התזכורות מושהות עד אז. "
+                           f"לאשר את {_he_date(dd)}?")
                 if Intent.PLAN_REJECT in allset:   # מנהל 278
                     summary = f"{name} דחה/תה את הצעת הפריסה. " + summary
-                actions.append("לאשר או להציע מועד אחר")
+                actions.append(f"בדוק ואשר: לאשר את {_he_date(dd)} — או לסרב (התזכורות יחזרו אחרי {_he_date(cap)})")
         else:
             reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! כדי שלא נטריד סתם — "
                      f"עד איזה תאריך בערך יהיה נוח לכם?{sig}")
@@ -4097,7 +4113,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
     return Decision(
         intent=primary, secondary=secondary, reply=reply, auto_send=auto, escalate=esc, stop=stop,
         pause_until=pause_until if stop == Stop.PAUSE else None, next_state=state, plan=plan,
-        promise_date=promise_date, paid_agorot=paid, owner_summary=summary,
+        promise_date=promise_date, requested_date=requested_date, paid_agorot=paid, owner_summary=summary,
         owner_actions=tuple(actions), tags=tuple(dict.fromkeys(tags)))
 
 

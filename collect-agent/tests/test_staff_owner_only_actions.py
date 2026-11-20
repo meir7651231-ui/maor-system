@@ -2,7 +2,7 @@
   • ייצוא כל המידע על לקוח (`GET /customers/{cid}/data`) — `data_export_refused`.
   • סגירת בקשת **מחיקה** במרשם (`POST /dsr/{id}/done`, kind=deletion) — `dsr_deletion_close_refused`.
     עיון/תיקון — עובד/ת ממשיך/ה לסגור (בקרה).
-  • הפעלה ידנית של המחיקה (`POST /maintenance/purge`) — `purge_refused`.
+  • הפעלה ידנית של המחיקה (`POST /maintenance/purge`) — `maintenance_purge_refused`.
 המסך מסמן מראש (web/src/lib/roles.ts, app/ui.html isStaff) — כאן השרת, שהוא האוכף."""
 from tests.test_manager342_staff_owner_settings import _actions, _api
 
@@ -18,7 +18,10 @@ def test_export_owner_only(svc, clock, monkeypatch):
 def test_dsr_deletion_close_owner_only_access_still_open(svc, clock, monkeypatch):
     api, hdr = _api(svc, clock, monkeypatch)
     staff, owner = hdr("staff"), hdr("owner")
-    dele = api.post("/customers/1/dsr", json={"kind": "deletion", "note": "ביקש מחיקה"}, headers=staff).json()["id"]
+    # פתיחת בקשת מחיקה ידנית — גם היא בעל העסק בלבד (הכרעת ראש צוות, סט #22b)
+    req = {"kind": "deletion", "note": "ביקש מחיקה"}
+    assert api.post("/customers/1/dsr", json=req, headers=staff).status_code == 403
+    dele = api.post("/customers/1/dsr", json={"kind": "deletion", "note": "ביקש מחיקה"}, headers=owner).json()["id"]
     acc = api.post("/customers/1/dsr", json={"kind": "access", "note": "ביקש עותק"}, headers=staff).json()["id"]
     r = api.post(f"/dsr/{dele}/done", json={"note": "נמחק מהמערכת"}, headers=staff)
     assert r.status_code == 403 and "מחיקה" in r.json()["detail"]
@@ -31,5 +34,5 @@ def test_dsr_deletion_close_owner_only_access_still_open(svc, clock, monkeypatch
 def test_manual_purge_owner_only(svc, clock, monkeypatch):
     api, hdr = _api(svc, clock, monkeypatch)
     assert api.post("/maintenance/purge", headers=hdr("staff")).status_code == 403
-    assert _actions(svc, "purge_refused")
+    assert _actions(svc, "maintenance_purge_refused")
     assert api.post("/maintenance/purge", headers=hdr("owner")).status_code == 200

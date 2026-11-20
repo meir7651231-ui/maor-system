@@ -194,6 +194,8 @@ jobs:
         run: TZ=UTC node e2e/team.mjs "$RUNNER_TEMP/shots"
       - name: "e2e הגדרות כעובדת (מבקר 194) — שדות בעל העסק נעולים ומסומנים, «שמירה» כבויה, CSV פתוח; בעלים רואה פתוח; 390px, מול DEMO=1"
         run: TZ=UTC node e2e/app-staff-settings.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e בעל העסק בלבד (מבקר 195 + הכרעות 20.11) — חידוש השהיית-בעלים וייצוא נעולים לעובדת (+תג); «בדוק ואשר» על הבטחה מעל 14 יום; 390px, מול DEMO=1"
+        run: TZ=UTC node e2e/app-staff-owner-only.mjs "$RUNNER_TEMP/shots"
       - name: e2e ערכת בטא — יום ראשון לכל ענף (מספרה/מוסך/קליניקה/רו״ח) מול gi_mock
         run: TZ=UTC node e2e/beta.mjs
       - name: e2e תסריט ההדגמה של מכירות (sales/demo-script.md, 6 שלבים) מול DEMO=1
@@ -226,8 +228,8 @@ jobs:
         run: TZ=UTC node e2e/app-contrast.mjs && node e2e/landing-contrast.mjs
       - name: e2e — מצב המייל בשורת הלקוח («חזר»/«ספאם», bounce+ARF אמיתיים) ב-/app/ וב-/ui, AA, 390px, כהה
         run: TZ=UTC node e2e/app-email-state.mjs "$RUNNER_TEMP/shots"
-      - name: e2e — בעל העסק בלבד לעובד/ת (חידוש השהיית-בעלים, ייצוא, סגירת מחיקה) ב-/app/ וב-/ui, 403 בעקיפה, AA, 390px
-        run: TZ=UTC node e2e/app-staff-owner-only.mjs "$RUNNER_TEMP/shots"
+      - name: e2e — בעל העסק בלבד לעובד/ת (חידוש, ייצוא, סגירת מחיקה במרשם) ב-/app/ וב-/ui, 403 בעקיפה, AA, 390px
+        run: TZ=UTC node e2e/app-staff-owner-only-full.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
         run: TZ=UTC node e2e/rebuild.mjs "$RUNNER_TEMP/shots"
       - name: e2e CSP — 7 עמודי HTML (/p, /p-404, /ui, /app, /pay, /connect/orbit) בלי הפרות, וסקריפט מוזרק נחסם

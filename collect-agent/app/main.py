@@ -571,22 +571,30 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         from . import dsr
         if not svc.db.one("SELECT 1 FROM customers WHERE id=?", (cid,)):
             raise HTTPException(404, "לא נמצא")
+        if b.kind == "deletion":
+            # הכרעת ראש צוות (ממצא QA, סט #22b): מחיקת לקוח = בעל העסק בלבד — גם פתיחת בקשת המחיקה ידנית. בקשה שהגיעה
+            # בהודעה מהלקוח עדיין נרשמת אוטומטית (dsr.detect), כך שהבקשה לא אובדת והמועד נספר
+            owner_only(request, "dsr_deletion_open", {"customer": cid}, "רק בעל העסק פותח בקשת מחיקה")
         # מבקר 192: היומן רשם «owner» קבוע גם כשעובד/ת פתח/ה או סגר/ה בקשת פרטיות — השחקן האמיתי (שער 6)
         rid = guard(lambda: dsr.open_request(svc, cid, b.kind, "owner", b.note, actor=request.state.actor))
         if rid is None:
             raise HTTPException(409, "כבר קיימת בקשה פתוחה מסוג זה ללקוח")
         return {"id": rid}
 
+    def owner_only(request: Request, action: str, detail: dict, msg: str) -> None:
+        """הכרעת ראש צוות (ממצא QA, 20.11 — דפוס 190ב/191): מחיקת לקוח, ייצוא נתונים ותחזוקה = בעל העסק בלבד.
+        עובד/ת ⇒ 403 + audit של הניסיון עם השחקן האמיתי."""
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, action + "_refused", detail)
+            raise HTTPException(403, msg)
+
     @app.post("/dsr/{rid}/done", dependencies=auth)
     def dsr_done(rid: int, b: DsrDoneIn, request: Request):
         from . import dsr
-        # גבי עיצוב (מבקר 195, הכרעת ראש צוות): סגירת בקשת **מחיקה** = אישור שהמידע נמחק ⇒ בעל העסק בלבד.
-        # עיון/תיקון — כמו קודם. המסך מסמן מראש (lib/roles.ts dsrCloseLocked)
-        dsr.ensure_schema(svc.db)
-        r = svc.db.one("SELECT kind FROM dsr WHERE id=?", (rid,))
-        if r and r["kind"] == "deletion" and not request.state.is_owner:
-            svc.audit(request.state.actor, "dsr_deletion_close_refused", {"dsr": rid})
-            raise HTTPException(403, "רק בעל העסק יכול לסגור בקשת מחיקה")
+        row = svc.db.one("SELECT kind FROM dsr WHERE id=?", (rid,)) if svc._table_exists("dsr") else None
+        if row and row["kind"] == "deletion":
+            # סגירת בקשת מחיקה = אישור שהמחיקה בוצעה ⇒ בעל העסק בלבד. פתיחת בקשה (רישום מה שהלקוח ביקש) — פתוחה
+            owner_only(request, "dsr_deletion_close", {"dsr": rid}, "רק בעל העסק סוגר בקשת מחיקה (מאשר שהמחיקה בוצעה)")
         return guard(dsr.close_request, svc, rid, b.note, request.state.actor)
 
     @app.get("/customers/{cid}/data", dependencies=auth)
@@ -617,6 +625,18 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def customer_email_bounce(cid: int, b: EmailBounceIn, request: Request):   # q22-04: הכרעת בעל העסק
         return guard(svc.confirm_email_bounce, cid, b.confirm, request.state.actor)
 
+    # הכרעת ראש צוות q21-19: «בדוק ואשר» על מועד הבטחה שמעבר ל-max_defer_days ⇒ {"approve": true|false}
+    @app.post("/customers/{cid}/promise-request", dependencies=auth)
+    async def promise_request_decide(cid: int, request: Request):
+        try:
+            body = await request.json()
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        approve = body.get("approve") if isinstance(body, dict) else None
+        if not isinstance(approve, bool):
+            raise HTTPException(422, "approve: true (לאשר את המועד המבוקש) או false (לסרב)")
+        return guard(svc.decide_promise_request, cid, approve, request.state.actor)
+
     @app.post("/customers/{cid}/opt-out", dependencies=auth)
     def customer_opt_out(cid: int, request: Request):                  # critic סבב 97
         return guard(svc.owner_opt_out, cid, request.state.actor)
@@ -636,10 +656,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/maintenance/purge", dependencies=auth)
     def purge(request: Request):                     # ר-10 (רץ גם בכל plan)
-        # גבי עיצוב (מבקר 195): הפעלה **ידנית** של המחיקה = בעל העסק בלבד. הריצה האוטומטית בכל plan — כמו קודם
-        if not request.state.is_owner:
-            svc.audit(request.state.actor, "purge_refused", {})
-            raise HTTPException(403, "רק בעל העסק יכול להפעיל מחיקה")
+        owner_only(request, "maintenance_purge", {}, "רק בעל העסק מריץ פעולות תחזוקה")
         return svc.purge_closed(request.state.actor)   # critic סבב 73: מי הפעיל
 
     @app.get("/outbox", dependencies=auth)

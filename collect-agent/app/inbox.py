@@ -467,6 +467,11 @@ class ConversationInbox:
                    or "")
             if not _keeps_old_pause(old, reason):
                 self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (reason, cid))
+            if "promise_over_limit" in d.tags and d.requested_date and d.pause_until:
+                # הכרעת ראש צוות q21-19: ההבטחה התקבלה עד max_defer_days; המועד המבוקש ממתין ל«בדוק ואשר» של בעל העסק
+                self.svc.audit("customer", "promise_over_limit", {
+                    "customer": cid, "requested": d.requested_date.isoformat(),
+                    "until": d.pause_until.isoformat()})
         if d.stop != Stop.NONE:
             for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cid,)):
                 self.svc._cancel_invoice(inv["id"], d.intent.value)

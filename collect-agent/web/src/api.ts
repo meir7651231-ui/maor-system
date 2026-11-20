@@ -187,6 +187,9 @@ export const api = {
   reactivate: (uid: number) => j<Team>(`/team/${uid}/reactivate`, { method: 'POST' }),
   ownerDone: (id: number) => j<unknown>(`/owner/inbox/${id}/done`, { method: 'POST' }),
   /** critic סבב 192 (q22-04): הכרעה על DSN שלא אומת — confirm=true ⇒ הכתובת נחסמת למייל · false ⇒ המיילים חוזרים */
+  /** הכרעת ראש צוות q21-19: approve=true ⇒ ההשהיה עד המועד המבוקש · false ⇒ נשאר 14 יום, ואז התזכורות חוזרות */
+  promiseRequest: (cid: number, approve: boolean) => j<{ customer: number; requested: string; approved: boolean; paused_until: string }>(
+    `/customers/${cid}/promise-request`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ approve }) }),
   emailBounce: (cid: number, confirm: boolean) => j<{ customer: number; email: 'blocked' | 'resumed' }>(`/customers/${cid}/email-bounce`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm }) }),
   // critic סבב 149: שיוך כרטיס כתובת משותפת (החלטה 5) — לקוח נבחר, או null = «אף אחד מהם»
