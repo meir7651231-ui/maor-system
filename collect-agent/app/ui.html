@@ -55,7 +55,7 @@ iframe{width:100%;min-height:360px;border:1px solid var(--line);border-radius:10
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
 @media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
 .kpi .v{font-size:22px;font-weight:800}.kpi .l{color:var(--muted);font-size:13px}
-.kpi.warn .v{color:var(--warn)}.estate{display:block;white-space:normal;min-width:220px;margin-top:4px;padding:4px 8px;border-radius:8px;font-size:12px;color:var(--warn);background:var(--warn-bg);max-width:340px}.estate.spam{color:var(--bad)}.estate a{display:inline-flex;align-items:center;min-height:40px;color:inherit;font-weight:700}.tbl{overflow-x:auto}
+.kpi.warn .v{color:var(--warn)}.ownerOnly{display:inline-block;margin-inline-start:6px;padding:2px 8px;border-radius:999px;background:var(--chip);color:var(--ink);font-size:12px;font-weight:700;white-space:nowrap}.estate{display:block;white-space:normal;min-width:220px;margin-top:4px;padding:4px 8px;border-radius:8px;font-size:12px;color:var(--warn);background:var(--warn-bg);max-width:340px}.estate.spam{color:var(--bad)}.estate a{display:inline-flex;align-items:center;min-height:40px;color:inherit;font-weight:700}.tbl{overflow-x:auto}
 button.resume,button.markpaid{display:block;white-space:nowrap;min-height:32px;padding:4px 10px;font-size:13px;margin-top:4px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:right;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -218,7 +218,7 @@ let locked=false,stale=false,rt=null,rn=0,loading=0,busy=false,got={d:false,q:fa
 // הפעלה 161: «↻ חידוש תזכורות» בטבלת החובות כבוי גם הוא בזמן פעולת כותרת (חידוש באמצע סנכרון או שליחה שינה
 // את מצב הלקוח מתחת לפעולה שרצה). כפתור שהבקשה שלו עצמו באוויר (going) נשאר כבוי עד שהיא חוזרת.
 function hdr(){for(const i of ["#btnSync","#btnPlan","#btnDispatch"])$(i).disabled=locked||busy;
-  document.querySelectorAll("#debts button.resume").forEach(b=>{b.disabled=busy||!!b.dataset.going})
+  document.querySelectorAll("#debts button.resume").forEach(b=>{b.disabled=busy||!!b.dataset.going||!!b.dataset.ownerOnly})
   document.querySelectorAll("#debts button.markpaid").forEach(b=>{b.disabled=busy||!!b.dataset.going})}
 const RETRY_MS=[2000,4000,8000,15000];
 // הפעלה 150: בכניסה ראשונה (ואחרי כניסה מחדש) הדף היה ריק עד שהשרת ענה: כותרות בלי מספרים, טבלה ותור ריקים.
@@ -422,9 +422,10 @@ function drawDsr(){
       ${r.note?`<p class="slogan">${esc(r.note)}</p>`:""}
       <label><span class="lbl">מה נעשה? (לפחות ${DSR_MIN} תווים, נשמר בתיעוד)</span>
       <textarea rows="2" maxlength="500" aria-label="תיעוד הטיפול בבקשת ${esc(k)} של ${esc(dsrWho(r))}">${esc(dsNote[r.id]??"")}</textarea></label>
-      <div class="decide">${dsLocked(r)?`<span class="slogan">סגירת בקשת מחיקה מאשרת שהמידע נמחק — רק בעל העסק.</span> `:""}<button class="primary" data-a="done">סגירת הבקשה</button>${dsLocked(r)?'<span class="ownonly" data-testid="dsr-owner-only">🔒 בעל העסק בלבד</span>':""}</div>
+      <div class="decide">${dsLocked(r)?`<span class="slogan">סגירת בקשת מחיקה מאשרת שהמידע נמחק — רק בעל העסק.</span> `:""}<button class="primary" data-a="done">סגירת הבקשה</button>${dsLocked(r)?OWNER_BADGE:""}</div>
       <div class="err" data-e role="alert"></div></li>`}).join("");
   btnsDsr()}
+const dsLocked=r=>isStaff()&&r.kind==="deletion";
 function btnsDsr(){for(const li of $("#dsList").children){const b=li.querySelector('[data-a="done"]'),r=dsItems.find(x=>String(x.id)===li.dataset.sid);
   b.disabled=dsBusy!==null||locked||(!!r&&dsLocked(r))||(dsNote[li.dataset.sid]??"").trim().length<DSR_MIN}}
 $("#dsList").addEventListener("input",e=>{const li=e.target.closest("li[data-sid]");if(!li||!e.target.matches("textarea"))return;
@@ -484,7 +485,7 @@ function drawDebts(){
 }
 $("#dFind").addEventListener("input",e=>{dQ=e.target.value;dLim=DPAGE;drawDebts()});
 // חידוש ללקוח מושהה (למשל אחרי «שילמתי» שלא אומת): לחיצה ראשונה מחמשת, השנייה מבצעת
-$("#debts").addEventListener("click",async e=>{const b=e.target.closest("button.resume");if(!b||busy)return;
+$("#debts").addEventListener("click",async e=>{const b=e.target.closest("button.resume");if(!b||busy||b.dataset.ownerOnly)return;
   if(!b.dataset.armed){b.dataset.armed="1";b.textContent=b.dataset.protect?"סיבה מגינה! בדקתם? לחצו שוב":"בטוח? לחצו שוב";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="↻ חידוש תזכורות"}},4000);return}
   b.disabled=true;b.dataset.going="1";try{await api(`/customers/${b.dataset.cid}/resume`,{method:"POST"});await load()}
   catch(err){failed(err,m=>{delete b.dataset.going;b.disabled=busy;b.textContent="שגיאה: "+m})}});
@@ -528,6 +529,7 @@ function drawPlans(){$("#pl").hidden=!plItems.length&&!$("#plErr").textContent;
       <div class="nx${p.status==="missed"?" late":""}" data-next>${esc(plNext(pr,plToday,c))}</div>${p.status==="completed"?"":`<div class="slogan">${esc(hint)}</div>`}</li>`}).join("")}
 async function load(ask=true){
   if(ask&&!locked)skel();
+  if(!ME)try{ME=await api("/auth/me",{},false)}catch{ME=null}
   loading++;let d,q;try{[d,q]=await Promise.allSettled([loadDash(ask),api("/reminders?view=list",{},ask)])}finally{loading--}
   if(locked)return;
   stale=!(d.status==="fulfilled"&&q.status==="fulfilled");
