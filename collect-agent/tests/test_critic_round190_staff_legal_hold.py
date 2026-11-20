@@ -6,7 +6,6 @@ legal hold = פטור ממחיקה לפי ר-10 (תביעה תלויה / בקש�
 נסגרה ה-purge האוטומטי שרץ בכל `plan()` מתמם את הלקוח (name=None, purged_at) — מחיקת ראיות של תיק משפטי ע״י עובד,
 בשקט. (בניגוד לשחרור עצירת שחזור / ניהול צוות — בעלים בלבד.) הצעה: **ביטול** legal hold = בעלים בלבד (403 לעובד),
 ו/או כרטיס לבעל העסק שהמבטל לא יכול לסגור (כמו settings_changed). xfail(strict=True); הבקרה (בעלים מבטל ⇒ 200) ירוקה."""
-import pytest
 from fastapi.testclient import TestClient
 
 from app import totp
@@ -32,7 +31,6 @@ def _api(svc, clock, monkeypatch):
     return api, hdr
 
 
-@pytest.mark.xfail(strict=True, reason="critic 190: עובד/ת מבטל/ת legal hold בשקט ⇒ purge מוחק תיק משפטי (לתיקון בונה)")
 def test_staff_cannot_silently_lift_legal_hold(svc, clock, monkeypatch):
     api, hdr = _api(svc, clock, monkeypatch)
     r = api.post("/customers/1/legal-hold", json={"note": None}, headers=hdr("staff"))
@@ -45,3 +43,19 @@ def test_control_owner_can_lift_legal_hold(svc, clock, monkeypatch):
     api, hdr = _api(svc, clock, monkeypatch)
     r = api.post("/customers/1/legal-hold", json={"note": None}, headers=hdr("owner"))
     assert r.status_code == 200 and svc.db.one("SELECT legal_hold FROM customers WHERE id=1")["legal_hold"] is None
+
+
+def test_staff_lift_refused_is_audited_and_hold_kept(svc, clock, monkeypatch):
+    """תוקן: 403 לעובד, ה-hold נשאר, וניסיון הביטול נרשם ב-audit."""
+    api, hdr = _api(svc, clock, monkeypatch)
+    h = hdr("staff")                       # כניסה אחת (קוד TOTP לא נשמש פעמיים)
+    for note in (None, "", "   "):
+        assert api.post("/customers/1/legal-hold", json={"note": note}, headers=h).status_code == 403
+    assert svc.db.one("SELECT legal_hold FROM customers WHERE id=1")["legal_hold"]
+    assert svc.db.one("SELECT 1 FROM audit WHERE action='legal_hold_lift_refused'")
+
+
+def test_staff_can_still_place_a_hold(svc, clock, monkeypatch):
+    api, hdr = _api(svc, clock, monkeypatch)
+    r = api.post("/customers/2/legal-hold", json={"note": "בקשת עו״ד — לשמור"}, headers=hdr("staff"))
+    assert r.status_code == 200 and svc.db.one("SELECT legal_hold FROM customers WHERE id=2")["legal_hold"]

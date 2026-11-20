@@ -10,10 +10,7 @@
 לאותה כתובת (ו/או מאומת); אחרת — כרטיס בלי חסימה. xfail(strict=True); הבקרה (DSN שמצביע על המייל שלנו) ירוקה."""
 from datetime import timedelta
 
-import pytest
-
 FAIL = "mx.example; spf=fail; dkim=fail; dmarc=fail"
-
 
 def _send_first(svc, clock):
     svc.sync()
@@ -25,14 +22,11 @@ def _send_first(svc, clock):
             pass
     svc.dispatch()
 
-
-@pytest.mark.xfail(strict=True, reason="critic 190: DSN מזויף בלי Message-ID שלנו חוסם מייל של לקוח (לתיקון בונה)")
 def test_forged_dsn_without_our_message_id_does_not_block(svc, clock):
     _send_first(svc, clock)
     svc.email_webhook("MAILER-DAEMON@evil.example", "Final-Recipient: rfc822; c1@example.com\nStatus: 5.1.1\n", "fb1",
                       subject="Undelivered Mail Returned to Sender", auth_results=FAIL)
     assert not svc.email_bounced("c1@example.com")
-
 
 def test_control_dsn_with_our_message_id_blocks(svc, clock):
     _send_first(svc, clock)

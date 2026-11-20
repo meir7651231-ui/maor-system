@@ -593,6 +593,11 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/customers/{cid}/legal-hold", dependencies=auth)
     def customer_legal_hold(cid: int, b: LegalHoldIn, request: Request):   # ר-10
+        # critic סבב 190ב (🔴): עובד/ת ביטל/ה legal hold בשקט ⇒ ה-purge האוטומטי (בכל plan) מתמם תיק משפטי.
+        # **ביטול** = בעל העסק בלבד; **הצבת** hold (מגן בלבד) מותרת לכל מי שמחובר.
+        if not (b.note or "").strip() and not request.state.is_owner:
+            svc.audit(request.state.actor, "legal_hold_lift_refused", {"customer": cid})
+            raise HTTPException(403, "רק בעל העסק יכול לבטל עצירת מחיקה משפטית")
         return guard(svc.set_legal_hold, cid, b.note, request.state.actor)
 
     @app.post("/maintenance/purge", dependencies=auth)
