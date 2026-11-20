@@ -1979,6 +1979,25 @@ class CollectService:
     def _plan_invoice_ids(self, p) -> list[int]:
         return json.loads(p["invoice_ids"]) if p["invoice_ids"] else [p["invoice_id"]]
 
+    def plan_progress(self, p) -> dict:
+        """מנהל 334: התקדמות הסדר לתצוגה — אותו חישוב «שולם» של `_sweep_plans` (סה״כ ההסדר פחות היתרה הפתוחה
+        בחשבוניות שלו), כדי שהמסך והסריקה לא יחלקו. `next` = התשלום הראשון שעוד לא כוסה במצטבר (None = כוסו כולם)."""
+        items = json.loads(p["installments"])
+        total = sum(i["amount_agorot"] for i in items)
+        open_now = self.db.one("SELECT COALESCE(SUM(amount_agorot),0) n FROM invoices WHERE status='open' "
+                               "AND id IN (SELECT value FROM json_each(?))",
+                               (json.dumps(self._plan_invoice_ids(p)),))["n"]
+        paid = max(0, min(total, total - open_now))
+        acc, nxt, done = 0, None, 0
+        for i in items:
+            acc += i["amount_agorot"]
+            if paid >= acc:
+                done += 1
+            elif nxt is None:
+                nxt = {"n": i["n"], "due": i["due"], "amount_agorot": i["amount_agorot"]}
+        return {"total_agorot": total, "paid_agorot": paid, "open_agorot": max(0, open_now),
+                "done": done, "count": len(items), "next": nxt}
+
     def _sweep_plans(self) -> dict[str, list[int]]:
         """מנהל 332 (מבקר סבב 183 🟠): להסדר לא היה מחזור-חיים — `approved` (= ההצעה נשלחה) חסם כל תזכורת **לתמיד**,
         גם כשכל המועדים עברו והחשבונית פתוחה, ובלי כרטיס לבעל העסק; וגם ללקוח שהתעלם מההצעה. עכשיו בכל סבב תכנון:

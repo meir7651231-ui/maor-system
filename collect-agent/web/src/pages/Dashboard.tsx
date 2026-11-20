@@ -10,6 +10,7 @@ import { MessagePreview } from '../components/MessagePreview.tsx';
 import { OpenListCard } from '../components/OpenListCard.tsx';
 import type { Invoice } from '../lib/domain.ts';
 import { HolidayBanner } from '../components/HolidayBanner.tsx';
+import { nextLine, paidPct, planBadge, plansVisible, type PlanTone } from '../lib/plans.ts';
 import { RestoreHoldBanner } from '../components/RestoreHoldBanner.tsx';
 import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, REAPPROVE_LABEL } from '../api.ts';
 import { ALREADY_PLAN, alreadyDone, failPrefix, type Already } from '../lib/failure.ts';
@@ -142,7 +143,7 @@ export function Dashboard() {
               ))}
             </ul>
           </Card>
-          {live && <><NeedsYou /><Outbox /><ReplySim /></>}
+          {live && <><NeedsYou /><PlansCard /><Outbox /><ReplySim /></>}
         </div>
       </div>
       {open && <MessagePreview invoice={open} onClose={() => setOpen(null)} />}
@@ -200,6 +201,43 @@ function CollectionChart({ bars, cum, live, other }: { bars: Bar[]; cum: number[
         })}
         <line x1="0" x2={W} y1={H} y2={H} stroke="#E2E8F0" />
       </svg>
+    </Card>
+  );
+}
+
+const PLAN_TONE: Record<PlanTone, string> = {
+  good: 'bg-brand-50 text-brand-700 ring-brand/40', warn: 'bg-amber-50 text-amber-900 ring-amber-300', done: 'bg-ink-50 text-ink-700 ring-ink-200',
+};
+/** מנהל 334: הסדרים שאושרו — כמה שולם, מה הבא, ותג מצב (פעיל / תשלום לא התקבל / הושלם). קריאה בלבד. */
+function PlansCard() {
+  const { plans, customers, today } = useApp();
+  const shown = plansVisible(plans);
+  if (!shown.length) return null;
+  const nameOf = (bid: number) => customers.find(c => c.backendId === bid)?.name ?? `לקוח ${bid}`;
+  return (
+    <Card className="p-5">
+      <h2 className="text-lg font-extrabold mb-1">הסדרי תשלומים</h2>
+      <p className="text-xs text-ink-500 mb-3">הסדרים שאישרתם — כמה כבר שולם ומה התשלום הבא.</p>
+      <ul className="space-y-2.5" data-testid="plans">
+        {shown.map(p => {
+          const b = planBadge(p.status)!; const pr = p.progress!; const pct = paidPct(pr);
+          return (
+            <li key={p.id} className="rounded-lg bg-ink-50 p-3 text-sm" data-testid="plan" data-status={p.status}>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-bold">{nameOf(p.customer_id)}</span>
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ring-1 ${PLAN_TONE[b.tone]}`} data-testid="plan-badge">{b.label}</span>
+              </div>
+              <div className="mt-2 h-2 rounded-full bg-ink-200 overflow-hidden" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}
+                aria-label={`שולם ${pct}% מההסדר`}>
+                <div className="h-full bg-brand" style={{ width: `${pct}%` }} />
+              </div>
+              <div className="text-xs text-ink-700 mt-1"><span className="num">{fmtIls(pr.paid_agorot / 100)}</span> מתוך <span className="num">{fmtIls(pr.total_agorot / 100)}</span> · <span className="num">{pr.done}/{pr.count}</span> תשלומים</div>
+              <div className={`text-xs mt-0.5 ${p.status === 'missed' ? 'text-amber-900 font-bold' : 'text-ink-500'}`} data-testid="plan-next">{nextLine(pr, today, fmtIls)}</div>
+              <div className="text-xs text-ink-500 mt-0.5">{b.hint}</div>
+            </li>
+          );
+        })}
+      </ul>
     </Card>
   );
 }

@@ -335,6 +335,16 @@ try {
   ok(stillOpen.length === 0, 'טיוטת plan_request נשארה פתוחה אחרי אישור הפריסה ⇒ סכנת שליחה כפולה');
   if (out) await fullShot(p, `${out}/live-04-after.png`);
   console.log('  ✓ פריסה אושרה ⇒ נשלחה ⇒ הטיוטה המקבילה נסגרה בשרת');
+  // מנהל 334: ההסדר שאושר לא נעלם — כרטיס «הסדרי תשלומים» עם תג «פעיל», 0% ושורת התשלום הבא, תואם לשרת
+  const planCard = p.getByTestId('plan').filter({ hasText: 'יוסי' }).first();
+  await planCard.waitFor();
+  ok((await planCard.getAttribute('data-status')) === 'approved', 'כרטיס ההסדר לא במצב approved');
+  ok((await planCard.getByTestId('plan-badge').textContent()).trim() === 'פעיל', 'תג «פעיל» חסר בכרטיס ההסדר');
+  const srvPlan = (await api('/plans')).find(x => x.status === 'approved');
+  ok(srvPlan?.progress?.next?.n === 1, 'השרת לא החזיר progress.next להסדר שאושר');
+  ok((await planCard.getByTestId('plan-next').textContent()).includes(`תשלום 1 מתוך ${srvPlan.progress.count}`), 'שורת «הבא» לא תואמת לשרת');
+  if (out) await planCard.screenshot({ path: `${out}/live-04b-plan-card.png` });
+  console.log('  ✓ ההסדר שאושר מוצג ב«הסדרי תשלומים» עם תג «פעיל» ושורת «הבא» מהשרת');
 
   // 6) תשובות לקוחות: דנה שואלת איך משלמים ⇒ טיוטה ⇒ עריכה עם "מבצע" נחסמת (409 צפוי ומאומת) ⇒ נוסח נקי נשלח
   await p.getByLabel('לקוח').selectOption({ label: 'דנה לוי (דמו)' });
