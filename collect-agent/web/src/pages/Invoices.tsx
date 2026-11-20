@@ -12,14 +12,14 @@ import { hashParam } from '../router.ts';
 import { failPrefix } from '../lib/failure.ts';
 import { found } from '../lib/search.ts';
 import { api } from '../api.ts';
-import { dataExportFileName, downloadJson } from '../lib/dataExport.ts';
+import { dataExportFileName, downloadJson, exportOwnerOnly } from '../lib/dataExport.ts';
 
 type Sort = 'late' | 'amount' | 'name';
 type Filter = InvoiceStatus | 'all' | 'drift' | 'paused';
 const FILTERS: [InvoiceStatus | 'all', string][] = [['all', 'הכול'], ['open', 'פתוחות'], ['reminded', 'נשלחה תזכורת'], ['promised', 'הבטיח'], ['disputed', 'במחלוקת']];
 
 export function Invoices() {
-  const { invoices, today, customerOf, markPaid, mode, pendingOf, mergedAnchorOf, showToast, showFail } = useApp();
+  const { invoices, today, customerOf, markPaid, mode, pendingOf, mergedAnchorOf, showToast, showFail, me } = useApp();
   // מנהל 310: ייצוא בקשת עיון — מזהה הלקוח שההורדה שלו בדרך (מונע לחיצה כפולה)
   const [exporting, setExporting] = useState<number | null>(null);
   const exportData = async (cid: number, name: string) => {
@@ -89,7 +89,8 @@ export function Invoices() {
                   <Fragment key={i.id}>
                   <tr className="hover:bg-ink-50/60">
                     <td className="px-4 py-3"><div className="font-bold">{c.name}</div>{i.note && <div className="text-xs text-ink-500">📝 {i.note}</div>}
-                      {live && c.backendId != null && <button type="button" data-testid="data-export" disabled={exporting !== null}
+                      {live && c.backendId != null && exportOwnerOnly(me) && <div className="mt-1 text-xs text-ink-500" data-testid="data-export-owner-only">ייצוא מידע (בקשת עיון) — בעל העסק בלבד</div>}
+                      {live && c.backendId != null && !exportOwnerOnly(me) && <button type="button" data-testid="data-export" disabled={exporting !== null}
                         onClick={() => exportData(c.backendId!, c.name)}
                         title="לבקשת עיון של הלקוח: קובץ עם כל המידע ששמור עליו בגבי (חשבוניות, תזכורות, הודעות, הסדרים)"
                         className="mt-1 min-h-9 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-ink-500 underline hover:text-ink-700 cursor-pointer disabled:opacity-50 disabled:cursor-wait">
