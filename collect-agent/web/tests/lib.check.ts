@@ -1598,3 +1598,18 @@ test('מבקר 195ג (+194): פעולות בעל העסק בלבד — עובד/
   for (const k of ['access', 'correction']) assert.equal(dsrCloseLocked(staff, k), false, k);
   assert.equal(dsrCloseLocked(ownerUser, 'deletion'), false);
 });
+
+test('d018a41 · מועד מוערך: תאריך תקין בלוח, ותיקונים נשלחים רק לפתוחות שהשתנו ותקינות', async () => {
+  const { validDue, dueCorrections, DUE_ESTIMATED_HELP } = await import('../src/lib/dueEstimate.ts');
+  assert.match(DUE_ESTIMATED_HELP, /הנפקה \+ 30 יום/);
+  for (const v of ['2026-11-30', '2028-02-29']) assert.equal(validDue(v), true, v);
+  for (const v of ['', '2026-02-30', '2027-02-29', '31/11/2026', '2026-1-5', '2026-13-01']) assert.equal(validDue(v), false, v);
+  const orig = { 1: '2026-10-31', 2: '2026-10-31', 3: '2026-10-31', 4: null };
+  const edits = { 1: '2026-11-15', 2: '2026-10-31', 3: '2026-11-20', 4: 'xx' };
+  // 1 פתוחה ושונתה ⇒ נשלחת · 2 לא שונתה · 3 שונתה אבל לא סומנה פתוחה · 4 לא תקינה
+  assert.deepEqual(dueCorrections([1, 2, 4], edits, orig), { '1': '2026-11-15' });
+  assert.deepEqual(dueCorrections([], edits, orig), {});
+  const { humanizeOpenListError } = await import('../src/lib/dueEstimate.ts');
+  assert.equal(humanizeOpenListError('חשבונית 13 לא קיימת או לא פתוחה', [{ id: 13, number: '9303' }]), 'חשבונית 9303 לא קיימת או לא פתוחה');
+  assert.equal(humanizeOpenListError('מועד לא תקין לחשבונית 99 (YYYY-MM-DD)', []), 'מועד לא תקין לחשבונית 99 (YYYY-MM-DD)');
+});

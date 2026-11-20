@@ -1,4 +1,5 @@
 import { EmailStateNote } from '../components/EmailStateNote.tsx';
+import { DueEstimatedBadge } from '../components/DueEstimatedBadge.tsx';
 import { Fragment, useMemo, useState } from 'react';
 import { useApp } from '../store.tsx';
 import { daysOverdue, fmtDate, fmtMoney, fmtTotal } from '../lib/format.ts';
@@ -100,7 +101,7 @@ export function Invoices() {
                       {live && i.status !== 'paid' && <EmailStateNote state={c.emailState} source={i.source} />}</td>
                     <td className="px-4 py-3"><span className="num">{i.number}</span>{i.source === 'csv' && <span className="ms-1.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5" title="יובאה מקובץ CSV — לא מתעדכנת לבד">CSV</span>}</td>
                     <td className="px-4 py-3 font-bold whitespace-nowrap">{fmtMoney(i.amount, i.currency)}</td>
-                    <td className="px-4 py-3 num">{fmtDate(i.dueAt)}</td>
+                    <td className="px-4 py-3"><span className="num">{fmtDate(i.dueAt)}</span>{i.dueEstimated && <DueEstimatedBadge />}</td>
                     <td className="px-4 py-3 whitespace-nowrap"><LateBadge days={d} /></td>
                     <td className="px-4 py-3"><StatusBadge status={i.status} />
                       {live && i.amountDrift && <span data-testid="amount-drift-chip" className="mt-1.5 flex w-fit rounded-full bg-amber-50 ring-1 ring-inset ring-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-800 whitespace-nowrap">{DRIFT_LABEL}</span>}</td>

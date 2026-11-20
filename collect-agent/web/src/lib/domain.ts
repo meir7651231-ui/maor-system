@@ -16,6 +16,7 @@ export interface Invoice {
   amount: number;       // ₪ שלמים, כולל מע"מ (בבקאנד: agorot)
   issuedAt: string;     // ISO yyyy-mm-dd
   dueAt: string;        // ISO yyyy-mm-dd
+  /** d018a41: אין מועד במקור ⇒ הנפקה+30 (מוצג עם תג «מועד מוערך») */ dueEstimated?: boolean;
   status: InvoiceStatus;
   payUrl: string;       // קישור התשלום של החשבונית (למשל דף התשלום בחשבונית ירוקה)
   reminders: Reminder[];

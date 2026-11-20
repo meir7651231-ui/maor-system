@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import { api, type OpenItem } from '../api.ts';
 import { useApp } from '../store.tsx';
 import { fmtDate, fmtMoney } from '../lib/format.ts';
-import { Button, Card } from './ui.tsx';
+import { Button, Card, inputCls } from './ui.tsx';
+import { DueEstimatedBadge } from './DueEstimatedBadge.tsx';
+import { dueCorrections, humanizeOpenListError, validDue } from '../lib/dueEstimate.ts';
 
 type Mark = 'open' | 'paid';
 
@@ -13,6 +15,8 @@ export function OpenListCard({ count }: { count: number }) {
   const [items, setItems] = useState<OpenItem[] | null>(null);
   const [mark, setMark] = useState<Record<number, Mark>>({});
   const [busy, setBusy] = useState(false);
+  const [dueEdit, setDueEdit] = useState<Record<number, string>>({});   // תיקון מועד (בעיקר «מועד מוערך»)
+  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -32,12 +36,18 @@ export function OpenListCard({ count }: { count: number }) {
     try {
       const open = chosen.filter(i => mark[i.id] === 'open').map(i => i.id);
       const paid = chosen.filter(i => mark[i.id] === 'paid').map(i => i.id);
-      await api.confirmOpenList(open, paid);
-      setMark({});
-      showToast(`נשמר: ${open.length} פתוחות${paid.length ? ` · ${paid.length} סומנו כשולמו` : ''}`);
+      const due = dueCorrections(open, dueEdit, Object.fromEntries(items.map(i => [i.id, i.due])));
+      setErr(null);
+      await api.confirmOpenList(open, paid, due);
+      setMark({}); setDueEdit({});
+      const fixed = Object.keys(due).length;
+      showToast(`נשמר: ${open.length} פתוחות${paid.length ? ` · ${paid.length} סומנו כשולמו` : ''}${fixed ? ` · ${fixed} מועדים תוקנו` : ''}`);
       await reload();
     } catch (e) {
-      showFail(`האישור לא נשמר: ${(e as Error).message}`);
+      // 409 מהשרת (מועד לא תקין / חשבונית לא פתוחה) — ההודעה בעברית מהשרת, גלויה בכרטיס ולא רק בטוסט
+      const msg = humanizeOpenListError((e as Error).message, items);
+      setErr(msg);
+      showFail(`האישור לא נשמר: ${msg}`);
     } finally { setBusy(false); }
   };
 
@@ -57,10 +67,25 @@ export function OpenListCard({ count }: { count: number }) {
                 <Button size="sm" variant={mark[i.id] === 'open' ? 'primary' : 'outline'} aria-pressed={mark[i.id] === 'open'} onClick={() => set(i.id, 'open')}>עדיין פתוח</Button>
                 <Button size="sm" variant={mark[i.id] === 'paid' ? 'dark' : 'outline'} aria-pressed={mark[i.id] === 'paid'} onClick={() => set(i.id, 'paid')}>כבר שולם</Button>
               </div>
+              {i.due_estimated && (
+                // d018a41: מועד מוערך ⇒ אפשר לתקן לפני «עדיין פתוח»; נשלח עם האישור (השרת: רק לחשבונית שסומנה פתוחה)
+                <div className="basis-full rounded-lg bg-amber-50 border border-amber-200 p-2 text-sm" data-testid={`due-fix-${i.number}`}>
+                  <DueEstimatedBadge withHelp />
+                  <label className="mt-1.5 flex flex-wrap items-center gap-2">
+                    <span className="font-bold text-ink-900">המועד הנכון:</span>
+                    <input type="date" dir="ltr" className={`${inputCls} !w-44 !h-10`} data-testid={`due-input-${i.number}`}
+                      value={dueEdit[i.id] ?? i.due ?? ''} aria-label={`מועד התשלום של חשבונית ${i.number}`}
+                      onChange={e => setDueEdit(x => ({ ...x, [i.id]: e.target.value }))} />
+                    {mark[i.id] !== 'open' && (dueEdit[i.id] ?? i.due) !== i.due && <span className="text-xs text-ink-700">יישמר רק עם «עדיין פתוח»</span>}
+                    {dueEdit[i.id] && !validDue(dueEdit[i.id]) && <span className="text-xs font-bold text-critical-ink">תאריך לא תקין</span>}
+                  </label>
+                </div>
+              )}
             </li>
           ))}
         </ul>
         <div className="mt-4 flex flex-wrap items-center gap-3">
+          {err && <p role="alert" data-testid="open-list-error" className="basis-full text-sm font-bold text-critical-ink">האישור לא נשמר: {err}</p>}
           <Button data-testid="open-list-confirm" disabled={busy || !chosen.length} onClick={submit}>אישור ({chosen.length})</Button>
           <Button variant="ghost" size="sm" disabled={busy} onClick={() => setMark(Object.fromEntries(items.map(i => [i.id, 'open' as Mark])))}>הכול עדיין פתוח</Button>
         </div>

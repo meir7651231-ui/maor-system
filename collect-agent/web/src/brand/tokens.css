@@ -27,6 +27,7 @@
   --color-due-ink: #B45309;
   --color-late-ink: #C2410C;
   --color-critical-ink: #B91C1C;
+  --color-info-ink: #0369A1;   /* קישורים בתצוגת ההודעה: info (#0EA5E9) כטקסט = 2.65:1 ⇒ נכשל AA (גבי עיצוב, 20.11) */
   --color-info: #0EA5E9;
 
   --color-wa-bg: #EFEAE2;

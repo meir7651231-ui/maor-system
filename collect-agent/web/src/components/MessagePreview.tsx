@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { DueEstimatedBadge } from './DueEstimatedBadge.tsx';
 import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, driftText, REAPPROVE_LABEL, REFRESH_LABEL, type Preview } from '../api.ts';
 import { failPrefix, staleChangeText, stalePreview } from '../lib/failure.ts';
 import { useApp } from '../store.tsx';
@@ -92,7 +93,9 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
             <h2 id="mp-title" className="text-xl font-extrabold">תזכורת ל{c.name}</h2>
             <p className="text-sm text-ink-500 mt-1" data-testid="mp-sub">{merged
               ? <><span className="num">{pv?.invoice_count ?? pending?.count}</span> חשבוניות{pv?.numbers?.length ? <> (<span className="num">{pv.numbers.join(', ')}</span>)</> : null}</>
-              : <>חשבונית <span className="num">{invoice.number}</span></>} · <b className="text-ink-900">{total}</b> · <LateBadge days={daysOverdue(invoice.dueAt, today)} /></p>
+              : <>חשבונית <span className="num">{invoice.number}</span></>} · <b className="text-ink-900">{total}</b> · <LateBadge days={daysOverdue(invoice.dueAt, today)} />
+              {/* d018a41: מועד מוערך באחת החשבוניות שבתזכורת (השרת) או בחשבונית עצמה (הדשבורד) */}
+              {(pv?.due_estimated?.length || invoice.dueEstimated) ? <> <DueEstimatedBadge withHelp />{merged && pv?.due_estimated?.length ? <span className="text-xs text-ink-700"> · <span className="num">{pv.due_estimated.join(', ')}</span></span> : null}</> : null}</p>
           </div>
           <button onClick={onClose} aria-label="סגירה" className="h-9 w-9 rounded-lg hover:bg-ink-100 text-xl cursor-pointer">✕</button>
         </header>
@@ -136,7 +139,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
             </fieldset>
             <div className="rounded-xl bg-ink-50 p-3 text-sm space-y-1.5">
               <div>🕘 <b>יישלח:</b> {live && pv ? fmtWhenIL(pv.scheduled_for) : +when === +now ? 'מיד עם האישור' : fmtWhen(when)} <span className="text-ink-500">(א׳–ה׳ 8–20, ו׳ עד 12, לא בשבת/חג)</span></div>
-              <div>🔗 <b>קישור תשלום:</b> <span className="num text-info break-all">{payUrl || '—'}</span></div>
+              <div>🔗 <b>קישור תשלום:</b> <span className="num text-info-ink break-all">{payUrl || '—'}</span></div>
               {live && <div>🧪 <b>מצב:</b> dry-run · ספק {liveSms?.provider ?? business.smsProvider} · שום הודעה לא יוצאת באמת</div>}
               <div>🛑 כולל קישור הסרה · מזהה את העסק · ללא תוכן שיווקי (סעיף 30א)</div>
               {!readOnly && (live || requiresApproval(step, business, invoice.reminders.length === 0)) && <div className="text-amber-700">✋ שלב זה דורש את אישורך</div>}
@@ -203,7 +206,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
                       <span>{merged ? <><span className="num">{pv?.invoice_count ?? pending?.count}</span> חשבוניות</> : <>חשבונית <span className="num">{invoice.number}</span></>}</span><b>{total}</b>
                     </div>
                     <a href="#" onClick={e => e.preventDefault()} className="block text-center bg-brand text-ink-900 font-bold rounded-xl py-3">{email.cta} · {total}</a>
-                    <p className="text-[11px] text-ink-500 mt-4 leading-relaxed">{email.footer} <span className="text-info underline">להסרה מתזכורות</span></p>
+                    <p className="text-[11px] text-ink-500 mt-4 leading-relaxed">{email.footer} <span className="text-info-ink underline">להסרה מתזכורות</span></p>
                   </div>
                 </div>
               </div>
@@ -296,5 +299,5 @@ function emailFromBackend(body: string, subject: string, biz: string) {
 
 function linkify(t: string) {
   return t.split(/(https?:\/\/\S+)/).map((p, i) => /^https?:\/\//.test(p)
-    ? <span key={i} className="text-info underline num">{p}</span> : <span key={i}>{p}</span>);
+    ? <span key={i} className="text-info-ink underline num">{p}</span> : <span key={i}>{p}</span>);
 }

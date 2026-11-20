@@ -43,19 +43,19 @@ test('כל תגית ב-StatusBadge עוברת AA (טקסט קטן מודגש ⇒
 });
 
 test('טקסט בצבעי-סטטוס (*-ink) עובר AA על לבן ועל שמנת', () => {
-  for (const fg of ['due-ink', 'late-ink', 'critical-ink', 'brand-700', 'ink-500'])
+  for (const fg of ['due-ink', 'late-ink', 'critical-ink', 'info-ink', 'brand-700', 'ink-500'])
     for (const bg of ['white', 'cream', 'red-50']) {
       const r = ratio(fg, bg);
       assert.ok(r >= 4.5, `${fg} על ${bg} = ${r.toFixed(2)}:1`);
     }
 });
 
-test('גווני-המילוי due/late/critical אינם עוברים AA כטקסט — ולכן אסור text-due/late/critical בקוד', () => {
-  for (const f of ['due', 'late', 'critical']) assert.ok(ratio(f, 'white') < 4.5, `${f} כבר עובר — אפשר לפשט`);
+test('גווני-המילוי due/late/critical/info אינם עוברים AA כטקסט — ולכן אסור text-due/late/critical/info בקוד', () => {
+  for (const f of ['due', 'late', 'critical', 'info']) assert.ok(ratio(f, 'white') < 4.5, `${f} כבר עובר — אפשר לפשט`);
   const files: string[] = [];
   const walk = (d: string) => { for (const n of readdirSync(d)) { const p = join(d, n); if (statSync(p).isDirectory()) walk(p); else if (/\.tsx?$/.test(n)) files.push(p); } };
   walk(join(WEB, 'src'));
-  const bad = files.flatMap(p => [...readFileSync(p, 'utf8').matchAll(/\btext-(due|late|critical)\b(?!-ink)/g)].map(m => `${p.replace(WEB, '')}: ${m[0]}`));
+  const bad = files.flatMap(p => [...readFileSync(p, 'utf8').matchAll(/\btext-(due|late|critical|info)\b(?!-ink)/g)].map(m => `${p.replace(WEB, '')}: ${m[0]}`));
   assert.deepEqual(bad, [], 'טקסט בגוון-מילוי (השתמשו ב-*-ink)');
 });
 

@@ -10,6 +10,7 @@ import { MessagePreview } from '../components/MessagePreview.tsx';
 import { OpenListCard } from '../components/OpenListCard.tsx';
 import type { Invoice } from '../lib/domain.ts';
 import { HolidayBanner } from '../components/HolidayBanner.tsx';
+import { DueEstimatedBadge } from '../components/DueEstimatedBadge.tsx';
 import { nextLine, paidPct, planBadge, plansVisible, type PlanTone } from '../lib/plans.ts';
 import { RestoreHoldBanner } from '../components/RestoreHoldBanner.tsx';
 import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, REAPPROVE_LABEL } from '../api.ts';
@@ -121,7 +122,7 @@ export function Dashboard() {
                     <div className="font-bold truncate">{customerOf(i.customerId).name}</div>
                     <div className="text-sm text-ink-500">{live && pendingOf(i.id)?.count
                       ? <span data-testid="queue-merged"><span className="num">{pendingOf(i.id)!.count}</span> חשבוניות · <b className="text-ink-900">{pendingOf(i.id)!.totalText}</b></span>
-                      : <b className="text-ink-900">{fmtMoney(i.amount, i.currency)}</b>} · <LateBadge days={daysOverdue(i.dueAt, today)} /> · {STEP_LABEL[nextStep(i)]}
+                      : <b className="text-ink-900">{fmtMoney(i.amount, i.currency)}</b>} · <LateBadge days={daysOverdue(i.dueAt, today)} />{i.dueEstimated && <DueEstimatedBadge />} · {STEP_LABEL[nextStep(i)]}
                       {live && blockKind(pendingOf(i.id)?.block) === 'hard' && <span className="text-critical-ink font-bold"> · ⛔ {BLOCK_LABEL[pendingOf(i.id)!.block!] ?? pendingOf(i.id)!.block}</span>}
                       {live && blockKind(pendingOf(i.id)?.block) === 'reapprove' && <span className="text-amber-700 font-bold"> · ⏳ {REAPPROVE_LABEL[pendingOf(i.id)!.block!]}</span>}
                       {!live && mockAmountCheck(i, invoices).length > 0 && <span className="text-amber-700 font-bold" data-testid="mock-amount-check"> · ⏳ {REAPPROVE_LABEL.amount_check}</span>}</div>
