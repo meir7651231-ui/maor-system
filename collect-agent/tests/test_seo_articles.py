@@ -207,13 +207,24 @@ def test_net_article_ladder_counts_from_due_date():
 
 
 def test_net_article_no_due_date_matches_code():
-    """המאמר אומר בדיוק מה הקוד עושה כשאין מועד: הנפקה + 30. לא «שוטף+30», ולא «מסומן כמוערך לבעל העסק» —
-    הדגל due_estimated מחושב אבל אף מסך לא מציג אותו (דווח למקשר 20.11)."""
+    """«אין מועד ⇒ מועד מוערך (הנפקה + 30), לא מזכירים עליו לפני אישור, ואפשר לתקן לפני האישור» — נעול ל-API
+    (d018a41, גבי חיבורים; הכרעת מקשר 20.11). לפני זה המאמר אסר את המילה «מוערך»: הדגל חושב ואף מסך לא הציג."""
+    import inspect
     from datetime import date
 
     from app.greeninvoice import DEFAULT_TERMS_DAYS, MAX_TERMS_DAYS, due_or_estimate
+    from app.service import CollectService
     t = NET.read_text(encoding="utf-8")
     assert DEFAULT_TERMS_DAYS == 30 and due_or_estimate(None, date(2026, 11, 10)) == (date(2026, 12, 10), True)
-    assert "גבי מניח 30 יום מתאריך החשבונית" in t
-    assert "מוערך" not in t and "מסמן" not in t
+    assert 'גבי מסמן "מועד מוערך" (30 יום מתאריך החשבונית)' in t
+    assert "לא מזכיר עליו עד שתאשר" in t and "ואתה יכול לתקן אותו לפני האישור" in t
+    # API: רשימת הפתוחות חושפת את הדגל · אישור הרשימה מקבל תיקון מועד שמבטל את ה«מוערך»
+    assert "due_estimated" in inspect.getsource(CollectService.open_list)
+    confirm = inspect.getsource(CollectService.confirm_open_list)
+    assert "due" in inspect.signature(CollectService.confirm_open_list).parameters
+    assert re.search(r"UPDATE invoices SET due=\?, due_estimated=0", confirm)
+    # התנהגות (CI): לא מתזכרים מוערכת לפני אישור · תיקון שורד סנכרון
+    beh = (Path(__file__).parent / "test_due_estimated_visible.py").read_text(encoding="utf-8")
+    for name in ("test_plan_skips_estimated_until_confirmed", "test_owner_corrects_due_and_sync_keeps_it"):
+        assert f"def {name}(" in beh, name
     assert MAX_TERMS_DAYS == 730 and due_or_estimate(date(2027, 1, 29), date(2026, 11, 10))[1] is False
