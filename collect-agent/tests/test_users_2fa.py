@@ -103,6 +103,7 @@ def test_session_expiry_logout_and_deactivate(env):
     assert api.get("/dashboard", headers=h).status_code == 401
     clock.now += timedelta(minutes=1)
     tok2 = _login(api, reg, clock, shift=30).json()["token"]
+    users.create("boss@example.co.il", "בעלים", PW, role="owner")   # critic 180: לא משביתים את הבעלים האחרון
     users.deactivate("dana@example.co.il")
     assert api.get("/dashboard", headers={"Authorization": f"Bearer {tok2}"}).status_code == 401
     clock.now += timedelta(hours=13)

@@ -1067,15 +1067,14 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         if role not in ("owner", "staff"):
             raise HTTPException(422, "role: owner / staff")
         try:
-            r = users.set_role_id(uid, role)
+            r = users.set_role_id(uid, role, actor=request.state.actor)
         except KeyError:
             raise HTTPException(404, "אין עובד כזה") from None
         except ValueError as e:
             raise HTTPException(422, str(e)) from e
         if r["from"] != r["to"]:
             actor = request.state.actor
-            # פסאודונים ביומן (critic סבב 10) — השם רק בהודעה לבעל העסק, שנמחקת עם העסק
-            svc.audit(actor, "team_role_changed", {"user": uid, "from": r["from"], "to": r["to"]})
+            # ה-audit (פסאודונים) נרשם ב-Users.set_role; השם רק בהודעה לבעל העסק, שנמחקת עם העסק
             label = {"owner": "בעל העסק", "staff": "עובד"}
             svc.notify_owner_sensitive(
                 f"תפקיד שונה על ידי {actor}: {r['name']} — «{label[r['from']]}» ⇒ «{label[r['to']]}». "
@@ -1093,7 +1092,6 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(422, str(e)) from e
         if r["was_active"]:
             actor = request.state.actor
-            svc.audit(actor, "team_deactivated", {"user": uid})
             svc.notify_owner_sensitive(
                 f"עובד הושבת על ידי {actor}: {r['name']} — כל הכניסות הפתוחות שלו נותקו. "
                 "אם לא אתם השבתתם — בדקו מיד.", actor)

@@ -6,12 +6,14 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import json
 import os
 import secrets
 from datetime import datetime, timedelta
 
 from . import totp
 from .db import DB, token_hash
+from .policy import TZ
 from .secretbox import ENV_VAR, VERSION, SecretBox
 
 SESSION_HOURS = 12
@@ -73,10 +75,14 @@ class Users:
             # critic סבב 179: תפקיד בעלים לעובד מחובר. בבטא (REQUIRE_USER_LOGIN=1) הטוקן המשותף סגור, ולכן
             # פעולות «בעל העסק בלבד» (שחרור עצירת שחזור) חייבות תפקיד ולא את המחרוזת "owner".
             cols = {r[1] for r in db.conn.execute("PRAGMA table_info(users)")}
-            if "role" not in cols:
+            migrated = "role" not in cols
+            if migrated:
                 db.conn.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'staff'")
             db.conn.commit()
-        self._bootstrap_owner()
+        # critic סבב 180: הבוטסטרפ רץ בכל עלייה ⇒ השבתת הבעלים ⇒ העובד הוותיק קודם לבעלים **בשקט** בעלייה הבאה.
+        # עכשיו רק במיגרציה עצמה (העמודה נוספה עכשיו), ומתועד ביומן.
+        if migrated:
+            self._bootstrap_owner()
 
     def _bootstrap_owner(self) -> None:
         """DB קיים בלי בעלים פעיל (נוצר לפני 179) ⇒ העובד הוותיק הפעיל (id נמוך) הוא בעל העסק — אותו כלל
@@ -85,6 +91,16 @@ class Users:
             first = self.db.one("SELECT id FROM users WHERE active=1 ORDER BY id LIMIT 1")
             if first is not None:
                 self.db.x("UPDATE users SET role='owner' WHERE id=?", (first["id"],))
+                self._audit("system", "owner_bootstrap", {"user": first["id"]})
+
+    def _audit(self, actor: str, action: str, detail: dict) -> None:
+        """יומן ה-audit של השירות (אותו DB). פסאודונים בלבד — user:<id>, לא מייל (critic סבב 10).
+        DB בלי טבלת audit (כלי CLI על קובץ ריק) ⇒ מדלגים, לא נכשלים."""
+        if self.db.one("SELECT 1 FROM sqlite_master WHERE type='table' AND name='audit'") is None:
+            return
+        self.db.x("INSERT INTO audit(at,actor,action,detail) VALUES(?,?,?,?)",
+                  (self._now().astimezone(TZ).isoformat(timespec="seconds"), actor, action,
+                   json.dumps(detail, ensure_ascii=False)))
 
     def _now(self) -> datetime:
         return self.clock()
@@ -113,7 +129,7 @@ class Users:
             raise ValueError("משתמש כבר קיים") from e
         return {"email": email, "role": role, "totp_secret": sec, "otpauth": totp.otpauth_uri(sec, email)}
 
-    def set_role(self, email: str, role: str) -> None:
+    def set_role(self, email: str, role: str, actor: str = "cli") -> None:
         if role not in ROLES:
             raise ValueError(f"תפקיד: {' / '.join(ROLES)}")
         email = email.strip().lower()
@@ -125,6 +141,8 @@ class Users:
             # בלי בעלים פעיל אף אחד לא משחרר עצירת שחזור (critic 179) — לא מורידים את האחרון
             raise ValueError("זה בעל העסק הפעיל היחיד — קודם מנו בעלים אחר")
         self.db.x("UPDATE users SET role=? WHERE id=?", (role, u["id"]))
+        if u["role"] != role:   # critic 180: audit לכל שינוי תפקיד, גם מ-CLI
+            self._audit(actor, "team_role_changed", {"user": u["id"], "from": u["role"], "to": role})
 
     # ---------- מסך «צוות ותפקידים» (מנהל 328): בעל העסק מנהל תפקידים בלי CLI ----------
     def listing(self) -> list[dict]:
@@ -145,12 +163,12 @@ class Users:
         return u["role"] == "owner" and bool(u["active"]) and self.db.one(
             "SELECT COUNT(*) c FROM users WHERE role='owner' AND active=1 AND id<>?", (u["id"],))["c"] == 0
 
-    def set_role_id(self, uid: int, role: str) -> dict:
+    def set_role_id(self, uid: int, role: str, actor: str = "cli") -> dict:
         """מחזיר {name, from, to}. עובד מושבת לא מקודם (בעלים מושבת לא משחרר כלום)."""
         u = self._by_id(uid)
         if role == "owner" and not u["active"]:
             raise ValueError("עובד מושבת לא יכול להיות בעל העסק — קודם הפעילו אותו מחדש")
-        self.set_role(u["email"], role)
+        self.set_role(u["email"], role, actor=actor)
         return {"name": u["name"], "from": u["role"], "to": role}
 
     def deactivate_id(self, uid: int, actor: str | None = None) -> dict:
@@ -158,9 +176,7 @@ class Users:
         u = self._by_id(uid)
         if actor == f"user:{u['id']}":
             raise ValueError("לא משביתים את עצמכם — בקשו מבעלים אחר")
-        if self._last_active_owner(u):
-            raise ValueError("זה בעל העסק הפעיל היחיד — קודם מנו בעלים אחר")
-        self.deactivate(u["email"])
+        self.deactivate(u["email"], actor=actor or "cli")
         return {"name": u["name"], "was_active": bool(u["active"])}
 
     def is_owner(self, token: str) -> bool:
@@ -257,7 +273,13 @@ class Users:
     def logout(self, token: str) -> None:
         self.db.x("DELETE FROM sessions WHERE token_hash=?", (token_hash(token),))
 
-    def deactivate(self, email: str) -> None:
+    def deactivate(self, email: str, actor: str = "cli") -> None:
+        """critic סבב 180: לא משביתים את בעל העסק הפעיל האחרון (כמו set_role) — אחרת אף אחד לא משחרר עצירת שחזור."""
+        u = self.db.one("SELECT id, role, active FROM users WHERE email=?", (email.strip().lower(),))
+        if u is not None and self._last_active_owner(u):
+            raise ValueError("זה בעל העסק הפעיל היחיד — קודם מנו בעלים אחר")
+        if u is not None and u["active"]:
+            self._audit(actor, "team_deactivated", {"user": u["id"]})
         self.db.x("UPDATE users SET active=0 WHERE email=?", (email.strip().lower(),))
         self.db.x("DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE email=?)",
                   (email.strip().lower(),))

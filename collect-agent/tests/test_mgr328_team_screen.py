@@ -127,3 +127,35 @@ def test_shared_token_sees_team_without_login(svc, monkeypatch):
     oid = r.json()["users"][0]["id"]
     r = api.post(f"/team/{oid}/deactivate", headers={"Authorization": f"Bearer {OWNER_TOKEN}"})
     assert r.status_code == 422 and "היחיד" in r.json()["detail"]
+
+
+# ---------- critic סבב 180: השבתת הבעלים ⇒ קידום שקט של עובד בעלייה הבאה ----------
+def test_cli_deactivate_last_owner_refused_and_no_bootstrap_on_restart(svc):
+    u = Users(svc.db, svc.clock)
+    u.create("owner@biz.example", "בעל העסק", PW)
+    u.create("staff@biz.example", "דנה", PW)
+    with pytest.raises(ValueError):
+        u.deactivate("owner@biz.example")
+    # גם אם הגיעו למצב בלי בעלים פעיל (DB ישן/עריכה ידנית) — עלייה רגילה לא מקדמת אף אחד בשקט
+    svc.db.x("UPDATE users SET active=0 WHERE email='owner@biz.example'")
+    Users(svc.db, svc.clock)
+    assert svc.db.one("SELECT role FROM users WHERE email='staff@biz.example'")["role"] == "staff"
+    assert svc.db.one("SELECT 1 FROM audit WHERE action='owner_bootstrap'") is None
+
+
+def test_cli_role_change_and_bootstrap_are_audited(svc):
+    u = Users(svc.db, svc.clock)
+    u.create("owner@biz.example", "בעל העסק", PW)
+    u.create("staff@biz.example", "דנה", PW)
+    u.set_role("staff@biz.example", "owner")
+    a = svc.db.one("SELECT actor, detail FROM audit WHERE action='team_role_changed'")
+    assert a["actor"] == "cli" and "@" not in a["detail"] and '"to": "owner"' in a["detail"]
+    u.deactivate("staff@biz.example")
+    assert svc.db.one("SELECT actor FROM audit WHERE action='team_deactivated'")["actor"] == "cli"
+    # מיגרציה מ-DB ישן (בלי העמודה) ⇒ הבוטסטרפ מתועד
+    c = svc.db.conn
+    c.executescript("""CREATE TABLE u2 AS SELECT id,email,name,pw_hash,totp_secret,totp_last,active,fails,
+        locked_until,created_at FROM users; DROP TABLE users; ALTER TABLE u2 RENAME TO users;""")
+    c.commit()
+    Users(svc.db, svc.clock)
+    assert svc.db.one("SELECT actor FROM audit WHERE action='owner_bootstrap'")["actor"] == "system"
