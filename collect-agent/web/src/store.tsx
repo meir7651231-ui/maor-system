@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { DEMO_TODAY, demoBusiness, demoCustomers, demoInvoices } from './data/demo.ts';
 import type { Business, Channel, Customer, Invoice, Step } from './lib/domain.ts';
 import { needsReminder } from './lib/stats.ts';
-import { api, apiEvents, loginRequest, logoutRequest, AuthError, detectBackend, fromDashboard, type Dashboard, type Health, type Draft, type Me, type OutMsg, type PendingRef, type Plan } from './api.ts';
+import { api, apiEvents, loginRequest, logoutRequest, AuthError, detectBackend, fromDashboard, type Dashboard, type RestoreHold, type Health, type Draft, type Me, type OutMsg, type PendingRef, type Plan } from './api.ts';
 import { TOKEN_KEY, readToken } from './lib/auth.ts';
 const sessionStore = () => { try { return sessionStorage; } catch { return undefined; } };
 import type { WeekPoint } from './lib/series.ts';
@@ -35,6 +35,8 @@ interface Ctx {
   series: WeekPoint[] | null;
   /** /dashboard send_window — לבאנר פקיעת לוח החגים */
   sendWindow: Dashboard['send_window'] | null;
+  /** critic סבב 177: עצירת שליחה אחרי שחזור (null = אין) — לבאנר החידוש */
+  restoreHold: RestoreHold | null;
   /** הדבקת קוד גישה (מצב locked) ⇒ ניסיון חיבור מחדש. */
   unlock: (token: string) => Promise<UnlockResult>;
   /** הפעלה 142: רענון מהשרת נכשל באמצע עבודה (מצב חי) ⇒ מה שמוצג אולי כבר לא עדכני. מתאפס ברענון מוצלח. */
@@ -81,6 +83,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [totals, setTotals] = useState<Dashboard['totals'] | null>(null);
   const [series, setSeries] = useState<WeekPoint[] | null>(null);
   const [sendWindow, setSendWindow] = useState<Dashboard['send_window'] | null>(null);
+  const [restoreHold, setRestoreHold] = useState<RestoreHold | null>(null);
   const [outbox, setOutbox] = useState<OutMsg[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [drafts, setDrafts] = useState<Draft[]>([]);
@@ -111,7 +114,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // הפעלה 145: סשן שפג ⇒ מה שהוקלד בהגדרות נשמר בזיכרון ויוחזר אחרי כניסה; יציאה יזומה מוחקת אותו
     if (note) settingsDraft.keep = settingsDraft.value !== null; else { settingsDraft.value = null; settingsDraft.keep = false; settingsDraft.owner = null; }
     closeToast();   // הפעלה 151: הודעת כשל עם שם לקוח או סכום לא נשארת מעל מסך הכניסה
-    setMe(null); setCustomers([]); setInvoices([]); setPendingBy(new Map()); setMergedBy(new Map()); setTotals(null); setSeries(null); setSendWindow(null);
+    setMe(null); setCustomers([]); setInvoices([]); setPendingBy(new Map()); setMergedBy(new Map()); setTotals(null); setSeries(null); setSendWindow(null); setRestoreHold(null);
     setOutbox([]); setPlans([]); setDrafts([]); setNotices([]);
     setAuthNote(note); setStale(false); setMode('locked');
   }, [closeToast]);
@@ -131,7 +134,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setMe(who);
     const m = fromDashboard(d, p);
     setCustomers(m.customers); setInvoices(m.invoices); setPendingBy(m.pendingBy); setMergedBy(m.mergedBy); setToday(m.today);
-    setTotals(d.totals); setSeries(d.series ?? null); setSendWindow(d.send_window ?? null); setOutbox(o.messages); setPlans(pl); setDrafts(dr); setNotices(systemNotices(ib));
+    setTotals(d.totals); setSeries(d.series ?? null); setSendWindow(d.send_window ?? null); setRestoreHold(d.restore_hold ?? null); setOutbox(o.messages); setPlans(pl); setDrafts(dr); setNotices(systemNotices(ib));
     // שם העסק בחי = ההגדרות בשרת (GET /settings). גבי מכירות, ערכת בטא: קודם נלקח רק מקידומת הודעות ה-SMS,
     // ולפני האישור הראשון (outbox ריק) נשאר שם עסק הדמו («סטודיו לוטם עיצוב», «בוקר טוב, לוטם») — עסק בבטא
     // היה רואה שם של עסק אחר. נפילה לקידומת ההודעות רק כשההגדרות לא זמינות.
@@ -208,7 +211,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const live = mode === 'live';
     const customerOf = (id: string) => customers.find(c => c.id === id)!;
     return {
-      mode, health, today, business, setBusiness, customers, invoices, totals, series, sendWindow, outbox,
+      mode, health, today, business, setBusiness, customers, invoices, totals, series, sendWindow, restoreHold, outbox,
       unlock: async (token: string) => {
         try { sessionStorage.setItem(TOKEN_KEY, token.trim()); } catch { /* פרטי/חסום */ }
         try { await reload(); setAuthNote(null); setMode('live'); return 'ok'; } catch (e) {
@@ -262,7 +265,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       markPaid: id => { setInvoices(l => l.map(i => i.id === id ? { ...i, status: 'paid' } : i)); showToast('סומן כשולם 🎉'); },
     };
-  }, [mode, health, today, business, customers, invoices, pendingBy, mergedBy, totals, series, sendWindow, outbox, plans, drafts, notices, reload, toast, showToast, showFail, toastSticky, closeToast, me, authNote, stale, dataSeq, dropSession, connect]);
+  }, [mode, health, today, business, customers, invoices, pendingBy, mergedBy, totals, series, sendWindow, restoreHold, outbox, plans, drafts, notices, reload, toast, showToast, showFail, toastSticky, closeToast, me, authNote, stale, dataSeq, dropSession, connect]);
   return <C.Provider value={value}>{children}</C.Provider>;
 }
 export const useApp = () => {

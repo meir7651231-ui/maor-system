@@ -190,6 +190,8 @@ jobs:
         run: TZ=UTC node e2e/notices.mjs
       - name: "e2e מרשם בקשות עיון/מחיקה (critic 172ב) — קישור מהכרטיס, סגירה רק עם תיעוד, מול DEMO=1"
         run: TZ=UTC node e2e/dsr.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e צוות ותפקידים בהגדרות (מנהל 328+330) — הבעלים האחרון מוגן; מינוי⇒הורדה⇒השבתה⇒הפעלה מחדש בלחיצה כפולה ובשרת; 390px, AA, מול DEMO=1"
+        run: TZ=UTC node e2e/team.mjs "$RUNNER_TEMP/shots"
       - name: e2e ערכת בטא — יום ראשון לכל ענף (מספרה/מוסך/קליניקה/רו״ח) מול gi_mock
         run: TZ=UTC node e2e/beta.mjs
       - name: e2e תסריט ההדגמה של מכירות (sales/demo-script.md, 6 שלבים) מול DEMO=1
@@ -200,6 +202,10 @@ jobs:
         run: TZ=UTC node e2e/ui-openlist.mjs "$RUNNER_TEMP/shots"
       - name: "e2e הדשבורד הפשוט (/ui) — הודעות מלקוחות: ציטוט, עריכה ⇒ אישור, סגירה בלי מענה (critic 95), «הסר» של בעל העסק ⇒ אין תזכורות אחרי (critic 97) מול DEMO=1"
         run: TZ=UTC node e2e/ui-messages.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e הדשבורד הפשוט (/ui) — מרשם בקשות עיון/תיקון/מחיקה: סגירה עם תיעוד ≥5 ⇒ done בשרת (מנהל 324) מול DEMO=1"
+        run: TZ=UTC node e2e/ui-dsr.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e עצירת שליחה אחרי שחזור (critic 177) — באנר /app/ + כרטיס בלי «טופל» + שחרור מתועד ב-/ui ⇒ hold=null (מנהל 325)"
+        run: TZ=UTC node e2e/ui-restore-hold.mjs "$RUNNER_TEMP/shots"
       - name: "e2e הדשבורד הפשוט (/ui) — «טעות בשם בחשבונית, תתקנו ואשלם» ⇒ פעולת תיקון-חשבונית בכרטיס, מחלוקת סכום דחופה, מלכודת בלי התראת שווא מול DEMO=1"
         run: TZ=UTC node e2e/ui-invoice-fix.mjs "$RUNNER_TEMP/shots"
       - name: "e2e המסך המעוצב (/app/#/inbox) — פעולת תיקון-חשבונית (SMS+מייל), «השם שלי בחשבונית שגוי» = דחוף+תיקון, מחלוקת סכום בלי תיקון, מלכודת, אישור, מובייל מול DEMO=1"

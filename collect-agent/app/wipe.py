@@ -3,6 +3,7 @@
 מוחק כל מידע אישי ועסקי: לקוחות, חשבוניות, תזכורות, הודעות, טיוטות, שיחות, טוקני הסרה,
 הגדרות, כספת סודות, עובדים וסשנים. נשארים בכוונה (ללא PII, ראו DPA §11):
   * ``suppressions`` — גיבוב בלבד; מי שביקש הסרה לא יקבל הודעה אם המערכת תעלה שוב
+    (וכך גם קובץ ``OPTOUT_LEDGER`` מחוץ ל-DB — critic 175: אותם גיבובים, מוחל אחרי שחזור גיבוי)
   * ``audit`` ו-``access_log`` — הוספה-בלבד (טריגרים), תוכן ללא PII; נרשמת שורת ``business_wipe``
 
 אחרי המחיקה: VACUUM (דורס דפים פנויים) ו-wal_checkpoint. גיבויים מוצפנים נמחקים
@@ -28,7 +29,7 @@ CONFIRM = "WIPE"
 _TABLES = ("sessions", "login_locks", "users", "link_tokens", "drafts", "conversations", "messages",
            "reminder_invoices", "reminders", "plans", "dsr", "invoices", "customers", "business_settings",
            "business_secrets", "orbit_nonces", "orbit_entitlements", "orbit_links",
-           "webhook_dedupe")
+           "webhook_dedupe", "morning_runs", "restore_hold")
 _DELETE = {t: f"DELETE FROM {t}" for t in _TABLES}  # noqa: S608  # nosec B608 — שמות קבועים מהרשימה למעלה
 _COUNT = {t: f"SELECT COUNT(*) FROM {t}" for t in _TABLES}  # noqa: S608  # nosec B608
 

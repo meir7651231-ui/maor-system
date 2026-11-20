@@ -10,8 +10,10 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
+
+from .policy import TZ
 
 DUE_DAYS = 30
 WARN_DAYS = 5
@@ -31,17 +33,52 @@ CREATE TABLE IF NOT EXISTS dsr (
 # מזהים בקשה מפורשת לפי החוק, לא כל "מי אתם" או "תפסיקו" (אלה הסרה / מי זה — מסלולים אחרים)
 # critic 171א: גם «איזה מידע יש לכם עליי», «what information do you have about me», «מחקו/מחיקה של המידע»,
 # «delete my information», «erase my details» — ניסוחים נפוצים שלא נרשמו (ולכן לא רץ מועד 30 יום)
+# מנהל 331 (סט QA #20, 9 בקשות שלא נרשמו ⇒ המועד החוקי לא רץ): הלקוחות כותבים בציווי ולא בשם-הפעולה —
+# «שלחו לי את כל המידע שיש לכם עליי», «מחקו בבקשה את הפרטים שלי», «תקנו את הפרטים שלי», «Send me all the data you
+# hold about me», «erase everything you have on me», «Delete my phone number», «forget me — remove me from your
+# system». עוגן «עליי/about me» נדרש לעיון (אחרת «שלחו לי את פרטי התשלום» היה נרשם); «מהרשימה/from your list» =
+# הסרה, לא מחיקה. שלילה חלה עכשיו על **שלושת** הסוגים («אני לא מבקשת לעיין», «אין צורך לתקן» נרשמו).
+_ABOUT_ME_HE = r"(?:עליי|עלי|לגביי|אודותיי|אודותי)"
+_HOLD_HE = r"(?:ש)?(?:יש\s+לכם|אתם\s+מחזיקים|אתם\s+שומרים|שמור(?:ים)?\s+אצלכם|נשמר(?:ו)?\s+אצלכם)"
+_DATA_EN = r"(?:personal\s+)?(?:information|data|info|details|records)"
+_HOLD_EN = r"(?:that\s+|which\s+)?(?:you\s+)?(?:have|hold|keep|store|have\s+stored|are\s+holding|collected)"
+_FILL_REQ_HE = r"(?:(?:בבקשה|נא|כבר|מיד|מייד|עכשיו|לי|לנו)\s+)*"
 _ACCESS = re.compile(r"(לעיין|עיון)\s+(ב|על\s+)?(כל\s+)?(ה)?(מידע|פרטים|נתונים)|סעיף\s*13|"
                      r"(מה|איזה|אילו)\s+(ה)?(מידע|פרטים|נתונים)\s+(ש)?יש\s+לכם\s+(עליי|עלי|לגביי)|"
                      r"אילו\s+פרטים\s+(ש)?יש\s+לכם|"
+                     r"(מידע|פרטים|נתונים)\s+" + _HOLD_HE + r"\s+" + _ABOUT_ME_HE + r"|"
                      r"\b(access|copy of)\s+(my|the)\s+(personal\s+)?data\b|\bsubject access\b|"
                      r"\bwhat\s+(personal\s+)?(information|data|info|details)\s+do\s+you\s+(have|hold|keep)"
-                     r"\s+(about|on)\s+me\b", re.I)
+                     r"\s+(about|on)\s+me\b|"
+                     r"\b" + _DATA_EN + r"\s+" + _HOLD_EN + r"\s+(?:about|on)\s+me\b|"
+                     # מנהל 333 (מבקר 183 🟡): ניסוח יומיומי — «מה אתם יודעים עליי», «what do you know about me»,
+                     # «show me my data». עוגן «עליי/about me» או «my data» נשמר («show me my invoice» לא נרשם).
+                     r"(?:מה|כמה|איזה\s+דברים)\s+(?:אתם|את|אתה|אתן)\s+"
+                     r"(?:יודעים|יודעת|יודע|יודעות)\s+" + _ABOUT_ME_HE + r"|"
+                     r"\bwhat\s+(?:else\s+)?(?:do|did)\s+(?:you|u|ya)\s+(?:guys\s+)?(?:know|have|hold|keep|store)"
+                     r"\s+(?:about|on)\s+me\b|"
+                     r"\b(?:show|send|give|email)\s+me\s+(?:a\s+copy\s+of\s+)?(?:all\s+)?(?:of\s+)?my\s+"
+                     r"(?:personal\s+)?(?:data|information|info|records)\b|"
+                     r"(?:תראו|תראי|הראו|שלחו|תשלחו|תשלחי)\s+" + _FILL_REQ_HE +
+                     r"(?:את\s+)?(?:כל\s+)?(?:ה)?(?:מידע|נתונים)\s+"
+                     r"(?:שלי|" + _ABOUT_ME_HE + r")", re.I)
 _CORRECT = re.compile(r"(לתקן|תיקון)\s+(את\s+)?(ה)?(מידע|פרטים|נתונים)|סעיף\s*14|"
-                      r"\b(correct|rectify)\s+(my|the)\s+(personal\s+)?(data|details)\b", re.I)
-_DELETE = re.compile(r"(למחוק|מחיקת|מחיקה\s+של|תמחקו|מחקו)\s+(את\s+)?(כל\s+)?(ה)?(מידע|פרטים|נתונים)"
+                      r"(תקנו|תתקנו|תקני|תתקני|עדכנו|תעדכנו)\s+" + _FILL_REQ_HE + r"(את\s+)?(ה)?(מידע|פרטים|נתונים)"
+                      r"(\s+שלי|\s+" + _ABOUT_ME_HE + r")?|"
+                      r"\b(correct|rectify)\s+(my|the)\s+(personal\s+)?(data|details)\b|"
+                      r"\b(correct|rectify)\s+my\s+(personal\s+)?(data|details|information|info|records?|"
+                      r"address(\s+details)?|name)\b", re.I)
+_DELETE = re.compile(r"(למחוק|מחיקת|מחיקה\s+של|תמחקו|מחקו|תמחקי|תמחק)\s+" + _FILL_REQ_HE +
+                     r"(את\s+)?(כל\s+)?(ה)?(מידע|פרטים|נתונים)"
                      r"(\s+שלי)?(\s+מה?מאגר)?|"
-                     r"\b(delete|erase)\s+(all\s+)?(of\s+)?(my\s+)?(personal\s+)?(data|information|info|details)\b",
+                     r"(למחוק|תמחקו|מחקו|תמחקי|תמחק)\s+" + _FILL_REQ_HE + r"אותי\s+(לגמרי\s+)?מה?(מאגר|מערכת|רשומות)|"
+                     r"\b(delete|erase)\s+(all\s+)?(of\s+)?(my\s+)?(personal\s+)?(data|information|info|details)\b|"
+                     r"\b(delete|erase|wipe|purge|remove)\s+(all\s+)?(of\s+)?my\s+(phone\s+number|number|email"
+                     r"(\s+address)?|records)\s+(and\s+\w+\s+)?from\s+your\s+(records|system|database|files)\b|"
+                     r"\b(delete|erase|wipe|purge|remove)\s+(everything|all)\s+(that\s+)?(you\s+)?(have|hold|keep|store)"
+                     r"\s+(on|about)\s+me\b|"
+                     r"\bremove\s+me\s+(completely\s+)?from\s+your\s+(system|database|records|files)\b|"
+                     r"\bforget\s+(about\s+)?me\b(?!\s+(?:not|for|until|till)\b)|\bright\s+to\s+(be\s+forgotten|erasure)\b",
                      re.I)
 
 
@@ -73,7 +110,20 @@ def _hit(rx: re.Pattern, t: str, negation: bool) -> bool:
 def detect(text: str) -> list[str]:
     t = text or ""
     return [k for k, rx in (("access", _ACCESS), ("correction", _CORRECT), ("deletion", _DELETE))
-            if _hit(rx, t, k == "deletion")]
+            if _hit(rx, t, True)]   # מנהל 331: שלילה לכל הסוגים («לא מבקשת לעיין», «אין צורך לתקן»)
+
+
+def _local_day(dt: datetime) -> date:
+    """יום לוח בשעון ישראל (המסך מציג **תאריך** יעד — הספירה בימי לוח, לא ביחידות 24 שעות; critic 174)."""
+    return (dt.astimezone(TZ) if dt.tzinfo else dt).date()
+
+
+def days_left(due: datetime, now: datetime) -> int:
+    """0 = יום היעד עצמו; שלילי = באיחור (רק אחרי יום היעד). אחד למרשם, להתראות ולסימון איחור בסגירה."""
+    return (_local_day(due) - _local_day(now)).days
+
+
+_days_left = days_left
 
 
 def _iso(dt: datetime) -> str:
@@ -123,7 +173,8 @@ def close_request(svc: Any, dsr_id: int, note: str, actor: str = "owner") -> dic
         raise ValueError("סגירת בקשה דורשת תיעוד קצר (מה נמסר/תוקן/נמחק ואיך)")
     svc.db.x("UPDATE dsr SET status='done', done_at=?, note=? WHERE id=?",
              (_iso(svc.clock()), note.strip()[:500], dsr_id))
-    svc.audit(actor, "dsr_closed", {"dsr": dsr_id, "late": svc.clock() > datetime.fromisoformat(r["due_at"])})
+    svc.audit(actor, "dsr_closed", {"dsr": dsr_id,
+                                    "late": days_left(datetime.fromisoformat(r["due_at"]), svc.clock()) < 0})
     return dict(svc.db.one("SELECT * FROM dsr WHERE id=?", (dsr_id,)))
 
 
@@ -133,7 +184,7 @@ def listing(svc: Any) -> list[dict]:
     out = []
     for r in svc.db.q("SELECT d.*, c.name customer FROM dsr d LEFT JOIN customers c ON c.id=d.customer_id "
                       "ORDER BY d.status='done', d.due_at"):
-        days = (datetime.fromisoformat(r["due_at"]) - now).days
+        days = days_left(datetime.fromisoformat(r["due_at"]), now)
         out.append({**dict(r), "days_left": days if r["status"] == "open" else None,
                     "overdue": r["status"] == "open" and days < 0})
     return out
@@ -146,13 +197,17 @@ def sweep(svc: Any) -> int:
     n = 0
     for r in svc.db.q("SELECT * FROM dsr WHERE status='open'"):
         due = datetime.fromisoformat(r["due_at"])
-        stage = "late" if now > due else ("soon" if due - now <= timedelta(days=WARN_DAYS) else "")
+        left = days_left(due, now)   # critic 174: אותה ספירה כמו המרשם — «באיחור» רק אחרי יום היעד
+        stage = "late" if left < 0 else ("soon" if left <= WARN_DAYS else "")
         if not stage or stage in r["warned"].split(","):
             continue
-        msg = (f"⚠️ בקשת {KIND_HE[r['kind']]} עברה את המועד ({due.date().isoformat()})."
-               if stage == "late" else
-               f"נותרו {max((due - now).days, 0)} ימים להשיב לבקשת {KIND_HE[r['kind']]} "
-               f"(עד {due.date().isoformat()}).")
+        kind_he, due_iso = KIND_HE[r["kind"]], _local_day(due).isoformat()
+        if stage == "late":
+            msg = f"⚠️ בקשת {kind_he} עברה את המועד ({due_iso})."
+        elif left == 0:
+            msg = f"היום היום האחרון להשיב לבקשת {kind_he} (עד {due_iso})."
+        else:
+            msg = f"נותרו {left} ימים להשיב לבקשת {kind_he} (עד {due_iso})."
         _owner_alert(svc, r["customer_id"], f"dsr:{r['id']}:{stage}", msg)
         svc.db.x("UPDATE dsr SET warned=? WHERE id=?",
                  (",".join(x for x in (r["warned"], stage) if x), r["id"]))

@@ -15,7 +15,9 @@ def test_secondary_marked_in_payload_intent_unchanged(svc):
     svc.sync()
     svc.inbound("sms", "0501234567", MIXED)
     m = svc.db.one("SELECT intent, payload FROM messages WHERE customer_id=1 AND direction='in'")
-    assert m["intent"] != "wrong_person" and m["payload"] == compliance.THIRD_PARTY_PAYLOAD
+    # הכרעת ראש צוות 19.11: «wrong number, stop» ⇒ הכוונה הראשית היא כבר wrong_person (הסרה משנית). ההגנה
+    # שהבדיקה שומרת — תוכן הזר מסומן צד-שלישי ולא נמסר בייצוא — נשארת.
+    assert m["intent"] in ("wrong_person", "opt_out") and m["payload"] == compliance.THIRD_PARTY_PAYLOAD
     rows = [x for x in svc.customer_data_export(1)["messages"] if x["direction"] == "in"]
     assert len(rows) == 1 and "אינם של הלקוח" in rows[0]["body"] and "payload" not in rows[0]
 

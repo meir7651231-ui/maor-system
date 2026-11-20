@@ -103,6 +103,7 @@ def test_session_expiry_logout_and_deactivate(env):
     assert api.get("/dashboard", headers=h).status_code == 401
     clock.now += timedelta(minutes=1)
     tok2 = _login(api, reg, clock, shift=30).json()["token"]
+    users.create("boss@example.co.il", "בעלים", PW, role="owner")   # critic 180: לא משביתים את הבעלים האחרון
     users.deactivate("dana@example.co.il")
     assert api.get("/dashboard", headers={"Authorization": f"Bearer {tok2}"}).status_code == 401
     clock.now += timedelta(hours=13)
@@ -263,6 +264,7 @@ def test_real_data_requires_per_employee_login(monkeypatch, tmp_path):
         create_app(owner_token=OWNER_TOKEN)
     monkeypatch.setenv("REQUIRE_USER_LOGIN", "1")
     monkeypatch.setenv("ACK_PLAINTEXT_DB", "1")  # שער 5 נבדק בנפרד (סבב 22)
+    monkeypatch.setenv("ACK_NO_OPTOUT_LEDGER", "1")  # שער 5א נבדק בנפרד (סבב 176)
     create_app(owner_token=OWNER_TOKEN)
 
 
@@ -277,6 +279,7 @@ def test_real_data_on_plaintext_db_fails_closed(monkeypatch, tmp_path):
     monkeypatch.delenv("DEMO", raising=False)
     monkeypatch.delenv("DB_ENCRYPTION", raising=False)
     monkeypatch.delenv("ACK_PLAINTEXT_DB", raising=False)
+    monkeypatch.setenv("ACK_NO_OPTOUT_LEDGER", "1")  # שער 5א נבדק בנפרד (סבב 176)
     monkeypatch.setenv("REQUIRE_USER_LOGIN", "1")
     monkeypatch.setenv("REAL_DATA_ALLOWED", "1")
     monkeypatch.setenv("DB_PATH", str(tmp_path / "real.sqlite3"))

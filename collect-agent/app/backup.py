@@ -19,10 +19,10 @@ import base64
 import os
 import sqlite3
 import sys
-from datetime import UTC
+from datetime import UTC, datetime
 from pathlib import Path
 
-from . import dbcrypt
+from . import dbcrypt, restore_guard
 from .secretbox import SecretBox, SecretError
 
 CONTEXT = "backup:db"
@@ -83,9 +83,15 @@ def create_backup(conn: sqlite3.Connection, out: str | Path, box: SecretBox) -> 
     return out
 
 
-def restore_backup(src: str | Path, dest: str | Path, box: SecretBox, *, env=None) -> Path:
-    """שחזור לנתיב חדש. ``DB_ENCRYPTION=sqlcipher`` ⇒ היעד נכתב מוצפן ומאומת."""
+def restore_backup(src: str | Path, dest: str | Path, box: SecretBox, *, env=None,
+                   ledger: str | Path | None = None, report: dict | None = None) -> Path:
+    """שחזור לנתיב חדש. ``DB_ENCRYPTION=sqlcipher`` ⇒ היעד נכתב מוצפן ומאומת.
+
+    critic 175: יומן ההסרות (``ledger`` או ``OPTOUT_LEDGER``) מוחל מחדש על היעד, והיעד מסומן ``restore_hold``
+    ⇒ שליחה ללקוחות עצורה עד שבעל העסק מאשר שהחיל מחדש הסרות/מחיקות מאז הגיבוי. ``report`` מתמלא בסיכום."""
     dest = Path(dest)
+    e = os.environ if env is None else env
+    ledger = ledger if ledger is not None else (e.get("OPTOUT_LEDGER", "").strip() or None)
     if dest.exists():
         raise SecretError("יעד השחזור קיים — לא דורסים (מחקו ידנית אחרי בדיקה)")
     enc = dbcrypt.mode(env) == dbcrypt.SQLCIPHER
@@ -106,6 +112,12 @@ def restore_backup(src: str | Path, dest: str | Path, box: SecretBox, *, env=Non
                 if out.execute("PRAGMA integrity_check").fetchone()[0] != "ok" or \
                         dbcrypt.table_counts(out) != dbcrypt.table_counts(mem):
                     raise SecretError("שחזור מוצפן לא תואם לגיבוי")
+            rows = restore_guard.ledger_read(ledger) if ledger else []
+            applied = restore_guard.ledger_apply(out, rows)
+            restore_guard.mark_restored(out, at=datetime.now(UTC).isoformat(timespec="seconds"), source=str(src),
+                                        ledger_rows=len(rows), applied=applied)
+            if report is not None:
+                report.update(ledger=bool(ledger), ledger_rows=len(rows), reapplied=applied)
         finally:
             out.close()
         if enc:
@@ -233,7 +245,14 @@ def main(argv: list[str]) -> int:
         finally:
             conn.close()
     else:
-        restore_backup(argv[2], argv[3], box)
+        rep: dict = {}
+        restore_backup(argv[2], argv[3], box, report=rep)
+        # critic 175: לא «ok» סתמי — השחזור עוצר שליחה עד אישור, ואומר אם הסרות שאחרי הגיבוי הוחזרו
+        print("ok: שוחזר. השליחה ללקוחות עצורה עד אישור בעל העסק (/app/).")
+        print(f"  יומן הסרות: {rep['ledger_rows']} שורות, {rep['reapplied']} הסרות הוחזרו." if rep.get("ledger") else
+              "  ⚠️ אין OPTOUT_LEDGER — הסרות שהתבקשו אחרי הגיבוי לא הוחזרו. יש להחיל אותן ידנית לפני החידוש.",
+              file=sys.stdout if rep.get("ledger") else sys.stderr)
+        return 0
     print("ok")
     return 0
 

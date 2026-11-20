@@ -5,6 +5,7 @@
 import { createRequire } from 'node:module';
 import { randomBytes } from 'node:crypto';
 import { srvStdio, srvLogLevel, waitHealthy, launchChromium, spawnServer, assertPortFree } from './lib.mjs';
+import { scan } from './contrast-lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = new URL('../..', import.meta.url).pathname;
 const out = process.argv[2];
@@ -48,6 +49,9 @@ try {
     ok(await btn.isDisabled(), `${name}: אפשר לסגור בלי תיעוד`);
     await rows.first().getByTestId('dsr-note').fill('abcd');
     ok(await btn.isDisabled(), `${name}: אפשר לסגור עם 4 תווים`);
+    // גבי עיצוב: ניגודיות AA על המסך עם שורות במרשם (בסריקה הכללית אין בקשות בדמו)
+    const { fails } = await scan(p);
+    ok(!fails.length, `${name}: ניגודיות < AA במסך המרשם: ` + JSON.stringify(fails.slice(0, 3)));
     if (out) await reg.screenshot({ path: `${out}/dsr-register-${name}.png` });
     await rows.first().getByTestId('dsr-note').fill('נשלח ללקוח קובץ הייצוא במייל');
     await btn.click();

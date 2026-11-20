@@ -1347,7 +1347,7 @@ test('כרטיס ממייל לא מאומת מסומן באזהרה; מאומת 
   for (const id of [3, 4, 5]) { assert.ok(!by(id).unverified, String(id)); assert.ok(!by(id).body.includes('SPF'), String(id)); }
 });
 
-import { dsrView, dsrCanClose, dsrSorted, DSR_NO_CUSTOMER, type DsrRow } from '../src/lib/dsr.ts';
+import { dsrView, dsrCanClose, dsrSorted, DSR_NO_CUSTOMER, DSR_ANON_CUSTOMER, type DsrRow } from '../src/lib/dsr.ts';
 test('critic 172ב: מרשם DSR — ימים שנותרו/איחור/טופל, בלי לקוח ⇒ «כתובת משותפת», סגירה רק עם תיעוד ≥5', () => {
   const base: DsrRow = { id: 1, customer_id: 3, customer: 'דנה', kind: 'deletion', channel: 'sms', received_at: '2026-11-01T10:00:00',
     due_at: '2026-12-01T10:00:00', status: 'open', done_at: null, note: '', days_left: 12, overdue: false };
@@ -1368,6 +1368,13 @@ test('critic 172ב: מרשם DSR — ימים שנותרו/איחור/טופל, 
   assert.deepEqual(rows.map(r => r.id), [3, 2, 4, 1]);
 });
 
+test('critic 174 (נלווה): לקוח שהותמם (customer_id בלי שם) ≠ «כתובת משותפת — לשייך»', () => {
+  const r = { id: 3, customer_id: 7, customer: null, kind: 'deletion', channel: 'sms', received_at: '2026-11-08T10:00:00',
+    due_at: '2026-12-08T10:00:00', status: 'open', done_at: null, note: '', days_left: 9, overdue: false } as DsrRow;
+  const who = dsrView(r).who;
+  assert.notEqual(who, DSR_NO_CUSTOMER); assert.ok(who.startsWith(DSR_ANON_CUSTOMER) && who.includes('#7'));
+  assert.equal(dsrView({ ...r, customer_id: null }).who, DSR_NO_CUSTOMER);
+});
 test('critic 172ב: מסך המרשם מחובר — GET /dsr, POST /dsr/{id}/done, ב«תשובות לקוחות», וקישור מכרטיס ה-dsr', () => {
   const api = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
   assert.match(api, /j<DsrRow\[\]>\('\/dsr'\)/); assert.match(api, /\/dsr\/\$\{id\}\/done/);
@@ -1393,4 +1400,68 @@ test('מנהל 322: refresh_failed / refresh_page_cap — תווית בטבלה 
     { ...base, invoice_id: 5, last_reminder: lr('approved', null) },
   ] } as never, []);
   assert.deepEqual(m.invoices.map(i => i.note), [REFRESH_LABEL.refresh_page_cap, REFRESH_LABEL.refresh_failed, undefined, 'במחלוקת', undefined]);
+});
+
+test('critic 175: התראת restore_hold מוצגת עם כותרת ייעודית', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const n = systemNotices([{ id: 3, customer_id: null, direction: 'system', channel: 'owner', body: '🛑 שוחזר',
+    intent: 'restore_hold', created_at: '2026-11-19T09:00:00+02:00' }]);
+  assert.equal(n[0].icon, '🛑');
+  assert.match(n[0].title, /שוחזרה מגיבוי/);
+});
+
+test('מנהל 323: התראת refresh_stuck (תזכורות מאושרות תקועות >48 שעות) — כותרת ייעודית ואזהרה, לא «הודעה מגבי»', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const n = systemNotices([{ id: 4, customer_id: null, direction: 'system', channel: 'owner', body: '2 תזכורות מאושרות לא יוצאות',
+    intent: 'refresh_stuck', created_at: '2026-11-19T09:00:00+02:00' }]);
+  assert.equal(n[0].tone, 'warn');
+  assert.match(n[0].title, /לא יוצאות/);
+});
+
+test('critic 177: עצירת שחזור — סף תיעוד, בעל העסק בלבד, טקסט בשעון ישראל', async () => {
+  const { holdCanRelease, holdOwnerOnly, holdText, HOLD_NOTE_MIN } = await import('../src/lib/restoreHold.ts');
+  assert.equal(HOLD_NOTE_MIN, 5);
+  assert.ok(!holdCanRelease('    abcd  ')); assert.ok(holdCanRelease('abcde'));
+  assert.ok(holdOwnerOnly({ actor: 'user:2', kind: 'user', name: 'עובד' }));
+  assert.ok(!holdOwnerOnly({ actor: 'owner', kind: 'owner', name: '' })); assert.ok(!holdOwnerOnly(null));
+  // critic 179: בבטא הטוקן המשותף סגור — עובד מחובר בתפקיד בעלים משחרר
+  assert.ok(!holdOwnerOnly({ actor: 'user:1', kind: 'user', name: 'בעל העסק', owner: true }));
+  assert.ok(holdOwnerOnly({ actor: 'user:2', kind: 'user', name: 'עובד', owner: false }));
+  // 22:30Z ב-19.11 = 00:30 ב-20.11 בישראל
+  const t = holdText({ restored_at: '2026-11-19T22:30:00+00:00', ledger_applied: 3 });
+  assert.match(t, /שוחזר ב-20\.11\.2026/); assert.match(t, /3 הסרות/);
+  assert.doesNotMatch(holdText({ restored_at: '2026-11-19T10:00:00+00:00', ledger_applied: 0 }), /הסרות שנוספו/);
+});
+
+import { confirmText, rowActions, teamVisible, type Team } from '../src/lib/team.ts';
+
+test('מנהל 328 · צוות ותפקידים: נראות לבעלים בלבד', () => {
+  assert.equal(teamVisible(null), false);
+  assert.equal(teamVisible({ actor: 'owner', kind: 'owner', name: '' }), true);
+  assert.equal(teamVisible({ actor: 'user:2', kind: 'user', name: 'דנה', owner: false }), false);
+  assert.equal(teamVisible({ actor: 'user:1', kind: 'user', name: 'א', owner: true }), true);
+});
+
+test('מנהל 328 · פעולות לשורה: הבעלים האחרון מוגן, לא משביתים את עצמכם, מושבת בלי פעולות', () => {
+  const t: Team = { me: 1, users: [
+    { id: 1, name: 'א', email: 'a@x', role: 'owner', active: true, created_at: '' },
+    { id: 2, name: 'דנה', email: 'b@x', role: 'staff', active: true, created_at: '' },
+    { id: 3, name: 'ישן', email: 'c@x', role: 'staff', active: false, created_at: '' }] };
+  assert.deepEqual(rowActions(t, t.users[0]), { toggleRole: null, deactivate: false, reactivate: false, why: 'בעל העסק הפעיל היחיד — קודם מנו בעלים נוסף' });
+  assert.deepEqual(rowActions(t, t.users[1]), { toggleRole: 'owner', deactivate: true, reactivate: false, why: null });
+  assert.deepEqual(rowActions(t, t.users[2]), { toggleRole: null, deactivate: false, reactivate: true, why: 'מושבת — חוזר כעובד' });
+  const two: Team = { ...t, users: t.users.map(u => u.id === 2 ? { ...u, role: 'owner' as const } : u) };
+  assert.deepEqual(rowActions(two, two.users[0]), { toggleRole: 'staff', deactivate: false, reactivate: false, why: 'זה אתם' });
+  assert.deepEqual(rowActions(two, two.users[1]), { toggleRole: 'staff', deactivate: true, reactivate: false, why: null });
+  assert.match(confirmText(t.users[1], 'deactivate'), /דנה.*ינותקו/);
+});
+
+test('מנהל 329 · הפעלה מחדש: רק לשורה מושבתת, גם בעלים לשעבר חוזר כעובד, נוסח אישור', () => {
+  const t: Team = { me: 1, users: [
+    { id: 1, name: 'א', email: 'a@x', role: 'owner', active: true, created_at: '' },
+    { id: 4, name: 'שותף', email: 'd@x', role: 'owner', active: false, created_at: '' }] };
+  const a = rowActions(t, t.users[1]);
+  assert.equal(a.reactivate, true); assert.equal(a.toggleRole, null); assert.equal(a.deactivate, false);
+  assert.equal(rowActions(t, t.users[0]).reactivate, false);
+  assert.match(confirmText(t.users[1], 'reactivate'), /שותף.*כעובד/);
 });

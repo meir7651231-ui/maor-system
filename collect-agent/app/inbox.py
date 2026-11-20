@@ -449,6 +449,9 @@ class ConversationInbox:
         if Intent.WRONG_PERSON.value in intents:
             self.svc._opt_out(cid, "wrong_number")
             self._wrong_number = True
+            if Intent.OPT_OUT.value in intents:
+                # הכרעת ראש צוות 19.11: «מספר שגוי + תפסיקו» ⇒ גם בקשת ההסרה עצמה מתועדת (לא רק «מספר שגוי»)
+                self.svc.audit("customer", "opt_out_request", {"customer": cid, "with": "wrong_number"})
         elif d.stop == Stop.PERMANENT:
             self.svc._opt_out(cid, "reply")
         if intents & {Intent.DISPUTE.value, Intent.LEGAL.value}:
@@ -731,8 +734,8 @@ class ConversationInbox:
         dr = self._get(draft_id)
         cust = self.db.one("SELECT * FROM customers WHERE id=?", (dr["customer_id"],))
         why = self._can_message(cust, dr)
-        if why in ("outside_window", "trial_expired"):
-            return False  # נשאר approved; flush() ישלח בחלון הבא
+        if why in ("outside_window", "trial_expired", "restore_hold"):
+            return False  # נשאר approved; flush() ישלח בחלון הבא (critic 175: גם אחרי חידוש משחזור)
         if why:
             self._drop_approved(draft_id, cust, f"system:{why}", _GATE_HE.get(why, "השליחה נחסמה בשער השליחה"))
             return False

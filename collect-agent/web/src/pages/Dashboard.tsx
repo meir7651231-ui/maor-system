@@ -10,6 +10,7 @@ import { MessagePreview } from '../components/MessagePreview.tsx';
 import { OpenListCard } from '../components/OpenListCard.tsx';
 import type { Invoice } from '../lib/domain.ts';
 import { HolidayBanner } from '../components/HolidayBanner.tsx';
+import { RestoreHoldBanner } from '../components/RestoreHoldBanner.tsx';
 import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, REAPPROVE_LABEL } from '../api.ts';
 import { ALREADY_PLAN, alreadyDone, failPrefix, type Already } from '../lib/failure.ts';
 import { mockAmountCheck } from '../lib/policy.ts';
@@ -61,6 +62,7 @@ export function Dashboard() {
           <a href="#/settings" className="font-bold underline whitespace-nowrap">ייבוא קובץ מעודכן ←</a>
         </div>
       )}
+      {live && <RestoreHoldBanner />}
       {live && <HolidayBanner where="dashboard" />}
       {live && <OpenListCard count={totals?.open_unreviewed ?? 0} />}
       <section aria-label="מדדי גבייה" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" data-testid="kpis">
@@ -328,7 +330,11 @@ function NeedsYou() {
             {/* critic סבב 172ב: «✓ טופל» סוגר רק את ההתראה; הבקשה עצמה נסגרת במרשם עם תיעוד */}
             {n.intent === 'dsr' && <a href="#/inbox?dsr=1" data-testid="notice-dsr-link"
               className="mt-1 inline-block text-xs font-bold text-ink-700 underline">למרשם הבקשות — סגירה עם תיעוד ←</a>}
-            {n.linked?.length ? (
+            {/* critic סבב 177א: הכרטיס לא נסגר ב«טופל» — יורד רק בחידוש המתועד בבאנר שלמעלה */}
+            {n.intent === 'restore_hold' ? (
+              <a href="#/dashboard" data-testid="notice-restore-link" onClick={e => { e.preventDefault(); document.getElementById('restore-hold')?.scrollIntoView({ block: 'center' }); }}
+                className="mt-1 inline-block text-xs font-bold text-ink-700 underline">לחידוש השליחה עם תיעוד — בבאנר האדום למעלה ↑</a>
+            ) : n.linked?.length ? (
               // critic סבב 149: החלטה 5 — בעל העסק בוחר למי הפנייה שייכת (רק אז המנוע מטפל בה); «אף אחד» משחרר את ההשהיה
               <div className="flex flex-wrap gap-2 mt-2">
                 {n.linked.map(c => (

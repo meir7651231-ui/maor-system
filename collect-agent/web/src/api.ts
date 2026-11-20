@@ -8,6 +8,7 @@ import { failureText, writeOutcomeUnknown } from './lib/failure.ts';
 import type { WeekPoint } from './lib/series.ts';
 import type { OwnerMsg } from './lib/notices.ts';
 import type { DsrRow } from './lib/dsr.ts';
+import type { Role, Team } from './lib/team.ts';
 
 /** השרת ענה 401 — צריך קוד גישה של בעל העסק. */
 export class AuthError extends Error {}
@@ -72,7 +73,7 @@ export async function logoutRequest(): Promise<void> {
 }
 
 /** מי מחובר: עובד (שם תצוגה) או הטוקן המשותף (owner). */
-export interface Me { actor: string; kind: 'user' | 'owner'; name: string }
+export interface Me { actor: string; kind: 'user' | 'owner'; name: string; /** critic 179: עובד מחובר בתפקיד בעלים */ owner?: boolean }
 
 export interface Health { status: string; dry_run: boolean; sms_provider: string; channels: string[]; /** REQUIRE_USER_LOGIN=1 ⇒ אין קוד משותף */ login_required?: boolean }
 /** בקאנד חי? רק אם מצהיר dry_run — אחרת מסרבים להתחבר (מעקה: הממשק לא מדבר עם שרת ששולח באמת). */
@@ -113,7 +114,10 @@ export interface Dashboard {
   invoices: DashRow[];
   /** חלון השליחה + פקיעת לוח החגים (critic סבב 119). חסר בשרת ישן. */
   send_window?: SendWindow;
+  /** critic סבב 177: עצירת שליחה אחרי שחזור מגיבוי (null = אין). חסר בשרת ישן. */
+  restore_hold?: RestoreHold | null;
 }
+export interface RestoreHold { restored_at: string; ledger_applied: number }
 export interface PreviewMsg {
   channel: 'sms' | 'email'; provider: string; to: string; body: string;
   request: { headers?: Record<string, string> };
@@ -172,6 +176,13 @@ export const api = {
   dsrDone: (id: number, note: string) => j<DsrRow>(`/dsr/${id}/done`, { method: 'POST', body: JSON.stringify({ note }) }),
   plans: () => j<Plan[]>('/plans'),
   ownerInbox: () => j<OwnerMsg[]>('/owner/inbox'),
+  /** critic סבב 177ב: חידוש שליחה אחרי שחזור — בעל העסק בלבד (403 לעובד), תיעוד ≥5 תווים (422) */
+  releaseRestoreHold: (note: string) => j<unknown>('/owner/restore-hold/release', { method: 'POST', body: JSON.stringify({ note }) }),
+  /** מנהל 328: צוות ותפקידים — בעל העסק בלבד (403 לעובד; 422 לבעלים האחרון / השבתה עצמית) */
+  team: () => j<Team>('/team'),
+  setRole: (uid: number, role: Role) => j<Team>(`/team/${uid}/role`, { method: 'POST', body: JSON.stringify({ role }) }),
+  deactivate: (uid: number) => j<Team>(`/team/${uid}/deactivate`, { method: 'POST' }),
+  reactivate: (uid: number) => j<Team>(`/team/${uid}/reactivate`, { method: 'POST' }),
   ownerDone: (id: number) => j<unknown>(`/owner/inbox/${id}/done`, { method: 'POST' }),
   // critic סבב 149: שיוך כרטיס כתובת משותפת (החלטה 5) — לקוח נבחר, או null = «אף אחד מהם»
   assignShared: (cardId: number, customerId: number | null) => j<unknown>(`/owner/shared-cards/${cardId}/assign`,

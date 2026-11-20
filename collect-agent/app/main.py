@@ -271,6 +271,19 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         # דורש DB מוצפן במנוחה. נכשל סגור; חריגה רק בהחלטה מפורשת (ACK_PLAINTEXT_DB=1 — שער 5 🟡 עם תוכנית).
         raise SafetyError("REAL_DATA_ALLOWED=1 על DB לא מוצפן — הגדירו DB_ENCRYPTION=sqlcipher, "
                           "או ACK_PLAINTEXT_DB=1 בהחלטה מפורשת — legal/BETA-GATE.md שער 5")
+    if built_from_env and getattr(svc.s, "real_data_allowed", False) and os.environ.get("ACK_NO_OPTOUT_LEDGER") != "1":
+        # critic סבב 176: יומן ההסרות (OPTOUT_LEDGER, מחוץ ל-DB) הוא מה ששחזור גיבוי מחיל כדי לא להחזיר הסרות
+        # (ממצא 175). נתונים אמיתיים עלו בלעדיו בשקט ⇒ אחרי שחזור בעל העסק «מאשר שהחיל הסרות» בלי מקור.
+        # נכשל סגור, כמו שער 5; חריגה רק בהחלטה מפורשת (ACK_NO_OPTOUT_LEDGER=1) — legal/BETA-GATE.md שער 5א.
+        ledger = (svc.s.optout_ledger or "").strip()
+        if not ledger:
+            raise SafetyError("REAL_DATA_ALLOWED=1 בלי OPTOUT_LEDGER — שחזור גיבוי לא יחזיר הסרות שהתבקשו אחריו. "
+                              "הגדירו OPTOUT_LEDGER לקובץ מחוץ לתיקיית ה-DB והגיבויים, "
+                              "או ACK_NO_OPTOUT_LEDGER=1 בהחלטה מפורשת — legal/BETA-GATE.md שער 5א")
+        lp = Path(ledger)
+        if not lp.parent.is_dir() or not os.access(lp.parent, os.W_OK) or (lp.exists() and not os.access(lp, os.W_OK)):
+            # תיקייה חסרה / בלי הרשאת כתיבה ⇒ כל הסרה הייתה נכשלת ביומן. עדיף לא לעלות מאשר לגלות בשחזור.
+            raise SafetyError(f"OPTOUT_LEDGER לא ניתן לכתיבה ({lp.parent}) — צרו את התיקייה עם הרשאת כתיבה")
     # critic סבב 8: עובד הדמו (סיסמה ידועה מהסביבה + סוד TOTP בקובץ) נוצר על **כל** שירות כש-DEMO=1,
     # גם על DB אמיתי. אם הסביבה דולפת לפרודקשן, זו דלת אחורית. וגם: הפעלה מחדש עם DB קבוע קרסה
     # («משתמש כבר קיים»). עכשיו: רק על שירות הדמו שנבנה כאן, אף פעם לא בבטא אמיתית, ורק אם לא קיים.
@@ -282,6 +295,16 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                            os.environ.get("DEMO_USER_PASSWORD", ""))
         if os.environ.get("DEMO_USER_SECRET_FILE"):
             Path(os.environ["DEMO_USER_SECRET_FILE"]).write_text(reg["totp_secret"])
+    # מנהל 330: עובדת דמו שנייה (תמיד staff) — כדי שמסע הדפדפן של «צוות ותפקידים» ילחץ על הכפתורים
+    # (מינוי/הורדה/השבתה/הפעלה מחדש) ולא רק יראה את הבעלים האחרון. אותם שומרים בדיוק: שירות דמו בלבד,
+    # לא בבטא אמיתית, ורק אחרי שבעל העסק כבר קיים (אחרת היא הייתה הופכת לבעלים הראשון).
+    if demo_service and os.environ.get("DEMO_STAFF_EMAIL") and \
+            os.environ.get("REQUIRE_USER_LOGIN") != "1" and \
+            svc.db.one("SELECT 1 FROM users WHERE role='owner' AND active=1") and \
+            not svc.db.one("SELECT 1 FROM users WHERE email=?",
+                           (os.environ["DEMO_STAFF_EMAIL"].strip().lower(),)):
+        users.create(os.environ["DEMO_STAFF_EMAIL"], "עובדת דמו",
+                     os.environ.get("DEMO_STAFF_PASSWORD", ""), role="staff")
 
     def owner(request: Request) -> None:
         presented = security.bearer(request.headers.get("authorization"))
@@ -292,6 +315,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                 raise HTTPException(401, "נדרש אימות", headers={"WWW-Authenticate": "Bearer"})
             actor = "owner"
         request.state.actor = actor
+        # critic 179: «בעל העסק» = הטוקן המשותף **או** עובד מחובר בתפקיד owner (בבטא הטוקן המשותף סגור)
+        request.state.is_owner = actor == "owner" or (presented is not None and users.is_owner(presented))
         # תיעוד צפייה במידע אישי (legal/BETA-GATE.md שער 6): השחקן הוא העובד המחובר
         route = getattr(request.scope.get("route"), "path", "")
         if request.method == "GET" and route in PII_READ_ROUTES:
@@ -322,7 +347,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         """מי מחובר (לממשק): עובד ⇒ שם התצוגה שלו; טוקן משותף ⇒ owner. לא נרשם ביומן הצפייה."""
         t = security.bearer(request.headers.get("authorization"))
         me = users.whoami(t) if t else None
-        return me or {"actor": request.state.actor, "kind": "owner", "name": ""}
+        return me or {"actor": request.state.actor, "kind": "owner", "name": "", "owner": True}
 
     @app.post("/auth/logout")
     def auth_logout(request: Request):
@@ -1003,6 +1028,99 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         if cid is not None and (not isinstance(cid, int) or isinstance(cid, bool)):
             raise HTTPException(422, "customer_id: מספר לקוח או null")
         return guard(lambda: inbox.assign_shared_card(card_id, cid, actor=request.state.actor))
+
+    # critic 175: DB ששוחזר מגיבוי עולה עם שליחה עצורה עד שבעל העסק מאשר שהחיל מחדש הסרות/מחיקות מאז הגיבוי
+    @app.get("/owner/restore-hold", dependencies=auth)
+    def restore_hold_status():
+        return {"hold": svc.restore_hold()}
+
+    @app.post("/owner/restore-hold/release", dependencies=auth)
+    async def restore_hold_release(request: Request):
+        if not request.state.is_owner:
+            raise HTTPException(403, "רק בעל העסק מחדש שליחה אחרי שחזור")
+        try:
+            body = await request.json()
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        note = body.get("note") if isinstance(body, dict) else None
+        if not isinstance(note, str):
+            raise HTTPException(422, "note: תיעוד של מה שהוחל מחדש")
+        try:
+            return svc.release_restore_hold(note, actor=request.state.actor)
+        except KeyError:
+            raise HTTPException(404, "אין עצירת שחזור פעילה") from None
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
+
+    # ---------- מנהל 328: «צוות ותפקידים» — עד היום רק CLI (פתוח מ-327) ----------
+    def _owner_only(request: Request, what: str) -> None:
+        if not request.state.is_owner:
+            raise HTTPException(403, f"רק בעל העסק {what}")
+
+    def _me_id(request: Request) -> int | None:
+        a = request.state.actor
+        return int(a.split(":", 1)[1]) if isinstance(a, str) and a.startswith("user:") else None
+
+    @app.get("/team", dependencies=auth)
+    def team(request: Request):
+        _owner_only(request, "רואה את רשימת העובדים")
+        return {"users": users.listing(), "me": _me_id(request)}
+
+    @app.post("/team/{uid}/role", dependencies=auth)
+    async def team_role(uid: int, request: Request):
+        _owner_only(request, "משנה תפקידים")
+        try:
+            body = await request.json()
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        role = body.get("role") if isinstance(body, dict) else None
+        if role not in ("owner", "staff"):
+            raise HTTPException(422, "role: owner / staff")
+        try:
+            r = users.set_role_id(uid, role, actor=request.state.actor)
+        except KeyError:
+            raise HTTPException(404, "אין עובד כזה") from None
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
+        if r["from"] != r["to"]:
+            actor = request.state.actor
+            # ה-audit (פסאודונים) נרשם ב-Users.set_role; השם רק בהודעה לבעל העסק, שנמחקת עם העסק
+            label = {"owner": "בעל העסק", "staff": "עובד"}
+            svc.notify_owner_sensitive(
+                f"תפקיד שונה על ידי {actor}: {r['name']} — «{label[r['from']]}» ⇒ «{label[r['to']]}». "
+                "בעל עסק יכול לחדש שליחה אחרי שחזור ולנהל את הצוות. אם לא אתם שיניתם — בדקו מיד.", actor)
+        return {"users": users.listing(), "me": _me_id(request)}
+
+    @app.post("/team/{uid}/deactivate", dependencies=auth)
+    def team_deactivate(uid: int, request: Request):
+        _owner_only(request, "משבית עובדים")
+        try:
+            r = users.deactivate_id(uid, actor=request.state.actor)
+        except KeyError:
+            raise HTTPException(404, "אין עובד כזה") from None
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
+        if r["was_active"]:
+            actor = request.state.actor
+            svc.notify_owner_sensitive(
+                f"עובד הושבת על ידי {actor}: {r['name']} — כל הכניסות הפתוחות שלו נותקו. "
+                "אם לא אתם השבתתם — בדקו מיד.", actor)
+        return {"users": users.listing(), "me": _me_id(request)}
+
+    @app.post("/team/{uid}/reactivate", dependencies=auth)
+    def team_reactivate(uid: int, request: Request):
+        """מנהל 329: עובד שהושבת בטעות/חזר — בלי CLI. חוזר כעובד; התראה לבעל העסק שהמפעיל לא סוגר."""
+        _owner_only(request, "מפעיל עובדים מחדש")
+        try:
+            r = users.reactivate_id(uid, actor=request.state.actor)
+        except KeyError:
+            raise HTTPException(404, "אין עובד כזה") from None
+        if not r["was_active"]:
+            actor = request.state.actor
+            svc.notify_owner_sensitive(
+                f"עובד הופעל מחדש על ידי {actor}: {r['name']} — חזר כ«עובד» ויכול להיכנס שוב עם הסיסמה "
+                "והאימות הדו-שלבי שלו. אם לא אתם הפעלתם — בדקו מיד.", actor)
+        return {"users": users.listing(), "me": _me_id(request)}
 
     @app.post("/conversation/drafts/{did}/reject", dependencies=auth)
     def conversation_reject(did: int, request: Request):

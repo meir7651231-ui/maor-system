@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 
+from app import dsr as _dsr
 from app import legal, policy
 from app.config import load_settings
 
@@ -41,6 +42,8 @@ CLAIMS = [
     ("מחיר חודשי", f"₪{S.price_ils_month}", ("TERMS.md", "LAWYER-BRIEF.md")),
     ("מחיר שנתי", f"₪{S.price_ils_year:,}", ("TERMS.md", "LAWYER-BRIEF.md")),
     ("תוקף אישור", f"{policy.APPROVAL_VALID_DAYS} ימים", ("TERMS.md",)),
+    ("מועד בקשת עיון", f"{_dsr.DUE_DAYS} יום", ("PRIVACY.md", "DPA.md")),
+    ("התראה לפני המועד", f"{_dsr.WARN_DAYS} ימים לפני המועד", ("DPA.md",)),
 ]
 
 

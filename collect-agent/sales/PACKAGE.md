@@ -72,6 +72,10 @@
 | "חשבונית בת יותר מ-3 שנים: רק טיפול ידני" | `tests/test_legal_requirements.py::test_r7_old_invoice_is_manual_only` |
 | "קודם אתה מאשר את רשימת הפתוחות. על מה שסימנת כשולם אין תזכורת" | `tests/test_open_list_gate.py::test_no_reminder_before_owner_confirms` |
 | "סכום חריג (למשל נקודה עשרונית שנשמטה)? גבי עוצר ושואל לפני שליחה" | `tests/test_amount_outlier.py::test_e2e_outlier_needs_explicit_confirm` |
+| "עובד יכול לאשר בשמך, וכל אישור נרשם בשם מי שאישר" | `tests/test_users_2fa.py::test_mutating_actions_are_audited_under_the_employee` |
+| "רק בעל העסק מנהל את הצוות" | `tests/test_mgr328_team_screen.py::test_staff_cannot_change_roles_or_deactivate` |
+| "לקוח שמשלם לפי הלוח של ההסדר לא מקבל תזכורות" | `tests/test_mgr332_plan_lifecycle.py::test_on_track_stays_blocked_and_no_card` |
+| "תשלום בהסדר הוחמץ? תקבל הודעה אחת, והתזכורות חוזרות" | `tests/test_mgr332_plan_lifecycle.py::test_missed_card_once_and_block_released` |
 
 ### מה **אסור** לטעון (אין גיבוי, או שמדובר בהבטחה)
 - **SMS או «לא בשבת/חג» כבידול מול מתחרים.** ה«נודניק» של iCount שולח SMS ב-₪29 לחודש, ו-morning דוחה תזכורת שיוצאת בשבת (`team/market.md` §1.6). אלה כללי עבודה, לא יתרון. **הבידול:** אישור פרטני לכל הודעה, תשובות הלקוח מגיעות לבעל העסק ומסווגות, ועצירה אחרי 3 תזכורות (נאכף ב-`tests/test_sales_differentiation.py`).

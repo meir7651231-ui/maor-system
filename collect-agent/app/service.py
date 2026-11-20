@@ -12,7 +12,7 @@ from dataclasses import replace
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
-from . import compliance, orbit_entitlement, paylinks, plans, templates
+from . import compliance, orbit_entitlement, paylinks, plans, restore_guard, templates
 from .channels import (
     DryRunSender,
     Message,
@@ -62,6 +62,42 @@ HARD_BLOCKS = {"no_contact", "no_payment_link", "compliance", "no_reply_to"}
 # סיבה נפרדת, כי היא לא חולפת מעצמה בריצה הבאה כמו תקלת רשת. ההתנהגות זהה ל-refresh_failed:
 # התזכורת נשארת מאושרת, לא נשלחת, ומנסים שוב בכל ריצה.
 REFRESH_PAGE_CAP = "refresh_page_cap"
+
+
+# מנהל 323: אחרי כמה שעות של כשל רענון רצוף בעל העסק מקבל התראה (לא רק תווית בטבלה)
+REFRESH_STUCK_HOURS = 48
+REFRESH_STUCK_SHOW = 5
+
+
+OPTOUT_LEDGER_FAILED_TEXT = ("בקשת הסרה נקלטה וחסומה במערכת, אבל לא נרשמה ביומן ההסרות שמחוץ למסד הנתונים "
+                             "(בעיית כתיבה בשרת). אם תשחזרו בעתיד גיבוי, ההסרה הזו עלולה לא לחזור — ולקוח שביקש "
+                             "הסרה יקבל שוב תזכורת. פנו לתמיכה הטכנית לתיקון הרשאות היומן (OPTOUT_LEDGER).")
+
+
+def plan_missed_text(name: str | None, n: int, of: int, amount_agorot: int, due: str, open_agorot: int) -> str:
+    """מנהל 332: כרטיס לבעל העסק כשתשלום בהסדר לא התקבל. בלי פרטי קשר — רק שם, כמו שאר הכרטיסים."""
+    who = name or "לקוח"
+    return (f"הסדר התשלומים של {who} לא נשמר: תשלום {n} מתוך {of} ({templates.fmt_amount(amount_agorot)}, "
+            f"מועד {due}) לא התקבל. היתרה הפתוחה: {templates.fmt_amount(open_agorot)}. "
+            "ההסדר סומן «הוחמץ» והתזכורות הרגילות חוזרות לאישורכם — אפשר גם להציע הסדר חדש.")
+
+
+def refresh_stuck_text(items: list[tuple[str, str, str]]) -> str:
+    """(שם לקוח, מספר חשבונית, סיבה) ⇒ גוף ההתראה. טהור — נבדק ביחידה. עד 5 שמות, והשאר «ועוד N»."""
+    n = len(items)
+    names = "; ".join(f"{name} (חשבונית {num})" for name, num, _ in items[:REFRESH_STUCK_SHOW])
+    more = f" ועוד {n - REFRESH_STUCK_SHOW}" if n > REFRESH_STUCK_SHOW else ""
+    head = ("תזכורת מאושרת אחת לא יוצאת" if n == 1 else f"{n} תזכורות מאושרות לא יוצאות") + \
+        f" כבר יותר מ-{REFRESH_STUCK_HOURS} שעות: {names}{more}."
+    parts = [head]
+    if any(w != REFRESH_PAGE_CAP for _, _, w in items):
+        parts.append("לא הצלחנו לוודא את הסכום מול מערכת החשבוניות — ננסה שוב אוטומטית, אבל כדאי לבדוק "
+                     "שהחיבור למערכת החשבוניות תקין (הגדרות).")
+    if any(w == REFRESH_PAGE_CAP for _, _, w in items):
+        parts.append("אצל חלק מהלקוחות יש יותר מ-10,000 קבלות/זיכויים מאז תאריך החשבונית, ואי אפשר לוודא "
+                     "שלא שולמה — לבדוק ידנית ולפנות ללקוח בעצמכם אם צריך.")
+    parts.append("עד שהבדיקה תצליח לא נשלחת להם תזכורת.")
+    return " ".join(parts)
 
 
 def refresh_block_reason(e: BaseException) -> str:
@@ -958,6 +994,15 @@ class CollectService:
         self.db.x("INSERT OR IGNORE INTO suppressions(hash,channel,reason,created_at) "
                   "VALUES(?,?,?,?)", (self.addr_hash(channel, addr), channel, reason,
                                       _iso(self.clock())))
+        if self.s.optout_ledger:
+            # critic 175: גם מחוץ ל-DB, כדי ששחזור גיבוי לא יבטל את ההסרה. כשל בכתיבה ליומן לא מבטל את
+            # ההסרה ב-DB (היא כבר נרשמה) — רק נרשם ב-audit
+            try:
+                restore_guard.ledger_append(self.s.optout_ledger, self.addr_hash(channel, addr), channel, reason,
+                                            _iso(self.clock()))
+            except OSError as e:
+                self.audit("system", "optout_ledger_failed", {"error": str(e)[:200]})
+                self._alert_ledger_failed()
         # critic סבב 59: הסרה לפי כתובת בלבד (כתובת משותפת שלא זוהה בה לקוח, חסימת ספק) לא עצרה טיוטה שנוסחה
         # קודם לאותה כתובת. בכוונות שמותרות אחרי הסרה (איך משלמים / עותק / חזרו אליי) השער מדלג על בדיקת
         # הכתובת ⇒ הטיוטה הייתה יוצאת לכתובת שביקשה הסרה. עכשיו: כל טיוטה ממתינה לכתובת הזו נעצרת.
@@ -980,6 +1025,8 @@ class CollectService:
     def gate(self, cust, channel: str, to: str, *, opt_out_ack: bool = False) -> str | None:
         """כל הודעה יוצאת עוברת כאן: תזכורת, תשובה, אישור פריסה. None ⇒ מותר עכשיו.
         'outside_window' ⇒ מותר מאוחר יותר (נשאר בתור); כל ערך אחר ⇒ אסור."""
+        if restore_guard.active(self.db):
+            return "restore_hold"   # critic 175: DB משוחזר — עד שבעל העסק מאשר שהחיל הסרות/מחיקות מאז הגיבוי
         if not self.trial()["active"]:
             return "trial_expired"
         if not opt_out_ack and (cust["opted_out"] or self.suppressed(channel, to)):
@@ -1140,6 +1187,8 @@ class CollectService:
         self._notify_trial_ending()
         from . import dsr
         dsr.sweep(self)   # בקשות עיון/תיקון/מחיקה: התראה 5 ימים לפני המועד ובאיחור
+        self._sweep_refresh_stuck()   # מנהל 323: תזכורת מאושרת שתקועה על כשל רענון >48 שעות ⇒ התראה
+        self._sweep_plans()   # מנהל 332 (מבקר 183): הסדר שהושלם/הוחמץ/הצעה שפגה — לא חוסם לתמיד
         self.purge_closed()   # ר-10: זול, פעם בסבב
         self._roll_episodes(now)
         created: list[int] = []
@@ -1370,6 +1419,12 @@ class CollectService:
         if row["intent"] in ("shared_contact_urgent", "shared_contact_paid_claim"):
             # critic סבב 149: «טופל» על כרטיס כתובת משותפת = «אף אחד מהם» — אחרת ההשהיה נשארה על כל המקושרים לתמיד
             return {"id": mid, "done": True, **self.inbox.assign_shared_card(mid, None, actor=actor)}
+        if row["intent"] == restore_guard.HOLD_INTENT and restore_guard.active(self.db):
+            # critic סבב 177א: «טופל» הוריד את הכרטיס והעצירה נשארה בשקט ולתמיד. כל עוד העצירה פעילה הכרטיס נשאר;
+            # הוא יורד רק בשחרור המתועד (restore_guard.release). לא חריגה: «טופל» כפול/ישן לא מפיל את המסך.
+            self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "restore_hold_active"})
+            return {"id": mid, "done": False, "restore_hold": True,
+                    "reason": "השליחה עדיין עצורה אחרי השחזור. הכרטיס יורד רק בחידוש השליחה, עם תיעוד."}
         if self._self_dismiss_blocked(row, actor):
             self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "self_dismiss"})
             raise ValueError("את ההתראה על שינוי ההגדרות הרגישות צריך לסמן «טופל» עובד אחר — לא מי שביצע את השינוי.")
@@ -1815,8 +1870,8 @@ class CollectService:
         now = self.clock()
         out: list[dict] = []
         self._flush_urgent_owner_email()   # critic סבב 102: לפני חלון השליחה — התראה לבעלים לא תלויה בשעות הלקוח
-        if not self.policy.can_send_at(now) or not self.trial()["active"]:
-            return out
+        if not self.policy.can_send_at(now) or not self.trial()["active"] or restore_guard.active(self.db):
+            return out   # critic 175: אחרי שחזור — התזכורות והתשובות המאושרות ממתינות (לא מבוטלות) עד החידוש
         # critic סבב 13: ה-cron היחיד במפרט הוא dispatch. תשובות והצעות פריסה שבעל העסק אישר מחוץ
         # לחלון חיכו ל-/conversation/flush ידני, כלומר בפועל לא יצאו לעולם. עכשיו גם הן יוצאות כאן,
         # דרך אותו שער שליחה (הסרה, שעות, שבת וחג, ניסיון).
@@ -1918,6 +1973,68 @@ class CollectService:
             new = "approved" if offered else "proposed"
             if self.db.update("UPDATE plans SET status=? WHERE id=? AND status='approving'", (new, p["id"])) == 1:
                 self.audit("system", "plan_approving_recovered", {"plan": p["id"], "to": new})
+
+    PLAN_GRACE_DAYS = 7   # מנהל 332: ימי חסד אחרי מועד תשלום בהסדר לפני שהוא נחשב «הוחמץ»
+
+    def _plan_invoice_ids(self, p) -> list[int]:
+        return json.loads(p["invoice_ids"]) if p["invoice_ids"] else [p["invoice_id"]]
+
+    def _sweep_plans(self) -> dict[str, list[int]]:
+        """מנהל 332 (מבקר סבב 183 🟠): להסדר לא היה מחזור-חיים — `approved` (= ההצעה נשלחה) חסם כל תזכורת **לתמיד**,
+        גם כשכל המועדים עברו והחשבונית פתוחה, ובלי כרטיס לבעל העסק; וגם ללקוח שהתעלם מההצעה. עכשיו בכל סבב תכנון:
+        * `approved` וכל חשבוניות ההסדר נסגרו ⇒ `completed`.
+        * `approved` ומה ששולם (סה״כ ההסדר פחות היתרה הפתוחה בחשבוניות שלו) קטן ממה שהיה צריך להשתלם עד היום
+          פחות PLAN_GRACE_DAYS ⇒ `missed` + כרטיס «דורש טיפול» לבעל העסק (איזה תשלום, כמה, מתי). החסימה משתחררת ⇒
+          התזכורות הרגילות חוזרות **לאישור** בעל העסק (שום דבר לא יוצא בלי אישור). לקוח שלא ענה «מאשר» לא שילם את
+          התשלום הראשון ⇒ אותו מסלול.
+        * `proposed` (בעל העסק לא אישר) שמועד התשלום הראשון שלו עבר ⇒ `superseded` (אי אפשר לאשר אותו ממילא —
+          `approve_plan` דוחה תאריכים שעברו), כדי שלא יחסום.
+        מוחזר: מזהי ההסדרים לפי מצב חדש."""
+        today = self.clock().date()
+        out: dict[str, list[int]] = {"completed": [], "missed": [], "expired": []}
+        for p in self.db.q("SELECT * FROM plans WHERE status IN ('proposed','approved') ORDER BY id"):
+            items = json.loads(p["installments"])
+            if not items:
+                continue
+            if p["status"] == "proposed":
+                if date.fromisoformat(items[0]["due"]) < today and self.db.update(
+                        "UPDATE plans SET status='superseded' WHERE id=? AND status='proposed'", (p["id"],)) == 1:
+                    self.audit("system", "plan_proposal_expired", {"plan": p["id"]})
+                    out["expired"].append(p["id"])
+                continue
+            ids = self._plan_invoice_ids(p)
+            open_now = self.db.one("SELECT COALESCE(SUM(amount_agorot),0) n FROM invoices WHERE status='open' "
+                                   "AND id IN (SELECT value FROM json_each(?))", (json.dumps(ids),))["n"]
+            if open_now <= 0:
+                if self.db.update("UPDATE plans SET status='completed' WHERE id=? AND status='approved'",
+                                  (p["id"],)) == 1:
+                    self.audit("system", "plan_completed", {"plan": p["id"]})
+                    out["completed"].append(p["id"])
+                continue
+            total = sum(i["amount_agorot"] for i in items)
+            paid = max(0, total - open_now)
+            cutoff = today - timedelta(days=self.PLAN_GRACE_DAYS)
+            owed, late = 0, None
+            for i in items:
+                if date.fromisoformat(i["due"]) >= cutoff:
+                    break
+                owed += i["amount_agorot"]
+                if late is None and paid < owed:
+                    late = i
+            if late is None:
+                continue
+            if self.db.update("UPDATE plans SET status='missed' WHERE id=? AND status='approved'", (p["id"],)) != 1:
+                continue
+            cust = self.db.one("SELECT name FROM customers WHERE id=?", (p["customer_id"],))
+            body = plan_missed_text(cust["name"] if cust else None, late["n"], len(items), late["amount_agorot"],
+                                    late["due"], open_now)
+            now = _iso(self.clock())
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
+                      "created_at) VALUES(?,'system','owner',?,'plan_missed',1,?,?)",
+                      (p["customer_id"], body, f"plan_missed:{p['id']}", now))
+            self.audit("system", "plan_missed", {"plan": p["id"], "installment": late["n"], "of": len(items)})
+            out["missed"].append(p["id"])
+        return out
 
     def _claim_reminder(self, rid: int) -> bool:
         """critic סבב 39: תפיסה אטומית לפני השליחה. False ⇒ מישהו אחר כבר תפס/שלח."""
@@ -2095,8 +2212,53 @@ class CollectService:
         return ok
 
     def _mark_refresh_failed(self, r, why: str, err: str = "") -> None:
-        self.db.x("UPDATE reminders SET block_reason=? WHERE id=?", (why, r["id"]))
+        # מנהל 323: refresh_failed_since נשמר מהכשל הראשון ברצף (COALESCE) — לא מתאפס בכל ניסיון חוזר
+        self.db.x("UPDATE reminders SET block_reason=?, refresh_failed_since=COALESCE(refresh_failed_since,?) "
+                  "WHERE id=?", (why, _iso(self.clock()), r["id"]))
         self.audit("system", why, {"reminder": r["id"], "error": err[:200]})
+
+    def _alert_ledger_failed(self) -> None:
+        """critic סבב 176 (חלק ב׳): כשל כתיבה ליומן ההסרות נרשם רק ב-audit ⇒ אחרי שחזור גיבוי ההסרה הזו לא
+        תוחזר, ואיש לא ידע. עכשיו: כרטיס אחד ב«דורש טיפול» (לא כפול כל עוד הקודם פתוח). ההסרה ב-DB עצמה כבר
+        נרשמה — השליחה לכתובת הזו חסומה גם בלי היומן. **בלי כתובת או שם** בגוף הכרטיס (היומן שומר גיבובים בלבד)."""
+        if self.db.one("SELECT 1 FROM messages WHERE intent='optout_ledger_failed' AND needs_owner=1"):
+            return
+        now = _iso(self.clock())
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
+                  "created_at) VALUES(NULL,'system','owner',?,'optout_ledger_failed',1,?,?)",
+                  (OPTOUT_LEDGER_FAILED_TEXT, "optout_ledger_failed:" + now, now))
+
+    def _sweep_refresh_stuck(self) -> int:
+        """מנהל 323 (פתוח-לביקורת מ-322): תזכורת מאושרת שלא יוצאת כבר יותר מ-REFRESH_STUCK_HOURS כי הרענון מול
+        מערכת החשבוניות נכשל (מקור לא זמין / 10,000+ קבלות) — עד עכשיו רק תווית בצ׳יפ; בעל העסק שלא נכנס לטבלה
+        לא ידע שהלקוח לא מקבל תזכורת. עכשיו: התראה אחת מרוכזת (כל התזכורות שנתקעו מאז ההתראה הקודמת), ופעם אחת
+        לכל רצף כשל — רענון שהצליח מאפס, וכשל חדש אחר כך יתריע מחדש. **בלי שום שינוי בשליחה** (עדיין לא יוצאת)."""
+        stuck = ("refresh_failed", REFRESH_PAGE_CAP)
+        # רצף שנגמר (נשלחה/בוטלה/חזרה לאישור/נוקתה הסיבה) ⇒ מאפסים, כדי שכשל עתידי יספר מחדש
+        self.db.x("UPDATE reminders SET refresh_failed_since=NULL, refresh_alerted_at=NULL "
+                  "WHERE (refresh_failed_since IS NOT NULL OR refresh_alerted_at IS NOT NULL) AND "
+                  "(status!='approved' OR block_reason IS NULL OR block_reason NOT IN (?,?))", stuck)
+        now = self.clock()
+        cutoff = _iso(now - timedelta(hours=REFRESH_STUCK_HOURS))
+        rows = self.db.q("SELECT r.id, r.block_reason, r.refresh_failed_since, i.number, c.name, c.id cid "
+                         "FROM reminders r JOIN invoices i ON i.id=r.invoice_id "
+                         "JOIN customers c ON c.id=i.customer_id WHERE r.status='approved' "
+                         "AND r.block_reason IN (?,?) AND r.refresh_failed_since IS NOT NULL "
+                         "AND r.refresh_failed_since<=? AND r.refresh_alerted_at IS NULL "
+                         "ORDER BY r.refresh_failed_since, r.id", (*stuck, cutoff))
+        if not rows:
+            return 0
+        body = refresh_stuck_text([(r["name"] or f"#{r['cid']}", r["number"], r["block_reason"]) for r in rows])
+        ids = [r["id"] for r in rows]
+        cust = {r["cid"] for r in rows}
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
+                  "created_at) VALUES(?,'system','owner',?,'refresh_stuck',1,?,?)",
+                  (next(iter(cust)) if len(cust) == 1 else None, body,
+                   "refresh_stuck:" + ",".join(map(str, ids)), _iso(now)))
+        for rid in ids:
+            self.db.x("UPDATE reminders SET refresh_alerted_at=? WHERE id=?", (_iso(now), rid))
+        self.audit("system", "refresh_stuck_alert", {"reminders": ids})
+        return len(ids)
 
     # ---------- inbound ----------
     def _find_customers(self, channel: str, sender: str) -> list:
@@ -2294,11 +2456,17 @@ class CollectService:
         (השהיה/מחלוקת/הסרה — שמרני), ולכן לא חוסמים; אבל **מתעדים** את פסיקת SPF/DKIM/DMARC של
         הספק (`email_auth` ב-audit, בלי כתובות), ומייל שלא עבר אימות מסומן לבעל העסק."""
 
-        from .channels import parse_address, strip_reply
+        from .channels import parse_address, parse_bounce, strip_reply
 
         key = self._email_key(sender, text, message_id, subject)
         if not self._claim_webhook(key) or self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
             return {"ok": True, "duplicate": True}
+        bounce = parse_bounce(sender, text, subject)
+        if bounce is not None:
+            # מייל שחזר: לא תשובת לקוח (לא «שולח לא מוכר»). מסמנים את המייל המקורי ומתריעים לבעל העסק
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
+                      " VALUES(NULL,'webhook','email','bounce',?,?)", (key, _iso(self.clock())))
+            return {"ok": True, **self._email_bounce(bounce)}
         addr, body = parse_address(sender), strip_reply(text)
         if not body and subject:   # critic סבב 125: «הסר» בשורת הנושא עם גוף ריק/ציטוט בלבד נבלע בשקט
             body = self._email_subject_text(subject)
@@ -2323,6 +2491,35 @@ class CollectService:
             self.db.x("UPDATE drafts SET owner_summary=COALESCE(owner_summary,'') || ? WHERE id=?",
                       (_unverified_note(), out["draft_id"]))
         return {"ok": True, **out, "email_verified": auth["verified"]}
+
+    def _email_bounce(self, b: dict) -> dict:
+        """bounce ⇒ המייל היוצא שחזר: לפי Message-ID המקורי (מדויק), אחרת המייל האחרון לנמען.
+        5.x.x ⇒ 'failed' + התראה (פעם אחת) · 4.x.x ⇒ 'delayed', בלי התראה. בלי הסרה אוטומטית."""
+        row = None
+        for mid in b["message_ids"]:
+            row = self.db.one("SELECT * FROM messages WHERE direction='out' AND channel='email' "
+                              "AND provider_id=?", (mid,))
+            if row:
+                break
+        if row is None and b["recipient"]:
+            row = self.db.one("SELECT m.* FROM messages m JOIN customers c ON c.id=m.customer_id "
+                              "WHERE m.direction='out' AND m.channel='email' AND lower(c.email)=? "
+                              "ORDER BY m.id DESC LIMIT 1", (b["recipient"].lower(),))
+        if row is None:
+            self.audit("system", "email_bounce_unmatched", {"permanent": b["permanent"]})
+            return {"bounce": "unmatched"}
+        if not b["permanent"]:
+            return {"bounce": "delayed", "matched": True}
+        if row["delivery_status"] == "failed":
+            return {"bounce": "failed", "matched": True, "final": True}
+        now = _iso(self.clock())
+        self.db.x("UPDATE messages SET delivery_status='failed', delivery_at=? WHERE id=?", (now, row["id"]))
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at)"
+                  " VALUES(?,'system','email',?, 'email_bounced', 1, ?)",
+                  (row["customer_id"], "המייל ללקוח חזר (הכתובת לא קיימת או חסומה). כדאי לבדוק את "
+                   "כתובת המייל בחשבונית ירוקה.", now))
+        self.audit("system", "email_bounced", {"message": row["id"]})
+        return {"bounce": "failed", "matched": True}
 
     def sms_webhook_019(self, raw: bytes) -> dict:
         try:
@@ -2439,6 +2636,15 @@ class CollectService:
                       "status IN ('needs_owner','pending_approval')", (f"{actor}:opt_out", customer_id))
         self.audit(actor, "owner_opt_out", {"customer": customer_id})
         return dict(self.db.one("SELECT id, opted_out FROM customers WHERE id=?", (customer_id,)))
+
+    def restore_hold(self) -> dict | None:
+        """critic 175: שחזור גיבוי שעוד לא שוחרר (שליחה עצורה) — לתצוגה ב-/app/."""
+        return restore_guard.active(self.db)
+
+    def release_restore_hold(self, note: str, actor: str = "owner") -> dict:
+        out = restore_guard.release(self.db, actor=actor, note=note, at=_iso(self.clock()))
+        self.audit(actor, "restore_hold_released", {"restored_at": out["restored_at"]})
+        return out
 
     def _opt_out(self, cid: int, how: str) -> None:
         self.db.x("UPDATE customers SET opted_out=1 WHERE id=?", (cid,))
@@ -2611,7 +2817,8 @@ class CollectService:
             # critic סבב 150: /ui לא ראה את פקיעת לוח החגים (send_window הושמט) — שני שדות בלבד
             sw = full["send_window"]
             return {"today": full["today"], "trial": full["trial"], "totals": full["totals"], "invoices": inv,
-                    "holidays": {"until": sw["holidays_until"], "expiring": sw["holidays_expiring"]}}
+                    "holidays": {"until": sw["holidays_until"], "expiring": sw["holidays_expiring"]},
+                    "restore_hold": full["restore_hold"]}
         today = self.clock().date()
         rows = []
         # הפעלה 175: היו 3 שאילתות לכל חשבונית (תזכורת אחרונה / ספירת יוצאות / אחרונה שיצאה) + שאילתות
@@ -2706,7 +2913,11 @@ class CollectService:
             next_ok: str | None = _iso(self.policy.next_allowed(now))
         except ValueError:   # לוח החגים פג (fail-closed) ⇒ אין חלון; הדשבורד לא קורס
             next_ok = None
+        hold = restore_guard.active(self.db)
         return {
+            # critic סבב 177א: עצירת שליחה אחרי שחזור — באנר קבוע + טופס שחרור (/app/ ו-/ui) עד שבעל העסק משחרר
+            "restore_hold": None if hold is None else {
+                "restored_at": hold["restored_at"], "ledger_applied": hold["ledger_applied"]},
             "series": self._collection_series(today, closed_all),
             "today": today.isoformat(),
             "trial": self.trial(),
