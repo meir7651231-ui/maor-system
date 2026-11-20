@@ -1432,3 +1432,26 @@ test('critic 177: עצירת שחזור — סף תיעוד, בעל העסק ב�
   assert.match(t, /שוחזר ב-20\.11\.2026/); assert.match(t, /3 הסרות/);
   assert.doesNotMatch(holdText({ restored_at: '2026-11-19T10:00:00+00:00', ledger_applied: 0 }), /הסרות שנוספו/);
 });
+
+import { confirmText, rowActions, teamVisible, type Team } from '../src/lib/team.ts';
+
+test('מנהל 328 · צוות ותפקידים: נראות לבעלים בלבד', () => {
+  assert.equal(teamVisible(null), false);
+  assert.equal(teamVisible({ actor: 'owner', kind: 'owner', name: '' }), true);
+  assert.equal(teamVisible({ actor: 'user:2', kind: 'user', name: 'דנה', owner: false }), false);
+  assert.equal(teamVisible({ actor: 'user:1', kind: 'user', name: 'א', owner: true }), true);
+});
+
+test('מנהל 328 · פעולות לשורה: הבעלים האחרון מוגן, לא משביתים את עצמכם, מושבת בלי פעולות', () => {
+  const t: Team = { me: 1, users: [
+    { id: 1, name: 'א', email: 'a@x', role: 'owner', active: true, created_at: '' },
+    { id: 2, name: 'דנה', email: 'b@x', role: 'staff', active: true, created_at: '' },
+    { id: 3, name: 'ישן', email: 'c@x', role: 'staff', active: false, created_at: '' }] };
+  assert.deepEqual(rowActions(t, t.users[0]), { toggleRole: null, deactivate: false, why: 'בעל העסק הפעיל היחיד — קודם מנו בעלים נוסף' });
+  assert.deepEqual(rowActions(t, t.users[1]), { toggleRole: 'owner', deactivate: true, why: null });
+  assert.deepEqual(rowActions(t, t.users[2]), { toggleRole: null, deactivate: false, why: 'מושבת' });
+  const two: Team = { ...t, users: t.users.map(u => u.id === 2 ? { ...u, role: 'owner' as const } : u) };
+  assert.deepEqual(rowActions(two, two.users[0]), { toggleRole: 'staff', deactivate: false, why: 'זה אתם' });
+  assert.deepEqual(rowActions(two, two.users[1]), { toggleRole: 'staff', deactivate: true, why: null });
+  assert.match(confirmText(t.users[1], 'deactivate'), /דנה.*ינותקו/);
+});

@@ -7,6 +7,7 @@ import { RULES } from '../lib/domain.ts';
 import { diffPatch, explainImportError, explainSettingsError, draftFor, formDiff, mergeServerForm, restoreDraft, settingsDraft, SOURCE_SYSTEMS, sourceLabel, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
 import { Button, Card, Field, inputCls } from '../components/ui.tsx';
 import { HolidayBanner } from '../components/HolidayBanner.tsx';
+import { TeamCard } from '../components/TeamCard.tsx';
 import { failPrefix } from '../lib/failure.ts';
 
 const PAY: [PayProvider, string][] = [['greeninvoice', 'חשבונית ירוקה (morning)'], ['meshulam', 'משולם'], ['bit', 'ביט']];
@@ -213,6 +214,8 @@ export function Settings() {
         <p className="text-sm">סולם התזכורות (ימים אחרי מועד התשלום): {cadence.map((d, i) => <span key={i}>{i > 0 && ' · '}<b className="num">+{d}</b></span>)}</p>
         <p className="text-xs text-ink-500">כללים קבועים של המוצר — לא ניתנים לשינוי.</p>
       </Card>
+
+      <TeamCard />
 
       <div data-sticky-bar data-testid="settings-bar" className="flex flex-wrap items-center gap-3 sticky bottom-4 bg-paper/90 backdrop-blur rounded-xl p-2">
         <Button disabled={busy || !dirty || Object.keys(errs).length > 0} onClick={save} data-testid="settings-save">

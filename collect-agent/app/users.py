@@ -126,6 +126,43 @@ class Users:
             raise ValueError("זה בעל העסק הפעיל היחיד — קודם מנו בעלים אחר")
         self.db.x("UPDATE users SET role=? WHERE id=?", (role, u["id"]))
 
+    # ---------- מסך «צוות ותפקידים» (מנהל 328): בעל העסק מנהל תפקידים בלי CLI ----------
+    def listing(self) -> list[dict]:
+        """כל העובדים למסך הצוות (בעל העסק בלבד — נאכף ב-/team). בלי סיסמה/TOTP/נעילות."""
+        rows = self.db.conn.execute(
+            "SELECT id, name, email, role, active, created_at FROM users "
+            "ORDER BY active DESC, role='owner' DESC, id").fetchall()
+        return [{"id": r["id"], "name": r["name"], "email": r["email"], "role": r["role"],
+                 "active": bool(r["active"]), "created_at": r["created_at"]} for r in rows]
+
+    def _by_id(self, uid: int):
+        u = self.db.one("SELECT id, email, name, role, active FROM users WHERE id=?", (uid,))
+        if u is None:
+            raise KeyError(uid)
+        return u
+
+    def _last_active_owner(self, u) -> bool:
+        return u["role"] == "owner" and bool(u["active"]) and self.db.one(
+            "SELECT COUNT(*) c FROM users WHERE role='owner' AND active=1 AND id<>?", (u["id"],))["c"] == 0
+
+    def set_role_id(self, uid: int, role: str) -> dict:
+        """מחזיר {name, from, to}. עובד מושבת לא מקודם (בעלים מושבת לא משחרר כלום)."""
+        u = self._by_id(uid)
+        if role == "owner" and not u["active"]:
+            raise ValueError("עובד מושבת לא יכול להיות בעל העסק — קודם הפעילו אותו מחדש")
+        self.set_role(u["email"], role)
+        return {"name": u["name"], "from": u["role"], "to": role}
+
+    def deactivate_id(self, uid: int, actor: str | None = None) -> dict:
+        """השבתה מהמסך: לא את עצמכם (נעילה עצמית), ולא את בעל העסק הפעיל האחרון (אף אחד לא ישחרר עצירה)."""
+        u = self._by_id(uid)
+        if actor == f"user:{u['id']}":
+            raise ValueError("לא משביתים את עצמכם — בקשו מבעלים אחר")
+        if self._last_active_owner(u):
+            raise ValueError("זה בעל העסק הפעיל היחיד — קודם מנו בעלים אחר")
+        self.deactivate(u["email"])
+        return {"name": u["name"], "was_active": bool(u["active"])}
+
     def is_owner(self, token: str) -> bool:
         """סשן תקף של עובד פעיל בתפקיד בעלים."""
         if self.actor(token) is None:

@@ -8,6 +8,7 @@ import { failureText, writeOutcomeUnknown } from './lib/failure.ts';
 import type { WeekPoint } from './lib/series.ts';
 import type { OwnerMsg } from './lib/notices.ts';
 import type { DsrRow } from './lib/dsr.ts';
+import type { Role, Team } from './lib/team.ts';
 
 /** השרת ענה 401 — צריך קוד גישה של בעל העסק. */
 export class AuthError extends Error {}
@@ -177,6 +178,10 @@ export const api = {
   ownerInbox: () => j<OwnerMsg[]>('/owner/inbox'),
   /** critic סבב 177ב: חידוש שליחה אחרי שחזור — בעל העסק בלבד (403 לעובד), תיעוד ≥5 תווים (422) */
   releaseRestoreHold: (note: string) => j<unknown>('/owner/restore-hold/release', { method: 'POST', body: JSON.stringify({ note }) }),
+  /** מנהל 328: צוות ותפקידים — בעל העסק בלבד (403 לעובד; 422 לבעלים האחרון / השבתה עצמית) */
+  team: () => j<Team>('/team'),
+  setRole: (uid: number, role: Role) => j<Team>(`/team/${uid}/role`, { method: 'POST', body: JSON.stringify({ role }) }),
+  deactivate: (uid: number) => j<Team>(`/team/${uid}/deactivate`, { method: 'POST' }),
   ownerDone: (id: number) => j<unknown>(`/owner/inbox/${id}/done`, { method: 'POST' }),
   // critic סבב 149: שיוך כרטיס כתובת משותפת (החלטה 5) — לקוח נבחר, או null = «אף אחד מהם»
   assignShared: (cardId: number, customerId: number | null) => j<unknown>(`/owner/shared-cards/${cardId}/assign`,

@@ -1042,6 +1042,63 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         except ValueError as e:
             raise HTTPException(422, str(e)) from e
 
+    # ---------- מנהל 328: «צוות ותפקידים» — עד היום רק CLI (פתוח מ-327) ----------
+    def _owner_only(request: Request, what: str) -> None:
+        if not request.state.is_owner:
+            raise HTTPException(403, f"רק בעל העסק {what}")
+
+    def _me_id(request: Request) -> int | None:
+        a = request.state.actor
+        return int(a.split(":", 1)[1]) if isinstance(a, str) and a.startswith("user:") else None
+
+    @app.get("/team", dependencies=auth)
+    def team(request: Request):
+        _owner_only(request, "רואה את רשימת העובדים")
+        return {"users": users.listing(), "me": _me_id(request)}
+
+    @app.post("/team/{uid}/role", dependencies=auth)
+    async def team_role(uid: int, request: Request):
+        _owner_only(request, "משנה תפקידים")
+        try:
+            body = await request.json()
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        role = body.get("role") if isinstance(body, dict) else None
+        if role not in ("owner", "staff"):
+            raise HTTPException(422, "role: owner / staff")
+        try:
+            r = users.set_role_id(uid, role)
+        except KeyError:
+            raise HTTPException(404, "אין עובד כזה") from None
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
+        if r["from"] != r["to"]:
+            actor = request.state.actor
+            # פסאודונים ביומן (critic סבב 10) — השם רק בהודעה לבעל העסק, שנמחקת עם העסק
+            svc.audit(actor, "team_role_changed", {"user": uid, "from": r["from"], "to": r["to"]})
+            label = {"owner": "בעל העסק", "staff": "עובד"}
+            svc.notify_owner_sensitive(
+                f"תפקיד שונה על ידי {actor}: {r['name']} — «{label[r['from']]}» ⇒ «{label[r['to']]}». "
+                "בעל עסק יכול לחדש שליחה אחרי שחזור ולנהל את הצוות. אם לא אתם שיניתם — בדקו מיד.", actor)
+        return {"users": users.listing(), "me": _me_id(request)}
+
+    @app.post("/team/{uid}/deactivate", dependencies=auth)
+    def team_deactivate(uid: int, request: Request):
+        _owner_only(request, "משבית עובדים")
+        try:
+            r = users.deactivate_id(uid, actor=request.state.actor)
+        except KeyError:
+            raise HTTPException(404, "אין עובד כזה") from None
+        except ValueError as e:
+            raise HTTPException(422, str(e)) from e
+        if r["was_active"]:
+            actor = request.state.actor
+            svc.audit(actor, "team_deactivated", {"user": uid})
+            svc.notify_owner_sensitive(
+                f"עובד הושבת על ידי {actor}: {r['name']} — כל הכניסות הפתוחות שלו נותקו. "
+                "אם לא אתם השבתתם — בדקו מיד.", actor)
+        return {"users": users.listing(), "me": _me_id(request)}
+
     @app.post("/conversation/drafts/{did}/reject", dependencies=auth)
     def conversation_reject(did: int, request: Request):
         return guard(lambda: inbox.reject_draft(did, actor=request.state.actor))
