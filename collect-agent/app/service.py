@@ -1690,6 +1690,7 @@ class CollectService:
             # critic סבב 75: גם יומן ה-dry-run בזיכרון (/outbox) — לפי הכתובות, לפני שמתממים אותן
             self._scrub_sent_log(self.db.one("SELECT phone, email FROM customers WHERE id=?", (c["id"],)))
             self._scrub_shared_card_name(c["id"])
+            self._release_bounce_on_purge(c["id"])
             self.db.x("UPDATE customers SET name=NULL, phone=NULL, email=NULL, blocked_phone=NULL,"
                       " blocked_email=NULL, purged_at=? WHERE id=?", (now, c["id"]))
             cust_n += 1
@@ -1745,6 +1746,21 @@ class CollectService:
             "status IN ('pending_approval','needs_owner') AND created_at>? AND EXISTS("
             "SELECT 1 FROM messages WHERE customer_id=? AND needs_owner=1)",
             (customer_id, floor, customer_id)) is not None
+
+    def _release_bounce_on_purge(self, cid: int) -> None:
+        """גבי משפט (ר-10, מזעור): סימון bounce (גיבוב מייל) נועד רק לא לשלוח שוב ללקוח **קיים** לכתובת מתה.
+        כשהלקוח מותמם אין לו עוד מטרה ⇒ נמחק, אלא אם לקוח חי אחר משתמש באותה כתובת (כתובת משותפת).
+        שונה מ-suppressions (הסרה / תלונת ספאם = סירוב לפי 30א) — שם השמירה נמשכת כדי לכבד את הסירוב."""
+        if not self._table_exists("email_bounces"):
+            return
+        c = self.db.one("SELECT email, blocked_email FROM customers WHERE id=?", (cid,))
+        for addr in {(a or "").strip().lower() for a in (c["email"], c["blocked_email"]) if a}:
+            h = self.addr_hash("email", addr)
+            live = [o for o in self.db.q("SELECT email FROM customers WHERE id<>? AND purged_at IS NULL "
+                                         "AND email IS NOT NULL", (cid,))
+                    if self.addr_hash("email", o["email"]) == h]
+            if not live:
+                self.db.x("DELETE FROM email_bounces WHERE hash=?", (h,))
 
     def _scrub_sent_log(self, cust) -> None:
         """critic סבב 75 (ר-10): רשומות יומן ה-dry-run (`sender.sent`, /outbox) של לקוח שהותמם — נשחרות במקום:
