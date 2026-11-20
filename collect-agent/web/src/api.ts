@@ -186,6 +186,9 @@ export const api = {
   deactivate: (uid: number) => j<Team>(`/team/${uid}/deactivate`, { method: 'POST' }),
   reactivate: (uid: number) => j<Team>(`/team/${uid}/reactivate`, { method: 'POST' }),
   ownerDone: (id: number) => j<unknown>(`/owner/inbox/${id}/done`, { method: 'POST' }),
+  /** critic סבב 192 (q22-04): הכרעה על DSN שלא אומת — confirm=true ⇒ הכתובת נחסמת למייל · false ⇒ המיילים חוזרים */
+  emailBounce: (cid: number, confirm: boolean) => j<{ customer: number; email: 'blocked' | 'resumed' }>(`/customers/${cid}/email-bounce`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm }) }),
   // critic סבב 149: שיוך כרטיס כתובת משותפת (החלטה 5) — לקוח נבחר, או null = «אף אחד מהם»
   assignShared: (cardId: number, customerId: number | null) => j<unknown>(`/owner/shared-cards/${cardId}/assign`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customer_id: customerId }) }),

@@ -1,7 +1,7 @@
 // הודעות מערכת לבעל העסק מתוך /owner/inbox (תזכורת סוף ניסיון, 3 תזכורות מוצו, חשבונית ישנה, SMS שלא נמסר).
 // רק direction='system' — אלה טקסטים שהשרת עצמו כתב. תשובות לקוחות (טקסט חופשי) מוצגות ב«תשובות לקוחות», לא כאן.
 export interface OwnerMsg { id: number; customer_id: number | null; direction: string; channel: string; body: string; intent: string | null; created_at: string; payload?: string | null }
-export interface Notice { id: number; icon: string; title: string; body: string; tone: 'warn' | 'info'; intent: string; linked?: { id: number; name: string }[]; unverified?: boolean }
+export interface Notice { id: number; icon: string; title: string; body: string; tone: 'warn' | 'info'; intent: string; linked?: { id: number; name: string }[]; unverified?: boolean; customerId?: number }
 
 const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }> = {
   trial_ending: { icon: '⏳', title: 'תקופת הניסיון מסתיימת בקרוב', tone: 'warn' },
@@ -31,6 +31,8 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   // critic 176: כשל כתיבה ליומן ההסרות — אחרי שחזור גיבוי ההסרה לא תוחזר
   optout_ledger_failed: { icon: '📒', title: 'הסרה לא נרשמה ביומן הגיבוי — לטיפול טכני', tone: 'warn' },
   sms_undelivered: { icon: '📵', title: 'SMS לא נמסר', tone: 'warn' },
+  // q22-04 + critic סבב 192: DSN שלא אומת ⇒ מיילים ללקוח מושהים עד הכרעה (POST /customers/{cid}/email-bounce)
+  email_bounce_review: { icon: '📭', title: 'ייתכן שהמייל של לקוח לא תקין — המיילים אליו מושהים, הכריעו', tone: 'warn' },
   credit_review: { icon: '🧾', title: 'זיכוי שלא שויך לחשבונית — לבדיקתך', tone: 'warn' },
   // חיוב דרך אורביט (8.11.2026): חסד / סיום / ביטול — הגוף כולל קישור לחיוב באורביט
   orbit_billing: { icon: '💳', title: 'המנוי לגבי — נדרשת פעולה באורביט', tone: 'warn' },
@@ -48,6 +50,8 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
 const INBOUND_ORPHANS = new Set(['unknown_sender', 'unknown_sender_urgent', 'shared_contact_ambiguous', 'shared_contact_urgent', 'shared_contact_paid_claim']);
 /** כרטיסי כתובת משותפת עם בחירת לקוח (POST /owner/shared-cards/{id}/assign). */
 const SHARED_CARDS = new Set(['shared_contact_urgent', 'shared_contact_paid_claim']);
+/** critic סבב 192: כרטיס «בדוק ואשר» — נסגר רק בהכרעה (חסום / החזר מיילים), לא ב«טופל». */
+export const BOUNCE_REVIEW = 'email_bounce_review';
 const URGENT_ORPHANS = new Set(['unknown_sender_urgent', 'shared_contact_urgent']);
 
 /** החלטה 5: הלקוחות המקושרים מה-payload (id+שם; בעל העסק בוחר — critic סבב 149) — בלי לזרוק על JSON פגום. */
@@ -77,7 +81,8 @@ export function systemNotices(rows: OwnerMsg[]): Notice[] {
       let body = linked.length ? `${r.body}\n\nלקוחות מקושרים: ${linked.map(c => c.name).join(' · ')}` : r.body;
       if (unverified) body = `${UNVERIFIED_EMAIL_LINE}\n\n${body}`;
       return { id: r.id, icon: k.icon, title: k.title, body, tone: k.tone, intent: r.intent ?? '',
-        ...(linked.length ? { linked } : {}), ...(unverified ? { unverified: true } : {}) };
+        ...(linked.length ? { linked } : {}), ...(unverified ? { unverified: true } : {}),
+        ...(r.intent === BOUNCE_REVIEW && r.customer_id != null ? { customerId: r.customer_id } : {}) };
     })
     .sort((a, b) => Number(URGENT_ORPHANS.has(b.intent)) - Number(URGENT_ORPHANS.has(a.intent))
       || Number(b.intent === 'trial_ending') - Number(a.intent === 'trial_ending') || b.id - a.id);

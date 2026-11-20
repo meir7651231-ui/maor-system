@@ -31,7 +31,6 @@ def _forged(svc, clock):
     return [c["id"] for c in svc.db.q("SELECT id FROM messages WHERE needs_owner=1 AND intent='email_bounce_review'")]
 
 
-@pytest.mark.xfail(strict=True, reason="critic 192: «טופל» על כרטיס bounce-review מעלים אותו וההשהיה נשארת בשקט")
 def test_done_on_bounce_review_does_not_hide_pause(svc, clock):
     for cid in _forged(svc, clock):
         svc.owner_message_done(cid)
@@ -39,7 +38,6 @@ def test_done_on_bounce_review_does_not_hide_pause(svc, clock):
     assert not svc.email_bounce_pending("c1@example.com") or still_card
 
 
-@pytest.mark.xfail(strict=True, reason="critic 192: אין מסך שקורא ל-POST /customers/{cid}/email-bounce")
 def test_ui_offers_bounce_decision():
     files = [*(ROOT / "web" / "src").rglob("*.ts*"), ROOT / "app" / "ui.html"]
     code = [ln for f in files for ln in f.read_text(encoding="utf-8").splitlines()
@@ -51,3 +49,33 @@ def test_control_api_decision_releases(svc, clock):
     _forged(svc, clock)
     assert svc.confirm_email_bounce(1, False)["email"] == "resumed"
     assert not svc.email_bounce_pending("c1@example.com")
+
+
+# ── מנהל 343: התיקון ──────────────────────────────────────────────────────────────────────────────────────
+def test_done_refused_while_pending_with_reason_and_audit(svc, clock):
+    cards = _forged(svc, clock)
+    assert cards
+    r = svc.owner_message_done(cards[0])
+    assert r["done"] is False and r["email_bounce_review"] and "החזר מיילים" in r["reason"]
+    assert svc.db.one("SELECT needs_owner FROM messages WHERE id=?", (cards[0],))["needs_owner"] == 1
+    assert svc.db.one("SELECT 1 FROM audit WHERE action='owner_message_done_refused'"
+                      " AND detail LIKE '%email_bounce_pending%'")
+
+
+@pytest.mark.parametrize("confirm,state", [(True, "blocked"), (False, "resumed")])
+def test_decision_closes_card(svc, clock, confirm, state):
+    cards = _forged(svc, clock)
+    assert svc.confirm_email_bounce(1, confirm)["email"] == state
+    assert all(svc.db.one("SELECT needs_owner FROM messages WHERE id=?", (c,))["needs_owner"] == 0 for c in cards)
+    assert svc.email_bounce_confirmed("c1@example.com") is confirm
+
+
+def test_stale_card_after_address_change_can_be_done(svc, clock):
+    cards = _forged(svc, clock)
+    svc.db.x("UPDATE customers SET email='new@example.com' WHERE id=1")
+    assert svc.owner_message_done(cards[0])["done"] is True
+
+
+def test_dashboard_wires_both_decisions():
+    src = (ROOT / "web/src/pages/Dashboard.tsx").read_text(encoding="utf-8")
+    assert "api.emailBounce(n.customerId!, false)" in src and "api.emailBounce(n.customerId!, true)" in src

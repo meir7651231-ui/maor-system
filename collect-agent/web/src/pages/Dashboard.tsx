@@ -16,6 +16,7 @@ import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, REAPPROVE_LABEL } from '../ap
 import { ALREADY_PLAN, alreadyDone, failPrefix, type Already } from '../lib/failure.ts';
 import { mockAmountCheck } from '../lib/policy.ts';
 import { areaPath, cumulative, otherInSeries, toBars, type Bar } from '../lib/series.ts';
+import { BOUNCE_REVIEW } from '../lib/notices.ts';
 
 const AGING_COLOR: Record<Aging, string> = { notDue: 'bg-ink-400', d0_30: 'bg-due', d31_60: 'bg-late', d61_90: 'bg-red-500', d90p: 'bg-red-700' };
 
@@ -372,6 +373,16 @@ function NeedsYou() {
             {n.intent === 'restore_hold' ? (
               <a href="#/dashboard" data-testid="notice-restore-link" onClick={e => { e.preventDefault(); document.getElementById('restore-hold')?.scrollIntoView({ block: 'center' }); }}
                 className="mt-1 inline-block text-xs font-bold text-ink-700 underline">לחידוש השליחה עם תיעוד — בבאנר האדום למעלה ↑</a>
+            ) : n.intent === BOUNCE_REVIEW && n.customerId != null ? (
+              // critic סבב 192: «טופל» השאיר את ההשהיה בשקט — כאן רק הכרעה (השרת מסרב ל«טופל» כל עוד ההשהיה פעילה)
+              <div className="flex flex-wrap gap-2 mt-2">
+                <Button size="sm" variant={armed === `bk${n.id}` ? 'dark' : 'outline'} data-testid="notice-bounce-keep"
+                  onClick={() => act(`bk${n.id}`, () => api.emailBounce(n.customerId!, false), 'הכתובת סומנה תקינה — המיילים חוזרים')}>
+                  {armed === `bk${n.id}` ? 'לחצו שוב לאישור' : 'הכתובת תקינה — החזר מיילים'}</Button>
+                <Button size="sm" variant={armed === `bb${n.id}` ? 'dark' : 'outline'} data-testid="notice-bounce-block"
+                  onClick={() => act(`bb${n.id}`, () => api.emailBounce(n.customerId!, true), 'הכתובת נחסמה למייל — SMS ממשיך')}>
+                  {armed === `bb${n.id}` ? 'לחצו שוב לאישור' : 'המייל באמת חזר — חסום'}</Button>
+              </div>
             ) : n.linked?.length ? (
               // critic סבב 149: החלטה 5 — בעל העסק בוחר למי הפנייה שייכת (רק אז המנוע מטפל בה); «אף אחד» משחרר את ההשהיה
               <div className="flex flex-wrap gap-2 mt-2">

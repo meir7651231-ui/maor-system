@@ -1529,12 +1529,24 @@ class CollectService:
             self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "restore_hold_active"})
             return {"id": mid, "done": False, "restore_hold": True,
                     "reason": "השליחה עדיין עצורה אחרי השחזור. הכרטיס יורד רק בחידוש השליחה, עם תיעוד."}
+        if row["intent"] == "email_bounce_review" and self._bounce_review_open(mid):
+            # critic סבב 192: «טופל» הוריד את הכרטיס וההשהיה נשארה — 0 מיילים ללקוח ושום דבר במסך. כמו 177א: כל עוד
+            # ההשהיה פעילה הכרטיס נשאר; הוא יורד רק בהכרעה (confirm_email_bounce: «חסום» / «החזר מיילים»).
+            self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "email_bounce_pending"})
+            return {"id": mid, "done": False, "email_bounce_review": True,
+                    "reason": "המיילים ללקוח עדיין מושהים. הכרטיס יורד רק בהכרעה: «המייל באמת חזר — חסום» "
+                              "או «הכתובת תקינה — החזר מיילים»."}
         if self._self_dismiss_blocked(row, actor):
             self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "self_dismiss"})
             raise ValueError("את ההתראה על שינוי ההגדרות הרגישות צריך לסמן «טופל» עובד אחר — לא מי שביצע את השינוי.")
         self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (mid,))
         self.audit(actor, "owner_message_done", {"message": mid})
         return {"id": mid, "done": True}
+
+    def _bounce_review_open(self, mid: int) -> bool:
+        """critic סבב 192: לכרטיס email_bounce_review יש השהיה פעילה (ללקוח שלו, לכתובת הנוכחית)."""
+        c = self.db.one("SELECT c.email FROM messages m JOIN customers c ON c.id=m.customer_id WHERE m.id=?", (mid,))
+        return bool(c) and self.email_bounce_pending(c["email"] or "")
 
     def _self_dismiss_blocked(self, row, actor: str) -> bool:
         """הפעלה 199 (critic סבב 72, המגבלה שנשארה): ההתראה settings_changed נכנסת לתיבה המשותפת, ומי שהחליף את

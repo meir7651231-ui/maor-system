@@ -1529,3 +1529,12 @@ test('גבי עיצוב: מצב המייל בשורת הלקוח — חזר / ס
   assert.match(sp.body, /לא שולחים עוד מייל/); assert.match(sp.body, /אדם אחר/);
   assert.doesNotMatch(sp.body + sp.action.text, /שלח(ו)? שוב|לחדש מייל/);
 });
+
+test('critic 192: כרטיס email_bounce_review — כותרת ייעודית + customerId להכרעה', async () => {
+  const { systemNotices, BOUNCE_REVIEW } = await import('../src/lib/notices.ts');
+  const [n] = systemNotices([{ id: 7, customer_id: 3, direction: 'system', channel: 'email', body: 'x', intent: BOUNCE_REVIEW, created_at: '2026-11-20T10:00:00+02:00' }]);
+  assert.equal(n.customerId, 3);
+  assert.match(n.title, /מושהים/);
+  const [m] = systemNotices([{ id: 8, customer_id: 3, direction: 'system', channel: 'owner', body: 'x', intent: 'amount_check', created_at: '2026-11-20T10:00:00+02:00' }]);
+  assert.equal(m.customerId, undefined);
+});
