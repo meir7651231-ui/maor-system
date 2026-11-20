@@ -17,6 +17,7 @@ import { ALREADY_PLAN, alreadyDone, failPrefix, type Already } from '../lib/fail
 import { mockAmountCheck } from '../lib/policy.ts';
 import { areaPath, cumulative, otherInSeries, toBars, type Bar } from '../lib/series.ts';
 import { BOUNCE_REVIEW } from '../lib/notices.ts';
+import { OWNER_ONLY_TAG, resumeLocked } from '../lib/ownerOnly.ts';
 
 const AGING_COLOR: Record<Aging, string> = { notDue: 'bg-ink-400', d0_30: 'bg-due', d31_60: 'bg-late', d61_90: 'bg-red-500', d90p: 'bg-red-700' };
 
@@ -336,7 +337,7 @@ export function pauseLabel(reason: string): string {
 }
 /** "דורש טיפול": לקוחות מושהים (חידוש בלחיצה כפולה) + הצעות פריסה שממתינות לאישורך. */
 function NeedsYou() {
-  const { customers, invoices, plans, notices, reload, showToast, showFail } = useApp();
+  const { customers, invoices, plans, notices, reload, showToast, showFail, me } = useApp();
   const [armed, setArmed] = useState<string | null>(null);
   const [planConfirm, setPlanConfirm] = useState<Record<number, boolean>>({});   // critic סבב 49: סכום חריג
   const seen = new Set<number>();
@@ -407,10 +408,18 @@ function NeedsYou() {
             <div className="font-bold"><span aria-hidden>⏸️</span> {c.name}</div>
             <div className="text-ink-700 text-xs mt-0.5">{pauseLabel(c.paused!)}</div>
             {resumeWarning(c.paused!) && <div className="text-amber-800 text-xs mt-0.5 font-bold" data-testid="resume-warning">{resumeWarning(c.paused!)}</div>}
+            {resumeLocked(me, c.paused) ? (
+              // מבקר 195: השהיה שבעל העסק סימן — עובד/ת לא מחדש/ת (השרת: 403, critic 191א) ⇒ כפתור נעול + תג
+              <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="resume-locked">
+                <Button size="sm" variant="outline" disabled aria-disabled="true" title="רק בעל העסק מחדש השהיה שהוא סימן">↻ חידוש תזכורות</Button>
+                <span data-testid="owner-only-badge" className="whitespace-nowrap rounded-full bg-ink-100 px-2 py-0.5 text-xs font-bold text-ink-700">{OWNER_ONLY_TAG}</span>
+              </div>
+            ) : (
             <Button size="sm" variant={armed === `r${c.backendId}` ? 'dark' : 'outline'} className="mt-2"
               onClick={() => act(`r${c.backendId}`, () => api.resume(c.backendId!), `התזכורות ל${c.name} חודשו`)}>
               {armed === `r${c.backendId}` ? 'לחצו שוב לאישור' : '↻ חידוש תזכורות'}
             </Button>
+            )}
           </li>
         ))}
         {proposed.map(p => {

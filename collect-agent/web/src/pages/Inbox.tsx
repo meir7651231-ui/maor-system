@@ -7,6 +7,7 @@ import { smsSegments } from '../lib/message.ts';
 import { fmtWhenIL } from '../lib/policy.ts';
 import { fmtMoney } from '../lib/format.ts';
 import { ALREADY_DRAFT, ALREADY_DRAFT_CLOSED, alreadyDone, type Already } from '../lib/failure.ts';
+import { isPromiseOverLimit } from '../lib/promiseRequest.ts';
 
 const INTENT: Record<string, string> = {
   how_to_pay: 'שאל/ה איך משלמים', paid_claim: 'טוען/ת ששילם/ה', plan_request: 'מבקש/ת פריסה', opt_out: 'ביקש/ה הסרה',
@@ -88,6 +89,14 @@ function DraftCard({ d }: { d: Draft }) {
         <p className="mt-3 font-medium">{d.owner_summary}</p>
         {d.owner_actions.length > 0 && (
           <ul className="mt-2 space-y-1 text-sm text-ink-700" data-testid="draft-actions" aria-label="מה לעשות">{d.owner_actions.map(a => <li key={a}>☐ {a}</li>)}</ul>
+        )}
+        {isPromiseOverLimit(d) && (
+          <div className="mt-3 flex flex-wrap gap-2" data-testid="promise-request" role="group" aria-label="בדוק ואשר — המועד שהלקוח ביקש">
+            <Button size="sm" disabled={busy} data-testid="promise-approve"
+              onClick={() => run(() => api.promiseRequest(d.customer_id, true), '✓ המועד המבוקש אושר — אין תזכורות עד אז')}>✓ לאשר את המועד המבוקש</Button>
+            <Button size="sm" variant="ghost" disabled={busy} data-testid="promise-refuse"
+              onClick={() => run(() => api.promiseRequest(d.customer_id, false), 'המועד לא אושר — התזכורות יחזרו אחרי 14 יום')}>✗ לסרב (14 יום בלבד)</Button>
+          </div>
         )}
         <label className="block mt-4">
           <span className="text-sm font-bold">{needsWrite ? 'אין טיוטה — כתבו מענה (או סגרו את הכרטיס)' : 'טיוטת המענה של גבי (אפשר לערוך)'}</span>

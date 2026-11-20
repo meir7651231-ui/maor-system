@@ -1549,3 +1549,27 @@ test('מבקר 194: שדות בעל העסק בהגדרות נעולים לעו�
   for (const k of OWNER_ONLY_FIELDS) { assert.ok(fieldLocked(staff, k), k); assert.ok(!fieldLocked(ownerUser, k), k); assert.ok(!fieldLocked(null, k), k); }
   assert.equal(OWNER_ONLY_FIELDS.length, 8);
 });
+
+test('q21-19: «בדוק ואשר» על מועד מעבר ל-14 — מזוהה רק בהבטחה עם הפעולה של השרת', async () => {
+  const { isPromiseOverLimit } = await import('../src/lib/promiseRequest.ts');
+  const act = ['בדוק ואשר: לאשר את 25.11.2026 — או לסרב (התזכורות יחזרו אחרי 22.11.2026)'];
+  assert.equal(isPromiseOverLimit({ intent: 'promise', owner_actions: act }), true);
+  assert.equal(isPromiseOverLimit({ intent: 'promise', owner_actions: ['לאשר או להציע מועד אחר'] }), false);
+  assert.equal(isPromiseOverLimit({ intent: 'dispute', owner_actions: act }), false);
+});
+
+test('מבקר 195 + הכרעת QA: חידוש השהיית-בעלים וייצוא נתונים נעולים לעובד/ת בלבד', async () => {
+  const { resumeLocked, exportLocked } = await import('../src/lib/ownerOnly.ts');
+  const staff = { actor: 'user:2', kind: 'user' as const, name: 'עובד' };
+  const ownerUser = { ...staff, owner: true };
+  const token = { actor: 'owner', kind: 'owner' as const, name: 'בעלים' };
+  for (const h of ['deceased', 'minor', 'insolvency']) assert.equal(resumeLocked(staff, h), true, h);
+  assert.equal(resumeLocked(staff, 'paid_claim'), false);
+  assert.equal(resumeLocked(staff, 'promise:until=2026-11-23'), false);
+  assert.equal(resumeLocked(ownerUser, 'deceased'), false);
+  assert.equal(resumeLocked(token, 'deceased'), false);
+  assert.equal(resumeLocked(null, 'deceased'), false);
+  assert.equal(exportLocked(staff), true);
+  assert.equal(exportLocked(ownerUser), false);
+  assert.equal(exportLocked(token), false);
+});

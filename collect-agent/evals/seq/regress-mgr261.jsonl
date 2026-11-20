@@ -8,5 +8,5 @@
 {"id": "rm261-08", "channel": "sms", "critical": true, "turns": [{"text": "הטלפון של הבן שלי, הוא בן 12", "expect": {"intent": "minor"}}]}
 {"id": "rm261-09", "channel": "sms", "critical": true, "turns": [{"text": "היי, עורך הדין שלי אמר שזה בסדר לשלם בתשלומים, אפשר לחלק ל-4?", "expect": {"intent": "plan_request", "not": ["legal"]}}]}
 {"id": "rm261-10", "channel": "sms", "critical": true, "turns": [{"text": "העברתי את זה לעורך דין, מעכשיו תפנו אליו", "expect": {"intent": "legal", "promise": null}}]}
-{"id": "rm261-11", "channel": "sms", "critical": false, "turns": [{"text": "אשלם ב-30 לחודש", "expect": {"state": "awaiting_owner"}}, {"text": "כלומר ב-15", "expect": {"intent": "promise", "state": "promised", "promise": "2026-11-15"}}]}
+{"id": "rm261-11", "channel": "sms", "critical": false, "turns": [{"text": "אשלם ב-30 לחודש", "expect": {"state": "promised"}}, {"text": "כלומר ב-15", "expect": {"intent": "promise", "state": "promised", "promise": "2026-11-15"}}], "note_q21_19": "הכרעת ראש צוות q21-19 (20.11): מועד מעבר ל-14 יום ⇒ promised (עד 14) + «בדוק ואשר», לא awaiting_owner"}
 {"id": "rm261-12", "channel": "sms", "critical": false, "turns": [{"text": "אני משלמת כל חודש ב-10 את המשכנתא, אין לי כסף לזה עכשיו", "expect": {"not": ["promise"]}}]}

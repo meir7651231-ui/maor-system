@@ -571,13 +571,25 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(409, "כבר קיימת בקשה פתוחה מסוג זה ללקוח")
         return {"id": rid}
 
+    def owner_only(request: Request, action: str, detail: dict, msg: str) -> None:
+        """הכרעת ראש צוות (ממצא QA, 20.11 — דפוס 190ב/191): מחיקת לקוח, ייצוא נתונים ותחזוקה = בעל העסק בלבד.
+        עובד/ת ⇒ 403 + audit של הניסיון עם השחקן האמיתי."""
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, action + "_refused", detail)
+            raise HTTPException(403, msg)
+
     @app.post("/dsr/{rid}/done", dependencies=auth)
     def dsr_done(rid: int, b: DsrDoneIn, request: Request):
         from . import dsr
+        row = svc.db.one("SELECT kind FROM dsr WHERE id=?", (rid,)) if svc._table_exists("dsr") else None
+        if row and row["kind"] == "deletion":
+            # סגירת בקשת מחיקה = אישור שהמחיקה בוצעה ⇒ בעל העסק בלבד. פתיחת בקשה (רישום מה שהלקוח ביקש) — פתוחה
+            owner_only(request, "dsr_deletion_close", {"dsr": rid}, "רק בעל העסק סוגר בקשת מחיקה (מאשר שהמחיקה בוצעה)")
         return guard(dsr.close_request, svc, rid, b.note, request.state.actor)
 
     @app.get("/customers/{cid}/data", dependencies=auth)
     def customer_data(cid: int, request: Request):                     # מנהל 309: זכות עיון
+        owner_only(request, "customer_data_export", {"customer": cid}, "רק בעל העסק מייצא את כל נתוני הלקוח")
         return guard(svc.customer_data_export, cid, request.state.actor)
 
     @app.post("/invoices/{iid}/mark-paid", dependencies=auth)
@@ -599,6 +611,18 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def customer_email_bounce(cid: int, b: EmailBounceIn, request: Request):   # q22-04: הכרעת בעל העסק
         return guard(svc.confirm_email_bounce, cid, b.confirm, request.state.actor)
 
+    # הכרעת ראש צוות q21-19: «בדוק ואשר» על מועד הבטחה שמעבר ל-max_defer_days ⇒ {"approve": true|false}
+    @app.post("/customers/{cid}/promise-request", dependencies=auth)
+    async def promise_request_decide(cid: int, request: Request):
+        try:
+            body = await request.json()
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        approve = body.get("approve") if isinstance(body, dict) else None
+        if not isinstance(approve, bool):
+            raise HTTPException(422, "approve: true (לאשר את המועד המבוקש) או false (לסרב)")
+        return guard(svc.decide_promise_request, cid, approve, request.state.actor)
+
     @app.post("/customers/{cid}/opt-out", dependencies=auth)
     def customer_opt_out(cid: int, request: Request):                  # critic סבב 97
         return guard(svc.owner_opt_out, cid, request.state.actor)
@@ -618,6 +642,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/maintenance/purge", dependencies=auth)
     def purge(request: Request):                     # ר-10 (רץ גם בכל plan)
+        owner_only(request, "maintenance_purge", {}, "רק בעל העסק מריץ פעולות תחזוקה")
         return svc.purge_closed(request.state.actor)   # critic סבב 73: מי הפעיל
 
     @app.get("/outbox", dependencies=auth)

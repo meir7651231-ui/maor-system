@@ -81,8 +81,8 @@ def test_plan_reject_keeps_date(text, want):
     assert d.intent == Intent.PROMISE and Intent.PLAN_REJECT in d.all_intents
     assert d.promise_date == want
     assert "דחה/תה את הצעת הפריסה" in d.owner_summary
-    if (want - date(2026, 11, 8)).days > 14:
-        assert d.next_state == State.AWAITING_OWNER and any("לאשר" in a for a in d.owner_actions)
+    if (want - date(2026, 11, 8)).days > 14:   # הכרעת q21-19: promised עד 14 + «בדוק ואשר»
+        assert d.next_state == State.PROMISED and any("בדוק ואשר" in a for a in d.owner_actions)
     else:
         assert d.next_state == State.PROMISED
 

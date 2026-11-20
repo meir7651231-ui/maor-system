@@ -2951,6 +2951,30 @@ class CollectService:
         self.audit(actor, "restore_hold_released", {"restored_at": out["restored_at"]})
         return out
 
+    def decide_promise_request(self, cid: int, approve: bool, actor: str = "owner") -> dict:
+        """הכרעת ראש צוות q21-19: הלקוח הבטיח לשלם במועד שמעבר ל-max_defer_days ⇒ ההבטחה התקבלה עד max_defer_days,
+        ובעל העסק מכריע על המועד המבוקש. מאשר ⇒ ההשהיה (promise:until) נמשכת עד יום אחרי המועד המבוקש. מסרב ⇒ נשאר
+        עד max_defer_days, ואז התזכורות חוזרות. רק על הבקשה האחרונה שעוד לא הוכרעה, ורק כשהלקוח עדיין בהשהיית הבטחה."""
+        req = self.db.one("SELECT id, detail FROM audit WHERE action='promise_over_limit' "
+                          "AND json_extract(detail,'$.customer')=? ORDER BY id DESC LIMIT 1", (cid,))
+        if req is None:
+            raise KeyError(cid)
+        if self.db.one("SELECT 1 FROM audit WHERE action IN ('promise_request_approved','promise_request_refused') "
+                       "AND id>? AND json_extract(detail,'$.customer')=?", (req["id"], cid)):
+            raise ValueError("הבקשה כבר הוכרעה")
+        info = json.loads(req["detail"])
+        c = self.db.one("SELECT paused_reason FROM customers WHERE id=?", (cid,))
+        if approve:
+            if not (c and (c["paused_reason"] or "").startswith("promise:until=")):
+                raise ValueError("הלקוח כבר לא בהשהיית הבטחה (השהיה אחרת גוברת) — אין מה להאריך")
+            until = (date.fromisoformat(info["requested"]) + timedelta(days=1)).isoformat()
+            self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (f"promise:until={until}", cid))
+            self.db.x("UPDATE conversations SET pause_until=? WHERE customer_id=?", (until, cid))
+        self.audit(actor, "promise_request_approved" if approve else "promise_request_refused",
+                   {"customer": cid, "requested": info["requested"]})
+        return {"customer": cid, "requested": info["requested"], "approved": approve,
+                "paused_until": until if approve else info["until"]}
+
     def _opt_out(self, cid: int, how: str) -> None:
         self.db.x("UPDATE customers SET opted_out=1 WHERE id=?", (cid,))
         c = self.db.one("SELECT phone, email FROM customers WHERE id=?", (cid,))
