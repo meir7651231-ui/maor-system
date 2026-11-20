@@ -10,6 +10,7 @@ import json
 import logging
 import os
 import re
+from datetime import timedelta
 from html import escape as html_escape
 from pathlib import Path
 from typing import Literal
@@ -413,6 +414,25 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.post("/plan", dependencies=auth)
     def plan():
         return {"created": svc.plan()}
+
+    # מנהל 337: הזזת שעון ההדגמה — כדי ש-e2e בדפדפן יכסה מצבים שתלויים בזמן (הסדר «הוחמץ» אחרי 7 ימי חסד),
+    # שעד היום כוסו רק ב-pytest. קיים **רק** בשירות דמו (DEMO=1: מסד בזיכרון, נתונים בדויים, dry-run) ורק עם
+    # opt-in נוסף DEMO_CLOCK=1; בכל מקרה אחר הנתיב לא נרשם בכלל (404). רק קדימה, 1–90 ימים, עם אימות בעלים.
+    # השעון משותף ל-Users (סשנים/TOTP) — הזזה ארוכה עלולה לפוג סשן של עובד דמו; הבדיקות עובדות עם טוקן הבעלים.
+    if demo_service and os.environ.get("DEMO_CLOCK") == "1":
+        from .demo import FixedClock
+
+        @app.post("/demo/advance", dependencies=auth)
+        def demo_advance(days: int):
+            if not isinstance(svc.clock, FixedClock):
+                raise HTTPException(409, "שעון ההדגמה לא קבוע")
+            if not 1 <= days <= 90:
+                raise HTTPException(422, "days: 1–90")
+            svc.clock.now += timedelta(days=days)
+            svc.audit("owner:demo", "demo_clock_advanced", {"days": days})
+            # הניסיון של הדמו (14 יום מ-DEMO_TRIAL_START) נגמר אחרי הזזה ארוכה ⇒ svc.plan() לא רץ בכלל. מחזירים את
+            # המצב כדי שבדיקה תיכשל בהסבר ולא ב«ההסדר לא הוחמץ» (מסלול שנמצא בכתיבת הבדיקה הזו).
+            return {"today": svc.clock().date().isoformat(), "trial_active": bool(svc.trial()["active"])}
 
     @app.get("/reminders", dependencies=auth)
     def reminders(request: Request, status: str | None = None, view: str | None = None):

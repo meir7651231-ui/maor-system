@@ -206,6 +206,8 @@ jobs:
         run: TZ=UTC node e2e/ui-dsr.mjs "$RUNNER_TEMP/shots"
       - name: "e2e הדשבורד הפשוט (/ui) — הסדרי תשלומים: הצעה לא בכרטיס · אישור ⇒ «פעיל» + התשלום הבא · שולם ⇒ «הושלם» 100% (מנהל 336) מול DEMO=1"
         run: TZ=UTC node e2e/ui-plans.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e הדשבורד הפשוט (/ui) — הסדר שהוחמץ: שעון הדמו זז (DEMO_CLOCK) ⇒ יום 7 של החסד עדיין «פעיל» · יום 8 ⇒ «תשלום לא התקבל» ראשון + באיחור + התראה לבעלים (מנהל 337)"
+        run: TZ=UTC node e2e/ui-plans-missed.mjs "$RUNNER_TEMP/shots"
       - name: "e2e עצירת שליחה אחרי שחזור (critic 177) — באנר /app/ + כרטיס בלי «טופל» + שחרור מתועד ב-/ui ⇒ hold=null (מנהל 325)"
         run: TZ=UTC node e2e/ui-restore-hold.mjs "$RUNNER_TEMP/shots"
       - name: "e2e הדשבורד הפשוט (/ui) — «טעות בשם בחשבונית, תתקנו ואשלם» ⇒ פעולת תיקון-חשבונית בכרטיס, מחלוקת סכום דחופה, מלכודת בלי התראת שווא מול DEMO=1"
