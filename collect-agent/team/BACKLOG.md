@@ -78,6 +78,7 @@
 - [x] ✅ `06d0b912` (גבי מנוע 19.11 — ימי לוח בשעון ישראל ב-listing+sweep; תווית «לקוח שפרטיו נמחקו» ב-dsrView; מנהל 322 הוסיף: «היום היום האחרון» בהתראה ביום היעד + `late` בסגירה בימי לוח — `tests/test_mgr322_dsr_calendar_days.py`) 🟡 (מבקר סבב 174, על `3779d056`) **`app/dsr.py` → `listing` (`days = (due_at - now).days`):** ימים שנותרו ביחידות 24 שעות, לא ימי לוח, מול **תאריך** יעד במסך ⇒ ב-7.12 (יעד 08.12) «היום האחרון להשיב»; ב-08.12 10:30 «באיחור של 1 ימים». לתקן: `(due.date() - now.date()).days`, overdue רק אחרי יום היעד. הוכחה: `tests/test_critic_round174_dsr_days_left.py` (2× xfail strict + בקרה). נלווה: `web/src/lib/dsr.ts` → `dsrView` — לקוח שהותמם (customer_id קיים, שם NULL) מוצג «כתובת משותפת — לשייך מהכרטיס» (התווית לפי שם ולא לפי customer_id; אומת ב-node).
 - ✅ (גבי משפט) מעל 4c8fe0a: בדיקות sweep ביום היעד + גבולות חצות (`ffe0da1`) · DPA 9.1ג מעודכן (כתובת משותפת נרשמת מהקבלה, שלילה לא נרשמת, ימי לוח) + נעילת 30/5 ימים מול הקוד ב-`test_legal_docs_match_code`.
 - [x] ✅ `03141bee` (תוקן במנהל 333) 🟡 (מבקר סבב 183, על `8b3b37d3`) **`app/dsr.py` → `detect` (`_ACCESS`):** «what do you know about me», «show me my data», «אני רוצה לדעת מה אתם יודעים עליי» לא נרשמים כבקשת עיון. הוכחה: `tests/test_critic_round183_dsr_access_phrasing.py` (3× xfail strict + בקרה).
+- ✅ `6093c12` מסמך הגדרות מאגר (תקנה 2 לתקנות אבטחה): `legal/DATABASE-DEFINITION.md` — 24 טבלאות עם מידע אישי ושמירה, `tests/test_database_definition.py` (טבלה חדשה בלי תיאור ⇒ נכשל), בחבילה לעו״ד + שער בטא 12.
 - 🧱 פרטי החברה המפעילה + עו״ד (מאיר).
 
 ## גבי מנוע
