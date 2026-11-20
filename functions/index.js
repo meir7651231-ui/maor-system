@@ -264,7 +264,9 @@ exports.sheetsNightly = onSchedule({ schedule: 'every day 03:00', secrets: ['GOO
   if (!process.env.GOOGLE_SA) return; // אין service-account ⇒ דורמנטי
   const { google } = require('googleapis');
   const sa = JSON.parse(process.env.GOOGLE_SA);
-  const auth = new google.auth.JWT(sa.client_email, undefined, sa.private_key, ['https://www.googleapis.com/auth/spreadsheets']);
+  // בנאי-אובייקט (20.11.2026): googleapis ≥171 (google-auth-library 10) מתעלם מהבנאי-המיקומי הישן
+  // (email, keyFile, key, scopes) ⇒ אובייקט בלי email ⇒ אימות נכשל בשקט. הצורה הזו עובדת ב-9 וב-10.
+  const auth = new google.auth.JWT({ email: sa.client_email, key: sa.private_key, scopes: ['https://www.googleapis.com/auth/spreadsheets'] });
   const sheets = google.sheets({ version: 'v4', auth });
   const db = getFirestore();
   const today = new Date().toISOString().slice(0, 10);
