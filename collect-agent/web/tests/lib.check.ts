@@ -1549,3 +1549,24 @@ test('מבקר 194: שדות בעל העסק בהגדרות נעולים לעו�
   for (const k of OWNER_ONLY_FIELDS) { assert.ok(fieldLocked(staff, k), k); assert.ok(!fieldLocked(ownerUser, k), k); assert.ok(!fieldLocked(null, k), k); }
   assert.equal(OWNER_ONLY_FIELDS.length, 8);
 });
+
+test('מבקר 195ג (+194): פעולות בעל העסק בלבד — עובד/ת רואה נעול, בעלים/קוד-בעלים/לא-נטען רואים פתוח', async () => {
+  const { isStaff, isOwnerHold, resumeLocked, exportLocked, dsrCloseLocked, OWNER_HOLDS } = await import('../src/lib/roles.ts');
+  const staff = { actor: 'user:2', kind: 'user' as const, name: 'עובדת' };
+  const ownerUser = { actor: 'user:1', kind: 'user' as const, name: 'בעלים', owner: true };
+  const ownerTok = { actor: 'owner', kind: 'owner' as const, name: 'בעל העסק' };
+  assert.equal(isStaff(staff), true);
+  for (const m of [ownerUser, ownerTok, null, undefined]) assert.equal(isStaff(m), false);
+  // אותה רשימה כמו app/policy.py OWNER_HOLDS
+  const py = readFileSync(new URL('../../app/policy.py', import.meta.url), 'utf8').match(/^OWNER_HOLDS = \(([^)]*)\)/m)![1];
+  assert.deepEqual([...OWNER_HOLDS], [...py.matchAll(/"(\w+)"/g)].map(m => m[1]));
+  for (const p of ['minor', 'deceased', 'insolvency', 'minor:until=2026-12-01']) assert.equal(isOwnerHold(p), true, p);
+  for (const p of ['paid_claim', 'distress', 'legal', '', null]) assert.equal(isOwnerHold(p), false, String(p));
+  assert.equal(resumeLocked(staff, 'deceased'), true);
+  assert.equal(resumeLocked(staff, 'paid_claim'), false, 'השהיה רגילה — עובד/ת ממשיך/ה לחדש');
+  assert.equal(resumeLocked(ownerUser, 'deceased'), false);
+  assert.equal(exportLocked(staff), true); assert.equal(exportLocked(ownerTok), false);
+  assert.equal(dsrCloseLocked(staff, 'deletion'), true);
+  for (const k of ['access', 'correction']) assert.equal(dsrCloseLocked(staff, k), false, k);
+  assert.equal(dsrCloseLocked(ownerUser, 'deletion'), false);
+});

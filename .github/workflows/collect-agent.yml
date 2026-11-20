@@ -224,6 +224,8 @@ jobs:
         run: TZ=UTC node e2e/app-contrast.mjs && node e2e/landing-contrast.mjs
       - name: e2e — מצב המייל בשורת הלקוח («חזר»/«ספאם», bounce+ARF אמיתיים) ב-/app/ וב-/ui, AA, 390px, כהה
         run: TZ=UTC node e2e/app-email-state.mjs "$RUNNER_TEMP/shots"
+      - name: e2e — בעל העסק בלבד לעובד/ת (חידוש השהיית-בעלים, ייצוא, סגירת מחיקה) ב-/app/ וב-/ui, 403 בעקיפה, AA, 390px
+        run: TZ=UTC node e2e/app-staff-owner-only.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
         run: TZ=UTC node e2e/rebuild.mjs "$RUNNER_TEMP/shots"
       - name: e2e CSP — 7 עמודי HTML (/p, /p-404, /ui, /app, /pay, /connect/orbit) בלי הפרות, וסקריפט מוזרק נחסם

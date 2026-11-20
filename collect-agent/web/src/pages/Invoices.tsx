@@ -5,7 +5,8 @@ import { daysOverdue, fmtDate, fmtMoney, fmtTotal } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
 import { byAmountDesc, hasOpenDrift, hasPausedCustomer, isOpen, sentChannels } from '../lib/stats.ts';
 import type { Invoice, InvoiceStatus } from '../lib/domain.ts';
-import { Button, Card, LateBadge, StatusBadge, inputCls } from '../components/ui.tsx';
+import { Button, Card, LateBadge, StatusBadge, inputCls, OwnerBadge } from '../components/ui.tsx';
+import { exportLocked } from '../lib/roles.ts';
 import { DRIFT_LABEL, driftText } from '../api.ts';
 import { MessagePreview } from '../components/MessagePreview.tsx';
 import { hashParam } from '../router.ts';
@@ -19,7 +20,7 @@ type Filter = InvoiceStatus | 'all' | 'drift' | 'paused';
 const FILTERS: [InvoiceStatus | 'all', string][] = [['all', 'הכול'], ['open', 'פתוחות'], ['reminded', 'נשלחה תזכורת'], ['promised', 'הבטיח'], ['disputed', 'במחלוקת']];
 
 export function Invoices() {
-  const { invoices, today, customerOf, markPaid, mode, pendingOf, mergedAnchorOf, showToast, showFail } = useApp();
+  const { invoices, today, customerOf, markPaid, mode, pendingOf, mergedAnchorOf, showToast, showFail, me } = useApp();
   // מנהל 310: ייצוא בקשת עיון — מזהה הלקוח שההורדה שלו בדרך (מונע לחיצה כפולה)
   const [exporting, setExporting] = useState<number | null>(null);
   const exportData = async (cid: number, name: string) => {
@@ -89,7 +90,10 @@ export function Invoices() {
                   <Fragment key={i.id}>
                   <tr className="hover:bg-ink-50/60">
                     <td className="px-4 py-3"><div className="font-bold">{c.name}</div>{i.note && <div className="text-xs text-ink-500">📝 {i.note}</div>}
-                      {live && c.backendId != null && <button type="button" data-testid="data-export" disabled={exporting !== null}
+                      {live && c.backendId != null && exportLocked(me) && <div className="mt-1" data-testid="data-export-owner-only">
+                        <button type="button" disabled className="min-h-9 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-ink-700 underline opacity-60 cursor-not-allowed">⬇ ייצוא מידע (בקשת עיון)</button>
+                        <OwnerBadge testId="export-owner-badge" /></div>}
+                      {live && c.backendId != null && !exportLocked(me) && <button type="button" data-testid="data-export" disabled={exporting !== null}
                         onClick={() => exportData(c.backendId!, c.name)}
                         title="לבקשת עיון של הלקוח: קובץ עם כל המידע ששמור עליו בגבי (חשבוניות, תזכורות, הודעות, הסדרים)"
                         className="mt-1 min-h-9 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-ink-500 underline hover:text-ink-700 cursor-pointer disabled:opacity-50 disabled:cursor-wait">

@@ -5,13 +5,12 @@ import { api, type AmountCheck } from '../api.ts';
 import { fmtMoney } from '../lib/format.ts';
 import { RULES } from '../lib/domain.ts';
 import { diffPatch, explainImportError, fieldLocked, settingsOwnerOnly, explainSettingsError, draftFor, formDiff, mergeServerForm, restoreDraft, settingsDraft, SOURCE_SYSTEMS, sourceLabel, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
-import { Button, Card, Field, inputCls } from '../components/ui.tsx';
+import { Button, Card, Field, inputCls, OwnerBadge } from '../components/ui.tsx';
 import { HolidayBanner } from '../components/HolidayBanner.tsx';
 import { TeamCard } from '../components/TeamCard.tsx';
 import { failPrefix } from '../lib/failure.ts';
 
 /** מבקר 194: תווית ליד כותרת סעיף שנעול לעובד/ת */
-const OwnerBadge = () => <span data-testid="owner-only-badge" className="ms-2 align-middle whitespace-nowrap rounded-full bg-ink-100 px-2 py-0.5 text-xs font-bold text-ink-700">🔒 בעל העסק בלבד</span>;
 
 const PAY: [PayProvider, string][] = [['greeninvoice', 'חשבונית ירוקה (morning)'], ['meshulam', 'משולם'], ['bit', 'ביט']];
 

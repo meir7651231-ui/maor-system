@@ -574,10 +574,21 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.post("/dsr/{rid}/done", dependencies=auth)
     def dsr_done(rid: int, b: DsrDoneIn, request: Request):
         from . import dsr
+        # גבי עיצוב (מבקר 195, הכרעת ראש צוות): סגירת בקשת **מחיקה** = אישור שהמידע נמחק ⇒ בעל העסק בלבד.
+        # עיון/תיקון — כמו קודם. המסך מסמן מראש (lib/roles.ts dsrCloseLocked)
+        dsr.ensure_schema(svc.db)
+        r = svc.db.one("SELECT kind FROM dsr WHERE id=?", (rid,))
+        if r and r["kind"] == "deletion" and not request.state.is_owner:
+            svc.audit(request.state.actor, "dsr_deletion_close_refused", {"dsr": rid})
+            raise HTTPException(403, "רק בעל העסק יכול לסגור בקשת מחיקה")
         return guard(dsr.close_request, svc, rid, b.note, request.state.actor)
 
     @app.get("/customers/{cid}/data", dependencies=auth)
     def customer_data(cid: int, request: Request):                     # מנהל 309: זכות עיון
+        # גבי עיצוב (מבקר 195, הכרעת ראש צוות): ייצוא כל המידע על לקוח = בעל העסק בלבד (403 + audit)
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, "data_export_refused", {"customer": cid})
+            raise HTTPException(403, "רק בעל העסק יכול לייצא את המידע של לקוח")
         return guard(svc.customer_data_export, cid, request.state.actor)
 
     @app.post("/invoices/{iid}/mark-paid", dependencies=auth)
@@ -618,6 +629,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/maintenance/purge", dependencies=auth)
     def purge(request: Request):                     # ר-10 (רץ גם בכל plan)
+        # גבי עיצוב (מבקר 195): הפעלה **ידנית** של המחיקה = בעל העסק בלבד. הריצה האוטומטית בכל plan — כמו קודם
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, "purge_refused", {})
+            raise HTTPException(403, "רק בעל העסק יכול להפעיל מחיקה")
         return svc.purge_closed(request.state.actor)   # critic סבב 73: מי הפעיל
 
     @app.get("/outbox", dependencies=auth)

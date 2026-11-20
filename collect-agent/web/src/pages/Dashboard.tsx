@@ -5,11 +5,12 @@ import { agingBuckets, capDrift, kpis, mockOtherCurrency } from '../lib/stats.ts
 import { AGING_LABEL, daysOverdue, fmtIls, fmtMoney, plusOther, ratioHalfUp, type Aging } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
 import { demoCollectedByMonth } from '../data/demo.ts';
-import { Button, Card, LateBadge, inputCls } from '../components/ui.tsx';
+import { Button, Card, LateBadge, inputCls, OwnerBadge } from '../components/ui.tsx';
 import { MessagePreview } from '../components/MessagePreview.tsx';
 import { OpenListCard } from '../components/OpenListCard.tsx';
 import type { Invoice } from '../lib/domain.ts';
 import { HolidayBanner } from '../components/HolidayBanner.tsx';
+import { isOwnerHold, isStaff } from '../lib/roles.ts';
 import { nextLine, paidPct, planBadge, plansVisible, type PlanTone } from '../lib/plans.ts';
 import { RestoreHoldBanner } from '../components/RestoreHoldBanner.tsx';
 import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, REAPPROVE_LABEL } from '../api.ts';
@@ -336,7 +337,7 @@ export function pauseLabel(reason: string): string {
 }
 /** "דורש טיפול": לקוחות מושהים (חידוש בלחיצה כפולה) + הצעות פריסה שממתינות לאישורך. */
 function NeedsYou() {
-  const { customers, invoices, plans, notices, reload, showToast, showFail } = useApp();
+  const { customers, invoices, plans, notices, reload, showToast, showFail, me } = useApp();
   const [armed, setArmed] = useState<string | null>(null);
   const [planConfirm, setPlanConfirm] = useState<Record<number, boolean>>({});   // critic סבב 49: סכום חריג
   const seen = new Set<number>();
@@ -406,11 +407,20 @@ function NeedsYou() {
           <li key={`c${c.backendId}`} className="rounded-lg bg-amber-50 p-3 text-sm">
             <div className="font-bold"><span aria-hidden>⏸️</span> {c.name}</div>
             <div className="text-ink-700 text-xs mt-0.5">{pauseLabel(c.paused!)}</div>
-            {resumeWarning(c.paused!) && <div className="text-amber-800 text-xs mt-0.5 font-bold" data-testid="resume-warning">{resumeWarning(c.paused!)}</div>}
+            {resumeWarning(c.paused!) && !(isStaff(me) && isOwnerHold(c.paused)) && <div className="text-amber-800 text-xs mt-0.5 font-bold" data-testid="resume-warning">{resumeWarning(c.paused!)}</div>}
+            {isStaff(me) && isOwnerHold(c.paused) ? (
+              // מבקר 195ג: השהיה שבעל העסק סימן — רק הוא מחדש (השרת: 403). לעובד/ת: נעול ומסומן מראש
+              <div className="mt-2 flex flex-wrap items-center gap-1" data-testid="resume-owner-only">
+                <Button size="sm" variant="outline" disabled aria-describedby={`ro${c.backendId}`}>↻ חידוש תזכורות</Button>
+                <OwnerBadge testId="resume-owner-badge" />
+                <span id={`ro${c.backendId}`} className="basis-full text-xs text-ink-700">השהיה שבעל העסק סימן — רק הוא יכול לחדש.</span>
+              </div>
+            ) : (
             <Button size="sm" variant={armed === `r${c.backendId}` ? 'dark' : 'outline'} className="mt-2"
               onClick={() => act(`r${c.backendId}`, () => api.resume(c.backendId!), `התזכורות ל${c.name} חודשו`)}>
               {armed === `r${c.backendId}` ? 'לחצו שוב לאישור' : '↻ חידוש תזכורות'}
             </Button>
+            )}
           </li>
         ))}
         {proposed.map(p => {
