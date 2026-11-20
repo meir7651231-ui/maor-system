@@ -78,7 +78,8 @@ def test_runner_advance_days_moves_clock():
     # 11.11: «ב-10» כבר עבר ⇒ 10.12 (29 ימים ⇒ לבעל העסק; הכרעת q21-19: promised עד 14 + «בדוק ואשר»)
     assert _seq([
         {"text": "אני אשלם", "expect": {"state": "awaiting_date"}},
-        {"text": "ב-10", "advance_days": 3, "expect": {"promise": "2026-12-10", "state": "promised"}},
+        {"text": "ב-10", "advance_days": 3,
+         "expect": {"promise": "2026-11-25", "requested": "2026-12-10", "state": "promised"}},
     ]) == []
 
 

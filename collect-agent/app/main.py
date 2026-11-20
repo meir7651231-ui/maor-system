@@ -535,13 +535,19 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             body = await request.json()
         except ValueError:
             raise HTTPException(400, "JSON לא תקין") from None
-        if not isinstance(body, dict) or set(body) - {"still_open", "paid"}:
-            raise HTTPException(422, "גוף: {still_open: [id], paid: [id]}")
+        if not isinstance(body, dict) or set(body) - {"still_open", "paid", "due"}:
+            raise HTTPException(422, "גוף: {still_open: [id], paid: [id], due?: {id: YYYY-MM-DD}}")
         ids = {k: body.get(k, []) for k in ("still_open", "paid")}
         if not all(isinstance(v, list) and all(isinstance(i, int) and not isinstance(i, bool)
                                                for i in v) for v in ids.values()):
             raise HTTPException(422, "still_open/paid: רשימות של מזהי חשבונית (מספרים)")
-        return guard(lambda: svc.confirm_open_list(ids["still_open"], ids["paid"]))
+        # הכרעת רכז: תיקון מועד (בעיקר «מועד מוערך») לפני האישור. JSON ⇒ מפתחות מחרוזת
+        raw_due = body.get("due", {})
+        if not isinstance(raw_due, dict) or not all(
+                isinstance(k, str) and k.isdigit() and isinstance(v, str) for k, v in raw_due.items()):
+            raise HTTPException(422, "due: {מזהה חשבונית: YYYY-MM-DD}")
+        due = {int(k): v for k, v in raw_due.items()}
+        return guard(lambda: svc.confirm_open_list(ids["still_open"], ids["paid"], due=due))
 
     @app.get("/dashboard", dependencies=auth)
     def dashboard(request: Request, view: str | None = None):
@@ -565,6 +571,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         from . import dsr
         if not svc.db.one("SELECT 1 FROM customers WHERE id=?", (cid,)):
             raise HTTPException(404, "לא נמצא")
+        if b.kind == "deletion":
+            # הכרעת ראש צוות (ממצא QA, סט #22b): מחיקת לקוח = בעל העסק בלבד — גם פתיחת בקשת המחיקה ידנית. בקשה שהגיעה
+            # בהודעה מהלקוח עדיין נרשמת אוטומטית (dsr.detect), כך שהבקשה לא אובדת והמועד נספר
+            owner_only(request, "dsr_deletion_open", {"customer": cid}, "רק בעל העסק פותח בקשת מחיקה")
         # מבקר 192: היומן רשם «owner» קבוע גם כשעובד/ת פתח/ה או סגר/ה בקשת פרטיות — השחקן האמיתי (שער 6)
         rid = guard(lambda: dsr.open_request(svc, cid, b.kind, "owner", b.note, actor=request.state.actor))
         if rid is None:
@@ -589,7 +599,11 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.get("/customers/{cid}/data", dependencies=auth)
     def customer_data(cid: int, request: Request):                     # מנהל 309: זכות עיון
-        owner_only(request, "customer_data_export", {"customer": cid}, "רק בעל העסק מייצא את כל נתוני הלקוח")
+        # הכרעת ראש צוות (20.11): ייצוא כל המידע על לקוח = בעל העסק בלבד (בעל השליטה; מזעור גישה לפי תקנות
+        # האבטחה). עובד/ת ⇒ 403 + audit. בקשת העיון עצמה נרשמת במרשם (dsr) והמועד נספר — בעל העסק מייצא ומשיב.
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, "data_export_refused", {"customer": cid})
+            raise HTTPException(403, "רק בעל העסק מייצא את המידע על לקוח (בקשת עיון)")
         return guard(svc.customer_data_export, cid, request.state.actor)
 
     @app.post("/invoices/{iid}/mark-paid", dependencies=auth)

@@ -73,7 +73,8 @@ def _seq(turns, ch="sms"):
 def test_e2e_q10_07_far_date_then_correction():
     assert _seq([
         {"text": "אני אשלם, רק תנו לי קצת זמן", "expect": {"intent": "promise", "state": "awaiting_date"}},
-        {"text": "ב-23", "expect": {"promise": "2026-11-23", "state": "promised"}},   # הכרעת q21-19
+        # הכרעת q21-19: promise = המועד שהתקבל (עד 14), requested = מה שהלקוח ביקש
+        {"text": "ב-23", "expect": {"promise": "2026-11-22", "requested": "2026-11-23", "state": "promised"}},
         {"text": "תודה", "expect": {"intent": "thanks"}},
         {"text": "בעצם ב-20", "expect": {"intent": "promise", "promise": "2026-11-20", "state": "promised"}},
     ]) == []

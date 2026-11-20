@@ -36,7 +36,8 @@ def _d(text, state="idle", channel="sms", **kw):
                                        ("on November 13th", date(2026, 11, 13))])
 def test_promised_state_date_refines(text, want, channel):
     d = _d(text, "promised", channel)
-    assert d.intent == Intent.PROMISE and d.promise_date == want, (d.intent, d.promise_date)
+    assert d.intent == Intent.PROMISE and \
+            (d.requested_date or d.promise_date) == want, (d.intent, d.requested_date or d.promise_date)
 
 
 def test_promised_state_no_date_unchanged():
@@ -55,12 +56,12 @@ def test_can_i_pay_on_date_is_promise(text, channel, want):
     d = _d(text, channel=channel)
     assert d.intent == Intent.PROMISE, (text, d.intent)
     assert Intent.HOW_TO_PAY not in d.all_intents
-    assert d.promise_date == want
+    assert (d.requested_date or d.promise_date) == want
 
 
 def test_can_i_pay_on_date_while_plan_offered():
     d = _d("Could I pay on November 18th?", "awaiting_plan_reply", "email")
-    assert d.intent == Intent.PROMISE and d.promise_date == date(2026, 11, 18)
+    assert d.intent == Intent.PROMISE and (d.requested_date or d.promise_date) == date(2026, 11, 18)
 
 
 @pytest.mark.parametrize("text", ["אפשר לשלם בביט מחר?", "אפשר לשלם באשראי?", "Can I pay by card next week?",
@@ -79,7 +80,7 @@ def test_plan_reject_keeps_date(text, want):
     # מנהל 278 (q10-02/q17-42): «הכל» + מועד על הצעה פתוחה ⇒ הבטחה עיקרית, הדחייה משנית (ההצעה בוטלה).
     # מעל max_defer_days (15 בדצמבר) ⇒ עדיין כרטיס לבעלים עם המועד.
     assert d.intent == Intent.PROMISE and Intent.PLAN_REJECT in d.all_intents
-    assert d.promise_date == want
+    assert (d.requested_date or d.promise_date) == want
     assert "דחה/תה את הצעת הפריסה" in d.owner_summary
     if (want - date(2026, 11, 8)).days > 14:   # הכרעת q21-19: promised עד 14 + «בדוק ואשר»
         assert d.next_state == State.PROMISED and any("בדוק ואשר" in a for a in d.owner_actions)
@@ -105,7 +106,8 @@ def test_plan_reject_without_date_unchanged():
                                        ("עד העשרים ושניים לנובמבר", date(2026, 11, 22))])
 def test_compound_hebrew_days(text, want):
     d = _d(text, "awaiting_date")
-    assert d.intent == Intent.PROMISE and d.promise_date == want, (text, d.promise_date)
+    assert d.intent == Intent.PROMISE and \
+            (d.requested_date or d.promise_date) == want, (text, d.requested_date or d.promise_date)
 
 
 @pytest.mark.parametrize("text", ["500 בדצמבר", "שלחתי 3 חשבוניות"])
@@ -129,13 +131,13 @@ def test_holiday_without_context_not_promise():
 @pytest.mark.parametrize("text", ["May 10", "may 10.", "May 10!"])
 def test_bare_may_day(text):
     d = _d(text, "awaiting_date", "email")
-    assert d.intent == Intent.PROMISE and d.promise_date == date(2027, 5, 10)
+    assert d.intent == Intent.PROMISE and (d.requested_date or d.promise_date) == date(2027, 5, 10)
 
 
 @pytest.mark.parametrize("text", ["I may 10 times", "you may 10", "May I pay 10 days later?"])
 def test_may_traps(text):
     d = _d(text, "awaiting_date", "email")
-    assert d.promise_date != date(2027, 5, 10), (text, d.promise_date)
+    assert d.promise_date != date(2027, 5, 10), (text, d.requested_date or d.promise_date)
 
 
 # מקצה לקצה — הרצפים דרך השירות (svc.inbound): ההקשר נבנה מה-DB בין ההודעות

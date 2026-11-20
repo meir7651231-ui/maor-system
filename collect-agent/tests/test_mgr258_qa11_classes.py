@@ -76,7 +76,7 @@ def test_english_and_copy(text, want):
 ])
 def test_owner_concession_day(text, want):
     d = respond(text, _ctx(State.AWAITING_OWNER))
-    assert d.intent == Intent.PROMISE and d.promise_date == want
+    assert d.intent == Intent.PROMISE and (d.requested_date or d.promise_date) == want
 
 
 @pytest.mark.parametrize("text", [
@@ -94,7 +94,7 @@ def test_owner_concession_traps(text):
 @pytest.mark.parametrize("state", [State.IDLE, State.AWAITING_OWNER])
 def test_english_indicative_can_pay(state):
     d = respond("I can pay on December 15", _ctx(state))
-    assert d.intent == Intent.PROMISE and d.promise_date == date(2026, 12, 15)
+    assert d.intent == Intent.PROMISE and (d.requested_date or d.promise_date) == date(2026, 12, 15)
 
 
 def test_cant_pay_not_promise():

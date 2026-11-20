@@ -1,5 +1,5 @@
 // פעולות שהשרת מתיר לבעל העסק בלבד (403 לעובד/ת) — כדי שהמסך לא יציע לעובד/ת כפתור שייכשל.
-// מבקר 195: «↻ חידוש תזכורות» על השהיית-בעלים (critic 191א). הכרעת ראש צוות (ממצא QA 20.11): ייצוא נתוני לקוח.
+// מבקר 195: «↻ חידוש תזכורות» על השהיית-בעלים (critic 191א). (ייצוא נתוני לקוח: exportOwnerOnly ב-dataExport.ts, 4d1f369)
 import type { Me } from '../api.ts';
 import { settingsOwnerOnly } from './settings.ts';
 
@@ -12,5 +12,3 @@ export const isStaff = (me: Me | null) => settingsOwnerOnly(me);
 /** חידוש השהיה נעול לעובד/ת כשזו השהיה שבעל העסק סימן (קטין / פטירה / חדלות פירעון). */
 export const resumeLocked = (me: Me | null, paused: string | null | undefined) =>
   isStaff(me) && OWNER_HOLDS.includes((paused ?? '').split(':')[0]);
-/** ייצוא כל נתוני לקוח — בעל העסק בלבד. */
-export const exportLocked = (me: Me | null) => isStaff(me);

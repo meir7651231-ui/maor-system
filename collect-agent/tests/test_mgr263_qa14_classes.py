@@ -73,7 +73,8 @@ def test_promise_forms(text, today, want, state, ch):
     c = _ctx(state, ch, today)
     assert Intent.PROMISE in detect(text, c)
     d = respond(text, c)
-    assert d.intent == Intent.PROMISE and d.promise_date == want and d.next_state == State.PROMISED
+    assert d.intent == Intent.PROMISE and \
+            (d.requested_date or d.promise_date) == want and d.next_state == State.PROMISED
 
 
 def test_next_weekday_after_verb_still_ambiguous():
@@ -105,7 +106,7 @@ def test_promise_form_traps(text):
 ])
 def test_date_only_first_message(text, state, want, ch):
     d = respond(text, _ctx("idle", ch))
-    assert d.intent == Intent.PROMISE and d.promise_date == want and d.next_state == state
+    assert d.intent == Intent.PROMISE and (d.requested_date or d.promise_date) == want and d.next_state == state
 
 
 @pytest.mark.parametrize("text", ["שני", "17", "חמישי", "תודה, ב-5 אני בעבודה", "ב-3 תשלומים", "?"])

@@ -18,4 +18,4 @@ def test_screens_use_the_locks():
     dash = (ROOT / "web/src/pages/Dashboard.tsx").read_text("utf-8")
     inv = (ROOT / "web/src/pages/Invoices.tsx").read_text("utf-8")
     assert "resumeLocked(me, c.paused)" in dash and 'data-testid="resume-locked"' in dash
-    assert "exportLocked(me)" in inv and 'data-testid="data-export-locked"' in inv
+    assert "exportOwnerOnly(me)" in inv and 'data-testid="data-export-owner-only"' in inv   # 4d1f369

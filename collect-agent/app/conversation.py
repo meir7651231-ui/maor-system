@@ -163,6 +163,9 @@ class Decision:
     next_state: State
     plan: tuple[Installment, ...] = ()
     promise_date: date | None = None
+    # הכרעת ראש צוות q21-19: הבטחה מעבר ל-max_defer_days ⇒ promise_date = המועד שהתקבל (עד max_defer_days),
+    # requested_date = מה שהלקוח ביקש — ממתין ל«בדוק ואשר» של בעל העסק
+    requested_date: date | None = None
     paid_agorot: int | None = None    # סכום שהלקוח טוען ששילם
     owner_summary: str = ""
     owner_actions: tuple[str, ...] = ()
@@ -3485,6 +3488,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
     state = ctx.state
     plan: tuple[Installment, ...] = ()
     promise_date: date | None = None
+    requested_date: date | None = None
     paid: int | None = None
     summary = ""
     actions: list[str] = []
@@ -3993,6 +3997,8 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                 # אוטומטית מעבר לכך) + כרטיס «בדוק ואשר» לבעל העסק: מאשר ⇒ ההשהיה עד המועד המבוקש; מסרב ⇒ התזכורות
                 # חוזרות אחרי max_defer_days. max_defer_days עצמו לא השתנה.
                 cap = ctx.today + timedelta(days=p.max_defer_days)
+                # סט #21b (מאותה הכרעה): ההבטחה שנרשמת = המועד שהתקבל (cap); המבוקש — requested_date, לבעל העסק
+                promise_date, requested_date = cap, dd
                 reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! רשמנו שהתשלום צפוי עד "
                          f"{_he_date(dd)}. עד {_he_date(cap)} לא נשלח תזכורות, ונעדכן אתכם לגבי המועד המבוקש.{sig}")
                 pause_until = cap + timedelta(days=1)
@@ -4107,7 +4113,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
     return Decision(
         intent=primary, secondary=secondary, reply=reply, auto_send=auto, escalate=esc, stop=stop,
         pause_until=pause_until if stop == Stop.PAUSE else None, next_state=state, plan=plan,
-        promise_date=promise_date, paid_agorot=paid, owner_summary=summary,
+        promise_date=promise_date, requested_date=requested_date, paid_agorot=paid, owner_summary=summary,
         owner_actions=tuple(actions), tags=tuple(dict.fromkeys(tags)))
 
 

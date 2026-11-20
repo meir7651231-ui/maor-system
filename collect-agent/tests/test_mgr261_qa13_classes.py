@@ -90,7 +90,8 @@ def test_lawyer_still_legal(t):
 @pytest.mark.parametrize("t,day", [("אשלםב20", 20), ("אעבירב-15", 15), ("אני אשלםב25", 25)])
 def test_glued_promise_date(t, day, ch):
     d = _d(t, ch)
-    assert d.intent == Intent.PROMISE and d.promise_date is not None and d.promise_date.day == day
+    got = d.requested_date or d.promise_date   # הכרעת q21-19: מעבר ל-14 יום (ב-25) — החילוץ הוא המבוקש
+    assert d.intent == Intent.PROMISE and got is not None and got.day == day
 
 
 @pytest.mark.parametrize("t,day", [("אני משלמת ב-20", 20), ("אנחנו מעבירים לכם ב-15", 15)])
@@ -108,7 +109,8 @@ def test_habitual_payment_not_promise(t):
 @pytest.mark.parametrize("t,day", [("כלומר ב-15", 15), ("זאת אומרת ב-12", 12), ("כוונתי ב-14", 14)])
 def test_owner_correction_clarifier(t, day):
     d = _d(t, state="awaiting_owner")
-    assert d.intent == Intent.PROMISE and d.promise_date is not None and d.promise_date.day == day
+    got = d.requested_date or d.promise_date   # הכרעת q21-19: מעבר ל-14 יום (ב-25) — החילוץ הוא המבוקש
+    assert d.intent == Intent.PROMISE and got is not None and got.day == day
 
 
 def test_bare_day_in_awaiting_owner_still_not_promise():

@@ -162,7 +162,7 @@ def open_request(svc: Any, customer_id: int | None, kind: str, channel: str,
     _owner_alert(svc, customer_id, f"dsr:{rid}:open",
                  f"התקבלה בקשת {KIND_HE[kind]} לפי חוק הגנת הפרטיות. יש להשיב עד "
                  f"{due.date().isoformat()} (30 יום — לבדיקת עו״ד). "
-                 "לעיון: «⬇ ייצוא מידע» בטבלת החשבוניות. גבי לא עונה ללקוח בשמכם.")
+                 "לעיון: «⬇ ייצוא מידע» בטבלת החשבוניות (בעל העסק בלבד). גבי לא עונה ללקוח בשמכם.")
     # מבקר 192: actor = מי שהזין/ה בפועל (עובד/ת user:N או owner); בלי actor ⇒ כמו קודם, לפי הערוץ
     svc.audit(actor or ("customer" if channel != "owner" else "owner"), "dsr_opened",
               {"dsr": rid, "kind": kind, "customer": customer_id, "due": due.date().isoformat()})

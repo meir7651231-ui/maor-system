@@ -68,7 +68,7 @@ try {
     await p.close();
     // עובדת — חשבוניות: ייצוא נעול
     p = await page(vp, 'invoices', staffTok);
-    await p.getByTestId('data-export-locked').first().waitFor();
+    await p.getByTestId('data-export-owner-only').first().waitFor();
     ok(await p.getByTestId('data-export').count() === 0, `${name}: כפתור ייצוא מוצג לעובדת`);
     if (out) await p.screenshot({ path: `${out}/staff-export-locked-${name}.png` });
     await p.close();

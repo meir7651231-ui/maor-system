@@ -178,6 +178,10 @@ def run_seq(seq: dict) -> list[str]:
                 got = d.promise_date.isoformat() if d and d.promise_date else None
                 if got != e["promise"]:
                     fails.append(f"{tag} promise {got}≠{e['promise']}")
+            if "requested" in e:      # הכרעת q21-19: המועד שהלקוח ביקש (מעבר ל-14) — ממתין ל«בדוק ואשר»
+                got = d.requested_date.isoformat() if d and d.requested_date else None
+                if got != e["requested"]:
+                    fails.append(f"{tag} requested {got}≠{e['requested']}")
             if "paid" in e:           # מנהל 271: סכום שהלקוח טוען ששילם (אגורות; null = לא חולץ)
                 got = d.paid_agorot if d else None
                 if got != e["paid"]:
