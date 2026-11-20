@@ -141,7 +141,7 @@ def ensure_schema(db) -> None:
 
 
 def open_request(svc: Any, customer_id: int | None, kind: str, channel: str,
-                 note: str = "", received_at: datetime | None = None) -> int | None:
+                 note: str = "", received_at: datetime | None = None, actor: str | None = None) -> int | None:
     """None ⇒ כבר יש בקשה פתוחה מאותו סוג ללקוח (לא פותחים כפולה).
 
     received_at: מתי הבקשה התקבלה בפועל (critic 171ב — בקשה מכתובת משותפת נרשמת רק בשיוך, אבל המועד
@@ -163,7 +163,8 @@ def open_request(svc: Any, customer_id: int | None, kind: str, channel: str,
                  f"התקבלה בקשת {KIND_HE[kind]} לפי חוק הגנת הפרטיות. יש להשיב עד "
                  f"{due.date().isoformat()} (30 יום — לבדיקת עו״ד). "
                  "לעיון: «⬇ ייצוא מידע» בטבלת החשבוניות. גבי לא עונה ללקוח בשמכם.")
-    svc.audit("customer" if channel != "owner" else "owner", "dsr_opened",
+    # מבקר 192: actor = מי שהזין/ה בפועל (עובד/ת user:N או owner); בלי actor ⇒ כמו קודם, לפי הערוץ
+    svc.audit(actor or ("customer" if channel != "owner" else "owner"), "dsr_opened",
               {"dsr": rid, "kind": kind, "customer": customer_id, "due": due.date().isoformat()})
     return rid
 

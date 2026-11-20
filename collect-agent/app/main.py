@@ -25,7 +25,7 @@ from .db import DB
 from .greeninvoice import GreenInvoiceClient
 from .integrations.base import jstr
 from .ratelimit import RateLimiter, group_for
-from .service import CollectService, RealDataBlocked
+from .service import CollectService, OwnerOnly, RealDataBlocked
 from .templates import SLOGAN, TAGLINE
 from .users import Users
 
@@ -561,19 +561,20 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return dsr.listing(svc)
 
     @app.post("/customers/{cid}/dsr", dependencies=auth)
-    def dsr_open(cid: int, b: DsrOpenIn):          # בקשה שהגיעה בטלפון / בכתב לעסק
+    def dsr_open(cid: int, b: DsrOpenIn, request: Request):   # בקשה שהגיעה בטלפון / בכתב לעסק
         from . import dsr
         if not svc.db.one("SELECT 1 FROM customers WHERE id=?", (cid,)):
             raise HTTPException(404, "לא נמצא")
-        rid = guard(dsr.open_request, svc, cid, b.kind, "owner", b.note)
+        # מבקר 192: היומן רשם «owner» קבוע גם כשעובד/ת פתח/ה או סגר/ה בקשת פרטיות — השחקן האמיתי (שער 6)
+        rid = guard(lambda: dsr.open_request(svc, cid, b.kind, "owner", b.note, actor=request.state.actor))
         if rid is None:
             raise HTTPException(409, "כבר קיימת בקשה פתוחה מסוג זה ללקוח")
         return {"id": rid}
 
     @app.post("/dsr/{rid}/done", dependencies=auth)
-    def dsr_done(rid: int, b: DsrDoneIn):
+    def dsr_done(rid: int, b: DsrDoneIn, request: Request):
         from . import dsr
-        return guard(dsr.close_request, svc, rid, b.note)
+        return guard(dsr.close_request, svc, rid, b.note, request.state.actor)
 
     @app.get("/customers/{cid}/data", dependencies=auth)
     def customer_data(cid: int, request: Request):                     # מנהל 309: זכות עיון
@@ -841,7 +842,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         except ValueError:
             raise HTTPException(400, "JSON לא תקין") from None
         try:
-            return svc.update_settings(raw, request.state.actor)
+            return svc.update_settings(raw, request.state.actor, request.state.is_owner)
+        except OwnerOnly as e:
+            raise HTTPException(403, str(e)) from e
         except PermissionError as e:
             raise HTTPException(422, str(e)) from e
         except (ValueError, TypeError) as e:
@@ -859,7 +862,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         except ValueError:
             raise HTTPException(400, "JSON לא תקין") from None
         try:
-            return svc.update_design_settings(raw, request.state.actor)
+            return svc.update_design_settings(raw, request.state.actor, request.state.is_owner)
+        except OwnerOnly as e:
+            raise HTTPException(403, str(e)) from e
         except (PermissionError, ValueError, TypeError) as e:
             raise HTTPException(422, str(e)) from e
 

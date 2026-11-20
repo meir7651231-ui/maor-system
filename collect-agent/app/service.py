@@ -279,6 +279,10 @@ def build_dry_sender(s: Settings) -> DryRunSender:
 
 TRIAL_WARN_DAYS = 3
 
+class OwnerOnly(PermissionError):
+    """מבקר 192: פעולה שמותרת לבעל העסק בלבד (עובד/ת מחובר/ת בתפקיד staff ⇒ 403 + audit)."""
+
+
 class RealDataBlocked(PermissionError):
     """שער בטא 4: נתונים שאינם דמו מסומן נחסמים כל עוד REAL_DATA_ALLOWED כבוי."""
 
@@ -369,16 +373,16 @@ class CollectService:
         connected = self.gi is not None and source_provider(self.gi) == self.s.source_system
         return settings_api.design_view(self.s, self.db, api_connected=connected, has_csv=has_csv)
 
-    def update_design_settings(self, body: dict, actor: str = "owner") -> dict:
+    def update_design_settings(self, body: dict, actor: str = "owner", is_owner: bool = True) -> dict:
         from . import settings_api
         if isinstance(body, dict):
             bad = settings_api.reject_secret_fields(body)
             if bad:
                 raise PermissionError("סודות לא נשלחים דרך ה-API: " + ", ".join(bad))
-        self.update_settings(settings_api.from_design(body), actor)
+        self.update_settings(settings_api.from_design(body), actor, is_owner)
         return self.design_settings()
 
-    def update_settings(self, raw: dict, actor: str = "owner") -> dict:
+    def update_settings(self, raw: dict, actor: str = "owner", is_owner: bool = True) -> dict:
         from pydantic import ValidationError
 
         from . import settings_api
@@ -393,6 +397,19 @@ class CollectService:
             raise ValueError("; ".join(f"{'.'.join(map(str, x['loc']))}: {x['msg']}"
                                        for x in e.errors())) from None
         new, keys = settings_api.apply(self.s, data)
+        if not is_owner:
+            # מבקר 192: מאז critic 179 יש תפקידים — אבל עובד/ת עדיין החליף/ה את קישור התשלום (לעמוד שלו/ה אצל אותו
+            # ספק), את Reply-To או את שם השולח, ובעל העסק רק קיבל התראה **אחרי** שהכסף כבר הופנה. עכשיו: שדות רגישים
+            # ומקור הנתונים = בעל העסק בלבד; שאר ההגדרות (שעות, ימי חג וכו') — עובד/ת ממשיך/ה. כלום לא נשמר בדחייה.
+            prof = settings_api.profile(self.db)
+            blocked = sorted([k for k in (*self._SENSITIVE_SETTINGS, "source_system")
+                              if getattr(self.s, k) != getattr(new, k)]
+                             + [k for k in settings_api.PROFILE   # זהות העסק בעמוד ההסרה/בחשבונית
+                                if getattr(data, k) is not None and getattr(data, k) != prof.get(k, "")])
+            if blocked:
+                self.audit(actor, "settings_sensitive_refused", {"fields": blocked})
+                names = ", ".join(self._OWNER_ONLY_LABELS.get(k, k) for k in blocked)
+                raise OwnerOnly(f"רק בעל העסק יכול לשנות: {names}")
         old_s = self.s
         settings_api.save_overrides(self.db, new, keys, _iso(self.clock()))
         keys += settings_api.save_profile(self.db, data, _iso(self.clock()))
@@ -420,6 +437,9 @@ class CollectService:
     _SENSITIVE_SETTINGS = {"payment_link": "קישור התשלום", "payment_provider": "ספק התשלום",
                            "email_reply_to": "כתובת התשובה (Reply-To)", "sms_sender_id": "שם השולח ב-SMS",
                            "business_name": "שם העסק"}
+    # מבקר 192: שדות שרק בעל העסק משנה (הרגישים + מקור הנתונים + זהות העסק)
+    _OWNER_ONLY_LABELS = {**_SENSITIVE_SETTINGS, "source_system": "מקור הנתונים",
+                          "owner_name": "שם בעל העסק", "vat_id": "מספר עוסק/ח.פ."}
 
     def _notify_sensitive_settings(self, old_s: Settings, new: Settings, actor: str) -> None:
         """critic סבב 72: אין תפקידים — כל עובד מחובר יכול לשנות את קישור התשלום (לעמוד שלו אצל אותו ספק) או את
