@@ -1940,6 +1940,10 @@ _AUTO_REPLY = (r"\bauto(?:matic)?[- ]?(?:reply|response|answer)\b|\bout\s+of\s+(
                r"|(?<![\w])בחופשה\s+עד(?![\w])|(?<![\w])מחוצ\s+למשרד|קיבלתי\s+את\s+הודעת\w*.{0,40}אחזור")
 _PAY_WORD = (r"\bpa(?:y|id|ying|yment)\b|\btransfer\w*|\bwire\b|(?<![\w])(?:א|נ|ת)?שלמ|שילמ|תשלומ|(?:א|נ)?עביר|העבר"
              r"|(?<![\w])(?:הסר|תפסיק|stop\b|unsubscribe)")
+_ABSENT_UNTIL = (r"\b(?:(?:i'?m|i\s+am|we'?re|we\s+are)\s+)?(?:currently\s+)?(?:away|out\s+of\s+(?:the\s+)?office|ooo"
+                 r"|on\s+(?:vacation|holiday|leave|annual\s+leave)|off|travell?ing|abroad)\s+(?:until|till|through|thru)\s+"
+                 r"[^.!?\n]{1,30}"
+                 r"|(?<![\w])(?:בחופש\w*|מחוצ\s+למשרד|לא\s+(?:נמצא\w*\s+)?ב(?:ה)?משרד|בחו\"?ל|במילואימ)\s+עד\s+[^.!?\n]{1,30}")
 _ABSENT_TODAY = (r"\b(?:(?:i'?m|i\s+am|we'?re|we\s+are)\s+)?(?:out\s+of\s+(?:the\s+)?office|ooo|away|off|not\s+in"
                  r"|not\s+at\s+(?:the\s+)?office|unavailable|on\s+(?:vacation|holiday|leave)|travell?ing|driving"
                  r"|in\s+meetings?|sick|at\s+a\s+conference)\s+(?:all\s+day\s+)?(?:today|tonight)\b"
@@ -1949,6 +1953,18 @@ _ABSENT_TODAY = (r"\b(?:(?:i'?m|i\s+am|we'?re|we\s+are)\s+)?(?:out\s+of\s+(?:the
 
 def extract_date(t: str, today: date) -> tuple[date | None, bool]:
     """מחזיר (תאריך, מעורפל?). מעורפל = יש כוונה לתאריך אבל אי אפשר לקבע אותו."""
+    # q21 המשך: «Auto-reply: away until Dec 1. Payment will be sent on the 20th» ⇒ ההבטחה נקבעה ל-1.12 (מועד החזרה
+    # מהיעדרות) במקום ה-20. «עד <תאריך>» של היעדרות = מתי חוזרים, לא מתי משלמים — אלא אם זה התאריך היחיד
+    # («I'll be off until the 20th, I'll pay then» ⇒ ה-20).
+    stripped = re.sub(_c(_ABSENT_UNTIL), " ", t)
+    if stripped != t:
+        got = _extract_date_core(stripped, today)
+        if got[0] is not None:
+            return got
+    return _extract_date_core(t, today)
+
+
+def _extract_date_core(t: str, today: date) -> tuple[date | None, bool]:
     # qa21 (q21-30 🔴): «I'm out of office today but I'll pay on November 18» / «אני לא במשרד היום אבל אשלם ב-18»
     # ⇒ ההבטחה נקבעה ל**היום** (ההשהיה נגמרת היום ⇒ תזכורת לפני המועד שהובטח). «היום» של היעדרות = למה לא עכשיו,
     # לא מועד תשלום (כמו «עכשיו» של מנהל 260). «I will pay today» לא נוגע.
@@ -3309,8 +3325,11 @@ def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
                     owner_actions=d.owner_actions + (
                         "מספר/כתובת שגויים + בקשת הסרה (מתועדת) — לעדכן פרטי קשר נכונים בחשבונית ירוקה; לא נשלחה תשובה",))
     if t and d.intent in (Intent.UNKNOWN, Intent.PROMISE, Intent.CALLBACK) and not d.secondary and \
-            ctx.state in (State.AWAITING_PLAN_REPLY, State.PROMISED, State.PLAN_PENDING_OWNER) and \
+            ctx.state in (State.AWAITING_PLAN_REPLY, State.PROMISED, State.PLAN_PENDING_OWNER, State.AWAITING_DATE,
+                          State.AWAITING_OWNER) and \
             _s(_AUTO_REPLY, t) and not _s(_PAY_WORD, t):
+        # q21 המשך: אחרי «עד מתי?» (AWAITING_DATE) «Automatic reply: I'm away until 30 November» ⇒ היה **הבטחה ל-30.11**
+        # מתוך מכונה (השהיה עד אז, בלי שהלקוח הבטיח דבר). בהמתנה לבעלים — כרטיס רעש נוסף.
         # גם «I'm away until Monday» אחרי הבטחה ⇒ היה **הבטחה חדשה** ליום שני שדרסה את המועד המקורי, ו«אני נוהגת
         # כרגע ואחזור אלייך» ⇒ callback. בלי מילת תשלום — זו מכונה, לא הבטחה.
         # qa21 (q21-14/16/17): מענה אוטומטי (מחוץ-למשרד / «received your message» / Driving Focus / «אני נוהג כרגע»)
