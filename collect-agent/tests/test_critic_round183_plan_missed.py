@@ -11,10 +11,7 @@
 xfail(strict=True)."""
 from datetime import timedelta
 
-import pytest
 
-
-@pytest.mark.xfail(strict=True, reason="critic 183: הסדר שאושר/הוצע חוסם תזכורות לתמיד, גם אחרי שכל התשלומים הוחמצו")
 def test_missed_plan_surfaces_to_owner_or_reminds(svc, clock):
     svc.sync()
     pid = svc.propose_plan(1, 3)

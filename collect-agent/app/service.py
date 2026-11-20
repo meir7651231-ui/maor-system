@@ -74,6 +74,14 @@ OPTOUT_LEDGER_FAILED_TEXT = ("בקשת הסרה נקלטה וחסומה במער
                              "הסרה יקבל שוב תזכורת. פנו לתמיכה הטכנית לתיקון הרשאות היומן (OPTOUT_LEDGER).")
 
 
+def plan_missed_text(name: str | None, n: int, of: int, amount_agorot: int, due: str, open_agorot: int) -> str:
+    """מנהל 332: כרטיס לבעל העסק כשתשלום בהסדר לא התקבל. בלי פרטי קשר — רק שם, כמו שאר הכרטיסים."""
+    who = name or "לקוח"
+    return (f"הסדר התשלומים של {who} לא נשמר: תשלום {n} מתוך {of} ({templates.fmt_amount(amount_agorot)}, "
+            f"מועד {due}) לא התקבל. היתרה הפתוחה: {templates.fmt_amount(open_agorot)}. "
+            "ההסדר סומן «הוחמץ» והתזכורות הרגילות חוזרות לאישורכם — אפשר גם להציע הסדר חדש.")
+
+
 def refresh_stuck_text(items: list[tuple[str, str, str]]) -> str:
     """(שם לקוח, מספר חשבונית, סיבה) ⇒ גוף ההתראה. טהור — נבדק ביחידה. עד 5 שמות, והשאר «ועוד N»."""
     n = len(items)
@@ -1180,6 +1188,7 @@ class CollectService:
         from . import dsr
         dsr.sweep(self)   # בקשות עיון/תיקון/מחיקה: התראה 5 ימים לפני המועד ובאיחור
         self._sweep_refresh_stuck()   # מנהל 323: תזכורת מאושרת שתקועה על כשל רענון >48 שעות ⇒ התראה
+        self._sweep_plans()   # מנהל 332 (מבקר 183): הסדר שהושלם/הוחמץ/הצעה שפגה — לא חוסם לתמיד
         self.purge_closed()   # ר-10: זול, פעם בסבב
         self._roll_episodes(now)
         created: list[int] = []
@@ -1964,6 +1973,68 @@ class CollectService:
             new = "approved" if offered else "proposed"
             if self.db.update("UPDATE plans SET status=? WHERE id=? AND status='approving'", (new, p["id"])) == 1:
                 self.audit("system", "plan_approving_recovered", {"plan": p["id"], "to": new})
+
+    PLAN_GRACE_DAYS = 7   # מנהל 332: ימי חסד אחרי מועד תשלום בהסדר לפני שהוא נחשב «הוחמץ»
+
+    def _plan_invoice_ids(self, p) -> list[int]:
+        return json.loads(p["invoice_ids"]) if p["invoice_ids"] else [p["invoice_id"]]
+
+    def _sweep_plans(self) -> dict[str, list[int]]:
+        """מנהל 332 (מבקר סבב 183 🟠): להסדר לא היה מחזור-חיים — `approved` (= ההצעה נשלחה) חסם כל תזכורת **לתמיד**,
+        גם כשכל המועדים עברו והחשבונית פתוחה, ובלי כרטיס לבעל העסק; וגם ללקוח שהתעלם מההצעה. עכשיו בכל סבב תכנון:
+        * `approved` וכל חשבוניות ההסדר נסגרו ⇒ `completed`.
+        * `approved` ומה ששולם (סה״כ ההסדר פחות היתרה הפתוחה בחשבוניות שלו) קטן ממה שהיה צריך להשתלם עד היום
+          פחות PLAN_GRACE_DAYS ⇒ `missed` + כרטיס «דורש טיפול» לבעל העסק (איזה תשלום, כמה, מתי). החסימה משתחררת ⇒
+          התזכורות הרגילות חוזרות **לאישור** בעל העסק (שום דבר לא יוצא בלי אישור). לקוח שלא ענה «מאשר» לא שילם את
+          התשלום הראשון ⇒ אותו מסלול.
+        * `proposed` (בעל העסק לא אישר) שמועד התשלום הראשון שלו עבר ⇒ `superseded` (אי אפשר לאשר אותו ממילא —
+          `approve_plan` דוחה תאריכים שעברו), כדי שלא יחסום.
+        מוחזר: מזהי ההסדרים לפי מצב חדש."""
+        today = self.clock().date()
+        out: dict[str, list[int]] = {"completed": [], "missed": [], "expired": []}
+        for p in self.db.q("SELECT * FROM plans WHERE status IN ('proposed','approved') ORDER BY id"):
+            items = json.loads(p["installments"])
+            if not items:
+                continue
+            if p["status"] == "proposed":
+                if date.fromisoformat(items[0]["due"]) < today and self.db.update(
+                        "UPDATE plans SET status='superseded' WHERE id=? AND status='proposed'", (p["id"],)) == 1:
+                    self.audit("system", "plan_proposal_expired", {"plan": p["id"]})
+                    out["expired"].append(p["id"])
+                continue
+            ids = self._plan_invoice_ids(p)
+            open_now = self.db.one("SELECT COALESCE(SUM(amount_agorot),0) n FROM invoices WHERE status='open' "
+                                   "AND id IN (SELECT value FROM json_each(?))", (json.dumps(ids),))["n"]
+            if open_now <= 0:
+                if self.db.update("UPDATE plans SET status='completed' WHERE id=? AND status='approved'",
+                                  (p["id"],)) == 1:
+                    self.audit("system", "plan_completed", {"plan": p["id"]})
+                    out["completed"].append(p["id"])
+                continue
+            total = sum(i["amount_agorot"] for i in items)
+            paid = max(0, total - open_now)
+            cutoff = today - timedelta(days=self.PLAN_GRACE_DAYS)
+            owed, late = 0, None
+            for i in items:
+                if date.fromisoformat(i["due"]) >= cutoff:
+                    break
+                owed += i["amount_agorot"]
+                if late is None and paid < owed:
+                    late = i
+            if late is None:
+                continue
+            if self.db.update("UPDATE plans SET status='missed' WHERE id=? AND status='approved'", (p["id"],)) != 1:
+                continue
+            cust = self.db.one("SELECT name FROM customers WHERE id=?", (p["customer_id"],))
+            body = plan_missed_text(cust["name"] if cust else None, late["n"], len(items), late["amount_agorot"],
+                                    late["due"], open_now)
+            now = _iso(self.clock())
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
+                      "created_at) VALUES(?,'system','owner',?,'plan_missed',1,?,?)",
+                      (p["customer_id"], body, f"plan_missed:{p['id']}", now))
+            self.audit("system", "plan_missed", {"plan": p["id"], "installment": late["n"], "of": len(items)})
+            out["missed"].append(p["id"])
+        return out
 
     def _claim_reminder(self, rid: int) -> bool:
         """critic סבב 39: תפיסה אטומית לפני השליחה. False ⇒ מישהו אחר כבר תפס/שלח."""
