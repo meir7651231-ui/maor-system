@@ -185,6 +185,14 @@ class DB:
         if "credit_agorot" not in icols:  # ממצא 2.16: זיכוי שקוזז (amount_agorot = נטו) — לרענון
             self.conn.execute("ALTER TABLE invoices ADD COLUMN credit_agorot INTEGER NOT NULL DEFAULT 0")
             self.conn.commit()
+        # הכרעת רכז (due_estimated): מועד מוערך (אין dueDate במקור ⇒ הנפקה+30) גלוי לבעל העסק, וניתן לתיקון
+        # ברשימת הפתוחות. due_owner_at = בעל העסק קבע את המועד ⇒ סנכרון לא דורס אותו. SQL קבוע (שער האבטחה)
+        for col, ddl in (
+                ("due_estimated", "ALTER TABLE invoices ADD COLUMN due_estimated INTEGER NOT NULL DEFAULT 0"),
+                ("due_owner_at", "ALTER TABLE invoices ADD COLUMN due_owner_at TEXT")):
+            if col not in icols:
+                self.conn.execute(ddl)
+        self.conn.commit()
         pcols = {r[1] for r in self.conn.execute("PRAGMA table_info(plans)")}
         if "invoice_ids" not in pcols:  # מבקר §4.6: ההסדר על **כל** החוב — אילו חשבוניות נכללו
             self.conn.execute("ALTER TABLE plans ADD COLUMN invoice_ids TEXT")

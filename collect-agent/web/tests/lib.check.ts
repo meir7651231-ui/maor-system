@@ -1316,7 +1316,14 @@ test('גבייה סוכן 18.11: shared_contact_paid_claim מוצג עם linked 
 });
 
 // מנהל 310: ייצוא בקשת עיון — שם קובץ בטוח ותוכן כפי שהשרת החזיר
-import { dataExportFileName, dataExportText } from '../src/lib/dataExport.ts';
+import { dataExportFileName, dataExportText, exportOwnerOnly } from '../src/lib/dataExport.ts';
+test('ראש צוות 20.11: ייצוא בקשת עיון = בעל העסק בלבד (עובד/ת ⇒ הסבר במקום כפתור)', () => {
+  assert.equal(exportOwnerOnly({ actor: 'user:2', kind: 'user', name: 'עובד', owner: false }), true);
+  assert.equal(exportOwnerOnly({ actor: 'user:1', kind: 'user', name: 'בעלים', owner: true }), false);
+  assert.equal(exportOwnerOnly({ actor: 'owner', kind: 'owner', name: 'טוקן' }), false);
+  assert.equal(exportOwnerOnly(null), false);
+  assert.match(readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8'), /exportOwnerOnly\(me\) && <div[\s\S]{0,120}בעל העסק בלבד/);
+});
 test('dataExport: שם קובץ ASCII בלי שם הלקוח', () => {
   assert.equal(dataExportFileName(7, '2026-11-19'), 'gabi-data-request-customer-7-2026-11-19.json');
   assert.equal(dataExportFileName(NaN, 'bad'), 'gabi-data-request-customer-0-export.json');

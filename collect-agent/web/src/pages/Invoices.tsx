@@ -6,14 +6,13 @@ import { STEP_LABEL, nextStep } from '../lib/message.ts';
 import { byAmountDesc, hasOpenDrift, hasPausedCustomer, isOpen, sentChannels } from '../lib/stats.ts';
 import type { Invoice, InvoiceStatus } from '../lib/domain.ts';
 import { Button, Card, LateBadge, StatusBadge, inputCls, OwnerBadge } from '../components/ui.tsx';
-import { exportLocked } from '../lib/roles.ts';
 import { DRIFT_LABEL, driftText } from '../api.ts';
 import { MessagePreview } from '../components/MessagePreview.tsx';
 import { hashParam } from '../router.ts';
 import { failPrefix } from '../lib/failure.ts';
 import { found } from '../lib/search.ts';
 import { api } from '../api.ts';
-import { dataExportFileName, downloadJson } from '../lib/dataExport.ts';
+import { dataExportFileName, downloadJson, exportOwnerOnly } from '../lib/dataExport.ts';
 
 type Sort = 'late' | 'amount' | 'name';
 type Filter = InvoiceStatus | 'all' | 'drift' | 'paused';
@@ -90,10 +89,10 @@ export function Invoices() {
                   <Fragment key={i.id}>
                   <tr className="hover:bg-ink-50/60">
                     <td className="px-4 py-3"><div className="font-bold">{c.name}</div>{i.note && <div className="text-xs text-ink-500">📝 {i.note}</div>}
-                      {live && c.backendId != null && exportLocked(me) && <div className="mt-1" data-testid="data-export-owner-only">
+                      {live && c.backendId != null && exportOwnerOnly(me) && <div className="mt-1" data-testid="data-export-owner-only" title="ייצוא מידע (בקשת עיון) — בעל העסק בלבד">
                         <button type="button" disabled className="min-h-9 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-ink-700 underline opacity-60 cursor-not-allowed">⬇ ייצוא מידע (בקשת עיון)</button>
                         <OwnerBadge testId="export-owner-badge" /></div>}
-                      {live && c.backendId != null && !exportLocked(me) && <button type="button" data-testid="data-export" disabled={exporting !== null}
+                      {live && c.backendId != null && !exportOwnerOnly(me) && <button type="button" data-testid="data-export" disabled={exporting !== null}
                         onClick={() => exportData(c.backendId!, c.name)}
                         title="לבקשת עיון של הלקוח: קובץ עם כל המידע ששמור עליו בגבי (חשבוניות, תזכורות, הודעות, הסדרים)"
                         className="mt-1 min-h-9 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-ink-500 underline hover:text-ink-700 cursor-pointer disabled:opacity-50 disabled:cursor-wait">

@@ -168,3 +168,63 @@ def test_didnt_pay_article_plan_and_stop_match_code():
     assert "בלי ריבית ובלי קנסות" in t and "גבי עוצר אחרי שלוש" in t
     for total in (99_900, 1_234_567):
         assert sum(i.amount_agorot for i in plans.propose(total, date(2026, 11, 8))) == total
+
+
+# ── מאמר 07 · שוטף+30/60 (לוח התוכן §6.5 שבוע 5) ─────────────────────────────────────────────────────
+NET = SEO / "07-net-30-60-cash-flow.md"
+
+
+def _shotef(d, n):
+    import calendar
+    from datetime import date, timedelta
+    end = date(d.year, d.month, calendar.monthrange(d.year, d.month)[1])
+    return end + timedelta(days=n)
+
+
+def test_net_article_table_is_correct_arithmetic():
+    from datetime import date
+    t = NET.read_text(encoding="utf-8")
+    rows = re.findall(r"^\| (\d\d\.\d\d\.\d{4}) \| (\d\d\.\d\d\.\d{4}) \| (\S+) \| (\S+) \| (\S+) \|$", t, re.M)
+    assert len(rows) == 3, rows
+    for inv, *cols in rows:
+        d = date(*map(int, reversed(inv.split("."))))
+        got = [_shotef(d, n).strftime("%d.%m.%Y") for n in (0, 30, 60, 90)]
+        assert cols == got, (inv, cols, got)
+    # «חשבונית מ-10 בנובמבר… 50 יום… שוטף+60: 29 בינואר, 80 יום»
+    d = date(2026, 11, 10)
+    assert (_shotef(d, 30) - d).days == 50 and (_shotef(d, 60) - d).days == 80
+    assert "ב-30 בדצמבר, כלומר 50 יום" in t and "29 בינואר, 80 יום" in t
+
+
+def test_net_article_ladder_counts_from_due_date():
+    t = NET.read_text(encoding="utf-8")
+    assert STEP_OFFSETS_DAYS == (1, 7, 14) and policy.MAX_REMINDERS_PER_INVOICE == 3
+    assert "יום אחרי המועד, שבוע אחרי, ושבועיים אחרי" in t and "לכל היותר 3" in t
+    from app import service
+    src = (Path(service.__file__)).read_text(encoding="utf-8")
+    counts_from_due = re.search(r'def due_at\(r\).*?date\.fromisoformat\(r\["due"\]\)', src, re.S)
+    assert counts_from_due, "הסולם כבר לא נספר ממועד התשלום"
+
+
+def test_net_article_no_due_date_matches_code():
+    """«אין מועד ⇒ מועד מוערך (הנפקה + 30), לא מזכירים עליו לפני אישור, ואפשר לתקן לפני האישור» — נעול ל-API
+    (d018a41, גבי חיבורים; הכרעת מקשר 20.11). לפני זה המאמר אסר את המילה «מוערך»: הדגל חושב ואף מסך לא הציג."""
+    import inspect
+    from datetime import date
+
+    from app.greeninvoice import DEFAULT_TERMS_DAYS, MAX_TERMS_DAYS, due_or_estimate
+    from app.service import CollectService
+    t = NET.read_text(encoding="utf-8")
+    assert DEFAULT_TERMS_DAYS == 30 and due_or_estimate(None, date(2026, 11, 10)) == (date(2026, 12, 10), True)
+    assert 'גבי מסמן "מועד מוערך" (30 יום מתאריך החשבונית)' in t
+    assert "לא מזכיר עליו עד שתאשר" in t and "ואתה יכול לתקן אותו לפני האישור" in t
+    # API: רשימת הפתוחות חושפת את הדגל · אישור הרשימה מקבל תיקון מועד שמבטל את ה«מוערך»
+    assert "due_estimated" in inspect.getsource(CollectService.open_list)
+    confirm = inspect.getsource(CollectService.confirm_open_list)
+    assert "due" in inspect.signature(CollectService.confirm_open_list).parameters
+    assert re.search(r"UPDATE invoices SET due=\?, due_estimated=0", confirm)
+    # התנהגות (CI): לא מתזכרים מוערכת לפני אישור · תיקון שורד סנכרון
+    beh = (Path(__file__).parent / "test_due_estimated_visible.py").read_text(encoding="utf-8")
+    for name in ("test_plan_skips_estimated_until_confirmed", "test_owner_corrects_due_and_sync_keeps_it"):
+        assert f"def {name}(" in beh, name
+    assert MAX_TERMS_DAYS == 730 and due_or_estimate(date(2027, 1, 29), date(2026, 11, 10))[1] is False
