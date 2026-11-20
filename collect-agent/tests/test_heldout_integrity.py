@@ -64,6 +64,8 @@ SEALED = {
                                           "fbc822654cbed724a46c2fe84827b270c1e284a6aec233e73b7e44ec9a5f5a22"),
     "external-2026-11-20-qa20-seq.jsonl": ("גבי בדיקות", "(this)",
                                           "82c488c599538e00c363e5807e10e63f49f32942c9373df340b85169b58a1416"),
+    "external-2026-11-20-qa21-seq.jsonl": ("גבי בדיקות", "(this)",
+                                          "abc8b4a7a461132b29b323d09f8799f85f091cd435fdc1dacee16b0c7f8346d7"),
 }
 
 
