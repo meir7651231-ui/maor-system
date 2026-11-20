@@ -1,5 +1,6 @@
 // מסך ההגדרות מול השרת (GET/PUT /settings, חוזה DESIGN.md §3ב). טהור — נבדק ב-tests.
 import type { SourceSystem } from './domain.ts';
+import type { Me } from '../api.ts';
 export type PayProvider = 'greeninvoice' | 'meshulam' | 'bit';
 export type { SourceSystem };
 export const SOURCE_SYSTEMS: { key: SourceSystem; label: string; note: string }[] = [
@@ -29,6 +30,15 @@ export interface SettingsForm {
   sender: string; pay_provider: PayProvider; pay_url: string;
   source_system: SourceSystem;
 }
+/** מבקר 194: שדות הטופס שרק בעל העסק משנה. השרת (service._OWNER_ONLY_LABELS, d081d0d2) דוחה 403 על כל אחד מהם
+ *  — וגם על כל השמירה. כרגע זה כל שדות הטופס; ייבוא CSV וחגים נשארים לעובד/ת. */
+export const OWNER_ONLY_FIELDS: readonly (keyof SettingsForm)[] = [
+  'business_name', 'owner_name', 'vat_id', 'reply_email', 'sender', 'pay_provider', 'pay_url', 'source_system',
+];
+/** עובד/ת מחובר/ת שאינו/ה בעל העסק ⇒ השדות נעולים במסך. me=null (מוק/לפני טעינה) ⇒ לא נועלים; השרת אוכף. */
+export const settingsOwnerOnly = (me: Me | null) => me?.kind === 'user' && me.owner !== true;
+/** שדה נעול לעובד/ת? */
+export const fieldLocked = (me: Me | null, k: keyof SettingsForm) => settingsOwnerOnly(me) && OWNER_ONLY_FIELDS.includes(k);
 export const toForm = (s: DesignSettings): SettingsForm => ({
   business_name: s.business_name ?? '', owner_name: s.owner_name ?? '', vat_id: s.vat_id ?? '', reply_email: s.reply_email ?? '',
   sender: s.sms?.sender ?? '', pay_provider: s.pay?.provider ?? 'greeninvoice', pay_url: s.pay?.page_url ?? '',

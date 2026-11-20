@@ -4,11 +4,14 @@ import { hashParam } from '../router.ts';
 import { api, type AmountCheck } from '../api.ts';
 import { fmtMoney } from '../lib/format.ts';
 import { RULES } from '../lib/domain.ts';
-import { diffPatch, explainImportError, explainSettingsError, draftFor, formDiff, mergeServerForm, restoreDraft, settingsDraft, SOURCE_SYSTEMS, sourceLabel, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
+import { diffPatch, explainImportError, fieldLocked, settingsOwnerOnly, explainSettingsError, draftFor, formDiff, mergeServerForm, restoreDraft, settingsDraft, SOURCE_SYSTEMS, sourceLabel, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
 import { Button, Card, Field, inputCls } from '../components/ui.tsx';
 import { HolidayBanner } from '../components/HolidayBanner.tsx';
 import { TeamCard } from '../components/TeamCard.tsx';
 import { failPrefix } from '../lib/failure.ts';
+
+/** מבקר 194: תווית ליד כותרת סעיף שנעול לעובד/ת */
+const OwnerBadge = () => <span data-testid="owner-only-badge" className="ms-2 align-middle whitespace-nowrap rounded-full bg-ink-100 px-2 py-0.5 text-xs font-bold text-ink-700">🔒 בעל העסק בלבד</span>;
 
 const PAY: [PayProvider, string][] = [['greeninvoice', 'חשבונית ירוקה (morning)'], ['meshulam', 'משולם'], ['bit', 'ביט']];
 
@@ -73,6 +76,9 @@ export function Settings() {
   useEffect(() => { if (live && loaded.current) { settingsDraft.value = formDiff(orig, f); settingsDraft.owner = actor.current; } }, [live, orig, f, me]);
   useEffect(() => () => { if (!settingsDraft.keep) settingsDraft.value = null; }, []);
 
+  // מבקר 194: עובד/ת רואה את שדות בעל העסק נעולים ומסומנים — לא מגלה את זה רק ב-403 בשמירה
+  const ownerOnly = settingsOwnerOnly(me);
+  const lk = (k: keyof SettingsForm) => fieldLocked(me, k);
   const errs = validate(f);
   const patch = diffPatch(orig, f);
   const dirty = Object.keys(patch).length > 0;
@@ -117,27 +123,33 @@ export function Settings() {
           <b>🧪 מוק — ההגדרות לא נשמרות בשרת.</b> אין חיבור לשרת גבי. אפשר לנסות את המסך, אבל שינוי כאן לא משפיע על שום דבר ונמחק ברענון.
         </div>
       )}
+      {ownerOnly && (
+        <div role="note" data-testid="settings-owner-only" className="rounded-2xl border border-ink-200 bg-ink-50 p-4 text-sm">
+          🔒 <b>בעל העסק בלבד:</b> פרטי העסק, מקור החשבוניות, שם השולח ב-SMS וקישור התשלום נעולים לעריכה בחשבון עובד.
+          אם צריך לשנות אחד מהם — פנו לבעל העסק. ייבוא קובץ CSV וימי חג פתוחים גם לכם.
+        </div>
+      )}
       {live && <HolidayBanner where="settings" />}
       {loadErr && <p role="alert" className="text-critical-ink font-bold">לא הצלחנו לטעון את ההגדרות: {loadErr}</p>}
 
       <Card className="p-5 space-y-4">
-        <h2 className="text-lg font-extrabold">פרטי העסק</h2>
+        <h2 className="text-lg font-extrabold">פרטי העסק{ownerOnly && <OwnerBadge />}</h2>
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="שם העסק (פותח כל הודעה)" hint={err('business_name')}><input className={inputCls} value={f.business_name} onChange={e => set('business_name', e.target.value)} aria-invalid={!!errs.business_name} /></Field>
-          <Field label="שם לחתימה" hint={err('owner_name')}><input className={inputCls} value={f.owner_name} onChange={e => set('owner_name', e.target.value)} /></Field>
-          <Field label="ע.מ. / ח.פ." hint={err('vat_id')}><input className={`${inputCls} num text-right`} inputMode="numeric" value={f.vat_id} onChange={e => set('vat_id', e.target.value)} /></Field>
-          <Field label="מייל לתשובות לקוחות" hint={err('reply_email')}><input className={`${inputCls} num text-right`} type="email" value={f.reply_email} onChange={e => set('reply_email', e.target.value)} /></Field>
+          <Field label="שם העסק (פותח כל הודעה)" hint={err('business_name')}><input className={inputCls} disabled={lk('business_name')} value={f.business_name} onChange={e => set('business_name', e.target.value)} aria-invalid={!!errs.business_name} /></Field>
+          <Field label="שם לחתימה" hint={err('owner_name')}><input className={inputCls} disabled={lk('owner_name')} value={f.owner_name} onChange={e => set('owner_name', e.target.value)} /></Field>
+          <Field label="ע.מ. / ח.פ." hint={err('vat_id')}><input className={`${inputCls} num text-right`} inputMode="numeric" disabled={lk('vat_id')} value={f.vat_id} onChange={e => set('vat_id', e.target.value)} /></Field>
+          <Field label="מייל לתשובות לקוחות" hint={err('reply_email')}><input className={`${inputCls} num text-right`} type="email" disabled={lk('reply_email')} value={f.reply_email} onChange={e => set('reply_email', e.target.value)} /></Field>
         </div>
       </Card>
 
       <Card className="p-5 space-y-4">
-        <h2 className="text-lg font-extrabold">מאיפה מגיעות החשבוניות</h2>
+        <h2 className="text-lg font-extrabold">מאיפה מגיעות החשבוניות{ownerOnly && <OwnerBadge />}</h2>
         <p className="text-sm text-ink-500">גבי <b>רק קורא</b> חשבוניות פתוחות ממערכת החשבוניות שלכם. הוא לא יוצר, לא משנה ולא מבטל מסמכים.</p>
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="מערכת החשבוניות" data-testid="source-systems">
           {SOURCE_SYSTEMS.map(o => (
-            <button key={o.key} role="radio" aria-checked={f.source_system === o.key} onClick={() => set('source_system', o.key)}
+            <button key={o.key} role="radio" aria-checked={f.source_system === o.key} disabled={lk('source_system')} onClick={() => set('source_system', o.key)}
               data-testid={`source-${o.key}`} title={o.note}
-              className={`min-h-10 rounded-full px-4 py-2 text-sm font-bold border cursor-pointer ${f.source_system === o.key ? 'bg-ink-900 text-white border-ink-900' : 'bg-white border-ink-200'}`}>
+              className={`min-h-10 rounded-full px-4 py-2 text-sm font-bold border cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${f.source_system === o.key ? 'bg-ink-900 text-white border-ink-900' : 'bg-white border-ink-200'}`}>
               {o.label}
             </button>
           ))}
@@ -182,27 +194,27 @@ export function Settings() {
       </Card>
 
       <Card className="p-5 space-y-4">
-        <h2 className="text-lg font-extrabold">ערוצי שליחה</h2>
+        <h2 className="text-lg font-extrabold">ערוצי שליחה{ownerOnly && <OwnerBadge />}</h2>
         <div className="rounded-xl bg-ink-50 p-3 text-sm">
           📱 <b>SMS:</b> ספק ראשי <b>019</b>, גיבוי <b>InforU</b> (קבוע; כרגע מצב בדיקה בלבד).<br />
           ✉️ <b>מייל:</b> נוסח מלא עם קישור לתשלום וקישור הסרה.
         </div>
         <Field label="שם השולח ב-SMS" hint={err('sender') ?? 'עד 11 אותיות לועזיות/ספרות, בלי רווחים. נרשם אצל הספק לפני שליחה ראשונה.'}>
-          <input className={`${inputCls} num text-right ${errs.sender ? 'border-critical' : ''}`} value={f.sender} maxLength={11} onChange={e => set('sender', e.target.value)} />
+          <input className={`${inputCls} num text-right ${errs.sender ? 'border-critical' : ''}`} disabled={lk('sender')} value={f.sender} maxLength={11} onChange={e => set('sender', e.target.value)} />
         </Field>
       </Card>
 
       <Card className="p-5 space-y-4">
-        <h2 className="text-lg font-extrabold">קישור לתשלום</h2>
+        <h2 className="text-lg font-extrabold">קישור לתשלום{ownerOnly && <OwnerBadge />}</h2>
         <p className="text-sm text-ink-500">גבי לא מחזיק כסף. כל תזכורת מובילה לעמוד התשלום של העסק שלכם, והכסף עובר ישירות אליכם.</p>
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="עמוד תשלום">
           {PAY.map(([k, t]) => (
-            <button key={k} role="radio" aria-checked={f.pay_provider === k} onClick={() => set('pay_provider', k)}
-              className={`min-h-10 rounded-full px-4 py-2 text-sm font-bold border cursor-pointer ${f.pay_provider === k ? 'bg-ink-900 text-white border-ink-900' : 'bg-white border-ink-200'}`}>{t}</button>
+            <button key={k} role="radio" aria-checked={f.pay_provider === k} disabled={lk('pay_provider')} onClick={() => set('pay_provider', k)}
+              className={`min-h-10 rounded-full px-4 py-2 text-sm font-bold border cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${f.pay_provider === k ? 'bg-ink-900 text-white border-ink-900' : 'bg-white border-ink-200'}`}>{t}</button>
           ))}
         </div>
         <Field label="כתובת עמוד התשלום" hint={err('pay_url') ?? 'https בלבד, ובדומיין של הספק שנבחר (נבדק בשרת).'}>
-          <input className={`${inputCls} num text-left ${errs.pay_url ? 'border-critical' : ''}`} value={f.pay_url} onChange={e => set('pay_url', e.target.value)} aria-label="כתובת עמוד התשלום" />
+          <input className={`${inputCls} num text-left ${errs.pay_url ? 'border-critical' : ''}`} disabled={lk('pay_url')} value={f.pay_url} onChange={e => set('pay_url', e.target.value)} aria-label="כתובת עמוד התשלום" />
         </Field>
       </Card>
 
@@ -218,7 +230,7 @@ export function Settings() {
       <TeamCard />
 
       <div data-sticky-bar data-testid="settings-bar" className="flex flex-wrap items-center gap-3 sticky bottom-4 bg-paper/90 backdrop-blur rounded-xl p-2">
-        <Button disabled={busy || !dirty || Object.keys(errs).length > 0} onClick={save} data-testid="settings-save">
+        <Button disabled={busy || !dirty || ownerOnly || Object.keys(errs).length > 0} onClick={save} data-testid="settings-save">
           {live ? 'שמירה בשרת' : 'שמירה בלשונית בלבד (מוק)'}
         </Button>
         <Button variant="ghost" disabled={!dirty} onClick={() => { setF(orig); setSaveErr(null); setRestored(false); }}>ביטול שינויים</Button>

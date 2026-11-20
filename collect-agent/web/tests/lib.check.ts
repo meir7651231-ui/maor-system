@@ -1538,3 +1538,14 @@ test('critic 192: כרטיס email_bounce_review — כותרת ייעודית +
   const [m] = systemNotices([{ id: 8, customer_id: 3, direction: 'system', channel: 'owner', body: 'x', intent: 'amount_check', created_at: '2026-11-20T10:00:00+02:00' }]);
   assert.equal(m.customerId, undefined);
 });
+
+test('מבקר 194: שדות בעל העסק בהגדרות נעולים לעובד/ת בלבד', async () => {
+  const { settingsOwnerOnly, fieldLocked, OWNER_ONLY_FIELDS } = await import('../src/lib/settings.ts');
+  const staff = { actor: 'user:2', kind: 'user' as const, name: 'עובד' };
+  const ownerUser = { actor: 'user:1', kind: 'user' as const, name: 'בעל העסק', owner: true };
+  const ownerTok = { actor: 'owner', kind: 'owner' as const, name: '' };
+  assert.ok(settingsOwnerOnly(staff)); assert.ok(settingsOwnerOnly({ ...staff, owner: false }));
+  assert.ok(!settingsOwnerOnly(ownerUser)); assert.ok(!settingsOwnerOnly(ownerTok)); assert.ok(!settingsOwnerOnly(null));
+  for (const k of OWNER_ONLY_FIELDS) { assert.ok(fieldLocked(staff, k), k); assert.ok(!fieldLocked(ownerUser, k), k); assert.ok(!fieldLocked(null, k), k); }
+  assert.equal(OWNER_ONLY_FIELDS.length, 8);
+});

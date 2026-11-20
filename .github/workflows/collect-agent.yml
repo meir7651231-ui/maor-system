@@ -192,6 +192,8 @@ jobs:
         run: TZ=UTC node e2e/dsr.mjs "$RUNNER_TEMP/shots"
       - name: "e2e צוות ותפקידים בהגדרות (מנהל 328+330) — הבעלים האחרון מוגן; מינוי⇒הורדה⇒השבתה⇒הפעלה מחדש בלחיצה כפולה ובשרת; 390px, AA, מול DEMO=1"
         run: TZ=UTC node e2e/team.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e הגדרות כעובדת (מבקר 194) — שדות בעל העסק נעולים ומסומנים, «שמירה» כבויה, CSV פתוח; בעלים רואה פתוח; 390px, מול DEMO=1"
+        run: TZ=UTC node e2e/app-staff-settings.mjs "$RUNNER_TEMP/shots"
       - name: e2e ערכת בטא — יום ראשון לכל ענף (מספרה/מוסך/קליניקה/רו״ח) מול gi_mock
         run: TZ=UTC node e2e/beta.mjs
       - name: e2e תסריט ההדגמה של מכירות (sales/demo-script.md, 6 שלבים) מול DEMO=1

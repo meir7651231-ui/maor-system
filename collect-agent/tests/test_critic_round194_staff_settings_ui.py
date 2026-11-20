@@ -13,9 +13,9 @@ vat_id) — ובשרת זה עובד (403, שום דבר לא נשמר). אבל 
 import re
 from pathlib import Path
 
-import pytest
-
-SRC = Path(__file__).resolve().parents[1] / "web" / "src" / "pages" / "Settings.tsx"
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "web" / "src" / "pages" / "Settings.tsx"
+LIB = ROOT / "web" / "src" / "lib" / "settings.ts"
 
 
 def _code() -> str:
@@ -28,8 +28,31 @@ def _code() -> str:
     return "\n".join(lines)
 
 
-@pytest.mark.xfail(strict=True, reason="194🟡: Settings.tsx לא יודע מי מחובר — עובדת נדחית רק בשמירה")
 def test_settings_screen_knows_owner_only_fields():
     code = _code()
     knows_role = re.search(r"me\??\.owner\b|ownerOnly|OwnerOnly|isOwner|teamVisible", code)
     assert knows_role, "מסך ההגדרות לא קורא את תפקיד המחובר (/auth/me owner) ולא נועל/מסמן שדות בעל-העסק"
+
+
+# תיקון (מנהל 345): כל שדה טופס שהשרת חוסם לעובד/ת — נעול במסך. מיפוי שדה-טופס ⇒ מפתח-שרת (settings_api.from_design).
+FORM_TO_SERVER = {"business_name": "business_name", "owner_name": "owner_name", "vat_id": "vat_id",
+                  "reply_email": "email_reply_to", "sender": "sms_sender_id", "pay_provider": "payment_provider",
+                  "pay_url": "payment_link", "source_system": "source_system"}
+
+
+def test_ui_owner_only_fields_match_server():
+    from app.service import CollectService
+    m = re.search(r"OWNER_ONLY_FIELDS[^=]*=\s*\[(.*?)\]", LIB.read_text(encoding="utf-8"), re.S)
+    assert m, "OWNER_ONLY_FIELDS לא נמצא ב-lib/settings.ts"
+    ui = set(re.findall(r"'(\w+)'", m.group(1)))
+    assert ui <= set(FORM_TO_SERVER), ui - set(FORM_TO_SERVER)
+    assert {FORM_TO_SERVER[k] for k in ui} == set(CollectService._OWNER_ONLY_LABELS), \
+        "רשימת השדות הנעולים במסך לא תואמת את מה שהשרת חוסם לעובד/ת"
+
+
+def test_every_owner_field_input_is_locked_and_save_blocked():
+    code = _code()
+    for k in FORM_TO_SERVER:
+        assert f"lk('{k}')" in code, f"השדה {k} לא נעול לעובד/ת במסך"
+    assert re.search(r"disabled=\{busy \|\| !dirty \|\| ownerOnly", code), "«שמירה» לא נחסמת לעובד/ת"
+    assert 'data-testid="settings-owner-only"' in code

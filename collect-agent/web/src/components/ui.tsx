@@ -46,7 +46,7 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
     </label>
   );
 }
-export const inputCls = 'w-full h-11 rounded-xl border border-ink-200 bg-white px-3.5 text-ink-900 placeholder:text-ink-400 focus:border-brand focus:ring-2 focus:ring-brand/30 outline-none';
+export const inputCls = 'w-full h-11 rounded-xl border border-ink-200 bg-white px-3.5 text-ink-900 placeholder:text-ink-400 focus:border-brand focus:ring-2 focus:ring-brand/30 outline-none disabled:bg-ink-50 disabled:text-ink-500 disabled:cursor-not-allowed';
 
 export function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
