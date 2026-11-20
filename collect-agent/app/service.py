@@ -1030,6 +1030,11 @@ class CollectService:
         return bool(addr) and self.db.one("SELECT 1 FROM suppressions WHERE hash=?",
                                           (self.addr_hash(channel, addr),)) is not None
 
+    def email_bounced(self, addr: str) -> bool:
+        """critic 188: הכתובת החזירה bounce קבוע ⇒ לא שולחים אליה מייל (מוניטין שליחה + כתובת שתוקצה מחדש)."""
+        return bool(addr) and self._table_exists("email_bounces") and self.db.one(
+            "SELECT 1 FROM email_bounces WHERE hash=?", (self.addr_hash("email", addr),)) is not None
+
     def gate(self, cust, channel: str, to: str, *, opt_out_ack: bool = False) -> str | None:
         """כל הודעה יוצאת עוברת כאן: תזכורת, תשובה, אישור פריסה. None ⇒ מותר עכשיו.
         'outside_window' ⇒ מותר מאוחר יותר (נשאר בתור); כל ערך אחר ⇒ אסור."""
@@ -1039,6 +1044,8 @@ class CollectService:
             return "trial_expired"
         if not opt_out_ack and (cust["opted_out"] or self.suppressed(channel, to)):
             return "opted_out"
+        if channel == "email" and self.email_bounced(to):
+            return "email_bounced"
         if self.policy.reason_closed(self.clock()):
             return "outside_window"
         return None
@@ -1932,9 +1939,12 @@ class CollectService:
                     continue   # critic סבב 39: ריצה אחרת כבר תפסה אותה (אין שליחה כפולה במקביל)
                 ids = []
                 failed = False
+                gated: set[str] = set()
                 for m in json.loads(r["payload"]):
                     msg = Message(**m)
-                    if self.gate(cust, msg.channel, msg.to):
+                    why = self.gate(cust, msg.channel, msg.to)
+                    if why:
+                        gated.add(why)
                         continue
                     try:
                         mid = self.sender.send(msg)
@@ -1952,8 +1962,10 @@ class CollectService:
                     self.db.x("UPDATE reminders SET status='approved', claimed_at=NULL WHERE id=?", (r["id"],))
                     continue
                 if not ids:
-                    self.db.x("UPDATE reminders SET status='cancelled', block_reason='opted_out' "
-                              "WHERE id=?", (r["id"],))
+                    # critic 188: כל הערוצים נחסמו רק בגלל מייל שחזר ⇒ סיבה מדויקת (לא «ביקש הסרה»)
+                    why = "email_bounced" if gated == {"email_bounced"} else "opted_out"
+                    self.db.x("UPDATE reminders SET status='cancelled', block_reason=? "
+                              "WHERE id=?", (why, r["id"]))
                     continue
                 self.db.x("UPDATE reminders SET status='sent_dry_run', sent_at=?, message_id=?, "
                           "payload=?, body=? WHERE id=?",
@@ -2545,6 +2557,9 @@ class CollectService:
         if not addr or not body:
             return {"ok": True, "ignored": True}
         auth = email_auth_verdict(auth_results)
+        if auth["verified"] and self._table_exists("email_bounces"):
+            # critic 188: מייל מאומת מהכתובת = היא חיה ⇒ מסירים את סימון ה-bounce (לא על מייל שאולי מזויף)
+            self.db.x("DELETE FROM email_bounces WHERE hash=?", (self.addr_hash("email", addr),))
         self.audit("system", "email_auth", {"message": key[:80], **auth})
         before = self.db.one("SELECT COALESCE(MAX(id), 0) AS m FROM messages")["m"]
         out = self.inbound("email", addr, body)
@@ -2609,10 +2624,18 @@ class CollectService:
             return {"bounce": "failed", "matched": True, "final": True}
         now = _iso(self.clock())
         self.db.x("UPDATE messages SET delivery_status='failed', delivery_at=? WHERE id=?", (now, row["id"]))
+        # critic 188: הכתובת שאליה יצא המייל (מה-payload; אחרת מה-DSN) מסומנת ⇒ השער מדלג על מייל אליה
+        try:
+            dead = json.loads(row["payload"] or "{}").get("to") or b["recipient"]
+        except (ValueError, AttributeError):
+            dead = b["recipient"]
+        if dead:
+            self.db.x("INSERT OR IGNORE INTO email_bounces(hash,created_at) VALUES(?,?)",
+                      (self.addr_hash("email", dead), now))
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at)"
                   " VALUES(?,'system','email',?, 'email_bounced', 1, ?)",
-                  (row["customer_id"], "המייל ללקוח חזר (הכתובת לא קיימת או חסומה). כדאי לבדוק את "
-                   "כתובת המייל בחשבונית ירוקה.", now))
+                  (row["customer_id"], "המייל ללקוח חזר (הכתובת לא קיימת או חסומה). מיילים לכתובת הזו "
+                   "נעצרו; SMS ממשיך. אחרי תיקון הכתובת בחשבונית ירוקה המיילים יחזרו לכתובת החדשה.", now))
         self.audit("system", "email_bounced", {"message": row["id"]})
         return {"bounce": "failed", "matched": True}
 

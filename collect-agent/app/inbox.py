@@ -80,6 +80,7 @@ _ALLOWED_AFTER_OPT_OUT = {Intent.OPT_OUT.value, Intent.WRONG_PERSON.value, Inten
 # critic סבב 61: סיבות שער (service.gate) לבעל העסק, כשתשובה שאושרה נחסמת ברגע השליחה
 _GATE_HE = {
     "opted_out": "הלקוח ביקש הסרה, ולכן אסור לשלוח. אם צריך, פנו ללקוח אישית",
+    "email_bounced": "מייל קודם לכתובת הזו חזר (הכתובת לא קיימת). כדאי לתקן את המייל בחשבונית ירוקה או לענות ב-SMS",
 }
 
 
