@@ -3014,8 +3014,60 @@ class CollectService:
             self.db.x("UPDATE conversations SET pause_until=? WHERE customer_id=?", (until, cid))
         self.audit(actor, "promise_request_approved" if approve else "promise_request_refused",
                    {"customer": cid, "requested": info["requested"]})
+        notice = self._promise_decision_notice(cid, req["id"], info, approve)
         return {"customer": cid, "requested": info["requested"], "approved": approve,
-                "paused_until": until if approve else info["until"]}
+                "paused_until": until if approve else info["until"], "customer_update": notice}
+
+    def _promise_decision_notice(self, cid: int, req_audit_id: int, info: dict, approve: bool) -> dict | None:
+        """מבקר 197א+ב: התשובה ללקוח אמרה «בעל העסק יאשר את המועד המבוקש ונעדכן אתכם» — ההכרעה לא הגיעה אליו.
+        (א) טיוטה שעוד לא יצאה (ממתינה לאישור / אושרה וממתינה לחלון) ⇒ הנוסח מוחלף בנוסח הסופי וכפתורי «בדוק ואשר»
+        יורדים. (ב) התשובה כבר יצאה ⇒ טיוטת עדכון חדשה **לאישור** בעל העסק (לא נשלחת לבד). לקוח שביקש הסרה ⇒ כלום."""
+        if not self._table_exists("drafts"):
+            return None
+        from .conversation import _he_date  # noqa: PLC0415 — אותו פורמט תאריך כמו בתשובה המקורית
+        cust = self.db.one("SELECT id, name, phone, email, opted_out FROM customers WHERE id=?", (cid,))
+        if cust is None or cust["opted_out"]:
+            return None
+        requested = date.fromisoformat(info["requested"])
+        cap = date.fromisoformat(info["until"]) - timedelta(days=1)
+        first = (cust["name"] or "").split()[0] if (cust["name"] or "").strip() else ""
+        hi = f" {first}" if first else ""
+        if approve:
+            body = (f"שלום{hi}, בעל העסק אישר: התשלום צפוי עד {_he_date(requested)}. "
+                    f"עד אז לא נשלח תזכורות.")
+            summary = f"עדכון ללקוח/ה: אישרת את {_he_date(requested)}."
+        else:
+            body = (f"שלום{hi}, בעל העסק בדק את בקשתכם: נוכל להמתין עד {_he_date(cap)}, "
+                    f"ולא עד {_he_date(requested)}. אחרי {_he_date(cap)} התזכורות יחזרו. "
+                    f"אם יש קושי — השיבו להודעה זו.")
+            summary = f"עדכון ללקוח/ה: סירבת ל-{_he_date(requested)}; ההמתנה עד {_he_date(cap)}."
+        # הטיוטה לא נכתבת מחדש במקום (מגן `test_drafts_and_plans_are_not_rewritten_in_place`: מה שיוצא = מה שבעל
+        # העסק ראה ואישר) ⇒ הטיוטה הישנה מוחלפת (superseded) וטיוטה חדשה בנוסח הסופי ממתינה לאישור — גם אם הישנה
+        # כבר אושרה וממתינה לחלון השליחה.
+        pending = [d for d in self.db.q(
+            "SELECT id, channel, owner_actions FROM drafts WHERE customer_id=? AND status IN "
+            "('pending_approval','approved') ORDER BY id DESC", (cid,))
+            if any(str(a).startswith("בדוק ואשר:") for a in json.loads(d["owner_actions"] or "[]"))]
+        for d in pending:
+            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:promise_decision' WHERE id=?",
+                      (d["id"],))
+        last = self.db.one("SELECT channel FROM drafts WHERE customer_id=? AND intent='promise' "
+                           "ORDER BY id DESC LIMIT 1", (cid,))
+        channel = pending[0]["channel"] if pending else last["channel"] if last else (
+            "sms" if is_il_mobile(normalize_il_phone(cust["phone"])) else "email")
+        if not self.inbox._addr(cust, channel):
+            return None
+        did = self.db.x(
+            "INSERT INTO drafts(customer_id,channel,to_addr,body,intent,status,escalate,owner_summary,"
+            "owner_actions,created_at,total_agorot) VALUES(?,?,?,?, 'promise', 'pending_approval', 'none', ?, "
+            "'[]', ?, ?)",
+            (cid, channel, self.inbox._addr(cust, channel),
+             self.inbox._with_footer(cust, channel, body, "promise"), summary, _iso(self.clock()),
+             self.inbox._open_total(cid)))
+        replaced = [d["id"] for d in pending]
+        self.audit("system", "promise_decision_update_drafted",
+                   {"customer": cid, "draft": did, "request": req_audit_id, "replaced": replaced})
+        return {"draft": did, "replaced": replaced}
 
     def _opt_out(self, cid: int, how: str) -> None:
         self.db.x("UPDATE customers SET opted_out=1 WHERE id=?", (cid,))

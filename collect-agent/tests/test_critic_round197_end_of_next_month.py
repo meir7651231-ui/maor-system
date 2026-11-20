@@ -15,7 +15,6 @@ from app.conversation import extract_date
 TODAY = date(2026, 11, 8)
 
 
-@pytest.mark.xfail(strict=True, reason="197ג: «סוף החודש הבא» ⇒ 10.12 במקום 31.12")
 @pytest.mark.parametrize("t", ["אשלם עד סוף החודש הבא", "בסוף החודש הבא", "עד סוף חודש הבא",
                                "I'll pay by the end of next month"])
 def test_end_of_next_month_is_last_day(t):

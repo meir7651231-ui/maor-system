@@ -37,16 +37,18 @@ def test_control_pending_draft_says_owner_will_decide(svc):
     assert "יאשר את המועד המבוקש" in d["body"] and any(a.startswith("בדוק ואשר:") for a in d["owner_actions"])
 
 
-@pytest.mark.xfail(strict=True, reason="197א: אחרי «לסרב» הטיוטה עדיין אומרת שבעל העסק יאשר + כפתורי ההכרעה נשארים")
 def test_refusal_updates_pending_draft(svc):
+    # מנהל 349: הטיוטה לא נכתבת מחדש במקום (מגן send_window_queue) — היא מוחלפת בטיוטה חדשה בנוסח הסופי.
+    # הכוונה של הבדיקה נשמרת: בתור של הלקוח אין יותר «בעל העסק יאשר» ואין כפתורי «בדוק ואשר».
     api, cid, did = _setup(svc)
     assert api.post(f"/customers/{cid}/promise-request", json={"approve": False}).status_code == 200
-    d = _draft(api, did)
-    assert "יאשר את המועד המבוקש" not in d["body"], d["body"]
-    assert not any(a.startswith("בדוק ואשר:") for a in d["owner_actions"]), d["owner_actions"]
+    queue = [d for d in api.get("/conversation/drafts").json() if d["customer_id"] == cid]
+    assert queue, "אין טיוטה ללקוח בתור"
+    for d in queue:
+        assert "יאשר את המועד המבוקש" not in d["body"], d["body"]
+        assert not any(a.startswith("בדוק ואשר:") for a in d["owner_actions"]), d["owner_actions"]
 
 
-@pytest.mark.xfail(strict=True, reason="197ב: «ונעדכן אתכם» — אחרי הכרעה על תשובה שכבר יצאה, אין עדכון ללקוח")
 @pytest.mark.parametrize("approve", [True, False])
 def test_decision_after_reply_sent_creates_update_for_customer(svc, approve):
     api, cid, did = _setup(svc)

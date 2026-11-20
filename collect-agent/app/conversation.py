@@ -1906,6 +1906,10 @@ def _extract_date_en(t: str, today: date) -> tuple[date | None, bool] | None:
         return last, False
     if re.search(r"\bnext\s+week\b", t):
         return _next_weekday(today, 6), False
+    # מבקר 197ג: «by the end of next month» ⇒ היה 10 בחודש הבא — עקבי עם העברית: היום האחרון
+    if re.search(r"\bend\s+of\s+(?:the\s+)?next\s+month\b", t):
+        y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+        return date(y, mo, calendar.monthrange(y, mo)[1]), False
     if re.search(r"\b(?:next\s+month|beginning\s+of\s+(?:next|the\s+next)\s+month|start\s+of\s+next\s+month|early\s+next\s+month)\b", t):
         y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
         # עקבי עם העברית: «בחודש הבא» ⇒ 10 בחודש, «בתחילת החודש הבא» ⇒ 1 (ביקורת qa9 q9-28)
@@ -1959,6 +1963,8 @@ def extract_date(t: str, today: date) -> tuple[date | None, bool]:
     # q21 המשך: «Auto-reply: away until Dec 1. Payment will be sent on the 20th» ⇒ ההבטחה נקבעה ל-1.12 (מועד החזרה
     # מהיעדרות) במקום ה-20. «עד <תאריך>» של היעדרות = מתי חוזרים, לא מתי משלמים — אלא אם זה התאריך היחיד
     # («I'll be off until the 20th, I'll pay then» ⇒ ה-20).
+    # מבקר 197ג: התבניות מנורמלות-סופיות (_c) — קריאה ישירה עם טקסט גולמי («סוף») לא התאימה. אידמפוטנטי לקוראים.
+    t = t.translate(_FINALS)
     stripped = re.sub(_c(_ABSENT_UNTIL), " ", t)
     if stripped != t:
         got = _extract_date_core(stripped, today)
@@ -2030,6 +2036,10 @@ def _extract_date_core(t: str, today: date) -> tuple[date | None, bool]:
             y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
             return date(y, mo, min(int(m.group(1)), calendar.monthrange(y, mo)[1])), False
         return _month_day(today, int(m.group(1))), False
+    # מבקר 197ג: «עד סוף החודש הבא» ⇒ היה 10 בחודש הבא («חודש הבא» נבדק לפני «סוף החודש») — שלושה שבועות מוקדם
+    if _s(r"(?:בסופ|עד סופ|סופ) (?:ה)?חודש (?:ה)?הבא", t):
+        y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+        return date(y, mo, calendar.monthrange(y, mo)[1]), False
     if _s(r"(?:בתחילת|עד תחילת|בראשית) (?:ה)?חודש (?:ה)?(?:הבא|הקרוב)?|בחודש הבא|חודש הבא", t):
         y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
         return date(y, mo, 10 if "חודש הבא" in t and "תחילת" not in t else 1), False
