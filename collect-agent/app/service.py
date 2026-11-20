@@ -74,12 +74,16 @@ OPTOUT_LEDGER_FAILED_TEXT = ("בקשת הסרה נקלטה וחסומה במער
                              "הסרה יקבל שוב תזכורת. פנו לתמיכה הטכנית לתיקון הרשאות היומן (OPTOUT_LEDGER).")
 
 
-def plan_missed_text(name: str | None, n: int, of: int, amount_agorot: int, due: str, open_agorot: int) -> str:
-    """מנהל 332: כרטיס לבעל העסק כשתשלום בהסדר לא התקבל. בלי פרטי קשר — רק שם, כמו שאר הכרטיסים."""
+def plan_missed_text(name: str | None, n: int, of: int, amount_agorot: int, due: str, open_agorot: int,
+                     still_paused: bool = False, currency: str = "ILS") -> str:
+    """מנהל 332: כרטיס לבעל העסק כשתשלום בהסדר לא התקבל. בלי פרטי קשר — רק שם, כמו שאר הכרטיסים.
+    fuzz ב׳ (20.11): still_paused ⇒ ללקוח השהיה אחרת («שילמתי»/מחלוקת/רגיש…) — לא מבטיחים שהתזכורות חוזרות."""
     who = name or "לקוח"
-    return (f"הסדר התשלומים של {who} לא נשמר: תשלום {n} מתוך {of} ({templates.fmt_amount(amount_agorot)}, "
-            f"מועד {due}) לא התקבל. היתרה הפתוחה: {templates.fmt_amount(open_agorot)}. "
+    tail = ("ההסדר סומן «הוחמץ». ללקוח יש השהיה נוספת (למשל «שילמתי» או מחלוקת), ולכן התזכורות לא חוזרות עד "
+            "שתבדקו ותחדשו אותן — אפשר גם להציע הסדר חדש." if still_paused else
             "ההסדר סומן «הוחמץ» והתזכורות הרגילות חוזרות לאישורכם — אפשר גם להציע הסדר חדש.")
+    return (f"הסדר התשלומים של {who} לא נשמר: תשלום {n} מתוך {of} ({templates.fmt_amount(amount_agorot, currency)}, "
+            f"מועד {due}) לא התקבל. היתרה הפתוחה: {templates.fmt_amount(open_agorot, currency)}. " + tail)
 
 
 def refresh_stuck_text(items: list[tuple[str, str, str]]) -> str:
@@ -798,7 +802,11 @@ class CollectService:
         if self.db.one("SELECT 1 FROM messages WHERE intent=? AND message_id=?",
                        (self.CREDIT_REVIEW, mid)):
             return 0
-        if not cust["paused_reason"]:
+        old = cust["paused_reason"] or ""
+        # fuzz ב׳ (20.11): קבלה/זיכוי על לקוח שכבר מושהה **השהיה רכה** (הסדר שנולד בשיחה, או הבטחה שפגה לבד —
+        # `:until=`) לא נרשמה ⇒ כשההשהיה הרכה השתחררה (הסדר הוחמץ / המועד עבר) התזכורת יצאה למי שכנראה שילם,
+        # והרענון שלפני השליחה לא השהה שוב (ההתראה כבר קיימת). credit_review גובר על השהיה רכה; השהיה קשה נשארת.
+        if not old or old.split(":", 1)[0] in self.PLAN_PAUSES or ":until=" in old:
             self.db.x("UPDATE customers SET paused_reason=? WHERE id=?",
                       (self.CREDIT_REVIEW, cust["id"]))
         for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cust["id"],)):
@@ -1022,6 +1030,11 @@ class CollectService:
         return bool(addr) and self.db.one("SELECT 1 FROM suppressions WHERE hash=?",
                                           (self.addr_hash(channel, addr),)) is not None
 
+    def email_bounced(self, addr: str) -> bool:
+        """critic 188: הכתובת החזירה bounce קבוע ⇒ לא שולחים אליה מייל (מוניטין שליחה + כתובת שתוקצה מחדש)."""
+        return bool(addr) and self._table_exists("email_bounces") and self.db.one(
+            "SELECT 1 FROM email_bounces WHERE hash=?", (self.addr_hash("email", addr),)) is not None
+
     def gate(self, cust, channel: str, to: str, *, opt_out_ack: bool = False) -> str | None:
         """כל הודעה יוצאת עוברת כאן: תזכורת, תשובה, אישור פריסה. None ⇒ מותר עכשיו.
         'outside_window' ⇒ מותר מאוחר יותר (נשאר בתור); כל ערך אחר ⇒ אסור."""
@@ -1031,6 +1044,8 @@ class CollectService:
             return "trial_expired"
         if not opt_out_ack and (cust["opted_out"] or self.suppressed(channel, to)):
             return "opted_out"
+        if channel == "email" and self.email_bounced(to):
+            return "email_bounced"
         if self.policy.reason_closed(self.clock()):
             return "outside_window"
         return None
@@ -1675,6 +1690,7 @@ class CollectService:
             # critic סבב 75: גם יומן ה-dry-run בזיכרון (/outbox) — לפי הכתובות, לפני שמתממים אותן
             self._scrub_sent_log(self.db.one("SELECT phone, email FROM customers WHERE id=?", (c["id"],)))
             self._scrub_shared_card_name(c["id"])
+            self._release_bounce_on_purge(c["id"])
             self.db.x("UPDATE customers SET name=NULL, phone=NULL, email=NULL, blocked_phone=NULL,"
                       " blocked_email=NULL, purged_at=? WHERE id=?", (now, c["id"]))
             cust_n += 1
@@ -1730,6 +1746,21 @@ class CollectService:
             "status IN ('pending_approval','needs_owner') AND created_at>? AND EXISTS("
             "SELECT 1 FROM messages WHERE customer_id=? AND needs_owner=1)",
             (customer_id, floor, customer_id)) is not None
+
+    def _release_bounce_on_purge(self, cid: int) -> None:
+        """גבי משפט (ר-10, מזעור): סימון bounce (גיבוב מייל) נועד רק לא לשלוח שוב ללקוח **קיים** לכתובת מתה.
+        כשהלקוח מותמם אין לו עוד מטרה ⇒ נמחק, אלא אם לקוח חי אחר משתמש באותה כתובת (כתובת משותפת).
+        שונה מ-suppressions (הסרה / תלונת ספאם = סירוב לפי 30א) — שם השמירה נמשכת כדי לכבד את הסירוב."""
+        if not self._table_exists("email_bounces"):
+            return
+        c = self.db.one("SELECT email, blocked_email FROM customers WHERE id=?", (cid,))
+        for addr in {(a or "").strip().lower() for a in (c["email"], c["blocked_email"]) if a}:
+            h = self.addr_hash("email", addr)
+            live = [o for o in self.db.q("SELECT email FROM customers WHERE id<>? AND purged_at IS NULL "
+                                         "AND email IS NOT NULL", (cid,))
+                    if self.addr_hash("email", o["email"]) == h]
+            if not live:
+                self.db.x("DELETE FROM email_bounces WHERE hash=?", (h,))
 
     def _scrub_sent_log(self, cust) -> None:
         """critic סבב 75 (ר-10): רשומות יומן ה-dry-run (`sender.sent`, /outbox) של לקוח שהותמם — נשחרות במקום:
@@ -1924,9 +1955,12 @@ class CollectService:
                     continue   # critic סבב 39: ריצה אחרת כבר תפסה אותה (אין שליחה כפולה במקביל)
                 ids = []
                 failed = False
+                gated: set[str] = set()
                 for m in json.loads(r["payload"]):
                     msg = Message(**m)
-                    if self.gate(cust, msg.channel, msg.to):
+                    why = self.gate(cust, msg.channel, msg.to)
+                    if why:
+                        gated.add(why)
                         continue
                     try:
                         mid = self.sender.send(msg)
@@ -1944,8 +1978,10 @@ class CollectService:
                     self.db.x("UPDATE reminders SET status='approved', claimed_at=NULL WHERE id=?", (r["id"],))
                     continue
                 if not ids:
-                    self.db.x("UPDATE reminders SET status='cancelled', block_reason='opted_out' "
-                              "WHERE id=?", (r["id"],))
+                    # critic 188: כל הערוצים נחסמו רק בגלל מייל שחזר ⇒ סיבה מדויקת (לא «ביקש הסרה»)
+                    why = "email_bounced" if gated == {"email_bounced"} else "opted_out"
+                    self.db.x("UPDATE reminders SET status='cancelled', block_reason=? "
+                              "WHERE id=?", (why, r["id"]))
                     continue
                 self.db.x("UPDATE reminders SET status='sent_dry_run', sent_at=?, message_id=?, "
                           "payload=?, body=? WHERE id=?",
@@ -1978,6 +2014,49 @@ class CollectService:
 
     def _plan_invoice_ids(self, p) -> list[int]:
         return json.loads(p["invoice_ids"]) if p["invoice_ids"] else [p["invoice_id"]]
+
+    def plan_currency(self, p) -> str:
+        """מבקר 185 🔴: מטבע ההסדר = מטבע חשבונית העוגן. הסדר תמיד חד-מטבעי (`open_debt` מחזיר 0 על מטבעות
+        מעורבים ⇒ אין הצעה), ולכן העוגן מייצג את כולן. בלי זה כל `fmt_amount` במסלולי ההסדר נפל ל-₪."""
+        r = self.db.one("SELECT currency FROM invoices WHERE id=?", (p["invoice_id"],))
+        return (r["currency"] if r and r["currency"] else "ILS")
+
+    def plan_progress(self, p) -> dict:
+        """מנהל 334: התקדמות הסדר לתצוגה — אותו חישוב «שולם» של `_sweep_plans` (סה״כ ההסדר פחות היתרה הפתוחה
+        בחשבוניות שלו), כדי שהמסך והסריקה לא יחלקו. `next` = התשלום הראשון שעוד לא כוסה במצטבר (None = כוסו כולם)."""
+        items = json.loads(p["installments"])
+        total = sum(i["amount_agorot"] for i in items)
+        open_now = self.db.one("SELECT COALESCE(SUM(amount_agorot),0) n FROM invoices WHERE status='open' "
+                               "AND id IN (SELECT value FROM json_each(?))",
+                               (json.dumps(self._plan_invoice_ids(p)),))["n"]
+        paid = max(0, min(total, total - open_now))
+        acc, nxt, done = 0, None, 0
+        for i in items:
+            acc += i["amount_agorot"]
+            if paid >= acc:
+                done += 1
+            elif nxt is None:
+                nxt = {"n": i["n"], "due": i["due"], "amount_agorot": i["amount_agorot"]}
+        return {"total_agorot": total, "paid_agorot": paid, "open_agorot": max(0, open_now),
+                "done": done, "count": len(items), "next": nxt, "currency": self.plan_currency(p)}
+
+    # השהיות שנוצרו מהשיחה על ההסדר עצמו — משתחררות כשההסדר הוחמץ (שאר ההשהיות לא)
+    PLAN_PAUSES = ("plan_request", "plan_accept", "cant_pay")
+
+    # כוונות שמחייבות בדיקת בעל העסק לפני תזכורת. paid_claim אינה השהיה «קשה» (_keeps_old_pause), ולכן בקשת
+    # הסדר אחריה דורסת אותה — fuzz ב׳ זרע 5170: «כבר שולם» ⇒ «אפשר בתשלומים?» ⇒ ההסדר הוחמץ ⇒ תזכורת למי שטען ששילם
+    _PROTECTIVE_INTENTS = ("paid_claim", "dispute", "legal", "minor", "distress", "deceased", "insolvency",
+                           "sensitive", "opt_out", "wrong_person")
+
+    def _protective_since_resume(self, cid: int) -> bool:
+        """הלקוח כתב משהו מגן (שילמתי / מחלוקת / מצוקה …) או שנמצאה קבלה/זיכוי לבדיקה, מאז שבעל העסק חידש אותו
+        לאחרונה (או מאז ומעולם)."""
+        last = self.db.one("SELECT MAX(at) at FROM audit WHERE action='resume_customer' "
+                           "AND json_extract(detail,'$.customer')=?", (cid,))["at"] or ""
+        # זרע 5494: גם התראת קבלה/זיכוי (credit_review) — בקשת הסדר אחריה דורסת את ההשהיה שלה
+        return self.db.one("SELECT 1 FROM messages WHERE customer_id=? AND created_at>? AND ("
+                           "(direction='in' AND intent IN (SELECT value FROM json_each(?))) OR intent=?)",
+                           (cid, last, json.dumps(self._PROTECTIVE_INTENTS), self.CREDIT_REVIEW)) is not None
 
     def _sweep_plans(self) -> dict[str, list[int]]:
         """מנהל 332 (מבקר סבב 183 🟠): להסדר לא היה מחזור-חיים — `approved` (= ההצעה נשלחה) חסם כל תזכורת **לתמיד**,
@@ -2025,9 +2104,20 @@ class CollectService:
                 continue
             if self.db.update("UPDATE plans SET status='missed' WHERE id=? AND status='approved'", (p["id"],)) != 1:
                 continue
-            cust = self.db.one("SELECT name FROM customers WHERE id=?", (p["customer_id"],))
+            cust = self.db.one("SELECT name, paused_reason FROM customers WHERE id=?", (p["customer_id"],))
+            # fuzz ב׳ (20.11): הסדר שנולד בשיחה («אפשר בתשלומים?» / «אין לי כסף» / «מאשר») השהה את הלקוח
+            # (plan_request / cant_pay / plan_accept) — וההשהיה נשארה לנצח אחרי שההסדר הוחמץ, בזמן שהכרטיס הבטיח
+            # «התזכורות חוזרות». משחררים רק השהיה **של ההסדר**; «שילמתי», מחלוקת, הסרה וכל השאר — נשארים.
+            reason = (cust["paused_reason"] or "") if cust else ""
+            if reason.split(":", 1)[0] in self.PLAN_PAUSES and not self._protective_since_resume(p["customer_id"]) \
+                    and self.db.update(
+                    "UPDATE customers SET paused_reason=NULL WHERE id=? AND paused_reason=?",
+                    (p["customer_id"], reason)) == 1:
+                self.audit("system", "plan_missed_pause_released", {"plan": p["id"], "was": reason.split(":", 1)[0]})
+                reason = ""
             body = plan_missed_text(cust["name"] if cust else None, late["n"], len(items), late["amount_agorot"],
-                                    late["due"], open_now)
+                                    late["due"], open_now, still_paused=bool(reason),
+                                    currency=self.plan_currency(p))
             now = _iso(self.clock())
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
                       "created_at) VALUES(?,'system','owner',?,'plan_missed',1,?,?)",
@@ -2456,11 +2546,17 @@ class CollectService:
         (השהיה/מחלוקת/הסרה — שמרני), ולכן לא חוסמים; אבל **מתעדים** את פסיקת SPF/DKIM/DMARC של
         הספק (`email_auth` ב-audit, בלי כתובות), ומייל שלא עבר אימות מסומן לבעל העסק."""
 
-        from .channels import parse_address, parse_bounce, strip_reply
+        from .channels import parse_address, parse_bounce, parse_complaint, strip_reply
 
         key = self._email_key(sender, text, message_id, subject)
         if not self._claim_webhook(key) or self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
             return {"ok": True, "duplicate": True}
+        complaint = parse_complaint(sender, text, subject)
+        if complaint is not None:
+            # «סומן כספאם» אצל ספק הדואר = סירוב (30א) ⇒ עוצרים מייל לכתובת. לא תשובת לקוח.
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
+                      " VALUES(NULL,'webhook','email','complaint',?,?)", (key, _iso(self.clock())))
+            return {"ok": True, **self._email_complaint(complaint)}
         bounce = parse_bounce(sender, text, subject)
         if bounce is not None:
             # מייל שחזר: לא תשובת לקוח (לא «שולח לא מוכר»). מסמנים את המייל המקורי ומתריעים לבעל העסק
@@ -2477,6 +2573,9 @@ class CollectService:
         if not addr or not body:
             return {"ok": True, "ignored": True}
         auth = email_auth_verdict(auth_results)
+        if auth["verified"] and self._table_exists("email_bounces"):
+            # critic 188: מייל מאומת מהכתובת = היא חיה ⇒ מסירים את סימון ה-bounce (לא על מייל שאולי מזויף)
+            self.db.x("DELETE FROM email_bounces WHERE hash=?", (self.addr_hash("email", addr),))
         self.audit("system", "email_auth", {"message": key[:80], **auth})
         before = self.db.one("SELECT COALESCE(MAX(id), 0) AS m FROM messages")["m"]
         out = self.inbound("email", addr, body)
@@ -2491,6 +2590,43 @@ class CollectService:
             self.db.x("UPDATE drafts SET owner_summary=COALESCE(owner_summary,'') || ? WHERE id=?",
                       (_unverified_note(), out["draft_id"]))
         return {"ok": True, **out, "email_verified": auth["verified"]}
+
+    def _email_complaint(self, c: dict) -> dict:
+        """תלונת ספאם ⇒ suppress למייל שאליו נשלחה ההודעה + התראה לבעל העסק, פעם אחת. SMS לא נעצר אוטומטית.
+
+        critic סבב 189 (🟠) + הכרעת ראש צוות: כל שולח יכול לכתוב `Feedback-Type: abuse` + `Original-Rcpt-To: <לקוח אחר>`
+        ⇒ הסרה קבועה של המייל של הלקוח + כרטיס כוזב. עכשיו תלונה נקלטת **רק** כשהיא מתייחסת למייל ששלחנו: ה-Message-ID
+        המקורי תואם רשומת שליחה שלנו, ו-Original-Rcpt-To (כשמופיע) תואם לכתובת שאליה המייל נשלח בפועל. אחרת ⇒ audit
+        בלבד (בלי כתובות), שום דבר לא נעצר. בלי Original-Rcpt-To (שדה אופציונלי ב-RFC 5965) ⇒ הכתובת מהרשומה שלנו."""
+        row = sent_to = None
+        for mid in c["message_ids"]:
+            row = self.db.one("SELECT customer_id, payload FROM messages WHERE direction='out' AND channel='email' "
+                              "AND provider_id=?", (mid,))
+            if row:
+                try:
+                    sent_to = clean_email(json.loads(row["payload"] or "{}").get("to") or "")
+                except ValueError:
+                    sent_to = None
+                break
+        why = ("no_message_id" if not c["message_ids"] else "not_our_message" if row is None else
+               "no_recipient_on_record" if not sent_to else
+               "recipient_mismatch" if c["recipient"] and clean_email(c["recipient"]) != sent_to else None)
+        if why:
+            self.audit("system", "email_complaint_unverified", {"type": c["type"], "reason": why})
+            return {"complaint": "unverified", "reason": why}
+        addr, cid = sent_to, row["customer_id"]
+        already = self.suppressed("email", addr)
+        self.suppress("email", addr, "spam_complaint")
+        if cid is None:
+            row = self.db.one("SELECT id FROM customers WHERE lower(email)=?", (addr.lower(),))
+            cid = row["id"] if row else None
+        if not already and cid is not None:
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                      "created_at) VALUES(?,'system','email',?, 'email_complaint', 1, ?)",
+                      (cid, "הלקוח סימן את מייל התזכורת כספאם. מיילים אליו נעצרו (סעיף 30א). "
+                       "SMS ממשיך עד שתחליט/י אחרת.", _iso(self.clock())))
+        self.audit("system", "email_complaint", {"customer": cid, "type": c["type"]})
+        return {"complaint": "suppressed", "customer": cid}
 
     def _email_bounce(self, b: dict) -> dict:
         """bounce ⇒ המייל היוצא שחזר: לפי Message-ID המקורי (מדויק), אחרת המייל האחרון לנמען.
@@ -2514,10 +2650,18 @@ class CollectService:
             return {"bounce": "failed", "matched": True, "final": True}
         now = _iso(self.clock())
         self.db.x("UPDATE messages SET delivery_status='failed', delivery_at=? WHERE id=?", (now, row["id"]))
+        # critic 188: הכתובת שאליה יצא המייל (מה-payload; אחרת מה-DSN) מסומנת ⇒ השער מדלג על מייל אליה
+        try:
+            dead = json.loads(row["payload"] or "{}").get("to") or b["recipient"]
+        except (ValueError, AttributeError):
+            dead = b["recipient"]
+        if dead:
+            self.db.x("INSERT OR IGNORE INTO email_bounces(hash,created_at) VALUES(?,?)",
+                      (self.addr_hash("email", dead), now))
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at)"
                   " VALUES(?,'system','email',?, 'email_bounced', 1, ?)",
-                  (row["customer_id"], "המייל ללקוח חזר (הכתובת לא קיימת או חסומה). כדאי לבדוק את "
-                   "כתובת המייל בחשבונית ירוקה.", now))
+                  (row["customer_id"], "המייל ללקוח חזר (הכתובת לא קיימת או חסומה). מיילים לכתובת הזו "
+                   "נעצרו; SMS ממשיך. אחרי תיקון הכתובת בחשבונית ירוקה המיילים יחזרו לכתובת החדשה.", now))
         self.audit("system", "email_bounced", {"message": row["id"]})
         return {"bounce": "failed", "matched": True}
 
@@ -3096,13 +3240,14 @@ class CollectService:
             self.audit("system", "plan_amount_changed", {"plan": plan_id, "plan_total": total,
                                                          "now": now_total})
             raise ValueError("היתרה השתנתה מאז שההסדר הוצע — נדרשת הצעה חדשה")
+        cur = self.plan_currency(p)   # מבקר 185 🔴: $500 יצא ללקוח כ-«250 ₪»
         what = (f"לחשבונית {invs[0]['number']}" if len(invs) == 1 else
                 f"ל-{len(invs)} חשבוניות פתוחות ({', '.join(r['number'] for r in invs)}, "
-                f"סה״כ {templates.fmt_amount(total)})")
+                f"סה״כ {templates.fmt_amount(total, cur)})")
         # ב-SMS בלי רשימת מספרים (אורך): רק כמה חשבוניות והסה״כ
         what_sms = what if len(invs) == 1 else \
-            f"ל-{len(invs)} חשבוניות פתוחות (סה״כ {templates.fmt_amount(total)})"
-        lines = "\n".join(f"{i['n']}. {i['due']} — {templates.fmt_amount(i['amount_agorot'])}"
+            f"ל-{len(invs)} חשבוניות פתוחות (סה״כ {templates.fmt_amount(total, cur)})"
+        lines = "\n".join(f"{i['n']}. {i['due']} — {templates.fmt_amount(i['amount_agorot'], cur)}"
                           for i in items)
         text = (f"שלום {cust['name']}, הצעת פריסה {what} ללא תוספת:\n{lines}\n"
                 "השיבו \"מאשר\" ובעל העסק יאשר סופית.")
@@ -3111,8 +3256,8 @@ class CollectService:
         if channel == "sms":
             # מבקר סבב 3 (🔴): לוח מלא של 6 תשלומים = 4+ חלקי SMS ⇒ קריסה. ב-SMS נוסח מקוצר
             first, rest = items[0]["amount_agorot"], items[-1]["amount_agorot"]
-            sched = (f"{len(items)} תשלומים של {templates.fmt_amount(rest)}" if first == rest else
-                     f"{len(items)} תשלומים: {templates.fmt_amount(first)} ואז {templates.fmt_amount(rest)}")
+            sched = (f"{len(items)} תשלומים של {templates.fmt_amount(rest, cur)}" if first == rest else
+                     f"{len(items)} תשלומים: {templates.fmt_amount(first, cur)} ואז {templates.fmt_amount(rest, cur)}")
             body = (f"{self.s.business_name}: הצעת פריסה {what_sms} ללא תוספת: {sched}, "
                     f"החל מ-{items[0]['due']}. להסרה: {unsub}")
         else:

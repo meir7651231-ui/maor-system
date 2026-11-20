@@ -64,6 +64,10 @@ SEALED = {
                                           "fbc822654cbed724a46c2fe84827b270c1e284a6aec233e73b7e44ec9a5f5a22"),
     "external-2026-11-20-qa20-seq.jsonl": ("גבי בדיקות", "(this)",
                                           "82c488c599538e00c363e5807e10e63f49f32942c9373df340b85169b58a1416"),
+    "external-2026-11-20-qa21-seq.jsonl": ("גבי בדיקות", "(this)",
+                                          "abc8b4a7a461132b29b323d09f8799f85f091cd435fdc1dacee16b0c7f8346d7"),
+    "external-2026-11-20-qa22-flows.jsonl": ("גבי בדיקות", "(this)",
+                                            "3c0949446ec7c6471269ff02bae15f4d5dd769b9928089448ed0bb42961e11ad"),
 }
 
 
@@ -76,8 +80,9 @@ def test_external_set_is_unchanged_since_handover(name):
 
 
 # שער ה-CI של המנוע (round4) בודק סטים של הודעות בודדות שנמדדו. סטי רצפים (-seq) לא בשער בכוונה (לא מכווננים
-# לפיהם — ממצאיהם עוברים ל-evals/seq/ כרגרסיה), ולכן כאן רק נעילת תוכן.
-GATED = sorted(n for n in SEALED if not n.endswith("-seq.jsonl") and SEALED[n][0] != "גבי מנוע")
+# לפיהם — ממצאיהם עוברים ל-evals/seq/ כרגרסיה), ולכן כאן רק נעילת תוכן. כך גם סטי זרימות (-flows, evals/flows.py).
+GATED = sorted(n for n in SEALED
+               if not n.endswith(("-seq.jsonl", "-flows.jsonl")) and SEALED[n][0] != "גבי מנוע")
 
 
 def test_every_external_set_is_sealed():

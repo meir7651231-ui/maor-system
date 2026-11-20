@@ -1,6 +1,7 @@
 // שכבת API מול הבקאנד של גבי (FastAPI, dry-run בלבד). אותו origin כשהממשק מוגש מ-/app/,
 // או ?api=http://127.0.0.1:8000 בפיתוח. אין בקאנד ⇒ הממשק נופל לנתוני מוק (data/demo.ts).
 import type { DesignSettings } from './lib/settings.ts';
+import type { PlanProgress } from './lib/plans.ts';
 import type { Channel, Customer, Invoice, InvoiceStatus, Reminder, Step } from './lib/domain.ts';
 import { STEP_ORDER } from './lib/message.ts';
 import { loginErrorText, readToken } from './lib/auth.ts';
@@ -134,7 +135,7 @@ export interface PendingRef { reminderId: number; block: string | null; count?: 
   /** הפעלה 171: תזכורת מאוחדת — מזהי כל החשבוניות שבה (כולל העוגן), לחיפוש בתור לפי כל מספר */
   ids?: string[] }
 export interface PendingRow { id: number; invoice_id: number; invoice_ids?: number[]; block_reason: string | null; invoice_count?: number; total_text?: string }
-export interface Plan { id: number; customer_id: number; invoice_id: number; status: string; installments: { n: number; due: string; amount_agorot: number }[]; amount_check?: AmountCheck[] }
+export interface Plan { id: number; customer_id: number; invoice_id: number; status: string; installments: { n: number; due: string; amount_agorot: number }[]; amount_check?: AmountCheck[]; progress?: PlanProgress | null; currency?: string }
 export interface Draft {
   id: number; customer_id: number; customer: string; channel: 'sms' | 'email'; to_addr: string; body: string;
   intent: string; status: 'pending_approval' | 'needs_owner' | string; escalate: 'urgent' | 'normal' | 'none' | string;

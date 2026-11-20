@@ -24,7 +24,8 @@ from .integrations.sms import sms_segments as _segments
 
 __all__ = ["EMAIL_RE", "SMS_ADAPTERS", "DryRunSender", "Message", "SmtpEmail", "build_adapters", "clean_email",
            "is_il_mobile", "local_phone", "message_from_json", "message_to_json",
-           "normalize_il_phone", "parse_address", "parse_bounce", "sms_segments", "strip_reply", "valid_email"]
+           "normalize_il_phone", "parse_address", "parse_bounce", "parse_complaint", "sms_segments",
+           "strip_reply", "valid_email"]
 
 SMS_ADAPTERS = SMS_PROVIDERS   # 019 · inforu (Twilio יצא — לא נדרש ל-MVP)
 UNSET = "UNSET"   # מפתח חסר בשלב 1 — ה-adapter נבנה לתצוגה בלבד; הסוד מצונזר בכל מקרה
@@ -229,6 +230,7 @@ _BOUNCE_SUBJECT = re.compile(
 _DSN_RECIPIENT = re.compile(r"^(?:final|original)-recipient:\s*(?:rfc822;\s*)?<?([^\s<>;]+@[^\s<>;]+?)>?\s*$",
                             re.IGNORECASE | re.MULTILINE)
 _DSN_STATUS = re.compile(r"^status:\s*([245])\.\d{1,3}\.\d{1,3}", re.IGNORECASE | re.MULTILINE)
+_ARF_MSGID = re.compile(r"^message-id:\s*<*([^<>\s]+@[^<>\s]+?)>*\s*$", re.IGNORECASE | re.MULTILINE)
 _MSGID = re.compile(r"^message-id:\s*(<[^<>\s]+@[^<>\s]+>)", re.IGNORECASE | re.MULTILINE)
 
 
@@ -248,6 +250,26 @@ def parse_bounce(sender: str, text: str, subject: str = "") -> dict[str, Any] | 
     permanent = (st.group(1) == "5") if st else True     # בלי Status אבל עם Final-Recipient ⇒ כשל
     return {"recipient": clean_email(rec.group(1)) if rec else "", "permanent": permanent,
             "message_ids": _MSGID.findall(text or "")}
+
+
+# ---------- תלונת ספאם (ARF / feedback loop, RFC 5965) ----------
+_ARF_TYPE = re.compile(r"^feedback-type:\s*(abuse|fraud|other|virus)\s*$", re.IGNORECASE | re.MULTILINE)
+_ARF_RCPT = re.compile(r"^original-rcpt-to:\s*<?([^\s<>;]+@[^\s<>;]+?)>?\s*$", re.IGNORECASE | re.MULTILINE)
+
+
+def parse_complaint(sender: str, text: str, subject: str = "") -> dict[str, Any] | None:
+    """דוח ARF («סומן כספאם») ⇒ {recipient, message_ids, type}; כל דבר אחר ⇒ None.
+    זיהוי לפי שדה Feedback-Type תקני בתחילת שורה (abuse/fraud/other/virus). not-spam ⇒ לא תלונה.
+    לקוח שכותב «feedback» בתשובה רגילה ⇒ לא תלונה."""
+    m = _ARF_TYPE.search(text or "")
+    if not m:
+        return None
+    rec = _ARF_RCPT.search(text or "")
+    # critic 189: ה-Message-ID של המייל המקורי הוא ההוכחה שהתלונה על מייל ששלחנו (השירות מאמת מול היומן) —
+    # מנורמל ל-<id> גם כשהדוח כתב אותו בלי סוגריים או עם סוגריים כפולים
+    ids = [f"<{x}>" for x in _ARF_MSGID.findall(text or "")]
+    return {"recipient": clean_email(rec.group(1)) if rec else "",
+            "message_ids": list(dict.fromkeys(ids)), "type": m.group(1).lower()}
 
 
 def parse_address(raw: str) -> str:

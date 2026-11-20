@@ -1465,3 +1465,52 @@ test('מנהל 329 · הפעלה מחדש: רק לשורה מושבתת, גם ב
   assert.equal(rowActions(t, t.users[0]).reactivate, false);
   assert.match(confirmText(t.users[1], 'reactivate'), /שותף.*כעובד/);
 });
+
+// מנהל 334: כרטיס «הסדרי תשלומים» — תגי מצב, סדר, אחוז ושורת «הבא»
+import { PLAN_BADGE, planBadge, plansVisible, paidPct, nextLine, type PlanProgress } from '../src/lib/plans.ts';
+test('הסדרים: תג לכל מצב שמוצג, ובלי תג להצעה/שפגה', () => {
+  assert.equal(planBadge('approved')?.tone, 'good');
+  assert.equal(planBadge('missed')?.tone, 'warn');
+  assert.equal(planBadge('completed')?.tone, 'done');
+  for (const s of ['proposed', 'superseded', 'rejected', 'xyz']) assert.equal(planBadge(s), null, s);
+  for (const b of Object.values(PLAN_BADGE)) assert.doesNotMatch(b.label + b.hint, /missed|completed|approved/);
+});
+test('הסדרים: הוחמצו ראשונים, פעילים לפי מועד, הושלמו בסוף ומוגבלים', () => {
+  const pr = (due: string | null): PlanProgress => ({ total_agorot: 1, paid_agorot: 0, open_agorot: 1, done: 0, count: 3, next: due ? { n: 1, due, amount_agorot: 1 } : null });
+  const rows = [
+    { id: 1, status: 'completed', progress: pr(null) }, { id: 2, status: 'approved', progress: pr('2026-12-20') },
+    { id: 3, status: 'proposed', progress: null }, { id: 4, status: 'approved', progress: pr('2026-12-01') },
+    { id: 5, status: 'missed', progress: pr('2026-11-01') }, { id: 6, status: 'completed', progress: pr(null) },
+    { id: 7, status: 'superseded', progress: null }, { id: 8, status: 'completed', progress: pr(null) },
+    { id: 9, status: 'completed', progress: pr(null) },
+  ];
+  assert.deepEqual(plansVisible(rows).map(r => r.id), [5, 4, 2, 9, 8, 6]);
+  assert.deepEqual(plansVisible(rows, 1).map(r => r.id), [5, 4, 2, 9]);
+  assert.deepEqual(plansVisible([{ id: 1, status: 'approved', progress: null }]), [], 'בלי progress (שרת ישן) ⇒ לא מוצג');
+});
+test('הסדרים: אחוז ושורת «הבא»', () => {
+  const fmt = (n: number) => `${n}₪`;
+  const p: PlanProgress = { total_agorot: 120000, paid_agorot: 39999, open_agorot: 80001, done: 0, count: 3, next: { n: 1, due: '2026-11-10', amount_agorot: 40000 } };
+  assert.equal(paidPct(p), 33);
+  assert.equal(paidPct({ ...p, paid_agorot: 119999 }), 99, '100% רק כששולם הכול');
+  assert.equal(paidPct({ ...p, total_agorot: 0 }), 0);
+  assert.equal(nextLine(p, '2026-11-10', fmt), 'תשלום 1 מתוך 3 · 400₪ · 10.11.2026');
+  assert.equal(nextLine(p, '2026-11-20', fmt), 'תשלום 1 מתוך 3 · 400₪ · 10.11.2026 (באיחור של 10 ימים)');
+  assert.equal(nextLine({ ...p, next: null }, '2026-11-20', fmt), 'כל התשלומים התקבלו');
+});
+test('הסדרים: מטבע ההסדר (מבקר 185 🔴) — הסדר בדולר לא מוצג בשקלים', async () => {
+  const p: PlanProgress = { total_agorot: 50000, paid_agorot: 0, open_agorot: 50000, done: 0, count: 2, next: { n: 1, due: '2026-11-10', amount_agorot: 25000 }, currency: 'USD' };
+  const line = nextLine(p, '2026-11-10', n => fmtMoney(n, p.currency));
+  assert.ok(line.includes('$') && !line.includes('₪'), line);
+  // שומר-מקור: בכרטיסי ההסדר (מוצע + «הסדרי תשלומים») אין fmtIls — רק fmtMoney עם מטבע ההסדר
+  const { readFileSync } = await import('node:fs');
+  const src = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  const plansCard = src.slice(src.indexOf('data-testid="plan"'), src.indexOf('data-testid="plan"') + 2500);
+  const proposedCard = src.slice(src.indexOf('💳 הצעת פריסה'), src.indexOf('💳 הצעת פריסה') + 900);
+  for (const [name, card, end] of [['plans', plansCard, '</li>'], ['proposed', proposedCard, '</ol>']] as const) {
+    const chunk = card.split(end)[0];
+    assert.ok(chunk.length > 100, name);
+    assert.ok(!/fmtIls\(/.test(chunk), `${name}: fmtIls בכרטיס הסדר`);
+    assert.ok(/fmtMoney\([^)]*p\.currency\)/.test(chunk), `${name}: בלי מטבע ההסדר`);
+  }
+});

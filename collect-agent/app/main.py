@@ -10,6 +10,7 @@ import json
 import logging
 import os
 import re
+from datetime import timedelta
 from html import escape as html_escape
 from pathlib import Path
 from typing import Literal
@@ -413,6 +414,30 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.post("/plan", dependencies=auth)
     def plan():
         return {"created": svc.plan()}
+
+    # מנהל 337: הזזת שעון ההדגמה — כדי ש-e2e בדפדפן יכסה מצבים שתלויים בזמן (הסדר «הוחמץ» אחרי 7 ימי חסד),
+    # שעד היום כוסו רק ב-pytest. קיים **רק** בשירות דמו (DEMO=1: מסד בזיכרון, נתונים בדויים, dry-run) ורק עם
+    # opt-in נוסף DEMO_CLOCK=1; בכל מקרה אחר הנתיב לא נרשם בכלל (404). רק קדימה, 1–90 ימים, עם אימות בעלים.
+    # השעון משותף ל-Users (סשנים/TOTP) — הזזה ארוכה עלולה לפוג סשן של עובד דמו; הבדיקות עובדות עם טוקן הבעלים.
+    if demo_service and os.environ.get("DEMO_CLOCK") == "1":
+        from .demo import FixedClock
+
+        @app.post("/demo/advance", dependencies=auth)
+        def demo_advance(days: int, request: Request):
+            # מבקר 188: `auth` מקבל גם עובד/ת מחובר/ת בתפקיד staff — «אימות בעלים» לא נאכף, ועובדת דמו הזיזה את
+            # השעון לכולם (ופגה את הסשנים שלהם). עכשיו בעל העסק בלבד, כמו /team ו-restore-hold.
+            if not request.state.is_owner:
+                raise HTTPException(403, "רק בעל העסק מזיז את שעון ההדגמה")
+            if not isinstance(svc.clock, FixedClock):
+                raise HTTPException(409, "שעון ההדגמה לא קבוע")
+            if not 1 <= days <= 90:
+                raise HTTPException(422, "days: 1–90")
+            svc.clock.now += timedelta(days=days)
+            # מבקר 188: השחקן האמיתי (פסאודונים user:N או owner), לא «owner:demo» קבוע — אחרת היומן לא מגלה מי הזיז
+            svc.audit(request.state.actor, "demo_clock_advanced", {"days": days})
+            # הניסיון של הדמו (14 יום מ-DEMO_TRIAL_START) נגמר אחרי הזזה ארוכה ⇒ svc.plan() לא רץ בכלל. מחזירים את
+            # המצב כדי שבדיקה תיכשל בהסבר ולא ב«ההסדר לא הוחמץ» (מסלול שנמצא בכתיבת הבדיקה הזו).
+            return {"today": svc.clock().date().isoformat(), "trial_active": bool(svc.trial()["active"])}
 
     @app.get("/reminders", dependencies=auth)
     def reminders(request: Request, status: str | None = None, view: str | None = None):
@@ -866,7 +891,14 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             invs = svc.db.q("SELECT * FROM invoices WHERE customer_id=? AND status='open'", (r["customer_id"],))
             return [{"number": i["number"], "amount_agorot": i["amount_agorot"], "usual_agorot": u,
                      "currency": i["currency"]} for i, u in svc._amount_outliers(invs)]
-        return [{**dict(r), "installments": json.loads(r["installments"]), "amount_check": check(r)}
+        def progress(r):   # מנהל 334: הסדר שאושר/הוחמץ/הושלם — כמה שולם ומה הבא, לכרטיס «הסדרי תשלומים»
+            return svc.plan_progress(r) if r["status"] in ("approved", "missed", "completed") else None
+        # מנהל 336: `customer` = שם הלקוח לכרטיס ההסדרים ב-/ui (שאין לו רשימת לקוחות משלו); נמחק (§14) ⇒ ""
+        names = {c["id"]: c["name"] or "" for c in svc.db.q(
+            "SELECT id, name FROM customers WHERE id IN (SELECT customer_id FROM plans)")}
+        return [{**dict(r), "installments": json.loads(r["installments"]), "amount_check": check(r),
+                 "progress": progress(r), "currency": svc.plan_currency(r),
+                 "customer": names.get(r["customer_id"], "")}
                 for r in svc.db.q("SELECT * FROM plans ORDER BY id")]
 
     @app.post("/plans/{pid}/approve", dependencies=auth)

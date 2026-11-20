@@ -76,7 +76,13 @@ _DELETE = re.compile(r"(למחוק|מחיקת|מחיקה\s+של|תמחקו|מח�
                      r"\b(delete|erase|wipe|purge|remove)\s+(all\s+)?(of\s+)?my\s+(phone\s+number|number|email"
                      r"(\s+address)?|records)\s+(and\s+\w+\s+)?from\s+your\s+(records|system|database|files)\b|"
                      r"\b(delete|erase|wipe|purge|remove)\s+(everything|all)\s+(that\s+)?(you\s+)?(have|hold|keep|store)"
-                     r"\s+(on|about)\s+me\b|"
+                     r"\s+(on|about)\s+(me|my\s+client|him|her|them|us)\b|"
+                     # גבי מנוע 20.11 (qa20 q20-27, וריאציה): עו״ד בשם מרשה — «Erase every record you keep about my
+                     # client» לא נרשם (מועד 30 יום לא רץ). עוגן חובה: «about/on <נושא המידע>».
+                     r"\b(delete|erase|wipe|purge|remove|destroy)\s+(every|all|any)\s+(of\s+)?(the\s+)?"
+                     r"(record|records|file|files|data|information|info|details)\s+(that\s+|which\s+)?(you\s+)?"
+                     r"(have|hold|keep|store|have\s+stored|maintain)\s+(on|about|regarding)\s+"
+                     r"(me|my\s+client|my\s+son|my\s+daughter|my\s+child|him|her|them|us)\b|"
                      r"\bremove\s+me\s+(completely\s+)?from\s+your\s+(system|database|records|files)\b|"
                      r"\bforget\s+(about\s+)?me\b(?!\s+(?:not|for|until|till)\b)|\bright\s+to\s+(be\s+forgotten|erasure)\b",
                      re.I)

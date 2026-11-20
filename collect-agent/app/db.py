@@ -78,6 +78,11 @@ CREATE TABLE IF NOT EXISTS audit (
 CREATE TABLE IF NOT EXISTS suppressions (
   hash TEXT PRIMARY KEY, channel TEXT NOT NULL, reason TEXT NOT NULL, created_at TEXT NOT NULL
 );
+-- critic 188: bounce קבוע (5.x.x) ⇒ הכתובת מסומנת «מייל לא תקין» (גיבוב, כמו suppressions). לא הסרה משפטית:
+-- כתובת חדשה במקור = גיבוב אחר ⇒ ממשיכים; מייל נכנס מהכתובת ⇒ הסימון נמחק. SMS לא מושפע
+CREATE TABLE IF NOT EXISTS email_bounces (
+  hash TEXT PRIMARY KEY, created_at TEXT NOT NULL
+);
 -- הגדרות עסק (API מאומת). סודות לא נשמרים כאן — רק בסביבה/בכספת
 CREATE TABLE IF NOT EXISTS business_settings (
   key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL

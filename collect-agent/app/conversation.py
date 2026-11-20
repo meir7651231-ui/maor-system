@@ -1216,6 +1216,21 @@ _extend(Intent.DISTRESS, r"\b(?:i'?m|i\s+am|im)\s+(?:completely\s+|totally\s+|li
 _extend(Intent.OPT_OUT, r"^(?!.*(?:חוב|קנס|ריבית|חשבונ|סכומ|חיוב)).*(?<![\w])(?:תמחקו|מחקו|תמחק|תמחקי)\s+(?:אותו|אותה)(?![\w])")
 #  · «Payment will go out Thursday» / «payment will be sent tomorrow» ⇒ הבטחה
 _extend(Intent.PROMISE, r"\b(?:the\s+)?payment\s+will\s+(?:go\s+out|be\s+(?:sent|made|transferred|wired)|arrive|come\s+through)\b(?!\s+never)")
+# גבי מנוע 20.11 (וריאציות של qa20 q20-27): ניסוח עורכי דין באנגלית — «I represent one of your customers…
+# cease contact», «cease and desist», «on behalf of my client», «stop contacting my client» ⇒ היו unknown/הסרה
+# בלי הסלמה. «my client» לבד **לא** (קבלן: «once my client pays me I'll pay you») — רק עם פועל קשר/נתונים/סירוב.
+_extend(Intent.LEGAL,
+        r"\bcease\s+(?:and|&)\s+desist\b",
+        r"\b(?:i|we)\s+(?:am\s+|are\s+)?(?:legally\s+)?represent(?:ing)?\s+(?:your\s+(?:customer|client)s?"
+        r"|one\s+of\s+your\s+(?:customers|clients)|(?:mr|mrs|ms|miss)\.?\s+\w+)\b",
+        r"\bon\s+behalf\s+of\s+my\s+client\b",
+        r"\b(?:stop|cease|refrain\s+from)\s+(?:all\s+)?(?:contacting|contact\s+with|communicating\s+with|"
+        r"communication\s+with|messaging|texting|emailing|calling)\s+my\s+client\b",
+        r"\b(?:records?|data|information|files?|details)\s+(?:that\s+)?(?:you\s+)?(?:have|hold|keep|store)?\s*"
+        r"(?:on|about|regarding)\s+my\s+client\b",
+        r"\bmy\s+client\s+(?:will\s+not|won'?t|refuses|disputes|denies|does\s+not\s+owe|doesn'?t\s+owe)\b")
+_extend(Intent.OPT_OUT,
+        r"\bcease\s+(?:all\s+)?(?:further\s+)?(?:contact|contacting|communications?|communicating)\b")
 # סט #19 (qa19, עיוור 19.11) — מחלקות: חדלות פירעון באנגלית (דחוף); «Hi who is this?»; הבטחה דרך צד שלישי
 # («my 15 year old will drop off the cash tomorrow»).
 _extend(Intent.CANT_PAY,
@@ -1916,8 +1931,28 @@ _NEXT_WD_VAGUE_EN = r"\bnext\s+(?:monday|tuesday|wednesday|thursday|friday|satur
 _HOLIDAY_VAGUE = r"(?:" + _HOLIDAY_VAGUE + r"|" + _HEB_MONTH_VAGUE + r")"
 
 
+# qa21: מענה אוטומטי (מכונה, לא הלקוח). מנורמל (אותיות סופיות ⇒ רגילות).
+_AUTO_REPLY = (r"\bauto(?:matic)?[- ]?(?:reply|response|answer)\b|\bout\s+of\s+(?:the\s+)?office\b|\bdriving\s+focus\b"
+               r"|\bi'?ll\s+see\s+your\s+message\s+when\b|\b(?:i\s+am|i'?m)\s+(?:currently\s+)?away\s+(?:until|till|from)\b"
+               r"|\breceived\s+your\s+(?:message|email)\b.{0,60}\b(?:respond|reply|get\s+back)\b"
+               r"|\bthank\s+you\s+for\s+your\s+(?:email|message)\b.{0,120}\b(?:return|respond|reply|get\s+back)\b"
+               r"|(?<![\w])(?:תשובה|מענה|הודעה)\s+אוטומטית(?![\w])|נשלחה\s+אוטומטית|(?<![\w])אני\s+(?:נוהג|נוהגת)\s+כרגע"
+               r"|(?<![\w])בחופשה\s+עד(?![\w])|(?<![\w])מחוצ\s+למשרד|קיבלתי\s+את\s+הודעת\w*.{0,40}אחזור")
+_PAY_WORD = (r"\bpa(?:y|id|ying|yment)\b|\btransfer\w*|\bwire\b|(?<![\w])(?:א|נ|ת)?שלמ|שילמ|תשלומ|(?:א|נ)?עביר|העבר"
+             r"|(?<![\w])(?:הסר|תפסיק|stop\b|unsubscribe)")
+_ABSENT_TODAY = (r"\b(?:(?:i'?m|i\s+am|we'?re|we\s+are)\s+)?(?:out\s+of\s+(?:the\s+)?office|ooo|away|off|not\s+in"
+                 r"|not\s+at\s+(?:the\s+)?office|unavailable|on\s+(?:vacation|holiday|leave)|travell?ing|driving"
+                 r"|in\s+meetings?|sick|at\s+a\s+conference)\s+(?:all\s+day\s+)?(?:today|tonight)\b"
+                 r"|(?<![\w])(?:לא\s+(?:נמצא\w*\s+)?ב(?:ה)?משרד|מחוצ\s+למשרד|בחופש\w*|לא\s+זמינ\w*|בדרכימ|חולה|בישיב\w*"
+                 r"|בכנס|בנסיע\w*)\s+(?:כל\s+)?היומ(?![\w])")
+
+
 def extract_date(t: str, today: date) -> tuple[date | None, bool]:
     """מחזיר (תאריך, מעורפל?). מעורפל = יש כוונה לתאריך אבל אי אפשר לקבע אותו."""
+    # qa21 (q21-30 🔴): «I'm out of office today but I'll pay on November 18» / «אני לא במשרד היום אבל אשלם ב-18»
+    # ⇒ ההבטחה נקבעה ל**היום** (ההשהיה נגמרת היום ⇒ תזכורת לפני המועד שהובטח). «היום» של היעדרות = למה לא עכשיו,
+    # לא מועד תשלום (כמו «עכשיו» של מנהל 260). «I will pay today» לא נוגע.
+    t = re.sub(_c(_ABSENT_TODAY), " ", t)
     en = _extract_date_en(t, today)
     if en is not None and en[0] is not None:
         return en
@@ -3273,6 +3308,18 @@ def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
                     tags=d.tags + ("wrong_number_opt_out",),
                     owner_actions=d.owner_actions + (
                         "מספר/כתובת שגויים + בקשת הסרה (מתועדת) — לעדכן פרטי קשר נכונים בחשבונית ירוקה; לא נשלחה תשובה",))
+    if t and d.intent in (Intent.UNKNOWN, Intent.PROMISE, Intent.CALLBACK) and not d.secondary and \
+            ctx.state in (State.AWAITING_PLAN_REPLY, State.PROMISED, State.PLAN_PENDING_OWNER) and \
+            _s(_AUTO_REPLY, t) and not _s(_PAY_WORD, t):
+        # גם «I'm away until Monday» אחרי הבטחה ⇒ היה **הבטחה חדשה** ליום שני שדרסה את המועד המקורי, ו«אני נוהגת
+        # כרגע ואחזור אלייך» ⇒ callback. בלי מילת תשלום — זו מכונה, לא הבטחה.
+        # qa21 (q21-14/16/17): מענה אוטומטי (מחוץ-למשרד / «received your message» / Driving Focus / «אני נוהג כרגע»)
+        # בתוך הצעת הסדר או אחרי הבטחה ⇒ היה unknown ⇒ awaiting_owner: המצב «ממתין לתשובה להצעה»/«הובטח» אבד וכרטיס
+        # רעש לבעל העסק. מכונה ענתה, לא הלקוח ⇒ המצב נשמר, בלי תשובה ובלי כרטיס. רק unknown טהור — הסרה/תשלום/
+        # מחלוקת/מצוקה בתוך מענה אוטומטי (q21-23 ודומיו) מזוהים קודם ולא מגיעים לכאן.
+        d = replace(d, intent=Intent.UNKNOWN, promise_date=None, pause_until=None, next_state=ctx.state, reply=None,
+                    auto_send=False, escalate=Escalation.NONE, stop=Stop.NONE, owner_actions=(),
+                    tags=d.tags + ("auto_reply_state_kept",))
     d = replace(d, confidence=confidence, owner_summary=_with_quote(d.owner_summary, text))
     if confidence == "llm" and d.escalate == Escalation.NONE:
         d = replace(d, escalate=Escalation.NORMAL, tags=d.tags + ("llm_classified",))
