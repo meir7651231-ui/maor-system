@@ -52,6 +52,15 @@ await pg.waitForSelector('main', { timeout: 20000 });
 const day = pg.locator('button', { hasText: 'פתיחת יום' });
 if (await day.count()) { await day.first().click(); await pg.waitForTimeout(300); }
 
+// 20.11 (bundle-split שלב ב׳): nextClosure עבר לגשר-דק closure.ts — שורת "🕯️ הדלקת נרות"/חג בראש הבית
+// (telephony דלוק בקונפיג הזה) עדיין מחושבת ומוצגת עם שעה.
+{
+  const hero = (await pg.locator('main').first().textContent()) || '';
+  const m = /🕯️\s*([^\d\n]{2,30}?)\s(\d{1,2}:\d{2})/.exec(hero);
+  m ? ok(`🕯️ שורת-הסגירה בבית: "${m[1].trim()} ${m[2]}" (closure.ts)`) : fail('שורת 🕯️ הדלקת-נרות חסרה בבית');
+  await pg.screenshot({ path: join(HERE, 'shots', 'home-closure.png'), clip: { x: 0, y: 0, width: 1280, height: 260 } }).catch(() => {});
+}
+
 const overlay = '.modal-back, [role="dialog"]';
 const overlays = () => pg.locator(overlay).count();
 const closeAll = async () => {
