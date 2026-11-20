@@ -407,7 +407,8 @@ function NeedsYou() {
           <li key={`c${c.backendId}`} className="rounded-lg bg-amber-50 p-3 text-sm">
             <div className="font-bold"><span aria-hidden>⏸️</span> {c.name}</div>
             <div className="text-ink-700 text-xs mt-0.5">{pauseLabel(c.paused!)}</div>
-            {resumeWarning(c.paused!) && <div className="text-amber-800 text-xs mt-0.5 font-bold" data-testid="resume-warning">{resumeWarning(c.paused!)}</div>}
+            {/* גבי עיצוב: לעובד/ת שלא יכול/ה לחדש — בלי «חדשו רק אחרי שבדקתם» (סותר את הנעילה) */}
+            {resumeWarning(c.paused!) && !resumeOwnerOnly(me, c.paused) && <div className="text-amber-800 text-xs mt-0.5 font-bold" data-testid="resume-warning">{resumeWarning(c.paused!)}</div>}
             {resumeOwnerOnly(me, c.paused) ? (
               // מבקר 195: השהיה שבעל העסק סימן — עובד/ת לא מחדש/ת (השרת: 403, critic 191א) ⇒ כפתור נעול + תג
               <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="resume-locked">

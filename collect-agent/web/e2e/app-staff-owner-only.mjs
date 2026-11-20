@@ -63,6 +63,8 @@ try {
     await p.getByTestId('resume-locked').first().waitFor();
     ok(await p.getByTestId('resume-locked').getByRole('button').first().isDisabled(), `${name}: חידוש פתוח לעובדת`);
     ok(await p.getByTestId('resume-locked').getByText('בעל העסק בלבד').count() > 0, `${name}: חסר תג`);
+    // גבי עיצוב: בלי «חדשו רק אחרי שבדקתם» לעובדת שלא יכולה לחדש
+    ok(await p.getByTestId('resume-locked').first().locator('xpath=ancestor::li[1]').getByTestId('resume-warning').count() === 0, `${name}: אזהרת חידוש לעובדת`);
     ok(await p.evaluate(() => document.documentElement.scrollWidth - innerWidth) <= 0, `${name}: גלילה רוחבית`);
     if (out) { await p.getByTestId('resume-locked').first().scrollIntoViewIfNeeded(); await p.screenshot({ path: `${out}/staff-resume-locked-${name}.png` }); }
     await p.close();
