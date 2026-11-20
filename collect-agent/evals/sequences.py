@@ -9,6 +9,12 @@
 escalate · paid (אגורות, מנהל 271) · not (כוונות שאסור שיופיעו) · plan_status / plans (מנהל 266) ·
 draft (סטטוס הטיוטה שנוצרה: pending_approval/needs_owner/…; null = לא נוצרה). רצף critical חייב לעבור במלואו.
 
+מנהל 331 (סט QA #20):
+  "dsr": [...]     רשימת סוגי בקשות הפרטיות הפתוחות (access/correction/deletion, ממוינת, כולל בלי לקוח —
+                   כתובת משותפת) אחרי ההודעה. [] = אסור שנפתחה בקשה (שלילה: «אל תמחקו»).
+  "shared": "email"|"sms" ברמת הרצף ⇒ לקוח שני (יוסי לוי, 800 ₪) עם אותה כתובת/טלפון — הודעה מהכתובת
+                   לא משויכת אוטומטית; בקשת פרטיות נרשמת בלי לקוח (critic 171ב).
+
 מנהל 256 — רצפים ארוכים עם בעל העסק באמצע:
   {"owner": "approve_plan"}             בעל העסק מאשר את הצעת הפריסה האחרונה (שולחת אותה ללקוח)
   {"owner": "approve_draft"[, "body"]}  מאשר את הטיוטה האחרונה שממתינה (needs_owner ⇒ חובה body)
@@ -29,8 +35,23 @@ import httpx
 ADDR = {"sms": "0501234567", "email": "c1@example.com"}
 
 
+def _docs(shared: str | None) -> list:
+    from tests.conftest import gi_doc
+    docs = [gi_doc(1)]
+    if shared:   # מנהל 331: לקוח שני באותה כתובת (בן/בת זוג, משרד משותף)
+        d2 = gi_doc(2, amount="800.00", phone="052-7654321", name="יוסי לוי")
+        if shared == "email":
+            d2["client"]["emails"] = ["c1@example.com"]
+        elif shared == "sms":
+            d2["client"]["phone"] = "050-1234567"
+        else:
+            raise ValueError(f"shared לא מוכר: {shared}")
+        docs.append(d2)
+    return docs
+
+
 @contextmanager
-def _service():
+def _service(shared: str | None = None):
     import socket
     from datetime import datetime
 
@@ -41,7 +62,7 @@ def _service():
     from app.greeninvoice import GreenInvoiceClient
     from app.policy import TZ
     from app.service import CollectService
-    from tests.conftest import SANDBOX, Clock, FakeGreenInvoice, gi_doc
+    from tests.conftest import SANDBOX, Clock, FakeGreenInvoice
     old_review, cfg.OPEN_REVIEW_DEFAULT = cfg.OPEN_REVIEW_DEFAULT, "0"
     def boom(*a, **k):
         raise AssertionError("חיבור רשת אמיתי בהרצת רצפים")
@@ -56,7 +77,7 @@ def _service():
     inbox_mod.respond = spy
     try:
         gi = GreenInvoiceClient(SANDBOX, "test-id", "test-secret",
-                                transport=httpx.MockTransport(FakeGreenInvoice([gi_doc(1)]).handler))
+                                transport=httpx.MockTransport(FakeGreenInvoice(_docs(shared)).handler))
         s = load_settings({"BUSINESS_NAME": "סטודיו מאיר", "SMS_SENDER_ID": "StudioMeir",
                            "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/studio",
                            "PUBLIC_BASE_URL": "https://gabi.example", "SMS_WEBHOOK_KEY": "whk-test",
@@ -107,7 +128,7 @@ def _state(svc) -> str:
 def run_seq(seq: dict) -> list[str]:
     from datetime import timedelta
     fails: list[str] = []
-    with _service() as (svc, seen):
+    with _service(seq.get("shared")) as (svc, seen):
         for i, turn in enumerate(seq["turns"], 1):
             seen.clear()
             if turn.get("advance_days"):
@@ -173,6 +194,12 @@ def run_seq(seq: dict) -> list[str]:
                 got = len(json.loads(p["installments"])) if p else None
                 if got != e["plan_n"]:
                     fails.append(f"{tag} plan_n {got}≠{e['plan_n']}")
+            if "dsr" in e:           # מנהל 331: בקשות פרטיות פתוחות (כל הלקוחות + בלי לקוח)
+                from app import dsr as dsr_mod
+                dsr_mod.ensure_schema(svc.db)
+                got = sorted(r["kind"] for r in svc.db.q("SELECT kind FROM dsr WHERE status='open'"))
+                if got != sorted(e["dsr"]):
+                    fails.append(f"{tag} dsr {got}≠{sorted(e['dsr'])}")
             all_i = [out["intent"], *out.get("secondary", [])]
             for n in e.get("not", []):
                 if n in all_i:
