@@ -206,17 +206,27 @@ def test_parse_bounce_on_documented_samples(sender, subject, text, expect):
 def test_policy_rejection_does_not_kill_the_address(api, svc):
     """5.7.1 (מדיניות/אבטחה, כמו בדוגמת Exchange) ⇒ ההודעה נכשלה + התראה, אבל הכתובת לא נחסמת."""
     m = _sent(api, svc, "email")
-    r = svc.email_webhook("postmaster@alpineskihouse.com", MS_NDR.replace("ronald@contoso.com", m["cemail"]),
-                          "ndr-571", subject="Undeliverable: תזכורת")
+    # bounce מזויף (20.11): נקלט רק עם Message-ID של מייל ששלחנו — ב-NDR אמיתי הוא תחת «Original message headers:»
+    r = svc.email_webhook("postmaster@alpineskihouse.com", MS_NDR.replace("ronald@contoso.com", m["cemail"])
+                          + f"Message-ID: {m['provider_id']}\n", "ndr-571", subject="Undeliverable: תזכורת")
     assert r.get("bounce") == "failed", r
     assert not svc.email_bounced(m["cemail"])
     assert _alerts(svc, m["customer_id"], "email_bounced")
 
 
+def test_exchange_ndr_without_original_headers_is_unverified(api, svc):
+    """bounce מזויף (20.11): NDR בלי כותרות ההודעה המקורית ⇒ לא נחסם כלום (audit בלבד)."""
+    m = _sent(api, svc, "email")
+    r = svc.email_webhook("postmaster@alpineskihouse.com", MS_NDR_NOT_FOUND.replace("ronald@contoso.com", m["cemail"]),
+                          "ndr-noheaders", subject="Undeliverable: תזכורת")
+    assert r.get("bounce") == "unverified" and not svc.email_bounced(m["cemail"])
+
+
 def test_exchange_not_found_kills_the_address(api, svc):
     m = _sent(api, svc, "email")
     r = svc.email_webhook("postmaster@alpineskihouse.com",
-                          MS_NDR_NOT_FOUND.replace("ronald@contoso.com", m["cemail"]), "ndr-5110",
+                          MS_NDR_NOT_FOUND.replace("ronald@contoso.com", m["cemail"])
+                          + f"Message-ID: {m['provider_id']}\n", "ndr-5110",
                           subject="Undeliverable: תזכורת")
     assert r.get("bounce") == "failed" and svc.email_bounced(m["cemail"])
 
