@@ -2475,11 +2475,17 @@ class CollectService:
         (השהיה/מחלוקת/הסרה — שמרני), ולכן לא חוסמים; אבל **מתעדים** את פסיקת SPF/DKIM/DMARC של
         הספק (`email_auth` ב-audit, בלי כתובות), ומייל שלא עבר אימות מסומן לבעל העסק."""
 
-        from .channels import parse_address, parse_bounce, strip_reply
+        from .channels import parse_address, parse_bounce, parse_complaint, strip_reply
 
         key = self._email_key(sender, text, message_id, subject)
         if not self._claim_webhook(key) or self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
             return {"ok": True, "duplicate": True}
+        complaint = parse_complaint(sender, text, subject)
+        if complaint is not None:
+            # «סומן כספאם» אצל ספק הדואר = סירוב (30א) ⇒ עוצרים מייל לכתובת. לא תשובת לקוח.
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
+                      " VALUES(NULL,'webhook','email','complaint',?,?)", (key, _iso(self.clock())))
+            return {"ok": True, **self._email_complaint(complaint)}
         bounce = parse_bounce(sender, text, subject)
         if bounce is not None:
             # מייל שחזר: לא תשובת לקוח (לא «שולח לא מוכר»). מסמנים את המייל המקורי ומתריעים לבעל העסק
@@ -2510,6 +2516,33 @@ class CollectService:
             self.db.x("UPDATE drafts SET owner_summary=COALESCE(owner_summary,'') || ? WHERE id=?",
                       (_unverified_note(), out["draft_id"]))
         return {"ok": True, **out, "email_verified": auth["verified"]}
+
+    def _email_complaint(self, c: dict) -> dict:
+        """תלונת ספאם ⇒ suppress למייל של הנמען (לפי Original-Rcpt-To, או לפי ה-Message-ID המקורי)
+        + התראה לבעל העסק, פעם אחת. SMS לא נעצר אוטומטית — התלונה על המייל, ההחלטה של בעל העסק."""
+        addr, cid = c["recipient"], None
+        for mid in c["message_ids"]:
+            row = self.db.one("SELECT m.customer_id, c.email FROM messages m JOIN customers c ON "
+                              "c.id=m.customer_id WHERE m.direction='out' AND m.channel='email' "
+                              "AND m.provider_id=?", (mid,))
+            if row:
+                cid, addr = row["customer_id"], addr or row["email"]
+                break
+        if not addr:
+            self.audit("system", "email_complaint_unmatched", {"type": c["type"]})
+            return {"complaint": "unmatched"}
+        already = self.suppressed("email", addr)
+        self.suppress("email", addr, "spam_complaint")
+        if cid is None:
+            row = self.db.one("SELECT id FROM customers WHERE lower(email)=?", (addr.lower(),))
+            cid = row["id"] if row else None
+        if not already and cid is not None:
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                      "created_at) VALUES(?,'system','email',?, 'email_complaint', 1, ?)",
+                      (cid, "הלקוח סימן את מייל התזכורת כספאם. מיילים אליו נעצרו (סעיף 30א). "
+                       "SMS ממשיך עד שתחליט/י אחרת.", _iso(self.clock())))
+        self.audit("system", "email_complaint", {"customer": cid, "type": c["type"]})
+        return {"complaint": "suppressed", "customer": cid}
 
     def _email_bounce(self, b: dict) -> dict:
         """bounce ⇒ המייל היוצא שחזר: לפי Message-ID המקורי (מדויק), אחרת המייל האחרון לנמען.
