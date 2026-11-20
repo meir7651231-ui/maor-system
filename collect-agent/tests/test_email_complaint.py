@@ -38,6 +38,11 @@ def _arf(to: str, msgid: str = "") -> str:
             f"Original-Rcpt-To: {to}\nArrival-Date: Thu, 19 Nov 2026 08:00:00 +0200{mid}")
 
 
+def _sent_arf(row) -> str:
+    """מנהל 340 (critic 189): הסרה רק כשהדוח מצביע על Message-ID של מייל שיצא מגבי — כמו ARF אמיתי."""
+    return _arf(row["cemail"], row["provider_id"])
+
+
 def _alerts(svc, cid):
     return svc.db.q("SELECT * FROM messages WHERE needs_owner=1 AND intent='email_complaint' "
                     "AND customer_id=?", (cid,))
@@ -45,7 +50,7 @@ def _alerts(svc, cid):
 
 def test_complaint_suppresses_email_and_alerts_owner(svc, sent_mail):
     unknown_before = svc.db.one("SELECT COUNT(*) FROM messages WHERE intent='unknown_sender'")[0]
-    r = svc.email_webhook("fbl@isp.example", _arf(sent_mail["cemail"]), "arf-1",
+    r = svc.email_webhook("fbl@isp.example", _sent_arf(sent_mail), "arf-1",
                           subject="Email Abuse Report")
     assert r.get("complaint") == "suppressed", r
     assert svc.suppressed("email", sent_mail["cemail"])
@@ -55,7 +60,7 @@ def test_complaint_suppresses_email_and_alerts_owner(svc, sent_mail):
 
 
 def test_after_complaint_no_more_email_to_that_address(svc, sent_mail):
-    svc.email_webhook("fbl@isp.example", _arf(sent_mail["cemail"]), "arf-2", subject="Abuse report")
+    svc.email_webhook("fbl@isp.example", _sent_arf(sent_mail), "arf-2", subject="Abuse report")
     cust = svc.db.one("SELECT * FROM customers WHERE id=?", (sent_mail["customer_id"],))
     assert svc.gate(cust, "email", sent_mail["cemail"]) is not None   # השער חוסם
 
@@ -70,7 +75,7 @@ def test_matches_by_original_message_id_when_rcpt_missing(svc, sent_mail):
 
 def test_duplicate_report_alerts_once(svc, sent_mail):
     for _ in range(2):
-        svc.email_webhook("fbl@isp.example", _arf(sent_mail["cemail"]), "arf-4", subject="Abuse")
+        svc.email_webhook("fbl@isp.example", _sent_arf(sent_mail), "arf-4", subject="Abuse")
     assert len(_alerts(svc, sent_mail["customer_id"])) == 1
 
 
