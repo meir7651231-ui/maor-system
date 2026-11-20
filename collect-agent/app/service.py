@@ -1030,15 +1030,21 @@ class CollectService:
         return bool(addr) and self.db.one("SELECT 1 FROM suppressions WHERE hash=?",
                                           (self.addr_hash(channel, addr),)) is not None
 
-    def email_state(self, addr: str | None) -> str | None:
+    def email_states(self) -> Callable[[str | None], str | None]:
         """גבי עיצוב: מצב כתובת המייל לתצוגה בטבלת החובות — 'spam' (הלקוח סימן ספאם ⇒ suppress, סעיף 30א,
-        לא שולחים שוב למייל הזה) · 'bounced' (bounce קבוע ⇒ הכתובת לא קיימת; לתקן במקור ⇒ גיבוב חדש) · None."""
-        if not addr:
-            return None
-        row = self.db.one("SELECT reason FROM suppressions WHERE hash=?", (self.addr_hash("email", addr),))
-        if row and row["reason"] == "spam_complaint":
-            return "spam"
-        return "bounced" if self.email_bounced(addr) else None
+        לא שולחים שוב למייל הזה) · 'bounced' (bounce קבוע ⇒ הכתובת לא קיימת; לתקן במקור ⇒ גיבוב חדש) · None.
+        שתי שאילתות לכל הדשבורד (לא לכל שורה — test_queries_do_not_grow_with_sent_rows); הגיבוב בזיכרון."""
+        spam = {r["hash"] for r in self.db.q("SELECT hash FROM suppressions WHERE channel='email' "
+                                             "AND reason='spam_complaint'")}
+        bounced = ({r["hash"] for r in self.db.q("SELECT hash FROM email_bounces")}
+                   if self._table_exists("email_bounces") else set())
+
+        def state(addr: str | None) -> str | None:
+            if not addr:
+                return None
+            h = self.addr_hash("email", addr)
+            return "spam" if h in spam else "bounced" if h in bounced else None
+        return state
 
     def email_bounced(self, addr: str) -> bool:
         """critic 188: הכתובת החזירה bounce קבוע ⇒ לא שולחים אליה מייל (מוניטין שליחה + כתובת שתוקצה מחדש)."""
@@ -2972,7 +2978,7 @@ class CollectService:
 
         def _channels(message_id: str | None) -> list[str]:
             return sorted({c for m in (message_id or "").split(",") if m for c in chans.get(m, ())})
-        estate: dict[str, str | None] = {}      # גבי עיצוב: מצב המייל פעם אחת לכתובת
+        estate = self.email_states()           # גבי עיצוב: מצב המייל — שתי שאילתות לכל הטבלה
         for r in self.db.q("SELECT i.*, c.name cname, c.phone cphone, c.email cemail, "
                            "c.opted_out, c.disputed, c.paused_reason FROM invoices i "
                            "JOIN customers c ON c.id=i.customer_id ORDER BY i.due, i.id"):
@@ -3010,8 +3016,7 @@ class CollectService:
                     "amount_drift": self.reminder_amount_drift(last)},
                 "customer_block": block,
                 # גבי עיצוב: «המייל חזר» / «סימן ספאם» בטבלה + פעולת תיקון (רק מצב, בלי הכתובת ב-view=list)
-                "email_state": estate[r["cemail"] or ""] if (r["cemail"] or "") in estate
-                else estate.setdefault(r["cemail"] or "", self.email_state(r["cemail"]))})
+                "email_state": estate(r["cemail"])})
         open_rows = [x for x in rows if x["status"] == "open"]
         outbox = self.sender.sent
         closed_all = self.db.q("SELECT amount_agorot, currency, closed_at FROM invoices "
