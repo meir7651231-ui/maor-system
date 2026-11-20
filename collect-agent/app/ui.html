@@ -55,7 +55,7 @@ iframe{width:100%;min-height:360px;border:1px solid var(--line);border-radius:10
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
 @media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
 .kpi .v{font-size:22px;font-weight:800}.kpi .l{color:var(--muted);font-size:13px}
-.kpi.warn .v{color:var(--warn)}.ownerOnly{display:inline-block;margin-inline-start:6px;padding:2px 8px;border-radius:999px;background:var(--chip);color:var(--ink);font-size:12px;font-weight:700;white-space:nowrap}.estate{display:block;white-space:normal;min-width:220px;margin-top:4px;padding:4px 8px;border-radius:8px;font-size:12px;color:var(--warn);background:var(--warn-bg);max-width:340px}.estate.spam{color:var(--bad)}.estate a{display:inline-flex;align-items:center;min-height:40px;color:inherit;font-weight:700}.tbl{overflow-x:auto}
+.kpi.warn .v{color:var(--warn)}.estate{display:block;white-space:normal;min-width:220px;margin-top:4px;padding:4px 8px;border-radius:8px;font-size:12px;color:var(--warn);background:var(--warn-bg);max-width:340px}.estate.spam{color:var(--bad)}.estate a{display:inline-flex;align-items:center;min-height:40px;color:inherit;font-weight:700}.tbl{overflow-x:auto}
 button.resume,button.markpaid{display:block;white-space:nowrap;min-height:32px;padding:4px 10px;font-size:13px;margin-top:4px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:right;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -63,6 +63,7 @@ th{color:var(--muted);font-weight:600;font-size:12px}td.num{font-variant-numeric
 tr.closed td{color:var(--muted);text-decoration:line-through}
 .late{color:var(--bad);font-weight:600}
 button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size:13px}
+.ownonly{display:inline-block;margin-top:4px;font-size:12px;font-weight:700;white-space:normal}
 .loaderr{display:flex;flex-wrap:wrap;align-items:center;gap:12px;max-width:1168px;margin:16px auto 0;padding:0 16px;font-weight:600}
 .loaderr[hidden]{display:none}.loaderr span{flex:1;min-width:200px}
 .sk{display:block;height:14px;border-radius:6px;background:var(--chip);animation:sk 1.2s ease-in-out infinite}
@@ -164,11 +165,12 @@ const PAUSE={paid_claim:"כתב/ה ששילם/ה. בדקו בחשבון ואז �
   foreign_language:"כתב/ה בשפה זרה. כדאי לענות אישית"};
 // critic סבב 155: חידוש בסיבה מגינה (קטין/נפטר/חדלות/מצוקה/רגיש/משפטי) ⇒ אזהרה מפורשת. זהה ל-PROTECTIVE ב-/app/.
 const PROTECT=new Set(["minor","deceased","insolvency","distress","sensitive","legal"]);
-// מבקר 195ג (+194): השהיות שבעל העסק סימן (app/policy.py OWNER_HOLDS) — רק הוא מחדש; סגירת בקשת מחיקה — רק הוא.
-// לעובד/ת: הכפתור נעול ומסומן «🔒 בעל העסק בלבד» מראש (השרת אוכף ב-403). ME=null (לא נטען) ⇒ לא נועלים
-const OWNER_HOLDS=new Set(["minor","deceased","insolvency"]);let ME=null;
-const isStaff=()=>!!ME&&ME.kind==="user"&&ME.owner!==true;
-const OWNER_BADGE='<span class="ownerOnly">🔒 בעל העסק בלבד</span>';
+// מבקר 195ג: השהיה שבעל העסק סימן (= app/policy.py OWNER_HOLDS) — עובד/ת לא מחדש/ת (השרת: 403, critic 191א) ⇒ במקום
+// הכפתור תג «רק בעל העסק». ME מ-/auth/me (פעם אחת); בלי ME (טוקן משותף / שגיאה) ⇒ הכפתור כרגיל, השרת אוכף.
+const OWNER_HOLDS=new Set(["minor","deceased","insolvency"]);let ME;
+const holdOwnerOnly=r=>!!ME&&ME.kind==="user"&&ME.owner!==true&&OWNER_HOLDS.has(String(r||"").split(":")[0]);
+// גבי עיצוב (195, הכרעת ראש צוות): סגירת בקשת **מחיקה** = בעל העסק בלבד (השרת 403) ⇒ לעובד/ת נעול + תג מראש
+const dsLocked=r=>!!ME&&ME.kind==="user"&&ME.owner!==true&&r.kind==="deletion";
 const pause=r=>{const [b,u]=String(r).split(":until=");const t=BLOCK[b]||PAUSE[b]||"מושהה עד שתבדקו";
   return u?t+" · עד "+u.split("-").reverse().join("."):t};
 const BLOCK={no_contact:"אין נייד או מייל תקין",compliance:"נחסם במסנן הניסוח",plan_active:"בהסדר תשלומים",disputed:"מחלוקת",no_payment_link:"אין קישור תשלום",
@@ -217,7 +219,7 @@ let locked=false,stale=false,rt=null,rn=0,loading=0,busy=false,got={d:false,q:fa
 // הפעלה 161: «↻ חידוש תזכורות» בטבלת החובות כבוי גם הוא בזמן פעולת כותרת (חידוש באמצע סנכרון או שליחה שינה
 // את מצב הלקוח מתחת לפעולה שרצה). כפתור שהבקשה שלו עצמו באוויר (going) נשאר כבוי עד שהיא חוזרת.
 function hdr(){for(const i of ["#btnSync","#btnPlan","#btnDispatch"])$(i).disabled=locked||busy;
-  document.querySelectorAll("#debts button.resume").forEach(b=>{b.disabled=busy||!!b.dataset.going||!!b.dataset.ownerOnly})
+  document.querySelectorAll("#debts button.resume").forEach(b=>{b.disabled=busy||!!b.dataset.going})
   document.querySelectorAll("#debts button.markpaid").forEach(b=>{b.disabled=busy||!!b.dataset.going})}
 const RETRY_MS=[2000,4000,8000,15000];
 // הפעלה 150: בכניסה ראשונה (ואחרי כניסה מחדש) הדף היה ריק עד שהשרת ענה: כותרות בלי מספרים, טבלה ותור ריקים.
@@ -263,6 +265,7 @@ function failed(e,show){if(e.auth)return;if(!e.unknown)return show(e.message);
   delete $("#wunkMsg").dataset.fresh;$("#wunkMsg").textContent=e.message;$("#wunk").hidden=false;load(false)}
 async function loadDash(ask){
   const d=await api("/dashboard?view=list",{},ask);if(locked)return;const t=d.totals;
+  if(ME===undefined){try{ME=await api("/auth/me",{},false)}catch(e){ME=null}}
   const tr=d.trial||{};
   {const h=d.holidays||{},w=$("#holWarn"),ok=/^\d{4}-\d{2}-\d{2}$/;
    if(h.until&&ok.test(h.until)&&ok.test(d.today||"")&&(h.expiring||h.until<d.today)){
@@ -421,10 +424,9 @@ function drawDsr(){
       ${r.note?`<p class="slogan">${esc(r.note)}</p>`:""}
       <label><span class="lbl">מה נעשה? (לפחות ${DSR_MIN} תווים, נשמר בתיעוד)</span>
       <textarea rows="2" maxlength="500" aria-label="תיעוד הטיפול בבקשת ${esc(k)} של ${esc(dsrWho(r))}">${esc(dsNote[r.id]??"")}</textarea></label>
-      <div class="decide">${dsLocked(r)?`<span class="slogan">סגירת בקשת מחיקה מאשרת שהמידע נמחק — רק בעל העסק.</span> `:""}<button class="primary" data-a="done">סגירת הבקשה</button>${dsLocked(r)?OWNER_BADGE:""}</div>
+      <div class="decide">${dsLocked(r)?`<span class="slogan">סגירת בקשת מחיקה מאשרת שהמידע נמחק — רק בעל העסק.</span> `:""}<button class="primary" data-a="done">סגירת הבקשה</button>${dsLocked(r)?'<span class="ownonly" data-testid="dsr-owner-only">🔒 בעל העסק בלבד</span>':""}</div>
       <div class="err" data-e role="alert"></div></li>`}).join("");
   btnsDsr()}
-const dsLocked=r=>isStaff()&&r.kind==="deletion";
 function btnsDsr(){for(const li of $("#dsList").children){const b=li.querySelector('[data-a="done"]'),r=dsItems.find(x=>String(x.id)===li.dataset.sid);
   b.disabled=dsBusy!==null||locked||(!!r&&dsLocked(r))||(dsNote[li.dataset.sid]??"").trim().length<DSR_MIN}}
 $("#dsList").addEventListener("input",e=>{const li=e.target.closest("li[data-sid]");if(!li||!e.target.matches("textarea"))return;
@@ -475,9 +477,7 @@ function drawDebts(){
       :L?chipOf(L):"טרם הוכנה";
     return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}${x.status==="open"?estate(x.email_state):""}${
     x.status==="open"&&x.paused_reason&&(x.customer_block===x.paused_reason||x.customer_block==="disputed")
-      ?(isStaff()&&OWNER_HOLDS.has(String(x.paused_reason).split(":",1)[0])
-        ?` <button class="resume" disabled data-owner-only="1" title="השהיה שבעל העסק סימן — רק הוא יכול לחדש">↻ חידוש תזכורות</button>${OWNER_BADGE}`
-        :` <button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""}${PROTECT.has(String(x.paused_reason).split(":until=")[0])?' data-protect="1"':""} title="${PROTECT.has(String(x.paused_reason).split(":until=")[0])?"שימו לב: חידוש ישלח שוב תזכורות תשלום לאותו נייד/מייל. חדשו רק אחרי שבדקתם":"בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו"}">↻ חידוש תזכורות</button>`):""}</td><td>${esc(x.number)}${
+      ?(holdOwnerOnly(x.paused_reason)?` <span class="ownonly" data-testid="resume-owner-only" title="השהיה שבעל העסק סימן — רק הוא מחדש">🔒 רק בעל העסק מחדש (קטין/פטירה/חדלות פירעון)</span>`:` <button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""}${PROTECT.has(String(x.paused_reason).split(":until=")[0])?' data-protect="1"':""} title="${PROTECT.has(String(x.paused_reason).split(":until=")[0])?"שימו לב: חידוש ישלח שוב תזכורות תשלום לאותו נייד/מייל. חדשו רק אחרי שבדקתם":"בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו"}">↻ חידוש תזכורות</button>`):""}</td><td>${esc(x.number)}${
     x.status==="open"?` <button class="markpaid" data-iid="${x.invoice_id}"${busy?" disabled":""} title="הלקוח שילם בביט/העברה/מזומן? החשבונית תיסגר כאן ולא יישלחו עליה תזכורות">✓ שולם מחוץ למערכת</button>`:""}</td>
     <td class="num">${esc(fmtCur(x.amount_agorot,x.currency))}</td><td>${esc(x.due||"")}</td>
     <td class="${x.days_overdue>0?"late":""}">${x.days_overdue>0?x.days_overdue+" ימים":"—"}</td>
@@ -485,7 +485,7 @@ function drawDebts(){
 }
 $("#dFind").addEventListener("input",e=>{dQ=e.target.value;dLim=DPAGE;drawDebts()});
 // חידוש ללקוח מושהה (למשל אחרי «שילמתי» שלא אומת): לחיצה ראשונה מחמשת, השנייה מבצעת
-$("#debts").addEventListener("click",async e=>{const b=e.target.closest("button.resume");if(!b||busy||b.dataset.ownerOnly)return;
+$("#debts").addEventListener("click",async e=>{const b=e.target.closest("button.resume");if(!b||busy)return;
   if(!b.dataset.armed){b.dataset.armed="1";b.textContent=b.dataset.protect?"סיבה מגינה! בדקתם? לחצו שוב":"בטוח? לחצו שוב";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="↻ חידוש תזכורות"}},4000);return}
   b.disabled=true;b.dataset.going="1";try{await api(`/customers/${b.dataset.cid}/resume`,{method:"POST"});await load()}
   catch(err){failed(err,m=>{delete b.dataset.going;b.disabled=busy;b.textContent="שגיאה: "+m})}});
@@ -529,7 +529,6 @@ function drawPlans(){$("#pl").hidden=!plItems.length&&!$("#plErr").textContent;
       <div class="nx${p.status==="missed"?" late":""}" data-next>${esc(plNext(pr,plToday,c))}</div>${p.status==="completed"?"":`<div class="slogan">${esc(hint)}</div>`}</li>`}).join("")}
 async function load(ask=true){
   if(ask&&!locked)skel();
-  if(!ME)try{ME=await api("/auth/me",{},false)}catch{ME=null}
   loading++;let d,q;try{[d,q]=await Promise.allSettled([loadDash(ask),api("/reminders?view=list",{},ask)])}finally{loading--}
   if(locked)return;
   stale=!(d.status==="fulfilled"&&q.status==="fulfilled");

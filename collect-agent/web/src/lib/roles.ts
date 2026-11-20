@@ -2,9 +2,11 @@
 // ייצוא (lib/dataExport.ts exportOwnerOnly) וסגירת בקשת **מחיקה** במרשם — בעל העסק בלבד. טהור.
 import type { Me } from '../api.ts';
 import { exportOwnerOnly } from './dataExport.ts';
-import { isStaff, OWNER_HOLDS, OWNER_ONLY_TAG, resumeLocked } from './ownerOnly.ts';
+import { isStaff, OWNER_HOLDS, OWNER_ONLY_TAG, resumeOwnerOnly } from './ownerOnly.ts';
 
-export { isStaff, OWNER_HOLDS, OWNER_ONLY_TAG, resumeLocked };
+export { isStaff, OWNER_HOLDS, OWNER_ONLY_TAG, resumeOwnerOnly };
+/** שם חלופי (גבי עיצוב) — אותה פונקציה כמו resumeOwnerOnly */
+export const resumeLocked = resumeOwnerOnly;
 export const isOwnerHold = (paused: string | null | undefined) => OWNER_HOLDS.includes((paused ?? '').split(':', 1)[0]);
 /** ייצוא כל המידע על לקוח (זכות עיון) — בעל העסק בלבד. */
 export const exportLocked = (me: Me | null | undefined) => exportOwnerOnly(me ?? null);

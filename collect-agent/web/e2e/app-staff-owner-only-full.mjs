@@ -90,15 +90,16 @@ try {
     ok(!(await acc.getByTestId('dsr-close').isDisabled()) && await acc.getByTestId('dsr-owner-badge').count() === 0, `${name}: עיון ננעל בטעות`);
     await aa(p, `מרשם ${name}`); await noH(p, `מרשם ${name}`);
     if (out) await del.screenshot({ path: `${out}/staff-owner-only-dsr-${name}.png` });
-    // /ui: חידוש נעול + תג, סגירת מחיקה נעולה + תג
+    // /ui: במקום «חידוש» — «🔒 רק בעל העסק מחדש» (תיקון 9bd99cb2), סגירת מחיקה נעולה + תג
     await p.goto(`${base}/ui`);
-    const ur = p.locator('#debts button.resume[data-owner-only]').first(); await ur.waitFor();
-    ok(await ur.isDisabled(), `${name}: /ui חידוש לא נעול`);
-    ok(/בעל העסק בלבד/.test(await ur.locator('xpath=following-sibling::span[contains(@class,"ownerOnly")][1]').textContent()), `${name}: /ui בלי תג`);
+    const ur = p.locator('#debts [data-testid="resume-owner-only"]').first(); await ur.waitFor();
+    ok(/בעל העסק/.test(await ur.textContent()), `${name}: /ui בלי «רק בעל העסק»`);
     const udel = p.locator('#dsList li', { hasText: 'מחיקת מידע' }).first(); await udel.locator('textarea').fill('נמחק מכל המערכות');
-    ok(await udel.locator('[data-a="done"]').isDisabled() && /בעל העסק בלבד/.test(await udel.textContent()), `${name}: /ui סגירת מחיקה לא נעולה`);
+    ok(await udel.locator('[data-a="done"]').isDisabled() && await udel.locator('[data-testid="dsr-owner-only"]').count() === 1, `${name}: /ui סגירת מחיקה לא נעולה`);
+    const uacc = p.locator('#dsList li', { hasText: 'עיון במידע' }).first(); await uacc.locator('textarea').fill('נשלח עותק במייל');
+    ok(!(await uacc.locator('[data-a="done"]').isDisabled()), `${name}: /ui עיון ננעל בטעות`);
     await aa(p, `/ui ${name}`); await noH(p, `/ui ${name}`);
-    if (out) await ur.locator('xpath=ancestor::td[1]').screenshot({ path: `${out}/staff-owner-only-ui-${name}.png` });
+    if (out) await udel.screenshot({ path: `${out}/staff-owner-only-ui-${name}.png` });
     await ctx.close();
   }
   // בעלים: הכול פתוח
