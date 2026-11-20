@@ -581,6 +581,13 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/customers/{cid}/resume", dependencies=auth)
     def resume(cid: int, request: Request):
+        # critic סבב 191א: השהיה שבעל העסק סימן (OWNER_HOLDS — קטין/פטירה/חדלות פירעון, ר-6 «השהיה קשה») בוטלה ע״י
+        # עובד/ת בשקט ⇒ תזכורות למשפחת נפטר/ת. ביטול השהיית-בעלים = בעל העסק בלבד; השהיות אחרות — כמו קודם
+        from .policy import OWNER_HOLDS
+        c = svc.db.one("SELECT paused_reason FROM customers WHERE id=?", (cid,))
+        if c and (c["paused_reason"] or "").split(":", 1)[0] in OWNER_HOLDS and not request.state.is_owner:
+            svc.audit(request.state.actor, "owner_hold_resume_refused", {"customer": cid})
+            raise HTTPException(403, "רק בעל העסק יכול לבטל השהיה שהוא סימן (קטין / פטירה / חדלות פירעון)")
         return guard(svc.resume_customer, cid, request.state.actor)
 
     @app.post("/customers/{cid}/opt-out", dependencies=auth)
@@ -1005,6 +1012,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def orbit_link_secret(b: OrbitSecretIn, request: Request):
         """הנפקה/רוטציה של סוד-המסירה (מוחזר **פעם אחת**; המנהל מדביק אותו באורביט).
         רוטציה מבטלת את הסוד הקודם מיד."""
+        # critic סבב 191ב: עובד/ת הנפיק/ה סוד-מסירה לכל org (רוטציה מבטלת את הסוד של בעל העסק) ⇒ בעלים בלבד
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, "orbit_secret_refused", {})
+            raise HTTPException(403, "רק בעל העסק מקשר את גבי לאורביט")
         rotating = bool(orbit.link())
         try:
             secret = orbit.issue_secret(b.org, at=svc.clock().isoformat())
@@ -1019,6 +1030,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/orbit/link/unlink", dependencies=auth)
     def orbit_unlink(request: Request):
+        if not request.state.is_owner:   # critic סבב 191ב
+            svc.audit(request.state.actor, "orbit_unlink_refused", {})
+            raise HTTPException(403, "רק בעל העסק מבטל את הקישור לאורביט")
         link = orbit.link()
         try:
             done = orbit.unlink()

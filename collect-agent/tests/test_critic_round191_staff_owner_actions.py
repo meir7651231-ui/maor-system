@@ -8,7 +8,6 @@
 /orbit/link/secret {"org": "org-attacker"} ⇒ **200** + הסוד מוחזר לעובד/ת, בלי כרטיס. הצעה: ביטול השהיית-בעלים
 (OWNER_HOLDS) ו-orbit secret/unlink = בעלים בלבד (403 לעובד/ת), כמו /team ו-restore-hold.
 xfail(strict=True); בקרות ירוקות."""
-import pytest
 from fastapi.testclient import TestClient
 
 from app import totp
@@ -40,7 +39,6 @@ def _owner_told(svc):
     return svc.db.one("SELECT 1 FROM messages WHERE needs_owner=1") is not None
 
 
-@pytest.mark.xfail(strict=True, reason="critic 191א: עובד/ת מבטל/ת השהיית-בעלים (נפטר/ה) בשקט (לתיקון בונה)")
 def test_staff_cannot_silently_resume_owner_hold(svc, clock, monkeypatch):
     api, hdr = _api(svc, clock, monkeypatch)
     r = api.post("/customers/1/resume", headers=hdr("staff"))
@@ -48,7 +46,6 @@ def test_staff_cannot_silently_resume_owner_hold(svc, clock, monkeypatch):
     assert r.status_code == 403 or still or _owner_told(svc), r.status_code
 
 
-@pytest.mark.xfail(strict=True, reason="critic 191ב: עובד/ת מנפיק/ה סוד אורביט לכל org בשקט (לתיקון בונה)")
 def test_staff_cannot_issue_orbit_secret(svc, clock, monkeypatch):
     api, hdr = _api(svc, clock, monkeypatch)
     r = api.post("/orbit/link/secret", json={"org": "org-attacker"}, headers=hdr("staff"))
@@ -60,3 +57,23 @@ def test_control_owner_can_resume_and_issue(svc, clock, monkeypatch):
     h = hdr("owner")
     assert api.post("/customers/1/resume", headers=h).status_code == 200
     assert api.post("/orbit/link/secret", json={"org": "org-real"}, headers=h).status_code == 200
+
+
+def test_staff_refusals_are_audited_and_state_kept(svc, clock, monkeypatch):
+    """תוקן: 403 לעובד/ת בשלוש הפעולות, המצב לא השתנה, וכל ניסיון נרשם ב-audit."""
+    api, hdr = _api(svc, clock, monkeypatch)
+    h = hdr("staff")
+    assert api.post("/customers/1/resume", headers=h).status_code == 403
+    assert api.post("/orbit/link/secret", json={"org": "org-attacker"}, headers=h).status_code == 403
+    assert api.post("/orbit/link/unlink", headers=h).status_code == 403
+    assert svc.db.one("SELECT paused_reason FROM customers WHERE id=1")["paused_reason"] == "deceased"
+    acts = {a["action"] for a in svc.db.q("SELECT action FROM audit")}
+    assert {"owner_hold_resume_refused", "orbit_secret_refused", "orbit_unlink_refused"} <= acts
+
+
+def test_staff_can_still_resume_ordinary_pause(svc, clock, monkeypatch):
+    """השהיה שאינה של בעל העסק (למשל «שילמתי») — עובד/ת ממשיך/ה לחדש כמו קודם."""
+    api, hdr = _api(svc, clock, monkeypatch)
+    svc.inbound("sms", "+972-52-7654321", "שילמתי כבר")
+    cid = svc.db.one("SELECT id FROM customers WHERE external_id='cl2'")["id"]
+    assert api.post(f"/customers/{cid}/resume", headers=hdr("staff")).status_code == 200
