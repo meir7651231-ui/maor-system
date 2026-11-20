@@ -14,9 +14,16 @@ export const isOwnerHold = (paused: string | null | undefined) =>
 
 /** «↻ חידוש» על השהיית-בעלים — נעול לעובד/ת. */
 export const resumeLocked = (me: Me | null | undefined, paused: string | null | undefined) => isStaff(me) && isOwnerHold(paused);
+/** שם היסטורי (מבקר 195, Dashboard) — מנהל 348: lib/ownerOnly.ts אוחד לכאן, מקור יחיד. */
+export const resumeOwnerOnly = resumeLocked;
+/** מבקר 195א: «✓ טופל» על התראת-הביטחון «הגדרות רגישות שונו» — בעל העסק בלבד (השרת: 403 OwnerOnly). */
+export const OWNER_ONLY_NOTICES = ['settings_changed'] as const;
+export const noticeDoneLocked = (me: Me | null | undefined, intent: string | null | undefined) =>
+  isStaff(me) && (OWNER_ONLY_NOTICES as readonly string[]).includes(intent ?? '');
 /** ייצוא כל המידע על לקוח (זכות עיון) — בעל העסק בלבד. */
 export const exportLocked = (me: Me | null | undefined) => exportOwnerOnly(me ?? null);   // מקור יחיד: lib/dataExport.ts
 /** סגירת בקשת **מחיקה** במרשם (מאשרת שהמידע נמחק) — בעל העסק בלבד. עיון/תיקון — פתוח לכולם. */
 export const dsrCloseLocked = (me: Me | null | undefined, kind: string) => isStaff(me) && kind === 'deletion';
 
 export const OWNER_ONLY_TEXT = '🔒 בעל העסק בלבד';
+export const OWNER_ONLY_TAG = OWNER_ONLY_TEXT;

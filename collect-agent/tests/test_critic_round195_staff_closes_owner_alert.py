@@ -9,8 +9,9 @@
   ב. **בעל העסק עצמו** לא יכול לסגור אותה (שינוי שהוא ביצע ⇒ _self_dismiss_blocked כל עוד יש עובד/ת פעיל/ה) — כלומר
      בעסק «בעלים + עובדת» את ההתראה שמיועדת לבעל העסק יכולה לסגור **רק העובדת**. הסמכות הפוכה.
 הצעה: settings_changed נסגרת ע״י בעל עסק בלבד (is_owner); הכלל «לא מי שביצע» חל רק כשיש בעלים אחר.
-**[REQUIRE_USER_LOGIN=1 + TOTP]** xfail(strict=True); בקרה ירוקה."""
-import pytest
+**[REQUIRE_USER_LOGIN=1 + TOTP]** xfail(strict=True); בקרה ירוקה.
+   תוקן במנהל 348: `_actor_is_owner` (עובד/ת ⇒ 403 OwnerOnly + audit) · «אחר» ב-_self_dismiss_blocked
+   = בעל עסק — ה-xfail הוסרו."""
 from fastapi.testclient import TestClient
 
 from app import totp
@@ -47,14 +48,32 @@ def _open(svc, mid) -> bool:
     return svc.db.one("SELECT needs_owner FROM messages WHERE id=?", (mid,))["needs_owner"] == 1
 
 
-@pytest.mark.xfail(strict=True, reason="195א: עובד/ת סוגר/ת את התראת-הביטחון של בעל העסק")
 def test_staff_cannot_close_owner_security_alert(svc, clock, monkeypatch):
     api, hdr, mid = _api(svc, clock, monkeypatch)
-    api.post(f"/owner/inbox/{mid}/done", headers=hdr("staff"))
+    r = api.post(f"/owner/inbox/{mid}/done", headers=hdr("staff"))
     assert _open(svc, mid), "עובד/ת סגר/ה את «הגדרות רגישות שונו — ודאו שזה אתם»"
+    assert r.status_code == 403 and "בעל העסק" in r.text, r.text
+    assert svc.db.q("SELECT 1 FROM audit WHERE action='owner_message_done_refused' AND detail LIKE '%owner_only%'")
 
 
-@pytest.mark.xfail(strict=True, reason="195ב: בעל העסק לא יכול לסגור התראה שמיועדת לו (רק העובדת יכולה)")
+def test_other_owner_closes_when_changer_is_owner(svc, clock, monkeypatch):
+    """195ב: עם בעל עסק נוסף — מי שביצע לא סוגר, בעל העסק האחר כן; העובדת לא."""
+    api, hdr, mid = _api(svc, clock, monkeypatch)
+    Users(svc.db, svc.clock).set_role("staff@s.example", "owner")
+    assert api.post(f"/owner/inbox/{mid}/done", headers=hdr("owner")).status_code == 409
+    assert _open(svc, mid)
+    assert api.post(f"/owner/inbox/{mid}/done", headers=hdr("staff")).status_code == 200
+    assert not _open(svc, mid)
+
+
+def test_other_notices_still_closable_by_staff(svc, clock, monkeypatch):
+    api, hdr, _mid = _api(svc, clock, monkeypatch)
+    svc.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at) "
+             "VALUES(NULL,'system','owner','x','max_reminders',1,'2026-11-14T10:00:00')")
+    mid = svc.db.one("SELECT max(id) AS m FROM messages")["m"]
+    assert api.post(f"/owner/inbox/{mid}/done", headers=hdr("staff")).status_code == 200
+
+
 def test_owner_can_close_own_security_alert(svc, clock, monkeypatch):
     api, hdr, mid = _api(svc, clock, monkeypatch)
     r = api.post(f"/owner/inbox/{mid}/done", headers=hdr("owner"))

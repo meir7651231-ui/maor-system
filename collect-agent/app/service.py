@@ -1558,9 +1558,15 @@ class CollectService:
             return {"id": mid, "done": False, "email_bounce_review": True,
                     "reason": "המיילים ללקוח עדיין מושהים. הכרטיס יורד רק בהכרעה: «המייל באמת חזר — חסום» "
                               "או «הכתובת תקינה — החזר מיילים»."}
+        if row["intent"] == "settings_changed" and not self._actor_is_owner(actor):
+            # מבקר 195א: התראת-הביטחון «הגדרות רגישות שונו — ודאו שזה אתם» מיועדת לבעל העסק. עובד/ת שסגר/ה אותה
+            # הוריד/ה אותה מ«דורש טיפול שלך» בלי שבעל העסק ראה. עכשיו: בעל העסק בלבד (403 + audit)
+            self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "owner_only"})
+            raise OwnerOnly("את ההתראה על שינוי ההגדרות הרגישות סוגר רק בעל העסק.")
         if self._self_dismiss_blocked(row, actor):
             self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "self_dismiss"})
-            raise ValueError("את ההתראה על שינוי ההגדרות הרגישות צריך לסמן «טופל» עובד אחר — לא מי שביצע את השינוי.")
+            raise ValueError("את ההתראה על שינוי ההגדרות הרגישות צריך לסמן «טופל» בעל עסק אחר — "
+                             "לא מי שביצע את השינוי.")
         self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (mid,))
         self.audit(actor, "owner_message_done", {"message": mid})
         return {"id": mid, "done": True}
@@ -1570,17 +1576,29 @@ class CollectService:
         c = self.db.one("SELECT c.email FROM messages m JOIN customers c ON c.id=m.customer_id WHERE m.id=?", (mid,))
         return bool(c) and self.email_bounce_pending(c["email"] or "")
 
+    def _actor_is_owner(self, actor: str) -> bool:
+        """מבקר 195: בעל העסק = הטוקן המשותף (owner) או משתמש פעיל בתפקיד owner. = request.state.is_owner ב-main."""
+        if not actor.startswith("user:"):
+            return True
+        try:
+            r = self.db.one("SELECT role, active FROM users WHERE id=?", (int(actor.split(":", 1)[1]),))
+        except Exception:  # noqa: BLE001 — בלי טבלת users (דמו) אין עובדים
+            return True
+        return bool(r) and r["role"] == "owner" and bool(r["active"])
+
     def _self_dismiss_blocked(self, row, actor: str) -> bool:
         """הפעלה 199 (critic סבב 72, המגבלה שנשארה): ההתראה settings_changed נכנסת לתיבה המשותפת, ומי שהחליף את
         קישור התשלום יכול היה לסמן אותה «טופל» מיד — ובעל העסק לא רואה כלום. עכשיו: עובד (user:N) שביצע את השינוי
         לא סוגר את ההתראה בעצמו, **כל עוד יש עובד פעיל אחר** שיכול (עסק עם עובד יחיד לא ננעל לנצח). הטוקן המשותף
-        (owner) הוא בעל העסק עצמו ⇒ מותר."""
+        (owner) הוא בעל העסק עצמו ⇒ מותר.
+        מבקר 195ב: מאז שרק בעל העסק סוגר את ההתראה, «אחר» = **בעל עסק** פעיל אחר. אחרת בעסק «בעלים + עובדת» רק
+        העובדת יכלה לסגור התראה שמיועדת לבעלים (הסמכות הפוכה)."""
         if row["intent"] != "settings_changed" or not actor.startswith("user:"):
             return False
         if row["message_id"] != f"settings_changed:{actor}":
             return False
         try:
-            others = self.db.one("SELECT COUNT(*) AS n FROM users WHERE active=1 AND id<>?",
+            others = self.db.one("SELECT COUNT(*) AS n FROM users WHERE active=1 AND role='owner' AND id<>?",
                                  (int(actor.split(":", 1)[1]),))
         except Exception:  # noqa: BLE001 — בלי טבלת users (דמו) אין עובד אחר
             return False

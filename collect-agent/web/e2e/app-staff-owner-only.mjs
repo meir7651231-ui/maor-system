@@ -1,5 +1,7 @@
 // מבקר 195 + הכרעות ראש צוות (20.11) מול שרת גבי אמיתי (DEMO=1, dry-run), דסקטופ + 390px, אפס שגיאות:
 //  • עובדת: «↻ חידוש תזכורות» על השהיית-בעלים (נפטר/ה) נעול + «🔒 בעל העסק בלבד»; «⬇ ייצוא מידע» נעול. בעל העסק: פתוחים.
+//  • מבקר 195א (מנהל 348): התראת-הביטחון «הגדרות רגישות שונו» (נוצרת כאן משינוי התפקידים) — לעובדת «✓ טופל» נעול+תג
+//    והשרת מחזיר 403; בעל העסק רואה «✓ טופל» פתוח.
 //  • q21-19: הבטחה מעבר ל-14 יום ⇒ בכרטיס «בדוק ואשר» כפתורי לאשר/לסרב; בעל העסק מאשר ⇒ ההשהיה עד המועד המבוקש.
 // איך מגיעים לעובדת עם TOTP: עובד הדמו (DEMO_USER_EMAIL, הסוד בקובץ) נוצר בעלים ⇒ ממנים את עובדת הדמו (DEMO_STAFF)
 // לבעלים ומורידים את עובד הדמו לעובד ⇒ נכנסים כעובד הדמו (סיסמה+TOTP) ⇒ טוקן עובד.
@@ -57,6 +59,12 @@ try {
     body: JSON.stringify({ channel: 'sms', sender: prom.phone, text: 'אשלם ב-28 בנובמבר' }) });
   const inb = await ir.json();
   ok(ir.ok && inb.tags?.includes('promise_over_limit'), 'ההבטחה לא סומנה מעל המגבלה: ' + JSON.stringify(inb));
+  // מבקר 195א: שינויי התפקידים למעלה יצרו התראת settings_changed — עובדת לא סוגרת אותה (403), היא נשארת פתוחה
+  const secNotice = (await (await fetch(`${base}/owner/inbox`, { headers: H })).json()).find(m => m.intent === 'settings_changed');
+  ok(secNotice, 'שינוי התפקידים לא יצר התראת settings_changed');
+  const sd = await fetch(`${base}/owner/inbox/${secNotice.id}/done`, { method: 'POST', headers: { Authorization: `Bearer ${staffTok}` } });
+  ok(sd.status === 403, `עובדת סגרה התראת-ביטחון: ${sd.status}`);
+  ok((await (await fetch(`${base}/owner/inbox`, { headers: H })).json()).some(m => m.id === secNotice.id), 'ההתראה ירדה אחרי ניסיון העובדת');
   for (const [name, vp] of [['desktop', { width: 1366, height: 900 }], ['mobile', { width: 390, height: 844 }]]) {
     // עובדת — סקירה: חידוש נעול על השהיית-בעלים
     let p = await page(vp, 'dashboard', staffTok);
@@ -67,6 +75,12 @@ try {
     ok(await p.getByTestId('resume-locked').first().locator('xpath=ancestor::li[1]').getByTestId('resume-warning').count() === 0, `${name}: אזהרת חידוש לעובדת`);
     ok(await p.evaluate(() => document.documentElement.scrollWidth - innerWidth) <= 0, `${name}: גלילה רוחבית`);
     if (out) { await p.getByTestId('resume-locked').first().scrollIntoViewIfNeeded(); await p.screenshot({ path: `${out}/staff-resume-locked-${name}.png` }); }
+    // מבקר 195א: «✓ טופל» על התראת-הביטחון נעול לעובדת + תג; התראות אחרות לא ננעלות בגללה
+    const sec = p.locator('[data-testid="notice"][data-intent="settings_changed"]').first();
+    await sec.waitFor();
+    ok(await sec.getByTestId('notice-done-locked').getByRole('button').isDisabled() && await sec.getByTestId('owner-only-badge').count() === 1, `${name}: «טופל» על התראת-ביטחון פתוח לעובדת`);
+    ok(await sec.getByTestId('notice-done').count() === 0, `${name}: כפתור «טופל» פעיל בהתראת-ביטחון`);
+    if (out) { await sec.scrollIntoViewIfNeeded(); await sec.screenshot({ path: `${out}/staff-security-notice-locked-${name}.png` }); }
     await p.close();
     // עובדת — חשבוניות: ייצוא נעול
     p = await page(vp, 'invoices', staffTok);
@@ -78,6 +92,8 @@ try {
     p = await page(vp, 'dashboard', TOKEN);
     await p.getByText('↻ חידוש תזכורות').first().waitFor();
     ok(await p.getByTestId('resume-locked').count() === 0, `${name}: בעלים רואה נעילה`);
+    ok(await p.locator('[data-testid="notice"][data-intent="settings_changed"]').first().getByTestId('notice-done').count() === 1
+      && await p.getByTestId('notice-done-locked').count() === 0, `${name}: בעלים לא רואה «✓ טופל» על התראת-ביטחון`);
     await p.close();
     p = await page(vp, 'invoices', TOKEN);
     await p.getByTestId('data-export').first().waitFor();
@@ -134,5 +150,5 @@ try {
   const audit = await (await fetch(`${base}/audit`, { headers: H })).json();
   ok(audit.some(a => a.action === 'promise_request_approved'), 'האישור לא נרשם');
   ok(!errors.length, 'שגיאות: ' + errors.join(' | '));
-  console.log('✓ app-staff-owner-only: חידוש השהיית-בעלים (/app/ ו-/ui) וייצוא וסגירת מחיקה (/app/ ו-/ui) נעולים לעובדת (+תג), עיון פתוח, פתוחים לבעלים; «בדוק ואשר» על הבטחה מעל 14 יום אושר — דסקטופ+390, אפס שגיאות');
+  console.log('✓ app-staff-owner-only: חידוש השהיית-בעלים (/app/ ו-/ui), «טופל» על התראת-ביטחון (403+נעול) וייצוא וסגירת מחיקה (/app/ ו-/ui) נעולים לעובדת (+תג), עיון פתוח, פתוחים לבעלים; «בדוק ואשר» על הבטחה מעל 14 יום אושר — דסקטופ+390, אפס שגיאות');
 } finally { await b.close(); srv.kill(); }
