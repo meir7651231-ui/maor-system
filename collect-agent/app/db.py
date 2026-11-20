@@ -85,6 +85,11 @@ CREATE TABLE IF NOT EXISTS email_bounces (
 );
 -- הכרעת מקשר (q22-04): DSN שלא אומת (בלי Message-ID שלנו) אבל Final-Recipient תואם לקוח ⇒ השהיית מייל בלבד
 -- עד שבעל העסק מאשר (⇒ email_bounces) או דוחה. גיבוב כמו email_bounces; שום שינוי קבוע בלי אישור
+-- הכרעת מקשר (q22-10): 5.7.x = דחיית מדיניות/אבטחה, לא כתובת מתה ⇒ לא חוסמים. אבל 3 ברצף לאותה כתובת ⇒ כרטיס
+-- לבעל העסק (לרוב בעיה אצלנו: מוניטין/SPF/DMARC או תוכן). מתאפס בכל תוצאה אחרת לכתובת. גיבוב, בלי כתובת
+CREATE TABLE IF NOT EXISTS email_policy_streak (
+  hash TEXT PRIMARY KEY, count INTEGER NOT NULL, carded INTEGER NOT NULL DEFAULT 0, updated_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS email_bounce_review (
   hash TEXT PRIMARY KEY, customer_id INTEGER, code TEXT, created_at TEXT NOT NULL
 );

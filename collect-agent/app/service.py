@@ -1831,6 +1831,7 @@ class CollectService:
             if not live:
                 self.db.x("DELETE FROM email_bounces WHERE hash=?", (h,))
                 self.db.x("DELETE FROM email_bounce_review WHERE hash=?", (h,))
+                self.db.x("DELETE FROM email_policy_streak WHERE hash=?", (h,))
 
     def _scrub_sent_log(self, cust) -> None:
         """critic סבב 75 (ר-10): רשומות יומן ה-dry-run (`sender.sent`, /outbox) של לקוח שהותמם — נשחרות במקום:
@@ -2648,6 +2649,7 @@ class CollectService:
             # critic 188: מייל מאומת מהכתובת = היא חיה ⇒ מסירים את סימון ה-bounce (לא על מייל שאולי מזויף)
             self.db.x("DELETE FROM email_bounces WHERE hash=?", (self.addr_hash("email", addr),))
             self.db.x("DELETE FROM email_bounce_review WHERE hash=?", (self.addr_hash("email", addr),))
+            self.db.x("DELETE FROM email_policy_streak WHERE hash=?", (self.addr_hash("email", addr),))
         self.audit("system", "email_auth", {"message": key[:80], **auth})
         before = self.db.one("SELECT COALESCE(MAX(id), 0) AS m FROM messages")["m"]
         out = self.inbound("email", addr, body)
@@ -2753,7 +2755,32 @@ class CollectService:
                   " VALUES(?,'system','email',?, 'email_bounced', 1, ?)", (row["customer_id"], text, now))
         self.audit("system", "email_bounced", {"message": row["id"], "code": b.get("code", ""),
                                                "address_invalid": bool(b.get("address_invalid", True))})
-        return {"bounce": "failed", "matched": True}
+        streak = self._policy_streak(dead, row["customer_id"], str(b.get("code") or ""), now)
+        return {"bounce": "failed", "matched": True, **({"policy_streak": streak} if streak else {})}
+
+    POLICY_STREAK_CARD = 3
+
+    def _policy_streak(self, addr: str | None, customer_id: int, code: str, now: str) -> int:
+        """הכרעת מקשר (q22-10): 5.7.x לא חוסם כתובת. אבל אותה כתובת שמחזירה 5.7.x שלוש פעמים ברצף ⇒ כרטיס
+        email_policy_repeat לבעל העסק (פעם אחת לרצף) — לא חסימה. כל קוד אחר לכתובת מאפס את הרצף."""
+        if not addr:
+            return 0
+        h = self.addr_hash("email", addr)
+        if not code.startswith("5.7."):
+            self.db.x("DELETE FROM email_policy_streak WHERE hash=?", (h,))
+            return 0
+        self.db.x("INSERT INTO email_policy_streak(hash,count,carded,updated_at) VALUES(?,1,0,?) "
+                  "ON CONFLICT(hash) DO UPDATE SET count=count+1, updated_at=excluded.updated_at", (h, now))
+        r = self.db.one("SELECT count, carded FROM email_policy_streak WHERE hash=?", (h,))
+        if r["count"] >= self.POLICY_STREAK_CARD and not r["carded"]:
+            self.db.x("UPDATE email_policy_streak SET carded=1 WHERE hash=?", (h,))
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at)"
+                      " VALUES(?,'system','email',?, 'email_policy_repeat', 1, ?)",
+                      (customer_id, f"המייל ללקוח נדחה {r['count']} פעמים ברצף מסיבת מדיניות/אבטחה ({code}). "
+                       "הכתובת לא נחסמה. לרוב זו בעיה אצל השולח (הגדרות SPF/DKIM/DMARC של הדומיין, מוניטין "
+                       "או תוכן) — כדאי לבדוק, או לברר עם הלקוח אם הוא חוסם את המיילים שלנו.", now))
+            self.audit("system", "email_policy_repeat", {"customer": customer_id, "count": r["count"]})
+        return int(r["count"])
 
     def sms_webhook_019(self, raw: bytes, *, type_hint: str = "") -> dict:
         try:
