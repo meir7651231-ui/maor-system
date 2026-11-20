@@ -179,6 +179,17 @@ class Users:
         self.deactivate(u["email"], actor=actor or "cli")
         return {"name": u["name"], "was_active": bool(u["active"])}
 
+    def reactivate_id(self, uid: int, actor: str = "cli") -> dict:
+        """מנהל 329 (פתוח מ-328): הפעלה-מחדש של עובד מושבת מהמסך, לא רק CLI. חוזר **תמיד כעובד** — גם מי שהיה
+        בעל העסק לפני ההשבתה (קידום = פעולה נפרדת ומתועדת, לא תופעת-לוואי). נעילות-כניסה **לא** מתאפסות
+        (אמצעי-אבטחה נפרד); הסיסמה וה-TOTP נשמרים (אותו אדם). audit בפסאודונים."""
+        u = self._by_id(uid)
+        if u["active"]:
+            return {"name": u["name"], "was_active": True}
+        self.db.x("UPDATE users SET active=1, role='staff' WHERE id=?", (u["id"],))
+        self._audit(actor, "team_reactivated", {"user": u["id"], "role": "staff"})
+        return {"name": u["name"], "was_active": False}
+
     def is_owner(self, token: str) -> bool:
         """סשן תקף של עובד פעיל בתפקיד בעלים."""
         if self.actor(token) is None:
@@ -288,6 +299,7 @@ class Users:
 if __name__ == "__main__":
     # python -m app.users <email> <name> [owner|staff]  (סיסמה מ-USER_PASSWORD) ⇒ מדפיס סוד TOTP פעם אחת
     # python -m app.users role <email> owner|staff       ⇒ שינוי תפקיד (critic 179)
+    # python -m app.users reactivate <email>             ⇒ הפעלה-מחדש כעובד (מנהל 329)
     import sys
     from datetime import datetime
 
@@ -299,6 +311,11 @@ if __name__ == "__main__":
     if sys.argv[1] == "role":
         _u.set_role(sys.argv[2], sys.argv[3])
         print({"email": sys.argv[2].strip().lower(), "role": sys.argv[3]})
+    elif sys.argv[1] == "reactivate":
+        _row = _u.db.one("SELECT id FROM users WHERE email=?", (sys.argv[2].strip().lower(),))
+        if _row is None:
+            raise SystemExit("אין משתמש כזה")
+        print(_u.reactivate_id(_row["id"]))
     else:
         print(_u.create(sys.argv[1], sys.argv[2], os.environ["USER_PASSWORD"],
                         sys.argv[3] if len(sys.argv) > 3 else None))

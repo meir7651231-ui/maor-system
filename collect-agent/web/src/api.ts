@@ -182,6 +182,7 @@ export const api = {
   team: () => j<Team>('/team'),
   setRole: (uid: number, role: Role) => j<Team>(`/team/${uid}/role`, { method: 'POST', body: JSON.stringify({ role }) }),
   deactivate: (uid: number) => j<Team>(`/team/${uid}/deactivate`, { method: 'POST' }),
+  reactivate: (uid: number) => j<Team>(`/team/${uid}/reactivate`, { method: 'POST' }),
   ownerDone: (id: number) => j<unknown>(`/owner/inbox/${id}/done`, { method: 'POST' }),
   // critic סבב 149: שיוך כרטיס כתובת משותפת (החלטה 5) — לקוח נבחר, או null = «אף אחד מהם»
   assignShared: (cardId: number, customerId: number | null) => j<unknown>(`/owner/shared-cards/${cardId}/assign`,

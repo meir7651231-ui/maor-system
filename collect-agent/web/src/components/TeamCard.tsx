@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useApp } from '../store.tsx';
 import { api } from '../api.ts';
 import { failPrefix } from '../lib/failure.ts';
-import { confirmText, ROLE_LABEL, roleButtonLabel, rowActions, teamVisible, type Role, type Team, type TeamUser } from '../lib/team.ts';
+import { confirmText, ROLE_LABEL, roleButtonLabel, rowActions, teamVisible, type TeamAct, type Team, type TeamUser } from '../lib/team.ts';
 import { Button, Card } from './ui.tsx';
 
 /** מנהל 328 (פתוח מ-327): ניהול תפקידים והשבתת עובדים — עד היום רק CLI. בעל העסק בלבד; כל שינוי נרשם ביומן
@@ -11,7 +11,7 @@ export function TeamCard() {
   const { mode, me, showToast, showFail } = useApp();
   const [team, setTeam] = useState<Team | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [armed, setArmed] = useState<{ id: number; act: Role | 'deactivate' } | null>(null);
+  const [armed, setArmed] = useState<{ id: number; act: TeamAct } | null>(null);
   const [busy, setBusy] = useState(false);
   const show = mode === 'live' && teamVisible(me);
   useEffect(() => {
@@ -23,12 +23,14 @@ export function TeamCard() {
   }, [show]);
   if (!show) return null;
 
-  const run = async (u: TeamUser, act: Role | 'deactivate') => {
+  const run = async (u: TeamUser, act: TeamAct) => {
     if (armed?.id !== u.id || armed.act !== act) { setArmed({ id: u.id, act }); return; }
     setBusy(true); setArmed(null);
     try {
-      setTeam(act === 'deactivate' ? await api.deactivate(u.id) : await api.setRole(u.id, act));
-      showToast(act === 'deactivate' ? `✓ ${u.name} הושבת` : `✓ ${u.name} עכשיו ${ROLE_LABEL[act]}`);
+      setTeam(act === 'deactivate' ? await api.deactivate(u.id)
+        : act === 'reactivate' ? await api.reactivate(u.id) : await api.setRole(u.id, act));
+      showToast(act === 'deactivate' ? `✓ ${u.name} הושבת`
+        : act === 'reactivate' ? `✓ ${u.name} הופעל מחדש כעובד` : `✓ ${u.name} עכשיו ${ROLE_LABEL[act]}`);
     } catch (e) { showFail(failPrefix('לא עודכן', (e as Error).message)); }
     setBusy(false);
   };
@@ -60,7 +62,11 @@ export function TeamCard() {
                   <Button size="sm" variant="danger" disabled={busy} data-testid={`team-off-${u.id}`}
                     onClick={() => void run(u, 'deactivate')}>{pending === 'deactivate' ? 'לחצו שוב לאישור' : 'השבתה'}</Button>
                 )}
-                {a.why && u.active && <span className="text-xs text-ink-500 w-full">{a.why}</span>}
+                {a.reactivate && (
+                  <Button size="sm" variant="outline" disabled={busy} data-testid={`team-on-${u.id}`}
+                    onClick={() => void run(u, 'reactivate')}>{pending === 'reactivate' ? 'לחצו שוב לאישור' : 'הפעלה מחדש'}</Button>
+                )}
+                {a.why && <span className="text-xs text-ink-500 w-full">{a.why}</span>}
                 {pending && <p role="status" className="text-xs text-amber-900 w-full" data-testid={`team-confirm-${u.id}`}>{confirmText(u, pending)}</p>}
               </li>
             );

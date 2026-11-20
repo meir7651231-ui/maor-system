@@ -1097,6 +1097,21 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                 "אם לא אתם השבתתם — בדקו מיד.", actor)
         return {"users": users.listing(), "me": _me_id(request)}
 
+    @app.post("/team/{uid}/reactivate", dependencies=auth)
+    def team_reactivate(uid: int, request: Request):
+        """מנהל 329: עובד שהושבת בטעות/חזר — בלי CLI. חוזר כעובד; התראה לבעל העסק שהמפעיל לא סוגר."""
+        _owner_only(request, "מפעיל עובדים מחדש")
+        try:
+            r = users.reactivate_id(uid, actor=request.state.actor)
+        except KeyError:
+            raise HTTPException(404, "אין עובד כזה") from None
+        if not r["was_active"]:
+            actor = request.state.actor
+            svc.notify_owner_sensitive(
+                f"עובד הופעל מחדש על ידי {actor}: {r['name']} — חזר כ«עובד» ויכול להיכנס שוב עם הסיסמה "
+                "והאימות הדו-שלבי שלו. אם לא אתם הפעלתם — בדקו מיד.", actor)
+        return {"users": users.listing(), "me": _me_id(request)}
+
     @app.post("/conversation/drafts/{did}/reject", dependencies=auth)
     def conversation_reject(did: int, request: Request):
         return guard(lambda: inbox.reject_draft(did, actor=request.state.actor))

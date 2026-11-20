@@ -1447,11 +1447,21 @@ test('מנהל 328 · פעולות לשורה: הבעלים האחרון מוג�
     { id: 1, name: 'א', email: 'a@x', role: 'owner', active: true, created_at: '' },
     { id: 2, name: 'דנה', email: 'b@x', role: 'staff', active: true, created_at: '' },
     { id: 3, name: 'ישן', email: 'c@x', role: 'staff', active: false, created_at: '' }] };
-  assert.deepEqual(rowActions(t, t.users[0]), { toggleRole: null, deactivate: false, why: 'בעל העסק הפעיל היחיד — קודם מנו בעלים נוסף' });
-  assert.deepEqual(rowActions(t, t.users[1]), { toggleRole: 'owner', deactivate: true, why: null });
-  assert.deepEqual(rowActions(t, t.users[2]), { toggleRole: null, deactivate: false, why: 'מושבת' });
+  assert.deepEqual(rowActions(t, t.users[0]), { toggleRole: null, deactivate: false, reactivate: false, why: 'בעל העסק הפעיל היחיד — קודם מנו בעלים נוסף' });
+  assert.deepEqual(rowActions(t, t.users[1]), { toggleRole: 'owner', deactivate: true, reactivate: false, why: null });
+  assert.deepEqual(rowActions(t, t.users[2]), { toggleRole: null, deactivate: false, reactivate: true, why: 'מושבת — חוזר כעובד' });
   const two: Team = { ...t, users: t.users.map(u => u.id === 2 ? { ...u, role: 'owner' as const } : u) };
-  assert.deepEqual(rowActions(two, two.users[0]), { toggleRole: 'staff', deactivate: false, why: 'זה אתם' });
-  assert.deepEqual(rowActions(two, two.users[1]), { toggleRole: 'staff', deactivate: true, why: null });
+  assert.deepEqual(rowActions(two, two.users[0]), { toggleRole: 'staff', deactivate: false, reactivate: false, why: 'זה אתם' });
+  assert.deepEqual(rowActions(two, two.users[1]), { toggleRole: 'staff', deactivate: true, reactivate: false, why: null });
   assert.match(confirmText(t.users[1], 'deactivate'), /דנה.*ינותקו/);
+});
+
+test('מנהל 329 · הפעלה מחדש: רק לשורה מושבתת, גם בעלים לשעבר חוזר כעובד, נוסח אישור', () => {
+  const t: Team = { me: 1, users: [
+    { id: 1, name: 'א', email: 'a@x', role: 'owner', active: true, created_at: '' },
+    { id: 4, name: 'שותף', email: 'd@x', role: 'owner', active: false, created_at: '' }] };
+  const a = rowActions(t, t.users[1]);
+  assert.equal(a.reactivate, true); assert.equal(a.toggleRole, null); assert.equal(a.deactivate, false);
+  assert.equal(rowActions(t, t.users[0]).reactivate, false);
+  assert.match(confirmText(t.users[1], 'reactivate'), /שותף.*כעובד/);
 });
