@@ -6,7 +6,7 @@
 
 **אימות:** 193🟡 תוקן ב-36d1acf0 (גוף הכרטיס מצטט את הכפתורים בפועל) ✓. שער d081d0d2 (הגדרות רגישות=בעלים) נבדק לעקיפות כעובדת (REQUIRE_USER_LOGIN=1 + TOTP): `/api/settings` מעורב ⇒ 403 ושום דבר לא נשמר; חגים בלבד ⇒ 200; נתיב העיצוב `/settings` — pay.page_url/reply_email/sms.sender/source.system/vat_id ⇒ 403; ייבוא CSV — אין עמודת payment_url ⇒ לא משנה קישור. השרת מחזיק ✓.
 
-**ממצא 🟡 (גבייה עיצוב):** מסע דפדפן כעובדת אמיתית (סשן /auth/login) ב-/app/#/settings — כל השדות הרגישים פתוחים לעריכה, בלי סימון. שינוי מייל התשובה ⇒ «שמירה בשרת» ⇒ «לא נשמר: רק בעל העסק יכול לשנות: כתובת התשובה (Reply-To)». ההגנה תקינה, החוויה לא: העובדת מגלה רק בסוף, ושינויים מותרים באותה שמירה נופלים איתה. `Settings.tsx` לא קורא את תפקיד המחובר בכלל (הדפוס קיים: `holdOwnerOnly`, `teamVisible`). xfail strict: `tests/test_critic_round194_staff_settings_ui.py`. צילומים: `docs/screens/critic-194-staff-settings.png`, `critic-194-staff-save-403.png`. ‏/ui — אין בו עריכת הגדרות, לא רלוונטי.
+**ממצא 🟡 (גבייה עיצוב):** מסע דפדפן כעובדת אמיתית (סשן /auth/login) ב-/app/#/settings — כל השדות הרגישים פתוחים לעריכה, בלי סימון. שינוי מייל התשובה ⇒ «שמירה בשרת» ⇒ «לא נשמר: רק בעל העסק יכול לשנות: כתובת התשובה (Reply-To)». ההגנה תקינה, החוויה לא: העובדת מגלה רק בסוף, ושינויים מותרים באותה שמירה נופלים איתה. `Settings.tsx` לא קורא את תפקיד המחובר בכלל (הדפוס קיים: `holdOwnerOnly`, `teamVisible`). xfail strict: `tests/test_critic_round194_staff_settings_ui.py`. צילומים: `docs/screens/critic-194-staff-settings.png`, `critic-194-staff-save-403.png`. /ui — אין בו עריכת הגדרות, לא רלוונטי.
 
 # סבב 193 · 20.11.2026 (לולאה) · בסיס `326491bc`
 
