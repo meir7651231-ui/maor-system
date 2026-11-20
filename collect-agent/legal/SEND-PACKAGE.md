@@ -42,5 +42,6 @@
 5. `DPA.md`: הסכם עיבוד מידע
 6. `INCIDENT-RUNBOOK.md`: נוהל אירוע אבטחה
 7. `BETA-GATE.md`: מה חייב להתקיים לפני נתונים אמיתיים
+8. `DATABASE-DEFINITION.md`: מסמך הגדרות מאגר (תקנה 2): מטרות, מקורות, גישה, כל הטבלאות ושמירה
 
 בנייה מחדש אחרי כל שינוי בטיוטות: `python3 scripts/legal_bundle.py`. בדיקה (`tests/test_legal_bundle.py`) נכשלת אם הקובץ המצורף לא מעודכן.

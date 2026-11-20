@@ -15,7 +15,7 @@ from pathlib import Path
 LEGAL = Path(__file__).resolve().parents[1] / "legal"
 OUT = LEGAL / "dist" / "gabi-legal-package.html"
 ORDER = ("LAWYER-BRIEF.md", "LAWYER-QUESTIONS.md", "TERMS.md", "PRIVACY.md", "DPA.md",
-         "INCIDENT-RUNBOOK.md", "BETA-GATE.md")
+         "INCIDENT-RUNBOOK.md", "BETA-GATE.md", "DATABASE-DEFINITION.md")
 DRAFT = "טיוטה – לבדיקת עו״ד"
 
 

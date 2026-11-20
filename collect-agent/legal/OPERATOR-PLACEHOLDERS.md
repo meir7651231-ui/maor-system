@@ -13,9 +13,10 @@
 | `GET /api/pay/{code}` → `/pay/{code}` ב-web | `legal.privacy_points` (בלי HTML) |
 | `app/golive.py` | חוסם המעבר לשליחה אמיתית כל עוד placeholder |
 
-## ב. סטטי — לעדכן ידנית (18 קבצים, נכון להיום)
+## ב. סטטי — לעדכן ידנית (19 קבצים, נכון להיום)
 | קובץ | איפה בקובץ |
 |---|---|
+| `legal/DATABASE-DEFINITION.md` | §1 תיאור כללי — המחזיק |
 | `legal/DPA.md` | צדדים בראש ההסכם |
 | `legal/PRIVACY.md` | §1 מי אנחנו, באנר |
 | `legal/TERMS.md` | §1 הצדדים, §18 קשר |
