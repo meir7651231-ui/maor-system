@@ -91,6 +91,7 @@ export async function detectBackend(): Promise<Health | null> {
 export interface DashRow {
   invoice_id: number; number: string; customer: string; phone: string; email: string;
   customer_id?: number; paused_reason?: string | null;
+  /** גבי עיצוב: מצב המייל — 'bounced' (חזר) / 'spam' (סומן ספאם) / null. חסר בשרת ישן. */ email_state?: 'bounced' | 'spam' | null;
   source?: 'api' | 'csv';
   amount_agorot: number; currency: string; due: string | null; status: 'open' | 'closed' | string;
   days_overdue: number; reminders_sent: number;
@@ -281,7 +282,7 @@ export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
   for (const r of d.invoices) {
     const cid = `c${r.invoice_id}`;
     customers.push({ id: cid, name: r.customer, phone: r.phone || undefined, email: r.email || undefined, optedOut: r.customer_block === 'opted_out',
-      backendId: r.customer_id, paused: r.paused_reason ?? null });
+      backendId: r.customer_id, paused: r.paused_reason ?? null, emailState: r.email_state ?? null });
     const status: InvoiceStatus = r.status !== 'open' ? 'paid'
       : r.customer_block === 'disputed' ? 'disputed'
       : r.customer_block === 'paid_claim' || r.customer_block === 'plan_active' ? 'promised'

@@ -55,7 +55,7 @@ iframe{width:100%;min-height:360px;border:1px solid var(--line);border-radius:10
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
 @media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
 .kpi .v{font-size:22px;font-weight:800}.kpi .l{color:var(--muted);font-size:13px}
-.kpi.warn .v{color:var(--warn)}.tbl{overflow-x:auto}
+.kpi.warn .v{color:var(--warn)}.estate{display:block;white-space:normal;min-width:220px;margin-top:4px;padding:4px 8px;border-radius:8px;font-size:12px;color:var(--warn);background:var(--warn-bg);max-width:340px}.estate.spam{color:var(--bad)}.estate a{display:inline-flex;align-items:center;min-height:40px;color:inherit;font-weight:700}.tbl{overflow-x:auto}
 button.resume,button.markpaid{display:block;white-space:nowrap;min-height:32px;padding:4px 10px;font-size:13px;margin-top:4px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:right;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -448,6 +448,12 @@ const norm=v=>String(v??"").replace(/[\u0591-\u05C7]/g,"").replace(/\s+/g," ").t
 let dQ="",qQ="";
 const DPAGE=50;
 let dRows=[],dAll=false,dLim=DPAGE;
+// גבי עיצוב: מצב המייל של הלקוח (email_state מ-/dashboard) — «חזר» / «סימן ספאם» + איפה מתקנים
+function estate(st){if(st!=="bounced"&&st!=="spam")return"";const spam=st==="spam";
+  return `<span class="estate${spam?" spam":""}" role="status" data-estate="${st}"><b>${spam?"🚫 הלקוח סימן את המייל כספאם":"📧 כתובת המייל לא פעילה (המייל חזר)"}</b> — ${
+    spam?"לפי החוק לא שולחים עוד מייל לכתובת הזו; SMS ממשיך. אם הכתובת שייכת לאדם אחר — תקנו אותה במקור החשבוניות."
+        :"גבי לא שולחת אליה מייל; SMS ממשיך. תקנו את הכתובת במקור החשבוניות (או בקובץ CSV), ואז «סנכרון»."}
+    <a href="/app/#/settings">לתיקון ←</a></span>`}
 function drawDebts(){
   const rows0=dRows,rows=dQ?rows0.filter(x=>found(dQ,x.customer,x.number,x.phone)):rows0,
     open=rows.filter(x=>x.status==="open"),pick=dAll?rows:open,el=$("#debts");
@@ -461,7 +467,7 @@ function drawDebts(){
   el.innerHTML=view.map(x=>{const L=x.last_reminder;
     const st=x.status!=="open"?"שולמה ונסגרה":x.customer_block?pause(x.customer_block)
       :L?chipOf(L):"טרם הוכנה";
-    return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}${
+    return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}${x.status==="open"?estate(x.email_state):""}${
     x.status==="open"&&x.paused_reason&&(x.customer_block===x.paused_reason||x.customer_block==="disputed")
       ?` <button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""}${PROTECT.has(String(x.paused_reason).split(":until=")[0])?' data-protect="1"':""} title="${PROTECT.has(String(x.paused_reason).split(":until=")[0])?"שימו לב: חידוש ישלח שוב תזכורות תשלום לאותו נייד/מייל. חדשו רק אחרי שבדקתם":"בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו"}">↻ חידוש תזכורות</button>`:""}</td><td>${esc(x.number)}${
     x.status==="open"?` <button class="markpaid" data-iid="${x.invoice_id}"${busy?" disabled":""} title="הלקוח שילם בביט/העברה/מזומן? החשבונית תיסגר כאן ולא יישלחו עליה תזכורות">✓ שולם מחוץ למערכת</button>`:""}</td>

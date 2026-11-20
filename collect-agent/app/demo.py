@@ -42,6 +42,8 @@ def demo_settings():
                           "PAYMENT_DOMAINS": "pay.example", "EMAIL_FROM": "gabi@example.com",
                           "EMAIL_REPLY_TO": "owner@example.com",
                           "GI_WEBHOOK_KEY": os.environ.get("GI_WEBHOOK_KEY", ""),   # webhook מה-mock
+                          # גבי עיצוב: bounce/ARF בבדיקת דפדפן (e2e/app-email-state.mjs). ריק ⇒ ה-webhook סגור (403)
+                          "EMAIL_WEBHOOK_KEY": os.environ.get("EMAIL_WEBHOOK_KEY", ""),
                           # שעון ההדגמה 8.11 ⇒ נותרו 9 ימים. DEMO_TRIAL_START=2026-10-28 ⇒ נותרו 3 (מציג trial_ending)
                           "TRIAL_START": os.environ.get("DEMO_TRIAL_START", "2026-11-03"),
                           # הקישור הקצר ב-SMS לחיץ בהדגמה (אותו פורט שעליו השרת רץ)

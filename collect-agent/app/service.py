@@ -1030,6 +1030,16 @@ class CollectService:
         return bool(addr) and self.db.one("SELECT 1 FROM suppressions WHERE hash=?",
                                           (self.addr_hash(channel, addr),)) is not None
 
+    def email_state(self, addr: str | None) -> str | None:
+        """גבי עיצוב: מצב כתובת המייל לתצוגה בטבלת החובות — 'spam' (הלקוח סימן ספאם ⇒ suppress, סעיף 30א,
+        לא שולחים שוב למייל הזה) · 'bounced' (bounce קבוע ⇒ הכתובת לא קיימת; לתקן במקור ⇒ גיבוב חדש) · None."""
+        if not addr:
+            return None
+        row = self.db.one("SELECT reason FROM suppressions WHERE hash=?", (self.addr_hash("email", addr),))
+        if row and row["reason"] == "spam_complaint":
+            return "spam"
+        return "bounced" if self.email_bounced(addr) else None
+
     def email_bounced(self, addr: str) -> bool:
         """critic 188: הכתובת החזירה bounce קבוע ⇒ לא שולחים אליה מייל (מוניטין שליחה + כתובת שתוקצה מחדש)."""
         return bool(addr) and self._table_exists("email_bounces") and self.db.one(
@@ -2921,7 +2931,7 @@ class CollectService:
     # id/step/status/block_reason/amount_drift (בלי invoice_ids/template_key/sent_at), ובלי series/send_window.
     DASH_LIST_INVOICE = ("invoice_id", "number", "customer", "customer_id", "paused_reason", "phone",
                          "amount_agorot", "currency", "due", "status", "days_overdue", "reminders_sent",
-                         "last_sent", "last_reminder", "customer_block")
+                         "last_sent", "last_reminder", "customer_block", "email_state")
     DASH_LIST_LAST = ("id", "step", "status", "block_reason", "amount_drift")
 
     def dashboard(self, view: str | None = None) -> dict:
@@ -2962,6 +2972,7 @@ class CollectService:
 
         def _channels(message_id: str | None) -> list[str]:
             return sorted({c for m in (message_id or "").split(",") if m for c in chans.get(m, ())})
+        estate: dict[str, str | None] = {}      # גבי עיצוב: מצב המייל פעם אחת לכתובת
         for r in self.db.q("SELECT i.*, c.name cname, c.phone cphone, c.email cemail, "
                            "c.opted_out, c.disputed, c.paused_reason FROM invoices i "
                            "JOIN customers c ON c.id=i.customer_id ORDER BY i.due, i.id"):
@@ -2997,7 +3008,10 @@ class CollectService:
                     # הפעלה 159: טבלת החובות הציגה «מאושרת» לתזכורת שהסכום שלה השתנה במקור, בזמן שהתור
                     # (157) כבר סימן אותה כמי שתחזור לאישור. אותו חישוב כמו ב-/preview וב-/reminders.
                     "amount_drift": self.reminder_amount_drift(last)},
-                "customer_block": block})
+                "customer_block": block,
+                # גבי עיצוב: «המייל חזר» / «סימן ספאם» בטבלה + פעולת תיקון (רק מצב, בלי הכתובת ב-view=list)
+                "email_state": estate[r["cemail"] or ""] if (r["cemail"] or "") in estate
+                else estate.setdefault(r["cemail"] or "", self.email_state(r["cemail"]))})
         open_rows = [x for x in rows if x["status"] == "open"]
         outbox = self.sender.sent
         closed_all = self.db.q("SELECT amount_agorot, currency, closed_at FROM invoices "
