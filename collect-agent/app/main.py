@@ -535,13 +535,19 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             body = await request.json()
         except ValueError:
             raise HTTPException(400, "JSON לא תקין") from None
-        if not isinstance(body, dict) or set(body) - {"still_open", "paid"}:
-            raise HTTPException(422, "גוף: {still_open: [id], paid: [id]}")
+        if not isinstance(body, dict) or set(body) - {"still_open", "paid", "due"}:
+            raise HTTPException(422, "גוף: {still_open: [id], paid: [id], due?: {id: YYYY-MM-DD}}")
         ids = {k: body.get(k, []) for k in ("still_open", "paid")}
         if not all(isinstance(v, list) and all(isinstance(i, int) and not isinstance(i, bool)
                                                for i in v) for v in ids.values()):
             raise HTTPException(422, "still_open/paid: רשימות של מזהי חשבונית (מספרים)")
-        return guard(lambda: svc.confirm_open_list(ids["still_open"], ids["paid"]))
+        # הכרעת רכז: תיקון מועד (בעיקר «מועד מוערך») לפני האישור. JSON ⇒ מפתחות מחרוזת
+        raw_due = body.get("due", {})
+        if not isinstance(raw_due, dict) or not all(
+                isinstance(k, str) and k.isdigit() and isinstance(v, str) for k, v in raw_due.items()):
+            raise HTTPException(422, "due: {מזהה חשבונית: YYYY-MM-DD}")
+        due = {int(k): v for k, v in raw_due.items()}
+        return guard(lambda: svc.confirm_open_list(ids["still_open"], ids["paid"], due=due))
 
     @app.get("/dashboard", dependencies=auth)
     def dashboard(request: Request, view: str | None = None):
