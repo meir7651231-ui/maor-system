@@ -168,6 +168,7 @@ const PROTECT=new Set(["minor","deceased","insolvency","distress","sensitive","l
 // לעובד/ת: הכפתור נעול ומסומן «🔒 בעל העסק בלבד» מראש (השרת אוכף ב-403). ME=null (לא נטען) ⇒ לא נועלים
 const OWNER_HOLDS=new Set(["minor","deceased","insolvency"]);let ME=null;
 const isStaff=()=>!!ME&&ME.kind==="user"&&ME.owner!==true;
+const holdOwnerOnly=r=>isStaff()&&OWNER_HOLDS.has(String(r||"").split(":",1)[0]);
 const OWNER_BADGE='<span class="ownerOnly">🔒 בעל העסק בלבד</span>';
 const pause=r=>{const [b,u]=String(r).split(":until=");const t=BLOCK[b]||PAUSE[b]||"מושהה עד שתבדקו";
   return u?t+" · עד "+u.split("-").reverse().join("."):t};
@@ -475,8 +476,7 @@ function drawDebts(){
       :L?chipOf(L):"טרם הוכנה";
     return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}${x.status==="open"?estate(x.email_state):""}${
     x.status==="open"&&x.paused_reason&&(x.customer_block===x.paused_reason||x.customer_block==="disputed")
-      ?(isStaff()&&OWNER_HOLDS.has(String(x.paused_reason).split(":",1)[0])
-        ?` <button class="resume" disabled data-owner-only="1" title="השהיה שבעל העסק סימן — רק הוא יכול לחדש">↻ חידוש תזכורות</button>${OWNER_BADGE}`
+      ?(holdOwnerOnly(x.paused_reason)?` <span data-testid="resume-owner-only"><button class="resume" disabled data-owner-only="1" title="השהיה שבעל העסק סימן — רק הוא יכול לחדש">↻ חידוש תזכורות</button>${OWNER_BADGE}</span>`
         :` <button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""}${PROTECT.has(String(x.paused_reason).split(":until=")[0])?' data-protect="1"':""} title="${PROTECT.has(String(x.paused_reason).split(":until=")[0])?"שימו לב: חידוש ישלח שוב תזכורות תשלום לאותו נייד/מייל. חדשו רק אחרי שבדקתם":"בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו"}">↻ חידוש תזכורות</button>`):""}</td><td>${esc(x.number)}${
     x.status==="open"?` <button class="markpaid" data-iid="${x.invoice_id}"${busy?" disabled":""} title="הלקוח שילם בביט/העברה/מזומן? החשבונית תיסגר כאן ולא יישלחו עליה תזכורות">✓ שולם מחוץ למערכת</button>`:""}</td>
     <td class="num">${esc(fmtCur(x.amount_agorot,x.currency))}</td><td>${esc(x.due||"")}</td>

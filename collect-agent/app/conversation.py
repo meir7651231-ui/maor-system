@@ -4000,7 +4000,8 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                 # סט #21b (מאותה הכרעה): ההבטחה שנרשמת = המועד שהתקבל (cap); המבוקש — requested_date, לבעל העסק
                 promise_date, requested_date = cap, dd
                 reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! רשמנו שהתשלום צפוי עד "
-                         f"{_he_date(dd)}. עד {_he_date(cap)} לא נשלח תזכורות, ונעדכן אתכם לגבי המועד המבוקש.{sig}")
+                         f"{_he_date(dd)}. עד {_he_date(cap)} לא נשלח תזכורות; בעל העסק יאשר את המועד המבוקש "
+                         f"ונעדכן אתכם.{sig}")   # הכרעת ראש צוות 20.11: התשובה אומרת שבעל העסק יאשר את התאריך
                 pause_until = cap + timedelta(days=1)
                 bump(Escalation.NORMAL, Stop.PAUSE)
                 state = State.PROMISED
