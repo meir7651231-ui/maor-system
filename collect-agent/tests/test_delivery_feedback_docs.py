@@ -252,7 +252,9 @@ def test_arf_rfc5965_b2_full_report():
 def test_arf_rfc5965_b1_without_recipient_needs_message_id(svc):
     c = parse_complaint("fbl@mail.example.com", ARF_B1, "")
     assert c == {"recipient": "", "message_ids": [], "type": "abuse"}
-    assert svc.email_webhook("fbl@mail.example.com", ARF_B1, "arf-b1")["complaint"] == "unmatched"
+    # מבקר 189: תלונה נקלטת רק עם Message-ID של מייל שלנו (נגד תלונות מזויפות). B.1 בלי ⇒ לא מאומתת
+    r = svc.email_webhook("fbl@mail.example.com", ARF_B1, "arf-b1")
+    assert r["complaint"] == "unverified" and r["reason"] == "no_message_id"
 
 
 def test_policy_reject_with_address_wording_still_keeps_address():
