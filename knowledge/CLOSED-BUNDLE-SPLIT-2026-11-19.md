@@ -32,7 +32,27 @@ react-dom ‏~85K (הכרחי) · `home/widgets.tsx` ‏~17K · `App.tsx` ‏~12
   Ctrl+K / ❓⇒בדיקת תקשורת / `#call=`) ותוכנו מופיע · בטעינת-הבית אף אחד מהם לא נטען מראש · אפס שגיאות-קונסולה ⇒ 10/10.
 - סוויטת e2e push המלאה (33 סקריפטים) על ה-build החדש.
 
-## נשאר (שלב ב׳, לא בוצע)
-`telephony/lib/*` (~26K לפני דחיסה-משותפת) עדיין בבנדל — נמשך ע"י `home/widgets.tsx` (`nextClosure`) ו-`src/lib/telephony/engine.ts`
-שמייבא גם את הסימולטור. פיצול = להפריד את `nextClosure`/`zmanim` מהמחולל/סימולטור (`telephony/lib.ts` דק לבית).
-נוגע במנוע-הטלפוניה (golden של 677 בדיקות) ⇒ אשכול נפרד.
+## שלב ב׳ (20.11.2026) — מנוע-הטלפוניה יצא מהבית
+**השורש:** ‏`home/widgets.tsx` (בבנדל הראשי) ייבא `nextClosure` (שורת "🕯️ הדלקת נרות" בראש הבית) מ-`components/telephony/lib.ts`,
+שמייבא את `engine.ts` ⇒ ‏`index.mjs` (מחולל) + `simulate.mjs` + `report.mjs` + ולידטור. ‏`nextClosure` צריך רק את `zmanim.mjs`.
+
+**מה נעשה:**
+- `src/lib/telephony/closure.ts` חדש — גשר דק: רק `zmanim.mjs` (+`hebcal`/`config` שהוא עצמו צריך); מ-`engine` רק `import type`.
+  גוף-`nextClosure` הועבר כמות-שהוא.
+- `components/telephony/lib.ts` מייצא-מחדש את `nextClosure` מהגשר ⇒ ה-API לא השתנה (פאנל-הטלפוניה, בדיקות).
+- `home/widgets.tsx` מייבא מהגשר-הדק.
+- תקרה 150K ⇒ **130K**.
+
+| | 19.11 בבוקר | אחרי שלב א׳ | **אחרי שלב ב׳** |
+|---|---:|---:|---:|
+| בנדל ראשי (gzip) | 159,656B | 131,548B | **112,798B** |
+| מצטבר | | −17.6% | **−29.4%** |
+
+**הוכחות:** ratchet `src/lib/telephony/__tests__/closure-split.test.ts` — פלט זהה בית-בבית למימוש המקורי מעל engine
+ב-**400 ימים רצופים × כל הערים + עיר חסרה/לא-קיימת** (מכסה תשרי ושנה שלמה), בלי telephony ⇒ null, אותה פונקציה דרך
+lib.ts, closure.ts בלי ייבוא-ריצה של engine/מחולל/סימולטור, הבית מייבא מהגשר (הוכח: widgets.tsx הישן מכשיל) ·
+golden הטלפוניה 677/677 · vitest 3243/3243 · e2e: שורת-הדלקת-הנרות מופיעה בבית (lazy-modals-smoke) + סוויטת push מלאה.
+
+## נשאר
+בבנדל: react-dom (~85K לפני דחיסה-משותפת, הכרחי), `home/widgets.tsx`+`homeData.ts`, `App.tsx`. אין עוד "פרי נמוך" מובהק —
+המשך = מדידה מחדש לפני כל פיצ'ר כבד.

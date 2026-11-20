@@ -26,8 +26,8 @@ describe('bundle-split — מודאלים נטענים בפתיחה', () => {
     expect(wrapped.length).toBe(uses.length);
   });
 
-  it('תקרת-הבנדל ירדה ל-150KB (יורדת-בלבד)', () => {
+  it('תקרת-הבנדל ירדה ל-130KB (יורדת-בלבד; 150K ב-19.11, 130K ב-20.11)', () => {
     const m = /ENTRY_GZIP_BUDGET = ([\d_]+)/.exec(budget);
-    expect(Number(m?.[1].replace(/_/g, ''))).toBeLessThanOrEqual(150_000);
+    expect(Number(m?.[1].replace(/_/g, ''))).toBeLessThanOrEqual(130_000);
   });
 });
