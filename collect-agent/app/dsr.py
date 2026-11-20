@@ -50,7 +50,18 @@ _ACCESS = re.compile(r"(לעיין|עיון)\s+(ב|על\s+)?(כל\s+)?(ה)?(מי
                      r"\b(access|copy of)\s+(my|the)\s+(personal\s+)?data\b|\bsubject access\b|"
                      r"\bwhat\s+(personal\s+)?(information|data|info|details)\s+do\s+you\s+(have|hold|keep)"
                      r"\s+(about|on)\s+me\b|"
-                     r"\b" + _DATA_EN + r"\s+" + _HOLD_EN + r"\s+(?:about|on)\s+me\b", re.I)
+                     r"\b" + _DATA_EN + r"\s+" + _HOLD_EN + r"\s+(?:about|on)\s+me\b|"
+                     # מנהל 333 (מבקר 183 🟡): ניסוח יומיומי — «מה אתם יודעים עליי», «what do you know about me»,
+                     # «show me my data». עוגן «עליי/about me» או «my data» נשמר («show me my invoice» לא נרשם).
+                     r"(?:מה|כמה|איזה\s+דברים)\s+(?:אתם|את|אתה|אתן)\s+"
+                     r"(?:יודעים|יודעת|יודע|יודעות)\s+" + _ABOUT_ME_HE + r"|"
+                     r"\bwhat\s+(?:else\s+)?(?:do|did)\s+(?:you|u|ya)\s+(?:guys\s+)?(?:know|have|hold|keep|store)"
+                     r"\s+(?:about|on)\s+me\b|"
+                     r"\b(?:show|send|give|email)\s+me\s+(?:a\s+copy\s+of\s+)?(?:all\s+)?(?:of\s+)?my\s+"
+                     r"(?:personal\s+)?(?:data|information|info|records)\b|"
+                     r"(?:תראו|תראי|הראו|שלחו|תשלחו|תשלחי)\s+" + _FILL_REQ_HE +
+                     r"(?:את\s+)?(?:כל\s+)?(?:ה)?(?:מידע|נתונים)\s+"
+                     r"(?:שלי|" + _ABOUT_ME_HE + r")", re.I)
 _CORRECT = re.compile(r"(לתקן|תיקון)\s+(את\s+)?(ה)?(מידע|פרטים|נתונים)|סעיף\s*14|"
                       r"(תקנו|תתקנו|תקני|תתקני|עדכנו|תעדכנו)\s+" + _FILL_REQ_HE + r"(את\s+)?(ה)?(מידע|פרטים|נתונים)"
                       r"(\s+שלי|\s+" + _ABOUT_ME_HE + r")?|"
