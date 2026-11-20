@@ -116,11 +116,12 @@ def test_resume_button_is_off_during_header_action():
     """חידוש ללקוח מושהה באמצע סנכרון / הכנה / שליחה שינה את מצב הלקוח מתחת לפעולה שרצה. הכפתור כבוי כמו כפתורי
     ההחלטה: גם זה שכבר על המסך (hdr), גם שורה שנבנית מחדש באמצע הפעולה (התבנית), וגם לחיצה שעקפה (המאזין)."""
     hdr = SRC[SRC.index("function hdr(){"):SRC.index("function busyOff()")]
-    assert '"#debts button.resume").forEach(b=>{b.disabled=busy||!!b.dataset.going})' in hdr
+    # גבי עיצוב (195ג): כפתור «בעל העסק בלבד» (data-owner-only) נשאר כבוי גם כשפעולת הכותרת מסתיימת
+    assert '"#debts button.resume").forEach(b=>{b.disabled=busy||!!b.dataset.going||!!b.dataset.ownerOnly})' in hdr
     row = SRC[SRC.index('el.innerHTML=view.map(x=>{const L=x.last_reminder;'):SRC.index("// חידוש ללקוח מושהה")]
     assert '<button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""}' in row
     click = SRC[SRC.index('$("#debts").addEventListener("click"'):SRC.index("// הפעלה 142")]
-    assert 'closest("button.resume");if(!b||busy)return;' in click
+    assert 'closest("button.resume");if(!b||busy||b.dataset.ownerOnly)return;' in click
     # כפתור שהבקשה שלו באוויר לא נדלק כשפעולת כותרת מסתיימת באמצע
     assert click.index('b.dataset.going="1"') < click.index("await api(`/customers/")
 

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useApp } from '../store.tsx';
 import { api } from '../api.ts';
-import { Button, Card } from './ui.tsx';
+import { Button, Card, OwnerBadge } from './ui.tsx';
+import { dsrCloseLocked } from '../lib/roles.ts';
 import { failPrefix } from '../lib/failure.ts';
 import { DSR_NOTE_MIN, dsrCanClose, dsrSorted, dsrView, type DsrRow } from '../lib/dsr.ts';
 
@@ -51,8 +52,9 @@ export function DsrRegister() {
 }
 
 function DsrItem({ r, onDone }: { r: DsrRow; onDone: () => Promise<void> }) {
-  const { reload, showToast, showFail } = useApp();
+  const { reload, showToast, showFail, me } = useApp();
   const v = dsrView(r);
+  const locked = dsrCloseLocked(me, r.kind);   // מחיקה = בעל העסק בלבד (השרת: 403)
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const close = async () => {
@@ -75,8 +77,10 @@ function DsrItem({ r, onDone }: { r: DsrRow; onDone: () => Promise<void> }) {
           placeholder="למשל: נשלח ללקוח קובץ הייצוא במייל ב-19.11" aria-label={`תיעוד סגירת בקשת ה${v.kind} של ${v.who}`}
           className="mt-1 w-full rounded-xl border border-ink-200 p-2.5 text-sm focus:border-brand focus:ring-2 focus:ring-brand/30 outline-none" />
       </label>
-      <div className="flex justify-end mt-2">
-        <Button size="sm" data-testid="dsr-close" disabled={busy || !dsrCanClose(note)} onClick={() => void close()}>✓ טופל — סגירת הבקשה</Button>
+      <div className="flex flex-wrap items-center justify-end gap-1 mt-2">
+        {locked && <span className="text-xs text-ink-700 me-auto" data-testid="dsr-close-owner-only">סגירת בקשת מחיקה מאשרת שהמידע נמחק — רק בעל העסק.</span>}
+        <Button size="sm" data-testid="dsr-close" disabled={locked || busy || !dsrCanClose(note)} onClick={() => void close()}>✓ טופל — סגירת הבקשה</Button>
+        {locked && <OwnerBadge testId="dsr-owner-badge" />}
       </div>
     </li>
   );

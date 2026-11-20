@@ -56,3 +56,8 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
     </button>
   );
 }
+
+/** תג «🔒 בעל העסק בלבד» — אותו דפוס בכל המסכים (הגדרות, חידוש השהיית-בעלים, ייצוא, סגירת בקשת מחיקה). */
+export function OwnerBadge({ testId = 'owner-only-badge' }: { testId?: string }) {
+  return <span data-testid={testId} className="ms-2 align-middle whitespace-nowrap rounded-full bg-ink-100 px-2 py-0.5 text-xs font-bold text-ink-700">🔒 בעל העסק בלבד</span>;
+}
