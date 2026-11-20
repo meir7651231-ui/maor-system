@@ -24,7 +24,6 @@ from .config import SafetyError, Settings, load_settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient
 from .integrations.base import jstr
-from .policy import OWNER_HOLDS
 from .ratelimit import RateLimiter, group_for
 from .service import CollectService, RealDataBlocked
 from .templates import SLOGAN, TAGLINE
@@ -87,6 +86,10 @@ class EmailIn(BaseModel):
 class DraftEdit(BaseModel):
     body: str | None = None
     confirm_amount: bool = False   # critic סבב 48: סכום חריג ⇒ אישור מפורש
+
+
+class EmailBounceIn(BaseModel):
+    confirm: bool                     # True = הכתובת לא תקינה (חסימת מייל) · False = המיילים חוזרים
 
 
 class HoldIn(BaseModel):
@@ -582,13 +585,18 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/customers/{cid}/resume", dependencies=auth)
     def resume(cid: int, request: Request):
-        # critic סבב 191א: השהיה שבעל העסק סימן (OWNER_HOLDS — קטין/פטירה/חדלות פירעון = «השהיה קשה», ר-6) בוטלה
-        # ע״י עובד/ת בשקט ⇒ תזכורות חזרו למשפחת נפטר/ת. ביטול השהיית-בעלים = בעל העסק בלבד; שאר ההשהיות פתוחות.
+        # critic סבב 191א: השהיה שבעל העסק סימן (OWNER_HOLDS — קטין/פטירה/חדלות פירעון, ר-6 «השהיה קשה») בוטלה ע״י
+        # עובד/ת בשקט ⇒ תזכורות למשפחת נפטר/ת. ביטול השהיית-בעלים = בעל העסק בלבד; השהיות אחרות — כמו קודם
+        from .policy import OWNER_HOLDS
         c = svc.db.one("SELECT paused_reason FROM customers WHERE id=?", (cid,))
-        if c and c["paused_reason"] in OWNER_HOLDS and not request.state.is_owner:
-            svc.audit(request.state.actor, "resume_refused_owner_hold", {"customer": cid, "hold": c["paused_reason"]})
+        if c and (c["paused_reason"] or "").split(":", 1)[0] in OWNER_HOLDS and not request.state.is_owner:
+            svc.audit(request.state.actor, "owner_hold_resume_refused", {"customer": cid})
             raise HTTPException(403, "רק בעל העסק יכול לבטל השהיה שהוא סימן (קטין / פטירה / חדלות פירעון)")
         return guard(svc.resume_customer, cid, request.state.actor)
+
+    @app.post("/customers/{cid}/email-bounce", dependencies=auth)
+    def customer_email_bounce(cid: int, b: EmailBounceIn, request: Request):   # q22-04: הכרעת בעל העסק
+        return guard(svc.confirm_email_bounce, cid, b.confirm, request.state.actor)
 
     @app.post("/customers/{cid}/opt-out", dependencies=auth)
     def customer_opt_out(cid: int, request: Request):                  # critic סבב 97
@@ -1008,18 +1016,14 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         link = orbit.link()
         return {"linked": bool(link), **(link or {})}
 
-    def _orbit_owner_only(request: Request, action: str) -> None:
-        # critic סבב 191ב: עובד/ת הנפיק/ה סוד-מסירה לאורביט לכל org (רוטציה מבטלת את הסוד של בעל העסק) וביטל/ה
-        # קישור — בשקט. קישור החשבון = בעל העסק בלבד, כמו /team ו-restore-hold.
-        if not request.state.is_owner:
-            svc.audit(request.state.actor, action, {})
-            raise HTTPException(403, "רק בעל העסק מנהל את הקישור לאורביט")
-
     @app.post("/orbit/link/secret", dependencies=auth)
     def orbit_link_secret(b: OrbitSecretIn, request: Request):
         """הנפקה/רוטציה של סוד-המסירה (מוחזר **פעם אחת**; המנהל מדביק אותו באורביט).
         רוטציה מבטלת את הסוד הקודם מיד."""
-        _orbit_owner_only(request, "orbit_secret_refused")   # critic סבב 191ב
+        # critic סבב 191ב: עובד/ת הנפיק/ה סוד-מסירה לכל org (רוטציה מבטלת את הסוד של בעל העסק) ⇒ בעלים בלבד
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, "orbit_secret_refused", {})
+            raise HTTPException(403, "רק בעל העסק מקשר את גבי לאורביט")
         rotating = bool(orbit.link())
         try:
             secret = orbit.issue_secret(b.org, at=svc.clock().isoformat())
@@ -1034,7 +1038,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/orbit/link/unlink", dependencies=auth)
     def orbit_unlink(request: Request):
-        _orbit_owner_only(request, "orbit_unlink_refused")   # critic סבב 191ב
+        if not request.state.is_owner:   # critic סבב 191ב
+            svc.audit(request.state.actor, "orbit_unlink_refused", {})
+            raise HTTPException(403, "רק בעל העסק מבטל את הקישור לאורביט")
         link = orbit.link()
         try:
             done = orbit.unlink()

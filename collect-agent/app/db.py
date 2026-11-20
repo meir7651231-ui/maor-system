@@ -83,6 +83,11 @@ CREATE TABLE IF NOT EXISTS suppressions (
 CREATE TABLE IF NOT EXISTS email_bounces (
   hash TEXT PRIMARY KEY, created_at TEXT NOT NULL
 );
+-- הכרעת מקשר (q22-04): DSN שלא אומת (בלי Message-ID שלנו) אבל Final-Recipient תואם לקוח ⇒ השהיית מייל בלבד
+-- עד שבעל העסק מאשר (⇒ email_bounces) או דוחה. גיבוב כמו email_bounces; שום שינוי קבוע בלי אישור
+CREATE TABLE IF NOT EXISTS email_bounce_review (
+  hash TEXT PRIMARY KEY, customer_id INTEGER, code TEXT, created_at TEXT NOT NULL
+);
 -- הגדרות עסק (API מאומת). סודות לא נשמרים כאן — רק בסביבה/בכספת
 CREATE TABLE IF NOT EXISTS business_settings (
   key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
