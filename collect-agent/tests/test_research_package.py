@@ -86,3 +86,22 @@ def test_global_competitors_sourced():
                       ("Paidnice", "paidnice.com/pricing")):
         row = next(ln for ln in sec.splitlines() if ln.startswith(f"| **{name}**"))
         assert url in row and "נקרא 19.11.2026" in row, name
+
+
+def test_fit_model_arithmetic_and_beta_verdicts():
+    """market.md §3.6 (ביקורת: «האם נועה קהל יעד ב-₪119?»): נקודת האיזון נגזרת מההנחות הכתובות,
+    וכל משבצת בטא מסומנת ✅/🟡/❌ — אם מישהו משנה הנחה בלי לעדכן את המסקנה, הבדיקה נכשלת."""
+    m = re.search(r"fit-model: hour_value=(\d+) minutes_per_reminder=(\d+(?:\.\d+)?) "
+                  r"reminders_per_open=(\d+(?:\.\d+)?) breakeven_gross=(\d+) breakeven_net=(\d+)", MARKET)
+    assert m, "חסר סימון fit-model ב-§3.6"
+    hour, mins, per_open, be_gross, be_net = (float(x) for x in m.groups())
+    per_invoice = hour * mins / 60 * per_open
+    assert round(119 / per_invoice) == be_gross
+    assert round(101 / per_invoice) == be_net          # ₪119 כולל 18% מע"מ ⇒ ~₪101 נטו
+    assert "נועה" in MARKET.split("### 3.6")[1].split("## 4.")[0] and "❌ **לא קהל יעד ב-₪119.**" in MARKET
+    txt = (ROOT / "team" / "beta-profiles-30.md").read_text(encoding="utf-8")
+    rows = [ln for ln in txt.splitlines() if re.match(r"^\| \d+ \|", ln)]
+    verdicts = [r.split("|")[7].strip()[:1] for r in rows]
+    assert len(rows) == 30 and set(verdicts) <= {"✅", "🟡", "❌"}
+    counts = {v: verdicts.count(v) for v in "✅🟡❌"}
+    assert f"✅ {counts['✅']} · 🟡 {counts['🟡']} · ❌ {counts['❌']}" in txt, counts
