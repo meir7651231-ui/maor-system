@@ -231,7 +231,22 @@ _DSN_RECIPIENT = re.compile(r"^(?:final|original)-recipient:\s*(?:rfc822;\s*)?<?
                             re.IGNORECASE | re.MULTILINE)
 _DSN_STATUS = re.compile(r"^status:\s*([245])\.\d{1,3}\.\d{1,3}", re.IGNORECASE | re.MULTILINE)
 _ARF_MSGID = re.compile(r"^message-id:\s*<*([^<>\s]+@[^<>\s]+?)>*\s*$", re.IGNORECASE | re.MULTILINE)
-_MSGID = re.compile(r"^message-id:\s*(<[^<>\s]+@[^<>\s]+>)", re.IGNORECASE | re.MULTILINE)
+# Message-ID של ההודעה המקורית בתוך ה-DSN/ARF (בכותרות המוחזרות, או Original-Message-ID). מנורמל ל-<id>
+_MSGID_RAW = re.compile(r"^(?:original-)?message-id:\s*<*([^<>\s]+@[^<>\s]+?)>*\s*$", re.IGNORECASE | re.MULTILINE)
+
+
+class _MsgIds:
+    @staticmethod
+    def findall(text: str) -> list[str]:
+        out: list[str] = []
+        for m in _MSGID_RAW.findall(text or ""):
+            v = f"<{m}>"
+            if v not in out:
+                out.append(v)
+        return out
+
+
+_MSGID = _MsgIds()
 # NDR קריא בלבד (Exchange/Outlook; learn.microsoft.com «How to interpret an Exchange NDR»): בלי Status:/
 # Final-Recipient: — הקוד מופיע בתוך שורת האבחון («#5.7.1 smtp;530 5.7.1 …») והנמען בשורה שאחרי הכותרת
 _ENH_CODE = re.compile(r"(?<![\d.])([245])\.(\d{1,3})\.(\d{1,3})(?![\d.])")

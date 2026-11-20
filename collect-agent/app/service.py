@@ -2563,6 +2563,7 @@ class CollectService:
             return {"ok": True, **self._email_complaint(complaint)}
         bounce = parse_bounce(sender, text, subject)
         if bounce is not None:
+            bounce["auth"] = email_auth_verdict(auth_results)
             # מייל שחזר: לא תשובת לקוח (לא «שולח לא מוכר»). מסמנים את המייל המקורי ומתריעים לבעל העסק
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
                       " VALUES(NULL,'webhook','email','bounce',?,?)", (key, _iso(self.clock())))
@@ -2633,21 +2634,33 @@ class CollectService:
         return {"complaint": "suppressed", "customer": cid}
 
     def _email_bounce(self, b: dict) -> dict:
-        """bounce ⇒ המייל היוצא שחזר: לפי Message-ID המקורי (מדויק), אחרת המייל האחרון לנמען.
-        5.x.x ⇒ 'failed' + התראה (פעם אחת) · 4.x.x ⇒ 'delayed', בלי התראה. בלי הסרה אוטומטית."""
-        row = None
+        """bounce ⇒ המייל היוצא שחזר. 5.x.x ⇒ 'failed' + התראה (פעם אחת) · 4.x.x ⇒ 'delayed'.
+
+        critic 190 / QA סט #22 (כמו ARF ב-189): DSN נקלט **רק** כשהוא מתייחס למייל ששלחנו — ה-Message-ID המקורי
+        (בכותרות המוחזרות / Original-Message-ID) תואם רשומת שליחה, ו-Final-Recipient (כשמופיע) תואם לכתובת שאליה
+        נשלח בפועל — ושום אימות של הדומיין לא **נכשל** במפורש (spf/dkim/dmarc=fail). אחרת ⇒ audit בלבד, בלי שינוי
+        מצב. בלי Authentication-Results בכלל ⇒ נקלט (ה-Message-ID האקראי הוא ההגנה מזיוף; נרשם auth_missing).
+        אין יותר נפילה ל«המייל האחרון לנמען» — זה מה שאפשר לזייף."""
+        row = sent_to = None
         for mid in b["message_ids"]:
             row = self.db.one("SELECT * FROM messages WHERE direction='out' AND channel='email' "
                               "AND provider_id=?", (mid,))
             if row:
+                try:
+                    sent_to = clean_email(json.loads(row["payload"] or "{}").get("to") or "")
+                except ValueError:
+                    sent_to = None
                 break
-        if row is None and b["recipient"]:
-            row = self.db.one("SELECT m.* FROM messages m JOIN customers c ON c.id=m.customer_id "
-                              "WHERE m.direction='out' AND m.channel='email' AND lower(c.email)=? "
-                              "ORDER BY m.id DESC LIMIT 1", (b["recipient"].lower(),))
-        if row is None:
-            self.audit("system", "email_bounce_unmatched", {"permanent": b["permanent"]})
-            return {"bounce": "unmatched"}
+        auth = b.get("auth") or {"verified": False, "spf": "none", "dkim": "none", "dmarc": "none"}
+        failed_auth = not auth["verified"] and "fail" in (auth["spf"], auth["dkim"], auth["dmarc"])
+        why = ("no_message_id" if not b["message_ids"] else "not_our_message" if row is None else
+               "recipient_mismatch" if b["recipient"] and sent_to and clean_email(b["recipient"]) != sent_to else
+               "auth_failed" if failed_auth else None)
+        if why:
+            self.audit("system", "email_bounce_unverified", {"permanent": b["permanent"], "reason": why})
+            return {"bounce": "unverified", "reason": why}
+        if auth["verified"] is False and not failed_auth:
+            self.audit("system", "email_bounce_auth_missing", {"message": row["id"]})
         if not b["permanent"]:
             return {"bounce": "delayed", "matched": True}
         if row["delivery_status"] == "failed":
