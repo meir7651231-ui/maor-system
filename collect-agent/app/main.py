@@ -24,6 +24,7 @@ from .config import SafetyError, Settings, load_settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient
 from .integrations.base import jstr
+from .policy import OWNER_HOLDS
 from .ratelimit import RateLimiter, group_for
 from .service import CollectService, RealDataBlocked
 from .templates import SLOGAN, TAGLINE
@@ -581,6 +582,12 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/customers/{cid}/resume", dependencies=auth)
     def resume(cid: int, request: Request):
+        # critic סבב 191א: השהיה שבעל העסק סימן (OWNER_HOLDS — קטין/פטירה/חדלות פירעון = «השהיה קשה», ר-6) בוטלה
+        # ע״י עובד/ת בשקט ⇒ תזכורות חזרו למשפחת נפטר/ת. ביטול השהיית-בעלים = בעל העסק בלבד; שאר ההשהיות פתוחות.
+        c = svc.db.one("SELECT paused_reason FROM customers WHERE id=?", (cid,))
+        if c and c["paused_reason"] in OWNER_HOLDS and not request.state.is_owner:
+            svc.audit(request.state.actor, "resume_refused_owner_hold", {"customer": cid, "hold": c["paused_reason"]})
+            raise HTTPException(403, "רק בעל העסק יכול לבטל השהיה שהוא סימן (קטין / פטירה / חדלות פירעון)")
         return guard(svc.resume_customer, cid, request.state.actor)
 
     @app.post("/customers/{cid}/opt-out", dependencies=auth)
@@ -1001,10 +1008,18 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         link = orbit.link()
         return {"linked": bool(link), **(link or {})}
 
+    def _orbit_owner_only(request: Request, action: str) -> None:
+        # critic סבב 191ב: עובד/ת הנפיק/ה סוד-מסירה לאורביט לכל org (רוטציה מבטלת את הסוד של בעל העסק) וביטל/ה
+        # קישור — בשקט. קישור החשבון = בעל העסק בלבד, כמו /team ו-restore-hold.
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, action, {})
+            raise HTTPException(403, "רק בעל העסק מנהל את הקישור לאורביט")
+
     @app.post("/orbit/link/secret", dependencies=auth)
     def orbit_link_secret(b: OrbitSecretIn, request: Request):
         """הנפקה/רוטציה של סוד-המסירה (מוחזר **פעם אחת**; המנהל מדביק אותו באורביט).
         רוטציה מבטלת את הסוד הקודם מיד."""
+        _orbit_owner_only(request, "orbit_secret_refused")   # critic סבב 191ב
         rotating = bool(orbit.link())
         try:
             secret = orbit.issue_secret(b.org, at=svc.clock().isoformat())
@@ -1019,6 +1034,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/orbit/link/unlink", dependencies=auth)
     def orbit_unlink(request: Request):
+        _orbit_owner_only(request, "orbit_unlink_refused")   # critic סבב 191ב
         link = orbit.link()
         try:
             done = orbit.unlink()

@@ -55,8 +55,17 @@ def test_real_bounce_with_original_message_id_blocks(svc, clock):
     assert r.get("bounce") == "failed" and _blocked(svc)
 
 
-def test_real_bounce_double_brackets_and_forwarded_final_recipient(svc, clock):
+def test_real_bounce_double_brackets_blocks(svc, clock):
+    mid = _sent(svc, clock).strip("<>")
+    r = svc.email_webhook("MAILER-DAEMON@mx.example", _dsn(DANA, f"Message-ID: <<{mid}>>"),
+                          "rb-2", subject="Undelivered Mail Returned to Sender")
+    assert r.get("bounce") == "failed" and _blocked(svc)
+
+
+def test_forwarded_final_recipient_is_unverified_not_blocked(svc, clock):
+    # מיזוג מנהל 341: שני תיקונים מקבילים ל-190א. נבחר ceb012d8 (בענף האינטגרציה): Final-Recipient שונה מהכתובת
+    # שאליה שלחנו ⇒ unverified (audit, בלי חסימה) — הכיוון הבטוח. ב-bffb64f זה נחסם. פתוח לביקורת (העברה/כינוי).
     mid = _sent(svc, clock).strip("<>")
     r = svc.email_webhook("MAILER-DAEMON@mx.example", _dsn("forwarded@elsewhere.example", f"Message-ID: <<{mid}>>"),
-                          "rb-2", subject="Undelivered Mail Returned to Sender")
-    assert r.get("bounce") == "failed" and _blocked(svc)          # הכתובת שאנחנו שלחנו אליה, לא ה-Final-Recipient
+                          "rb-3", subject="Undelivered Mail Returned to Sender")
+    assert r.get("bounce") == "unverified" and r.get("reason") == "recipient_mismatch" and not _blocked(svc)
