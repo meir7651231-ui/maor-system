@@ -3057,6 +3057,9 @@ class CollectService:
             "sms" if is_il_mobile(normalize_il_phone(cust["phone"])) else "email")
         if not self.inbox._addr(cust, channel):
             return None
+        # מבקר 198🟡: כל הודעה ללקוח נפתחת בשם העסק (§3.1 סעיף 1) — כמו התשובה המקורית ו-`approve_draft`.
+        from .conversation import Context, frame  # noqa: PLC0415
+        body = frame(body, Context(today=self.clock().date(), business=self.s.business_name, channel=channel))
         did = self.db.x(
             "INSERT INTO drafts(customer_id,channel,to_addr,body,intent,status,escalate,owner_summary,"
             "owner_actions,created_at,total_agorot) VALUES(?,?,?,?, 'promise', 'pending_approval', 'none', ?, "

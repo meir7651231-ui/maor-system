@@ -23,7 +23,6 @@ def _req(text):
     return getattr(d, "requested_date", None) or d.promise_date
 
 
-@pytest.mark.xfail(strict=True, reason="198🔴: «ב-D.M» במשפט ההבטחה ⇒ D בחודש הקרוב (החודש/השנה נזרקים)")
 @pytest.mark.parametrize(("text", "want"), [
     ("אשלם ב-10.12", date(2026, 12, 10)),
     ("אעביר ב-15.1", date(2027, 1, 15)),
@@ -35,7 +34,6 @@ def test_dotted_full_date_in_promise_clause(text, want):
     assert _req(text) == want
 
 
-@pytest.mark.xfail(strict=True, reason="198🔴: «אשלם ב-10.12» ⇒ ללקוח «עד 10.11» והשהיה עד 11.11")
 def test_inbound_reply_and_pause_use_requested_month(svc):
     svc.sync()
     r = svc.inbound("sms", "050-1234567", "אשלם ב-10.12")

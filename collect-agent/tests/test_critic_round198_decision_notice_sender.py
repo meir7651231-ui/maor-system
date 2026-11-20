@@ -35,7 +35,6 @@ def test_control_original_promise_reply_opens_with_business(svc):
     assert body.startswith(svc.s.business_name)
 
 
-@pytest.mark.xfail(strict=True, reason="198: עדכון ההכרעה נשלח ללקוח בלי שם העסק («שלום דנה, בעל העסק…»)")
 @pytest.mark.parametrize("approve", [True, False])
 @pytest.mark.parametrize("sent_first", [True, False])
 def test_decision_update_opens_with_business_name(svc, approve, sent_first):
