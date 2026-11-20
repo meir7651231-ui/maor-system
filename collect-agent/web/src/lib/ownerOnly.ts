@@ -10,5 +10,5 @@ export const OWNER_ONLY_TAG = '🔒 בעל העסק בלבד';
 /** עובד/ת מחובר/ת שאינו/ה בעל העסק. me=null (מוק/לפני טעינה) ⇒ לא נועלים; השרת אוכף בכל מקרה. */
 export const isStaff = (me: Me | null) => settingsOwnerOnly(me);
 /** חידוש השהיה נעול לעובד/ת כשזו השהיה שבעל העסק סימן (קטין / פטירה / חדלות פירעון). */
-export const resumeLocked = (me: Me | null, paused: string | null | undefined) =>
+export const resumeOwnerOnly = (me: Me | null, paused: string | null | undefined) =>
   isStaff(me) && OWNER_HOLDS.includes((paused ?? '').split(':')[0]);

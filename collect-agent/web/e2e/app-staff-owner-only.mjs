@@ -81,6 +81,21 @@ try {
     await p.getByTestId('data-export').first().waitFor();
     await p.close();
   }
+  // מבקר 195ג — /ui: עובדת רואה תג «רק בעל העסק» במקום «חידוש»; בעל העסק (טוקן משותף) רואה את הכפתור
+  for (const [who, tok] of [['staff', staffTok], ['owner', TOKEN]]) {
+    const ctx = await b.newContext({ viewport: { width: 1366, height: 900 } });
+    await ctx.addInitScript(t => { try { sessionStorage.setItem('gabi_owner_token', t); } catch { /* */ } }, tok);
+    const u = await ctx.newPage();
+    u.on('pageerror', e => errors.push(String(e)));
+    await u.goto(base + '/ui');
+    await u.locator('#debts tr').first().waitFor();
+    const row = u.locator('#debts tr', { hasText: dead.name });
+    await row.first().waitFor();
+    const locked = await row.getByTestId('resume-owner-only').count(), btn = await row.locator('button.resume').count();
+    ok(who === 'staff' ? locked === 1 && btn === 0 : locked === 0 && btn === 1, `/ui ${who}: תג=${locked} כפתור=${btn}`);
+    if (out && who === 'staff') { await row.first().scrollIntoViewIfNeeded(); await u.screenshot({ path: `${out}/ui-staff-resume-owner-only.png` }); }
+    await ctx.close();
+  }
   // q21-19 — בעל העסק בתיבת התשובות: «בדוק ואשר» ⇒ לאשר
   const q = await page({ width: 1366, height: 900 }, 'inbox', TOKEN);
   await q.getByTestId('promise-request').first().waitFor();
@@ -91,5 +106,5 @@ try {
   const audit = await (await fetch(`${base}/audit`, { headers: H })).json();
   ok(audit.some(a => a.action === 'promise_request_approved'), 'האישור לא נרשם');
   ok(!errors.length, 'שגיאות: ' + errors.join(' | '));
-  console.log('✓ app-staff-owner-only: חידוש השהיית-בעלים וייצוא נעולים לעובדת (+תג), פתוחים לבעלים; «בדוק ואשר» על הבטחה מעל 14 יום אושר — דסקטופ+390, אפס שגיאות');
+  console.log('✓ app-staff-owner-only: חידוש השהיית-בעלים (/app/ ו-/ui) וייצוא נעולים לעובדת (+תג), פתוחים לבעלים; «בדוק ואשר» על הבטחה מעל 14 יום אושר — דסקטופ+390, אפס שגיאות');
 } finally { await b.close(); srv.kill(); }

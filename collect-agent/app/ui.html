@@ -63,6 +63,7 @@ th{color:var(--muted);font-weight:600;font-size:12px}td.num{font-variant-numeric
 tr.closed td{color:var(--muted);text-decoration:line-through}
 .late{color:var(--bad);font-weight:600}
 button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size:13px}
+.ownonly{display:inline-block;margin-top:4px;font-size:12px;font-weight:700;white-space:normal}
 .loaderr{display:flex;flex-wrap:wrap;align-items:center;gap:12px;max-width:1168px;margin:16px auto 0;padding:0 16px;font-weight:600}
 .loaderr[hidden]{display:none}.loaderr span{flex:1;min-width:200px}
 .sk{display:block;height:14px;border-radius:6px;background:var(--chip);animation:sk 1.2s ease-in-out infinite}
@@ -164,6 +165,10 @@ const PAUSE={paid_claim:"כתב/ה ששילם/ה. בדקו בחשבון ואז �
   foreign_language:"כתב/ה בשפה זרה. כדאי לענות אישית"};
 // critic סבב 155: חידוש בסיבה מגינה (קטין/נפטר/חדלות/מצוקה/רגיש/משפטי) ⇒ אזהרה מפורשת. זהה ל-PROTECTIVE ב-/app/.
 const PROTECT=new Set(["minor","deceased","insolvency","distress","sensitive","legal"]);
+// מבקר 195ג: השהיה שבעל העסק סימן (= app/policy.py OWNER_HOLDS) — עובד/ת לא מחדש/ת (השרת: 403, critic 191א) ⇒ במקום
+// הכפתור תג «רק בעל העסק». ME מ-/auth/me (פעם אחת); בלי ME (טוקן משותף / שגיאה) ⇒ הכפתור כרגיל, השרת אוכף.
+const OWNER_HOLDS=new Set(["minor","deceased","insolvency"]);let ME;
+const holdOwnerOnly=r=>!!ME&&ME.kind==="user"&&ME.owner!==true&&OWNER_HOLDS.has(String(r||"").split(":")[0]);
 const pause=r=>{const [b,u]=String(r).split(":until=");const t=BLOCK[b]||PAUSE[b]||"מושהה עד שתבדקו";
   return u?t+" · עד "+u.split("-").reverse().join("."):t};
 const BLOCK={no_contact:"אין נייד או מייל תקין",compliance:"נחסם במסנן הניסוח",plan_active:"בהסדר תשלומים",disputed:"מחלוקת",no_payment_link:"אין קישור תשלום",
@@ -258,6 +263,7 @@ function failed(e,show){if(e.auth)return;if(!e.unknown)return show(e.message);
   delete $("#wunkMsg").dataset.fresh;$("#wunkMsg").textContent=e.message;$("#wunk").hidden=false;load(false)}
 async function loadDash(ask){
   const d=await api("/dashboard?view=list",{},ask);if(locked)return;const t=d.totals;
+  if(ME===undefined){try{ME=await api("/auth/me",{},false)}catch(e){ME=null}}
   const tr=d.trial||{};
   {const h=d.holidays||{},w=$("#holWarn"),ok=/^\d{4}-\d{2}-\d{2}$/;
    if(h.until&&ok.test(h.until)&&ok.test(d.today||"")&&(h.expiring||h.until<d.today)){
@@ -469,7 +475,7 @@ function drawDebts(){
       :L?chipOf(L):"טרם הוכנה";
     return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}${x.status==="open"?estate(x.email_state):""}${
     x.status==="open"&&x.paused_reason&&(x.customer_block===x.paused_reason||x.customer_block==="disputed")
-      ?` <button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""}${PROTECT.has(String(x.paused_reason).split(":until=")[0])?' data-protect="1"':""} title="${PROTECT.has(String(x.paused_reason).split(":until=")[0])?"שימו לב: חידוש ישלח שוב תזכורות תשלום לאותו נייד/מייל. חדשו רק אחרי שבדקתם":"בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו"}">↻ חידוש תזכורות</button>`:""}</td><td>${esc(x.number)}${
+      ?(holdOwnerOnly(x.paused_reason)?` <span class="ownonly" data-testid="resume-owner-only" title="השהיה שבעל העסק סימן — רק הוא מחדש">🔒 רק בעל העסק מחדש (קטין/פטירה/חדלות פירעון)</span>`:` <button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""}${PROTECT.has(String(x.paused_reason).split(":until=")[0])?' data-protect="1"':""} title="${PROTECT.has(String(x.paused_reason).split(":until=")[0])?"שימו לב: חידוש ישלח שוב תזכורות תשלום לאותו נייד/מייל. חדשו רק אחרי שבדקתם":"בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו"}">↻ חידוש תזכורות</button>`):""}</td><td>${esc(x.number)}${
     x.status==="open"?` <button class="markpaid" data-iid="${x.invoice_id}"${busy?" disabled":""} title="הלקוח שילם בביט/העברה/מזומן? החשבונית תיסגר כאן ולא יישלחו עליה תזכורות">✓ שולם מחוץ למערכת</button>`:""}</td>
     <td class="num">${esc(fmtCur(x.amount_agorot,x.currency))}</td><td>${esc(x.due||"")}</td>
     <td class="${x.days_overdue>0?"late":""}">${x.days_overdue>0?x.days_overdue+" ימים":"—"}</td>

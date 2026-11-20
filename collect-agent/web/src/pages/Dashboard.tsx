@@ -17,7 +17,7 @@ import { ALREADY_PLAN, alreadyDone, failPrefix, type Already } from '../lib/fail
 import { mockAmountCheck } from '../lib/policy.ts';
 import { areaPath, cumulative, otherInSeries, toBars, type Bar } from '../lib/series.ts';
 import { BOUNCE_REVIEW } from '../lib/notices.ts';
-import { OWNER_ONLY_TAG, resumeLocked } from '../lib/ownerOnly.ts';
+import { OWNER_ONLY_TAG, resumeOwnerOnly } from '../lib/ownerOnly.ts';
 
 const AGING_COLOR: Record<Aging, string> = { notDue: 'bg-ink-400', d0_30: 'bg-due', d31_60: 'bg-late', d61_90: 'bg-red-500', d90p: 'bg-red-700' };
 
@@ -408,7 +408,7 @@ function NeedsYou() {
             <div className="font-bold"><span aria-hidden>⏸️</span> {c.name}</div>
             <div className="text-ink-700 text-xs mt-0.5">{pauseLabel(c.paused!)}</div>
             {resumeWarning(c.paused!) && <div className="text-amber-800 text-xs mt-0.5 font-bold" data-testid="resume-warning">{resumeWarning(c.paused!)}</div>}
-            {resumeLocked(me, c.paused) ? (
+            {resumeOwnerOnly(me, c.paused) ? (
               // מבקר 195: השהיה שבעל העסק סימן — עובד/ת לא מחדש/ת (השרת: 403, critic 191א) ⇒ כפתור נעול + תג
               <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="resume-locked">
                 <Button size="sm" variant="outline" disabled aria-disabled="true" title="רק בעל העסק מחדש השהיה שהוא סימן">↻ חידוש תזכורות</Button>

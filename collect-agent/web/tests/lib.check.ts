@@ -1566,14 +1566,14 @@ test('q21-19: «בדוק ואשר» על מועד מעבר ל-14 — מזוהה 
 });
 
 test('מבקר 195: חידוש השהיית-בעלים נעול לעובד/ת בלבד', async () => {
-  const { resumeLocked } = await import('../src/lib/ownerOnly.ts');
+  const { resumeOwnerOnly } = await import('../src/lib/ownerOnly.ts');
   const staff = { actor: 'user:2', kind: 'user' as const, name: 'עובד' };
   const ownerUser = { ...staff, owner: true };
   const token = { actor: 'owner', kind: 'owner' as const, name: 'בעלים' };
-  for (const h of ['deceased', 'minor', 'insolvency']) assert.equal(resumeLocked(staff, h), true, h);
-  assert.equal(resumeLocked(staff, 'paid_claim'), false);
-  assert.equal(resumeLocked(staff, 'promise:until=2026-11-23'), false);
-  assert.equal(resumeLocked(ownerUser, 'deceased'), false);
-  assert.equal(resumeLocked(token, 'deceased'), false);
-  assert.equal(resumeLocked(null, 'deceased'), false);
+  for (const h of ['deceased', 'minor', 'insolvency']) assert.equal(resumeOwnerOnly(staff, h), true, h);
+  assert.equal(resumeOwnerOnly(staff, 'paid_claim'), false);
+  assert.equal(resumeOwnerOnly(staff, 'promise:until=2026-11-23'), false);
+  assert.equal(resumeOwnerOnly(ownerUser, 'deceased'), false);
+  assert.equal(resumeOwnerOnly(token, 'deceased'), false);
+  assert.equal(resumeOwnerOnly(null, 'deceased'), false);
 });

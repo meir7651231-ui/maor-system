@@ -9,8 +9,6 @@
 import re
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[1]
 ROLE = re.compile(r"OWNER_HOLDS|ownerHold|OwnerHold|holdOwnerOnly|me\??\.owner\b|OwnerOnly|isOwner")
 
@@ -25,11 +23,9 @@ def _code(p: Path) -> str:
     return "\n".join(out)
 
 
-@pytest.mark.xfail(strict=True, reason="195ג: /app/ מציג לעובד/ת «חידוש» על השהיית-בעלים ונדחה רק אחרי אישור")
 def test_app_dashboard_knows_owner_holds():
     assert ROLE.search(_code(ROOT / "web" / "src" / "pages" / "Dashboard.tsx"))
 
 
-@pytest.mark.xfail(strict=True, reason="195ג: /ui מציג לעובד/ת «חידוש» על השהיית-בעלים ונדחה רק בשרת")
 def test_ui_knows_owner_holds():
     assert ROLE.search(_code(ROOT / "app" / "ui.html"))
