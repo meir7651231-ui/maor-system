@@ -5,15 +5,14 @@
 הסדר על חשבונית $500 ⇒ GET /plans מחזיר installments באגורות **בלי מטבע** ⇒ בעל העסק רואה בכרטיס האישור «2 תשלומים…
 סה״כ 500 ₪ · 1. 15.11 — 250 ₪» ומאשר — ואז (185) גם ההודעה ללקוח יוצאת בשקלים. [מאומת: התשובה של /plans בלי שדה
 currency; ב-Dashboard.tsx שורות 410–412 ו-234 משתמשות ב-fmtIls בלבד.] הצעה: `currency` לכל הסדר ב-/plans (מטבע
-החשבוניות שלו), ו-`fmtMoney(amount, currency)` בשני הכרטיסים. xfail(strict=True); הבקרה (שקל) נשארת ירוקה."""
-import pytest
+החשבוניות שלו), ו-`fmtMoney(amount, currency)` בשני הכרטיסים.
+תוקן ב-`916a6a96` (מנהל 335) במקביל לסבב — הבדיקה נשארת כשמירה."""
 from fastapi.testclient import TestClient
 
 from app.main import create_app
 from tests.conftest import AUTH, OWNER_TOKEN
 
 
-@pytest.mark.xfail(strict=True, reason="critic 186: GET /plans בלי מטבע ⇒ הסדר בדולר מוצג לבעל העסק בשקלים")
 def test_plans_api_carries_currency(svc, fake_gi):
     fake_gi.docs[0]["currency"] = "USD"
     fake_gi.docs[0]["amount"] = "500.00"
