@@ -15,6 +15,8 @@
 - ✅ תלונת ספאם על מייל (ARF, RFC 5965) ⇒ suppress למייל של הנמען + התראה לבעל העסק (30א: סימון ספאם = סירוב); SMS לא נעצר אוטומטית. — `feaf6bd`
 - ✅ bounce/ARF/DLR ממופים לכל ספק שבשימוש מול התיעוד (019 · InforU · SMTP/DSN/NDR · ARF): DLR של 019 בלי type נבלע + קודים מספריים ⇒ unknown · InforU בלי DeliveryNotificationUrl · NDR של Exchange לא זוהה · 5.7.x חסם כתובת תקינה — תוקנו (team/integrations §17). — `92f4fab`
 - ✅ bounce מזויף (QA סט #22 / critic 190): DSN נקלט רק עם Message-ID של מייל שלנו + Final-Recipient תואם + בלי כשל אימות מפורש; אחרת audit בלבד. נפילה ל«המייל האחרון לנמען» הוסרה. — `ceb012d`
+- ✅ q22-04: DSN שלא אומת עם Final-Recipient של לקוח ⇒ השהיית מייל בלבד + כרטיס «בדוק ואשר» (`/customers/{cid}/email-bounce`); שום שינוי קבוע בלי אישור. — (hash בקומיט הבא)
+- ❓ q22-10 (מדיניות): 5.7.1 = לחסום כתובת? היום לא (דחיית מדיניות ≠ כתובת מתה, `92f4fab`) — הכרעת מקשר.
 - 🧱 019: הגדרת push_url לכל סוג (`&type=dlr|incoming_sms|blacklist`) ביום ההשקה — מאיר/חשבון.
 - 🧱 מסמך API של InforU (DLR + קודים) — מאיר, יחד עם 019.
 - 🧱 מסמך API של 019 + חשבון בדיקה (מאיר).

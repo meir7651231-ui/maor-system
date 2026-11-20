@@ -1050,10 +1050,59 @@ class CollectService:
             return "spam" if h in spam else "bounced" if h in bounced else None
         return state
 
-    def email_bounced(self, addr: str) -> bool:
-        """critic 188: הכתובת החזירה bounce קבוע ⇒ לא שולחים אליה מייל (מוניטין שליחה + כתובת שתוקצה מחדש)."""
+    def email_bounce_confirmed(self, addr: str) -> bool:
+        """critic 188: הכתובת החזירה bounce קבוע (מאומת, או שבעל העסק אישר) ⇒ חסומה למייל עד שהכתובת משתנה."""
         return bool(addr) and self._table_exists("email_bounces") and self.db.one(
             "SELECT 1 FROM email_bounces WHERE hash=?", (self.addr_hash("email", addr),)) is not None
+
+    def email_bounce_pending(self, addr: str) -> bool:
+        """q22-04: DSN לא מאומת על הכתובת ⇒ מייל מושהה עד הכרעת בעל העסק (לא קבוע)."""
+        return bool(addr) and self._table_exists("email_bounce_review") and self.db.one(
+            "SELECT 1 FROM email_bounce_review WHERE hash=?", (self.addr_hash("email", addr),)) is not None
+
+    def email_bounced(self, addr: str) -> bool:
+        """לא שולחים מייל לכתובת: bounce קבוע **או** ממתין להכרעת בעל העסק (השהיה בלבד; SMS ממשיך)."""
+        return self.email_bounce_confirmed(addr) or self.email_bounce_pending(addr)
+
+    def confirm_email_bounce(self, customer_id: int, confirm: bool, actor: str = "owner") -> dict:
+        """בעל העסק מכריע על DSN שלא אומת: confirm ⇒ הכתובת חסומה למייל (email_bounces) · אחרת ⇒ ההשהיה
+        מוסרת והמיילים חוזרים. בשני המקרים הכרטיס נסגר."""
+        c = self.db.one("SELECT email FROM customers WHERE id=?", (customer_id,))
+        if not c:
+            raise KeyError(customer_id)
+        if not self.email_bounce_pending(c["email"] or ""):
+            raise ValueError("אין מייל ממתין לבדיקה ללקוח הזה")
+        h, now = self.addr_hash("email", c["email"]), _iso(self.clock())
+        if confirm:
+            self.db.x("INSERT OR IGNORE INTO email_bounces(hash,created_at) VALUES(?,?)", (h, now))
+        self.db.x("DELETE FROM email_bounce_review WHERE hash=?", (h,))
+        self.db.x("UPDATE messages SET needs_owner=0 WHERE intent='email_bounce_review' AND customer_id=?",
+                  (customer_id,))
+        self.audit(actor, "email_bounce_confirmed" if confirm else "email_bounce_dismissed",
+                   {"customer": customer_id})
+        return {"customer": customer_id, "email": "blocked" if confirm else "resumed"}
+
+    def _hold_unverified_bounce(self, b: dict) -> list[int]:
+        """q22-04: DSN שלא אומת, קבוע (5.x), ו-Final-Recipient תואם לקוח קיים ⇒ השהיית מייל ללקוח + כרטיס «בדוק
+        ואשר». לא email_bounces (זה קבוע) — זיוף לכל היותר משהה מייל עד שבעל העסק דוחה."""
+        if not (b["permanent"] and b["recipient"]):
+            return []
+        held: list[int] = []
+        now = _iso(self.clock())
+        h = self.addr_hash("email", b["recipient"])
+        for c in self.db.q("SELECT id, name, email FROM customers WHERE email IS NOT NULL AND purged_at IS NULL"):
+            if self.addr_hash("email", c["email"]) != h:
+                continue
+            new = self.db.update("INSERT OR IGNORE INTO email_bounce_review(hash,customer_id,code,created_at) "
+                                 "VALUES(?,?,?,?)", (h, c["id"], b.get("code", ""), now)) == 1
+            if new:
+                self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at)"
+                          " VALUES(?,'system','email',?, 'email_bounce_review', 1, ?)",
+                          (c["id"], f"ייתכן שהמייל של {c['name'] or 'הלקוח'} לא תקין (התקבלה הודעת החזרה שלא אומתה). "
+                           "מיילים אליו מושהים עד שתבדוק/י: «אישור» = הכתובת תיחסם למייל · «דחייה» = המיילים "
+                           "חוזרים. SMS ממשיך.", now))
+            held.append(c["id"])
+        return held
 
     def gate(self, cust, channel: str, to: str, *, opt_out_ack: bool = False) -> str | None:
         """כל הודעה יוצאת עוברת כאן: תזכורת, תשובה, אישור פריסה. None ⇒ מותר עכשיו.
@@ -1781,6 +1830,7 @@ class CollectService:
                     if self.addr_hash("email", o["email"]) == h]
             if not live:
                 self.db.x("DELETE FROM email_bounces WHERE hash=?", (h,))
+                self.db.x("DELETE FROM email_bounce_review WHERE hash=?", (h,))
 
     def _scrub_sent_log(self, cust) -> None:
         """critic סבב 75 (ר-10): רשומות יומן ה-dry-run (`sender.sent`, /outbox) של לקוח שהותמם — נשחרות במקום:
@@ -2597,6 +2647,7 @@ class CollectService:
         if auth["verified"] and self._table_exists("email_bounces"):
             # critic 188: מייל מאומת מהכתובת = היא חיה ⇒ מסירים את סימון ה-bounce (לא על מייל שאולי מזויף)
             self.db.x("DELETE FROM email_bounces WHERE hash=?", (self.addr_hash("email", addr),))
+            self.db.x("DELETE FROM email_bounce_review WHERE hash=?", (self.addr_hash("email", addr),))
         self.audit("system", "email_auth", {"message": key[:80], **auth})
         before = self.db.one("SELECT COALESCE(MAX(id), 0) AS m FROM messages")["m"]
         out = self.inbound("email", addr, body)
@@ -2674,7 +2725,8 @@ class CollectService:
                "auth_failed" if failed_auth else None)
         if why:
             self.audit("system", "email_bounce_unverified", {"permanent": b["permanent"], "reason": why})
-            return {"bounce": "unverified", "reason": why}
+            held = self._hold_unverified_bounce(b)
+            return {"bounce": "unverified", "reason": why, **({"review": True} if held else {})}
         if auth["verified"] is False and not failed_auth:
             self.audit("system", "email_bounce_auth_missing", {"message": row["id"]})
         if not b["permanent"]:
