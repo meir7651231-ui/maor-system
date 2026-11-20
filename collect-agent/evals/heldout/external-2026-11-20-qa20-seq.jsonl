@@ -1,0 +1,31 @@
+{"id": "q20-01", "channel": "sms", "critical": true, "turns": [{"text": "תמחקו את כל המידע שלי מהמאגר שלכם", "expect": {"dsr": ["deletion"]}}]}
+{"id": "q20-02", "channel": "email", "critical": true, "turns": [{"text": "מחקו בבקשה את הפרטים שלי. שילמתי הכול כבר בחודש שעבר.", "expect": {"dsr": ["deletion"], "not": ["plan_accept"]}}]}
+{"id": "q20-03", "channel": "sms", "critical": true, "turns": [{"text": "שלחו לי את כל המידע שיש לכם עליי", "expect": {"dsr": ["access"]}}]}
+{"id": "q20-04", "channel": "email", "critical": true, "turns": [{"text": "תקנו את הפרטים שלי — השם הנכון הוא דנה כהן-לוי, לא דנה כהן", "expect": {"dsr": ["correction"]}}]}
+{"id": "q20-05", "channel": "email", "critical": true, "turns": [{"text": "I want you to erase everything you have on me.", "expect": {"dsr": ["deletion"]}}]}
+{"id": "q20-06", "channel": "sms", "critical": true, "turns": [{"text": "Send me all the data you hold about me", "expect": {"dsr": ["access"]}}]}
+{"id": "q20-07", "channel": "email", "critical": true, "turns": [{"text": "Delete my phone number and email from your records please", "expect": {"dsr": ["deletion"]}}]}
+{"id": "q20-08", "channel": "sms", "critical": true, "turns": [{"text": "אל תמחקו את הפרטים שלי, אני עוד אשלם", "expect": {"dsr": [], "not": ["opt_out"]}}]}
+{"id": "q20-09", "channel": "email", "critical": true, "turns": [{"text": "לא ביקשתי למחוק שום מידע, רק לדחות את התשלום בשבועיים", "expect": {"dsr": [], "not": ["opt_out"]}}]}
+{"id": "q20-10", "channel": "sms", "critical": true, "turns": [{"text": "אני לא מבקשת לעיין במידע, רק לדעת כמה נשאר לשלם", "expect": {"dsr": []}}]}
+{"id": "q20-11", "channel": "email", "critical": true, "turns": [{"text": "בשום אופן לא למחוק את ההיסטוריה שלי, אני צריכה אותה לרואה החשבון", "expect": {"dsr": [], "not": ["opt_out"]}}]}
+{"id": "q20-12", "channel": "sms", "critical": false, "turns": [{"text": "אין צורך לתקן את הפרטים, הכול נכון", "expect": {"dsr": []}}]}
+{"id": "q20-13", "channel": "email", "critical": true, "turns": [{"text": "Please do not delete my details, I still need the invoices for my taxes.", "expect": {"dsr": [], "not": ["opt_out"]}}]}
+{"id": "q20-14", "channel": "sms", "critical": true, "turns": [{"text": "no need to erase my data, just stop the texts", "expect": {"dsr": [], "intent": "opt_out", "stop": "permanent"}}]}
+{"id": "q20-15", "channel": "email", "critical": true, "turns": [{"text": "I never asked you to delete my information. Who told you that?", "expect": {"dsr": []}}]}
+{"id": "q20-16", "channel": "sms", "critical": true, "turns": [{"text": "לא, תמחקו את המידע שלי", "expect": {"dsr": ["deletion"]}}]}
+{"id": "q20-17", "channel": "email", "critical": true, "turns": [{"text": "Don't forget to delete my data once I've paid.", "expect": {"dsr": ["deletion"]}}]}
+{"id": "q20-18", "channel": "sms", "critical": true, "turns": [{"text": "אל תמחקו כלום", "expect": {"dsr": []}}, {"text": "בעצם כן, תמחקו את כל הנתונים שלי", "expect": {"dsr": ["deletion"]}}]}
+{"id": "q20-19", "channel": "email", "critical": true, "turns": [{"text": "I'd like to see what information you have about me.", "expect": {"dsr": ["access"]}}, {"text": "Also please correct my address details, I moved to Haifa.", "expect": {"dsr": ["access", "correction"]}}]}
+{"id": "q20-20", "channel": "sms", "critical": true, "turns": [{"text": "תמחקו את המידע שלי", "expect": {"dsr": ["deletion"]}}, {"text": "שוב: תמחקו את המידע שלי!!", "expect": {"dsr": ["deletion"]}}]}
+{"id": "q20-21", "channel": "email", "critical": true, "shared": "email", "turns": [{"text": "זה יוסי. תמחקו את כל המידע של דנה מהמאגר", "expect": {"dsr": ["deletion"]}}]}
+{"id": "q20-22", "channel": "email", "critical": true, "shared": "email", "turns": [{"text": "אני דנה, תמחקו את הפרטים שלי", "expect": {"dsr": ["deletion"]}}]}
+{"id": "q20-23", "channel": "email", "critical": true, "shared": "email", "turns": [{"text": "Hi, this is Dana. I already paid everything, delete my data.", "expect": {"dsr": ["deletion"], "not": ["plan_accept"]}}]}
+{"id": "q20-24", "channel": "email", "critical": true, "shared": "email", "turns": [{"text": "שילמתי", "expect": {"dsr": [], "not": ["plan_accept", "opt_out"]}}]}
+{"id": "q20-25", "channel": "email", "critical": true, "shared": "email", "turns": [{"text": "אל תמחקו שום דבר, זה יוסי", "expect": {"dsr": []}}]}
+{"id": "q20-26", "channel": "sms", "critical": true, "shared": "sms", "turns": [{"text": "תשלחו לי את כל המידע שיש לכם עליי", "expect": {"dsr": ["access"]}}]}
+{"id": "q20-27", "channel": "email", "critical": true, "shared": "email", "turns": [{"text": "I am Dana Cohen's attorney. Delete all data you hold about my client and cease contact.", "expect": {"intent": "legal", "escalate": "urgent"}}]}
+{"id": "q20-28", "channel": "sms", "critical": true, "turns": [{"text": "תמחקו את ההודעה הקודמת ששלחתי, טעיתי בסכום", "expect": {"dsr": [], "not": ["opt_out"]}}]}
+{"id": "q20-29", "channel": "email", "critical": false, "turns": [{"text": "Please delete the old invoice and send me the corrected one.", "expect": {"dsr": [], "not": ["opt_out"]}}]}
+{"id": "q20-30", "channel": "sms", "critical": false, "turns": [{"text": "אפשר לראות את הפירוט של החוב?", "expect": {"dsr": [], "not": ["opt_out"]}}]}
+{"id": "q20-31", "channel": "email", "critical": true, "turns": [{"text": "Please forget me — remove me from your system completely.", "expect": {"dsr": ["deletion"], "stop": "permanent"}}]}
