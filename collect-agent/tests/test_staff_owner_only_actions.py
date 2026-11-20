@@ -18,9 +18,7 @@ def test_export_owner_only(svc, clock, monkeypatch):
 def test_dsr_deletion_close_owner_only_access_still_open(svc, clock, monkeypatch):
     api, hdr = _api(svc, clock, monkeypatch)
     staff, owner = hdr("staff"), hdr("owner")
-    # פתיחת בקשת מחיקה ידנית — גם היא בעל העסק בלבד (הכרעת ראש צוות, סט #22b)
-    req = {"kind": "deletion", "note": "ביקש מחיקה"}
-    assert api.post("/customers/1/dsr", json=req, headers=staff).status_code == 403
+    # פתיחת בקשת מחיקה ידנית = בעלים בלבד (סט #22b, 56bda8ca) ⇒ בעל העסק פותח, עובד/ת מנסה לסגור
     dele = api.post("/customers/1/dsr", json={"kind": "deletion", "note": "ביקש מחיקה"}, headers=owner).json()["id"]
     acc = api.post("/customers/1/dsr", json={"kind": "access", "note": "ביקש עותק"}, headers=staff).json()["id"]
     r = api.post(f"/dsr/{dele}/done", json={"note": "נמחק מהמערכת"}, headers=staff)

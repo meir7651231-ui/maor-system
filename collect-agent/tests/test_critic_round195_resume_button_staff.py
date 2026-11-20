@@ -11,7 +11,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ROLE = re.compile(r"OWNER_HOLDS|ownerHold|OwnerHold|holdOwnerOnly|me\??\.owner\b|OwnerOnly|isOwner")
+ROLE = re.compile(r"OWNER_HOLDS|ownerHold|OwnerHold|holdOwnerOnly|me\??\.owner\b|OwnerOnly|isOwner|resumeLocked")
 
 
 def _code(p: Path) -> str:

@@ -81,6 +81,28 @@ try {
     await p.getByTestId('data-export').first().waitFor();
     await p.close();
   }
+  // סגירת בקשת **מחיקה** במרשם = בעל העסק בלבד (מבקר 195ג, הוחזר מענף העיצוב שמוזג): בעל העסק פותח מחיקה + עיון;
+  // השרת דוחה עובדת ב-403 גם בעקיפה; /app/#/inbox ו-/ui — מחיקה נעולה + תג, עיון נשאר פתוח לעובדת
+  const SH = { Authorization: `Bearer ${staffTok}`, 'Content-Type': 'application/json' };
+  const openDsr = async kind => { const r = await fetch(`${base}/customers/${dead.id}/dsr`, { method: 'POST', headers: H, body: JSON.stringify({ kind, note: 'בדיקת e2e' }) });
+    ok(r.ok, `פתיחת ${kind}: ${r.status}`); return (await r.json()).id; };
+  const delId = await openDsr('deletion'); await openDsr('access');
+  ok((await fetch(`${base}/dsr/${delId}/done`, { method: 'POST', headers: SH, body: JSON.stringify({ note: 'נמחק לגמרי' }) })).status === 403, 'סגירת מחיקה כעובדת לא נחסמה בשרת');
+  for (const [name, vp] of [['desktop', { width: 1366, height: 900 }], ['mobile', { width: 390, height: 844 }]]) {
+    const p = await page(vp, 'inbox', staffTok);
+    await p.getByTestId('dsr-row').first().waitFor();
+    const del = p.getByTestId('dsr-row').filter({ hasText: 'מחיקת' }).first(), acc = p.getByTestId('dsr-row').filter({ hasText: 'עיון' }).first();
+    await del.getByTestId('dsr-note').fill('נמחק מכל המערכות');
+    ok(await del.getByTestId('dsr-close').isDisabled() && await del.getByTestId('dsr-owner-badge').count() === 1, `${name}: סגירת מחיקה לא נעולה/בלי תג`);
+    await acc.getByTestId('dsr-note').fill('נשלח עותק במייל');
+    ok(!(await acc.getByTestId('dsr-close').isDisabled()) && await acc.getByTestId('dsr-owner-badge').count() === 0, `${name}: עיון ננעל בטעות`);
+    ok(await p.evaluate(() => document.documentElement.scrollWidth - innerWidth) <= 0, `${name}: גלילה רוחבית במרשם`);
+    if (out) await del.screenshot({ path: `${out}/staff-dsr-delete-locked-${name}.png` });
+    await p.close();
+  }
+  { const p = await page({ width: 1366, height: 900 }, 'inbox', TOKEN);
+    await p.getByTestId('dsr-row').first().waitFor();
+    ok(await p.getByTestId('dsr-owner-badge').count() === 0, 'בעלים: סגירת מחיקה נעולה'); await p.close(); }
   // מבקר 195ג — /ui: עובדת רואה תג «רק בעל העסק» במקום «חידוש»; בעל העסק (טוקן משותף) רואה את הכפתור
   for (const [who, tok] of [['staff', staffTok], ['owner', TOKEN]]) {
     const ctx = await b.newContext({ viewport: { width: 1366, height: 900 } });
@@ -91,7 +113,11 @@ try {
     await u.locator('#debts tr').first().waitFor();
     const row = u.locator('#debts tr', { hasText: dead.name });
     await row.first().waitFor();
-    const locked = await row.getByTestId('resume-owner-only').count(), btn = await row.locator('button.resume').count();
+    const udel = u.locator('#dsList li', { hasText: 'מחיקת מידע' }).first(); await udel.waitFor();
+    await udel.locator('textarea').fill('נמחק מכל המערכות');
+    const dLocked = await udel.locator('[data-a="done"]').isDisabled() && /בעל העסק בלבד/.test(await udel.textContent());
+    ok(who === 'staff' ? dLocked : !dLocked, `/ui ${who}: נעילת סגירת מחיקה=${dLocked}`);
+    const locked = await row.getByTestId('resume-owner-only').count(), btn = await row.locator('button.resume:enabled').count();   // עובדת: כפתור נעול בתוך התג (מבקר 195ג, שני המימושים מוזגו)
     ok(who === 'staff' ? locked === 1 && btn === 0 : locked === 0 && btn === 1, `/ui ${who}: תג=${locked} כפתור=${btn}`);
     if (out && who === 'staff') { await row.first().scrollIntoViewIfNeeded(); await u.screenshot({ path: `${out}/ui-staff-resume-owner-only.png` }); }
     await ctx.close();
@@ -106,5 +132,5 @@ try {
   const audit = await (await fetch(`${base}/audit`, { headers: H })).json();
   ok(audit.some(a => a.action === 'promise_request_approved'), 'האישור לא נרשם');
   ok(!errors.length, 'שגיאות: ' + errors.join(' | '));
-  console.log('✓ app-staff-owner-only: חידוש השהיית-בעלים (/app/ ו-/ui) וייצוא נעולים לעובדת (+תג), פתוחים לבעלים; «בדוק ואשר» על הבטחה מעל 14 יום אושר — דסקטופ+390, אפס שגיאות');
+  console.log('✓ app-staff-owner-only: חידוש השהיית-בעלים (/app/ ו-/ui) וייצוא וסגירת מחיקה (/app/ ו-/ui) נעולים לעובדת (+תג), עיון פתוח, פתוחים לבעלים; «בדוק ואשר» על הבטחה מעל 14 יום אושר — דסקטופ+390, אפס שגיאות');
 } finally { await b.close(); srv.kill(); }

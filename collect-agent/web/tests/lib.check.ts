@@ -1584,7 +1584,7 @@ test('מבקר 195ג (+194): פעולות בעל העסק בלבד — עובד/
   const ownerUser = { actor: 'user:1', kind: 'user' as const, name: 'בעלים', owner: true };
   const ownerTok = { actor: 'owner', kind: 'owner' as const, name: 'בעל העסק' };
   assert.equal(isStaff(staff), true);
-  for (const m of [ownerUser, ownerTok, null]) assert.equal(isStaff(m), false);
+  for (const m of [ownerUser, ownerTok, null, undefined]) assert.equal(isStaff(m), false);
   // אותה רשימה כמו app/policy.py OWNER_HOLDS
   const py = readFileSync(new URL('../../app/policy.py', import.meta.url), 'utf8').match(/^OWNER_HOLDS = \(([^)]*)\)/m)![1];
   assert.deepEqual([...OWNER_HOLDS], [...py.matchAll(/"(\w+)"/g)].map(m => m[1]));
