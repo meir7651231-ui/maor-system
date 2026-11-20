@@ -168,3 +168,52 @@ def test_didnt_pay_article_plan_and_stop_match_code():
     assert "בלי ריבית ובלי קנסות" in t and "גבי עוצר אחרי שלוש" in t
     for total in (99_900, 1_234_567):
         assert sum(i.amount_agorot for i in plans.propose(total, date(2026, 11, 8))) == total
+
+
+# ── מאמר 07 · שוטף+30/60 (לוח התוכן §6.5 שבוע 5) ─────────────────────────────────────────────────────
+NET = SEO / "07-net-30-60-cash-flow.md"
+
+
+def _shotef(d, n):
+    import calendar
+    from datetime import date, timedelta
+    end = date(d.year, d.month, calendar.monthrange(d.year, d.month)[1])
+    return end + timedelta(days=n)
+
+
+def test_net_article_table_is_correct_arithmetic():
+    from datetime import date
+    t = NET.read_text(encoding="utf-8")
+    rows = re.findall(r"^\| (\d\d\.\d\d\.\d{4}) \| (\d\d\.\d\d\.\d{4}) \| (\S+) \| (\S+) \| (\S+) \|$", t, re.M)
+    assert len(rows) == 3, rows
+    for inv, *cols in rows:
+        d = date(*map(int, reversed(inv.split("."))))
+        got = [_shotef(d, n).strftime("%d.%m.%Y") for n in (0, 30, 60, 90)]
+        assert cols == got, (inv, cols, got)
+    # «חשבונית מ-10 בנובמבר… 50 יום… שוטף+60: 29 בינואר, 80 יום»
+    d = date(2026, 11, 10)
+    assert (_shotef(d, 30) - d).days == 50 and (_shotef(d, 60) - d).days == 80
+    assert "ב-30 בדצמבר, כלומר 50 יום" in t and "29 בינואר, 80 יום" in t
+
+
+def test_net_article_ladder_counts_from_due_date():
+    t = NET.read_text(encoding="utf-8")
+    assert STEP_OFFSETS_DAYS == (1, 7, 14) and policy.MAX_REMINDERS_PER_INVOICE == 3
+    assert "יום אחרי המועד, שבוע אחרי, ושבועיים אחרי" in t and "לכל היותר 3" in t
+    from app import service
+    src = (Path(service.__file__)).read_text(encoding="utf-8")
+    counts_from_due = re.search(r'def due_at\(r\).*?date\.fromisoformat\(r\["due"\]\)', src, re.S)
+    assert counts_from_due, "הסולם כבר לא נספר ממועד התשלום"
+
+
+def test_net_article_no_due_date_matches_code():
+    """המאמר אומר בדיוק מה הקוד עושה כשאין מועד: הנפקה + 30. לא «שוטף+30», ולא «מסומן כמוערך לבעל העסק» —
+    הדגל due_estimated מחושב אבל אף מסך לא מציג אותו (דווח למקשר 20.11)."""
+    from datetime import date
+
+    from app.greeninvoice import DEFAULT_TERMS_DAYS, MAX_TERMS_DAYS, due_or_estimate
+    t = NET.read_text(encoding="utf-8")
+    assert DEFAULT_TERMS_DAYS == 30 and due_or_estimate(None, date(2026, 11, 10)) == (date(2026, 12, 10), True)
+    assert "גבי מניח 30 יום מתאריך החשבונית" in t
+    assert "מוערך" not in t and "מסמן" not in t
+    assert MAX_TERMS_DAYS == 730 and due_or_estimate(date(2027, 1, 29), date(2026, 11, 10))[1] is False
