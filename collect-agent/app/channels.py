@@ -230,7 +230,7 @@ _BOUNCE_SUBJECT = re.compile(
 _DSN_RECIPIENT = re.compile(r"^(?:final|original)-recipient:\s*(?:rfc822;\s*)?<?([^\s<>;]+@[^\s<>;]+?)>?\s*$",
                             re.IGNORECASE | re.MULTILINE)
 _DSN_STATUS = re.compile(r"^status:\s*([245])\.\d{1,3}\.\d{1,3}", re.IGNORECASE | re.MULTILINE)
-_ARF_MSGID = re.compile(r"^message-id:\s*<*([^<>\s]+@[^<>\s]+?)>*\s*$", re.IGNORECASE | re.MULTILINE)
+_ARF_MSGID = re.compile(r"^(?:original-)?message-id:\s*<*([^<>\s]+@[^<>\s]+?)>*\s*$", re.IGNORECASE | re.MULTILINE)
 _MSGID = re.compile(r"^message-id:\s*(<[^<>\s]+@[^<>\s]+>)", re.IGNORECASE | re.MULTILINE)
 
 
@@ -248,8 +248,10 @@ def parse_bounce(sender: str, text: str, subject: str = "") -> dict[str, Any] | 
     if not st and not rec:
         return None
     permanent = (st.group(1) == "5") if st else True     # בלי Status אבל עם Final-Recipient ⇒ כשל
+    # bounce מזויף (20.11, אנלוגי ל-critic 189): ה-Message-ID המקורי הוא ההוכחה — גם Original-Message-ID, מנורמל ל-<id>
+    ids = [f"<{x}>" for x in _ARF_MSGID.findall(text or "")]
     return {"recipient": clean_email(rec.group(1)) if rec else "", "permanent": permanent,
-            "message_ids": _MSGID.findall(text or "")}
+            "message_ids": list(dict.fromkeys(ids))}
 
 
 # ---------- תלונת ספאם (ARF / feedback loop, RFC 5965) ----------

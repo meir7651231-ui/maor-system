@@ -2637,13 +2637,15 @@ class CollectService:
                               "AND provider_id=?", (mid,))
             if row:
                 break
-        if row is None and b["recipient"]:
-            row = self.db.one("SELECT m.* FROM messages m JOIN customers c ON c.id=m.customer_id "
-                              "WHERE m.direction='out' AND m.channel='email' AND lower(c.email)=? "
-                              "ORDER BY m.id DESC LIMIT 1", (b["recipient"].lower(),))
         if row is None:
-            self.audit("system", "email_bounce_unmatched", {"permanent": b["permanent"]})
-            return {"bounce": "unmatched"}
+            # bounce מזויף (20.11, באנלוגיה להכרעת ראש הצוות ל-critic 189): היה נפילה ל«המייל האחרון לנמען» לפי
+            # Final-Recipient ⇒ כל שולח `mailer-daemon@<כל דומיין>` כיבה את ערוץ המייל של לקוח (critic 188)
+            # + כרטיס כוזב.
+            # עכשיו רק Message-ID של מייל ששלחנו; אחרת audit בלבד, בלי כתובות.
+            self.audit("system", "email_bounce_unverified", {"permanent": b["permanent"],
+                                                              "reason": "not_our_message" if b["message_ids"]
+                                                              else "no_message_id"})
+            return {"bounce": "unverified"}
         if not b["permanent"]:
             return {"bounce": "delayed", "matched": True}
         if row["delivery_status"] == "failed":
