@@ -167,6 +167,9 @@ def _do(w, st: dict):
     raise ValueError(f"צעד לא מוכר: {sorted(st)}")
 
 
+_CHECKED = {"status", "mails", "sms", "bounced", "suppressed", "cards", "role", "payment_link"}
+
+
 def _count_ok(got: int, want) -> bool:
     return got > 0 if want == ">0" else got == want
 
@@ -183,7 +186,17 @@ def run_flow(flow: dict) -> tuple[list[str], list[str]]:
             seen = len(svc.sender.sent)
             tag = f"#{i}"
             e = st.get("expect", {})
-            if isinstance(out, httpx.Response):
+            unknown = set(e) - _CHECKED
+            if unknown:
+                fails.append(f"{tag} ציפייה שהמריץ לא בודק: {sorted(unknown)}")
+            if "status" in e and "http" not in st:
+                fails.append(f"{tag} status בצעד שאינו http")
+            # TestClient מחזיר Response של httpx2 (לא httpx) — isinstance דילג בשקט על כל בדיקות ה-status (מדידה
+            # ראשונה של סט #22 פסולה). duck-typing + שער «ציפייה שלא נבדקה» למטה.
+            if "http" in st:
+                if not hasattr(out, "status_code"):
+                    fails.append(f"{tag} http בלי תשובה ({type(out).__name__})")
+                    continue
                 notes.append(f"{tag} {st['http'].get('as', 'owner')} {st['http'].get('method', 'GET')} "
                              f"{st['http']['path']} ⇒ {out.status_code}")
                 if "status" in e and out.status_code not in (e["status"] if isinstance(e["status"], list)
