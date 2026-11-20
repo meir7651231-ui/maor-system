@@ -5,13 +5,14 @@
 גוף הכרטיס מסביר «"אישור" = הכתובת תיחסם למייל · "דחייה" = המיילים חוזרים» — אבל בכרטיס **אין** כפתורים כאלה; הכפתורים
 הם «הכתובת תקינה — החזר מיילים» / «המייל באמת חזר — חסום» (מאומת במסע דפדפן, צילום critic-193-bounce-review-mobile.png).
 בעל עסק מחפש «אישור» ולא מוצא; גרוע מזה, «אישור» נשמע כמו «הכתובת תקינה». הצעה: הגוף מצטט את שמות הכפתורים בפועל.
-xfail(strict=True)."""
+תוקן (מנהל 344): הגוף מצטט את שמות הכפתורים, ובדיקת-מקור נועלת שהם זהים ל-Dashboard.tsx."""
+import re
 from datetime import timedelta
+from pathlib import Path
 
-import pytest
+DASH = Path(__file__).resolve().parents[1] / "web" / "src" / "pages" / "Dashboard.tsx"
 
 
-@pytest.mark.xfail(strict=True, reason="critic 193: גוף הכרטיס מפנה ל«אישור»/«דחייה» שאין בכרטיס")
 def test_bounce_card_text_matches_buttons(svc, clock):
     svc.sync()
     clock.now += timedelta(days=3)
@@ -25,3 +26,9 @@ def test_bounce_card_text_matches_buttons(svc, clock):
                       subject="Undelivered Mail Returned to Sender", auth_results="mx; dmarc=fail")
     body = svc.db.one("SELECT body FROM messages WHERE intent='email_bounce_review'")["body"]
     assert "«אישור»" not in body and "«דחייה»" not in body, body
+    # הגוף מצטט בדיוק את שני הכפתורים שבכרטיס (מקור האמת: Dashboard.tsx)
+    src = DASH.read_text(encoding="utf-8")
+    for tid in ("notice-bounce-keep", "notice-bounce-block"):
+        block = src[src.index(f'data-testid="{tid}"'):]
+        label = re.search(r"'לחצו שוב לאישור' : '([^']+)'", block).group(1)
+        assert f"«{label}»" in body, (label, body)

@@ -1119,8 +1119,8 @@ class CollectService:
                 self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at)"
                           " VALUES(?,'system','email',?, 'email_bounce_review', 1, ?)",
                           (c["id"], f"ייתכן שהמייל של {c['name'] or 'הלקוח'} לא תקין (התקבלה הודעת החזרה שלא אומתה). "
-                           "מיילים אליו מושהים עד שתבדוק/י: «אישור» = הכתובת תיחסם למייל · «דחייה» = המיילים "
-                           "חוזרים. SMS ממשיך.", now))
+                           "מיילים אליו מושהים עד שתבדוק/י: «המייל באמת חזר — חסום» = הכתובת תיחסם למייל · "
+                           "«הכתובת תקינה — החזר מיילים» = המיילים חוזרים. SMS ממשיך.", now))
             held.append(c["id"])
         return held
 
