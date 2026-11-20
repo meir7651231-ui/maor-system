@@ -1216,6 +1216,21 @@ _extend(Intent.DISTRESS, r"\b(?:i'?m|i\s+am|im)\s+(?:completely\s+|totally\s+|li
 _extend(Intent.OPT_OUT, r"^(?!.*(?:חוב|קנס|ריבית|חשבונ|סכומ|חיוב)).*(?<![\w])(?:תמחקו|מחקו|תמחק|תמחקי)\s+(?:אותו|אותה)(?![\w])")
 #  · «Payment will go out Thursday» / «payment will be sent tomorrow» ⇒ הבטחה
 _extend(Intent.PROMISE, r"\b(?:the\s+)?payment\s+will\s+(?:go\s+out|be\s+(?:sent|made|transferred|wired)|arrive|come\s+through)\b(?!\s+never)")
+# גבי מנוע 20.11 (וריאציות של qa20 q20-27): ניסוח עורכי דין באנגלית — «I represent one of your customers…
+# cease contact», «cease and desist», «on behalf of my client», «stop contacting my client» ⇒ היו unknown/הסרה
+# בלי הסלמה. «my client» לבד **לא** (קבלן: «once my client pays me I'll pay you») — רק עם פועל קשר/נתונים/סירוב.
+_extend(Intent.LEGAL,
+        r"\bcease\s+(?:and|&)\s+desist\b",
+        r"\b(?:i|we)\s+(?:am\s+|are\s+)?(?:legally\s+)?represent(?:ing)?\s+(?:your\s+(?:customer|client)s?"
+        r"|one\s+of\s+your\s+(?:customers|clients)|(?:mr|mrs|ms|miss)\.?\s+\w+)\b",
+        r"\bon\s+behalf\s+of\s+my\s+client\b",
+        r"\b(?:stop|cease|refrain\s+from)\s+(?:all\s+)?(?:contacting|contact\s+with|communicating\s+with|"
+        r"communication\s+with|messaging|texting|emailing|calling)\s+my\s+client\b",
+        r"\b(?:records?|data|information|files?|details)\s+(?:that\s+)?(?:you\s+)?(?:have|hold|keep|store)?\s*"
+        r"(?:on|about|regarding)\s+my\s+client\b",
+        r"\bmy\s+client\s+(?:will\s+not|won'?t|refuses|disputes|denies|does\s+not\s+owe|doesn'?t\s+owe)\b")
+_extend(Intent.OPT_OUT,
+        r"\bcease\s+(?:all\s+)?(?:further\s+)?(?:contact|contacting|communications?|communicating)\b")
 # סט #19 (qa19, עיוור 19.11) — מחלקות: חדלות פירעון באנגלית (דחוף); «Hi who is this?»; הבטחה דרך צד שלישי
 # («my 15 year old will drop off the cash tomorrow»).
 _extend(Intent.CANT_PAY,

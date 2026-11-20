@@ -83,6 +83,7 @@
 - 🧱 פרטי החברה המפעילה + עו״ד (מאיר).
 
 ## גבי מנוע
+- [x] ✅ (גבי מנוע 20.11) qa20 q20-27 + וריאציות: עו״ד מכתובת משותפת — «Erase every record you keep about my client» נרשם במרשם המחיקות (`dsr.py`, עוגן «about/on <נושא>»); ניסוח עו״ד באנגלית (cease and desist · I/we represent your customer · on behalf of my client · stop contacting my client · my client does not owe) ⇒ legal דחוף; «cease contact» ⇒ הסרה; «my client» של קבלן ≠ עו״ד. מדידה: `evals.sequences` משווה ב-shared_contact_* את `detected`. qa20 30/31⇒31/31, שאר הסטים ללא שינוי. `tests/test_engine_shared_legal_dsr.py` (11 נכשלו לפני) · lk58–60.
 - [x] ✅ סט משפט (`2425167`) — סגירת 4 הכשלים שנותרו לפי מחלקה (מקור מידע, מילואים+הבטחה, צו חדלות בבית משפט; xl-05 נשאר דחוף במכוון) + «לא מעביר מחר» ≠ הבטחה: 26/30 ⇒ 29/30, 0 מזיקים. ראו RESULTS.md.
 - [x] ✅ לפני סבב 6: להריץ גם `tests/test_critic_round79_engine.py` — 54/54 ירוק יחד עם round80/engine_round4–6 (סבב 6 = `bb18bc5`).
 - [x] ✅ בדיקה עיוורת על סט 2 של גבי בדיקות (`c858444b`) — רצה פעם אחת לפני כל שינוי (`d265657`): 33/50 (66%), 5 טעויות קריטיות מזיקות. דוח: `evals/heldout/RESULTS.md`.
