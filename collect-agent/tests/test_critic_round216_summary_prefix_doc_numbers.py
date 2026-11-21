@@ -5,7 +5,7 @@
 שהתחילית שלו היא מילת סיכום ואחריה מספר — «SUM-1001», «Sum1001», «TOTAL-1001», «Total2024-5», «סהכ-1001»,
 «סיכום-1001» — נדחה: «שורת סיכום (סה״כ) — לא חשבונית, לא נקלטה». השגיאה גלויה, אבל חשבונית אמיתית יוצאת
 מהייבוא עם הסבר שגוי (בעל העסק יחפש שורת סיכום שאין). הצעה: תחילית סיכום + מקף/צמוד + רצף ספרות (≥3) = מספר מסמך;
-או: סיכום רק אם אין בתא רצף ספרות של מספר מסמך. xfail(strict=True); בקרות ירוקות."""
+או: סיכום רק אם אין בתא רצף ספרות של מספר מסמך. תוקן במנהל 373 (`_SUMMARY_DOCNUM`); בקרות ירוקות."""
 from datetime import date
 
 import pytest
@@ -20,7 +20,7 @@ def _nums(num):
     return [i.number for i in r.invoices]
 
 
-@pytest.mark.xfail(strict=True, reason="216🟡: מספר מסמך «SUM-1001» / «סיכום-1001» נדחה כשורת סיכום")
+
 @pytest.mark.parametrize("num", ["SUM-1001", "Sum1001", "TOTAL-1001", "Total2024-5", "סהכ-1001", "סיכום-1001"])
 def test_doc_number_with_summary_prefix_imported(num):
     assert _nums(num) == [num]

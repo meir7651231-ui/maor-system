@@ -346,8 +346,18 @@ def _is_summary(label: str) -> bool:
     return bool(_SUMMARY.match(label.strip().rstrip(":").strip()))
 
 
+# מבקר 216🟡 (מנהל 373): 214 הכליל-יתר — «SUM-1001», «Sum1001», «TOTAL-1001», «Total2024-5», «סהכ-1001»,
+# «סיכום-1001» נדחו כ«שורת סיכום» (חשבונית אמיתית יוצאת עם הסבר שגוי). מספר מסמך = מילת הסיכום **צמודה**
+# (או במקף/קו תחתון/לוכסן אחד) לרצף של ≥3 ספרות, בלי רווח, בלי גרש/מרכאות ובלי עיטור מקדים.
+# «סה"כ-1200», «Total 1200», «Total: 1001», «*** TOTAL-1001», «Total-12» נשארים סיכום.
+_SUMMARY_DOCNUM = re.compile(r'^(?:סה[כך]|סיכום|totals?|sum)[-_/]?\d{3,}[0-9a-z\u05d0-\u05ea\-_/.]*$', re.IGNORECASE)
+
+
 def _is_summary_number(label: str) -> bool:
-    """תווית בעמודת **מספר המסמך**: מספיק שמתחילה (אחרי עיטורים) בסה״כ/סך הכל/סיכום/סכום כולל/total/sum."""
+    """תווית בעמודת **מספר המסמך**: מספיק שמתחילה (אחרי עיטורים) בסה״כ/סך הכל/סיכום/סכום כולל/total/sum —
+    חוץ ממספר מסמך שהתחילית שלו מילת סיכום צמודה לספרות (מבקר 216)."""
+    if _SUMMARY_DOCNUM.match(label.strip()):
+        return False
     return _is_summary(label) or bool(_SUMMARY_PREFIX.match(label.strip(_DECOR)))
 
 
