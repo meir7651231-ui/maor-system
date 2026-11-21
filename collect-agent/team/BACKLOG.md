@@ -151,6 +151,8 @@
 - [x] ✅ מסלול בטא מלא 60 יום עם רשימת פתוחות + credit_review בסימולציה — אף לקוח ששילם לא מקבל תזכורת. (`cbbf072` — tests/test_beta_paid_never_reminded.py, 3 מוטציות)
 - [x] ✅ עוד 50 הודעות עיוורות (סט 3) לגבי מנוע, כולל ניסוח מבוגרים/שגיאות כתיב/אנגלית. (`1ca5d8c` — evals/heldout/external-2026-11-15-qa3.jsonl, לא הורץ על המנוע)
 
+- [ ] 🟡 (גבייה עיצוב, 21.11 — לא חוסם) **`tests/test_demo_sh_portable.py` → `_sandbox`:** הכלים בסנדבוקס נלקחים מ-`shutil.which` (`rm`/`dirname`/`sh`). בסביבה שבה `rm` ב-PATH הוא עטיפת shell (כמו סשני Claude Code: `~/.claude/rm-guard/…/rm`), העטיפה לא רצה ב-PATH המבודד ⇒ `rm: command not found` ⇒ `test_venv_from_old_python_is_rebuilt` + `test_venv_with_dead_interpreter_is_rebuilt` נכשלות (2 failed בהרצה מלאה; אומת גם על collect-agent בלי שינויי — לא באג מוצר; ב-CI נקי עוברות). הצעה: לפתור לבינארי האמיתי (`os.path.realpath` + לוודא שהוא ELF, או `/bin/rm`/`/usr/bin/rm` קבוע) — כדי שהבדיקה לא תיכשל בסביבות מפתחים.
+
 ## גבייה סוכן
 - [x] ✅ 26d9798 ‏`sandbox_day1_paid_check.py`: מצב `--mock` שרץ ב-CI ומוכיח את כל ענפי ההחלטה (שדה חסר ⇒ «לא להשיק»).
 - [x] ✅ 26d9798 תשלום חלקי: סכום התזכורת = היתרה בפועל (לא הסכום המקורי) + בדיקה.
