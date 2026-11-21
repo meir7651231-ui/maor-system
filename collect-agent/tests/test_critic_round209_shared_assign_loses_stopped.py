@@ -6,8 +6,7 @@
 15» ⇒ שתי התשובות superseded, הכרטיס: «עצרנו 2 תשובות שאישרת…» ⇒ בעל העסק בוחר «ההודעה של דנה» ⇒ דנה: minor + כרטיס ✓;
 **יוסי:** התשובה שלו נשארת superseded, אין טיוטה חדשה, אין כרטיס, אין השהיה — השאלה שלו לא תיענה ואף אחד לא יודע.
 «אף אחד מהם» ⇒ שתיהן אובדות ולא נשאר שום כרטיס. הצעה: בהכרעה — התשובות שנעצרו ללקוחות שלא נבחרו חוזרות לתור
-(pending_approval, לאישור מחדש) או כרטיס «התשובה ל-X נעצרה — לשלוח?». xfail(strict=True)."""
-import pytest
+(pending_approval, לאישור מחדש) או כרטיס «התשובה ל-X נעצרה — לשלוח?». תוקן במנהל 364 (החזרה לתור לאישור מחדש)."""
 from fastapi.testclient import TestClient
 
 from app.main import create_app
@@ -36,14 +35,12 @@ def _visible(svc, cid, stopped_id):
     return back or bool(new)
 
 
-@pytest.mark.xfail(strict=True, reason="209🟡: אחרי «ההודעה של דנה» — התשובה של יוסי שנעצרה אובדת בשקט")
 def test_unrelated_customer_stopped_reply_not_lost(svc, fake_gi):
     api, ids, card = _setup(svc, fake_gi)
     assert api.post(f"/owner/shared-cards/{card}/assign", json={"customer_id": 1}).status_code == 200
     assert _visible(svc, 2, ids[2])
 
 
-@pytest.mark.xfail(strict=True, reason="209🟡: «אף אחד מהם» ⇒ שתי התשובות שנעצרו אובדות, אין כרטיס")
 def test_none_of_them_stopped_replies_not_lost(svc, fake_gi):
     api, ids, card = _setup(svc, fake_gi)
     assert api.post(f"/owner/shared-cards/{card}/assign", json={"customer_id": None}).status_code == 200

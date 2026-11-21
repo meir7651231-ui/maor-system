@@ -208,9 +208,13 @@ class ConversationInbox:
             # מנהל 361 (ביקורת 207🔴): «אני בן 15» / «אבא נפטר» / עו״ד מכתובת משותפת עוקף את handle_customer ⇒
             # תשובה שבעל העסק אישר לאחד המקושרים וממתינה לחלון (קישור תשלום) יצאה ב-dispatch, אף שהכרטיס מבטיח
             # «בלי תשובה ללקוח עד שבעל העסק בוחר». עכשיו נעצרות לכל המקושרים, כמו בפנייה ישירה (360).
-            stopped = sum(self._stop_approved(c["id"], intent, pause=card, shared_card=mid) for c in linked)
+            stopped_ids = {str(c["id"]): self._stop_approved_ids(c["id"], intent, pause=card, shared_card=mid)
+                           for c in linked}
+            stopped = sum(len(v) for v in stopped_ids.values())
             if stopped:
                 info["stopped_approved"] = stopped
+                # מנהל 364 (מבקר 209🟡): מי נעצר — כדי להחזיר לתור בשיוך את מי שההודעה לא שלו
+                info["stopped_drafts"] = {k: v for k, v in stopped_ids.items() if v}
                 self.db.x("UPDATE messages SET payload=? WHERE id=?", (json.dumps(info, ensure_ascii=False), mid))
         self._register_unlinked_dsr(mid, channel, text, found, info)
         self.svc.audit("customer", card, {"message": mid, "customers": ids, "intent": intent})
@@ -268,8 +272,9 @@ class ConversationInbox:
             self.db.x("UPDATE customers SET paused_reason=NULL WHERE id=? AND paused_reason=?",
                       (cid, m["intent"]))
         self.svc.audit(actor, "shared_contact_assigned", {"card": card_id, "customer": customer_id})
+        requeued = self._requeue_stopped_for_others(info, card_id, customer_id, actor)
         if customer_id is None:
-            return {"card_id": card_id, "assigned": None}
+            return {"card_id": card_id, "assigned": None, "requeued_drafts": requeued}
         self._link_card_dsr(info, customer_id, actor)
         # critic 171ב: המועד החוקי לבקשת עיון/מחיקה נספר מקבלת ההודעה המקורית, לא מיום השיוך
         res = self.handle_customer(cust, m["channel"], m["body"], received_at=_parse_iso(m["created_at"]))
@@ -277,7 +282,37 @@ class ConversationInbox:
             # critic סבב 169: האזהרה עוברת מהכרטיס לטיוטה שנוצרה אחרי השיוך (אחרת נעלמת ברגע הבחירה)
             self.db.x("UPDATE drafts SET owner_summary=COALESCE(owner_summary,'') || ? WHERE id=?",
                       (UNVERIFIED_EMAIL_NOTE, res["draft_id"]))
-        return {"card_id": card_id, "assigned": customer_id, **res}
+        return {"card_id": card_id, "assigned": customer_id, **res, "requeued_drafts": requeued}
+
+    REQUEUE_NOTE = (" · התשובה אושרה קודם ונעצרה בגלל הודעה דחופה מכתובת משותפת; בעל העסק שייך את ההודעה "
+                    "ללקוח/ה אחר/ת — לבדוק ולאשר מחדש")
+
+    def _requeue_stopped_for_others(self, info: dict, card_id: int, chosen: int | None, actor: str) -> list[int]:
+        """מנהל 364 (מבקר 209🟡): כרטיס דחוף מכתובת משותפת עוצר approved של **כל** המקושרים (361). בשיוך —
+        ההודעה לא של מי שלא נבחר (או של אף אחד), ולכן התשובות שנעצרו בגללה חוזרות לתור **לאישור מחדש**
+        (pending_approval, לא נשלחות לבד). לא חוזרות: לקוח שהוסר / עדיין בהשהיה, טיוטה שכבר הוכרעה אחרת,
+        או כשבינתיים נוצרה ללקוח טיוטה חדשה (היא מחליפה)."""
+        out: list[int] = []
+        for key, dids in (info.get("stopped_drafts") or {}).items():
+            cid = int(key)
+            if cid == chosen:
+                continue
+            c = self.db.one("SELECT opted_out, paused_reason FROM customers WHERE id=?", (cid,))
+            if c is None or c["opted_out"] or c["paused_reason"]:
+                continue
+            for did in dids:
+                newer = self.db.one("SELECT 1 FROM drafts WHERE customer_id=? AND id>? AND status IN "
+                                    "('pending_approval','needs_owner','approved')", (cid, did))
+                if newer:
+                    continue
+                n = self.db.update("UPDATE drafts SET status='pending_approval', decided_by=NULL, decided_at=NULL, "
+                              "owner_summary=COALESCE(owner_summary,'') || ? WHERE id=? AND status='superseded' "
+                              "AND decided_by='system:protective_reply'", (self.REQUEUE_NOTE, did))
+                if n:
+                    out.append(did)
+        if out:
+            self.svc.audit(actor, "stopped_drafts_requeued", {"card": card_id, "drafts": out, "chosen": chosen})
+        return out
 
     # ---------- קלט ----------
     def handle(self, channel: str, sender: str, text: str) -> dict:
@@ -556,6 +591,10 @@ class ConversationInbox:
 
     def _stop_approved(self, cid: int, intent: str, *, pause: str | None = None,
                        shared_card: int | None = None) -> int:
+        return len(self._stop_approved_ids(cid, intent, pause=pause, shared_card=shared_card))
+
+    def _stop_approved_ids(self, cid: int, intent: str, *, pause: str | None = None,
+                           shared_card: int | None = None) -> list[int]:
         """הממתינות לחלון (`approved`) של לקוח ⇒ `superseded` (`system:protective_reply`) + audit. משותף לפנייה
         ישירה (360) ולכרטיס כתובת משותפת (361). לא נעצרות: אישור הסרה / «מספר שגוי» / תשובות דחופות קודמות."""
         rows = self.db.q("SELECT id, intent FROM drafts WHERE customer_id=? AND status='approved' AND "
@@ -568,7 +607,7 @@ class ConversationInbox:
             if shared_card is not None:
                 detail["shared_card"] = shared_card
             self.svc.audit("system", "approved_drafts_stopped_protective", detail)
-        return len(rows)
+        return [r["id"] for r in rows]
 
     def _draft(self, cust, channel: str, d: Decision, plan_id: int | None) -> int:
         # טיוטה חדשה מחליפה טיוטות קודמות שעוד לא אושרו (למשל הצעת פריסה ישנה) — חוץ מדחופות
