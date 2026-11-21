@@ -191,6 +191,9 @@ class ConversationInbox:
         if Intent.OPT_OUT in found:
             # review חור 1 (הכרעה שמרנית קודמת, נשמרת): «הסר» מכתובת משותפת ⇒ כל הערוצים של כל המקושרים
             # נעצרים. זו לא שיוך — עוצרים את כולם; בעל העסק יכול לחדש את מי שלא ביקש
+            # מנהל 366 (מבקר 210🟡): מי הוסר **בגלל הכרטיס הזה** (לא היה מוסר קודם) — כדי שבשיוך הלקוח שנבחר יקבל
+            # אישור הסרה כמו בפנייה ישירה (אחרת `_context` רואה opted_out ⇒ OPTED_OUT ⇒ «הסר» חוזר בלי תשובה).
+            newly = [c["id"] for c in linked if not c["opted_out"]]
             for c in linked:
                 self.svc._opt_out(c["id"], "shared_contact_opt_out")
         # עד שבעל העסק בוחר: אף לקוח מקושר לא מקבל תזכורת או תשובה בכתובת הזו
@@ -201,6 +204,8 @@ class ConversationInbox:
                 self.svc._cancel_invoice(inv["id"], card)
         # מבנה ה-payload נקרא ב-web (notices.ts: linked_customers[].name, stopped_approved) — לא לשנות שמות שדות
         info = {"linked_customers": [{"id": c["id"], "name": c["name"]} for c in linked], "urgent": intent}
+        if Intent.OPT_OUT in found and Intent.WRONG_PERSON not in found and newly:
+            info["opted_out_by_card"] = newly
         mid = self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,payload,"
                         "created_at) VALUES(NULL,'in',?,?,?,1,?,?)",
                         (channel, text, card, json.dumps(info, ensure_ascii=False), _iso(now)))
@@ -278,6 +283,10 @@ class ConversationInbox:
             return {"card_id": card_id, "assigned": None, "requeued_drafts": requeued}
         self._link_card_dsr(info, customer_id, actor)
         # critic 171ב: המועד החוקי לבקשת עיון/מחיקה נספר מקבלת ההודעה המקורית, לא מיום השיוך
+        if customer_id in (info.get("opted_out_by_card") or []):
+            # מנהל 366 (מבקר 210🟡): ההסרה נעשתה ע״י הכרטיס עצמו, לא בבקשה קודמת ⇒ המנוע מטפל ב«הסר» כבקשה
+            # ראשונה (טיוטת «הבקשה התקבלה…» לאישור), כמו בפנייה ישירה. ההסרה עצמה נשארת (_apply_effects מחיל שוב).
+            cust = {**dict(cust), "opted_out": 0}
         res = self.handle_customer(cust, m["channel"], m["body"], received_at=_parse_iso(m["created_at"]))
         if info.get("email_verified") is False and res.get("draft_id"):
             # critic סבב 169: האזהרה עוברת מהכרטיס לטיוטה שנוצרה אחרי השיוך (אחרת נעלמת ברגע הבחירה)
