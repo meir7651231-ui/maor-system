@@ -17,6 +17,10 @@ PKG = (ROOT / "sales/PACKAGE.md").read_text(encoding="utf-8")
 REQUIRED = {
     "המזכירה": ["tests/test_users_2fa.py::test_mutating_actions_are_audited_under_the_employee",
                 "tests/test_mgr328_team_screen.py::test_staff_cannot_change_roles_or_deactivate"],
+    # מנהל 359–360 (מבקר 205–206): «אני בן 16», «אבא נפטר», מצוקה ⇒ הכול נעצר, גם תשובות שכבר אושרו;
+    # סימון קטין/נפטר/חדלות פירעון ⇒ שום דבר לא יוצא. חשש צפוי של קליניקות ושל כל מי ש«לא נעים לו».
+    "במצב רגיש": ["tests/test_mgr360_protective_stops_approved.py::test_dispatch_sends_nothing_after_stop",
+                  "tests/test_legal_requirements.py::test_r6_owner_hold_stops_everything"],
     "לא עומד בהסדר": ["tests/test_mgr332_plan_lifecycle.py::test_missed_card_once_and_block_released",
                       "tests/test_mgr332_plan_lifecycle.py::test_on_track_stays_blocked_and_no_card"],
 }

@@ -129,3 +129,29 @@ def test_distribution_section_sourced():
     sec = MARKET.split("### 2.5")[1].split("## 3.")[0]
     assert "greeninvoice.co.il/integrations" in sec and "ניהול קליניקות" in sec
     assert "לא נעשתה שום פנייה" in sec
+
+
+def test_research_handoffs_reference_existing_sections():
+    """team/research-handoffs.md: כל ממצא מפנה לסעיף קיים ב-market.md, ולכל אחד יש סטטוס.
+    ממצא שסומן ✅ כטופל אצל צוות אחר — מאומת בקבצים שלו (לא טענה ריקה)."""
+    txt = (ROOT / "team" / "research-handoffs.md").read_text(encoding="utf-8")
+    rows = [ln for ln in txt.splitlines() if re.match(r"^\| H\d+ \|", ln)]
+    assert len(rows) >= 6
+    headings = set(re.findall(r"^### (\d+\.\d+א?)", MARKET, flags=re.M))
+    for r in rows:
+        refs = re.findall(r"§(\d+\.\d+א?)", r.split("|")[5])
+        assert refs, f"בלי הפניה ל-market.md: {r[:40]}"
+        for ref in refs:
+            assert ref in headings, f"§{ref} לא קיים ב-market.md"
+        assert r.split("|")[6].strip().startswith(("פתוח", "✅")), r[:40]
+    # H1 מצטט את beta-kit — הטקסט באמת שם (אחרת הממצא כבר לא רלוונטי)
+    assert "בערך 10 דקות" in (ROOT / "team" / "beta-kit.md").read_text(encoding="utf-8")
+    # H4 מסומן ✅ — ההתנגדות באמת מופיעה אצל מכירות ושיווק
+    for f in ("sales.md", "messaging.md", "marketing.md"):
+        assert "נודניק" in (ROOT / "team" / f).read_text(encoding="utf-8"), f
+    assert "₪29" in (ROOT / "team" / "marketing.md").read_text(encoding="utf-8")
+    # H7: המקורות הנוספים באמת קיימים בקוד
+    src = (ROOT / "app" / "config.py").read_text(encoding="utf-8")
+    assert all(k in src for k in ("icount", "rivhit", "ezcount"))
+    # H3: ההגדרה פר-עסק קיימת בקוד
+    assert "sms_sender_id" in (ROOT / "app" / "settings_api.py").read_text(encoding="utf-8")

@@ -128,12 +128,44 @@ def _csv_phone(v: str) -> str:
     return v.strip()
 
 
+def decode(raw: bytes) -> tuple[str, str]:
+    """גבי חיבורים (שוק: 30%–50% מהבטא ב-CSV): «שמירה בשם ← CSV» ב-Excel עברי שומר **Windows-1255**,
+    ו«טקסט Unicode» שומר UTF-16 עם טאבים. קודם רק UTF-8 נקרא, וכל השאר נדחה עם שגיאת Python באנגלית
+    ("'utf-8' codec can't decode byte 0xee"). סדר: BOM ⇒ UTF-8 קפדני ⇒ cp1255 (רק אם יש בו עברית;
+    או ₪; אחרת ייתכן שזה קידוד אחר ⇒ שגיאה ברורה בעברית, בלי ניחוש)."""
+    if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
+        try:
+            return raw.decode("utf-16"), "utf-16"
+        except UnicodeDecodeError:
+            pass
+    else:
+        try:
+            return raw.decode("utf-8-sig"), "utf-8"
+        except UnicodeDecodeError:
+            try:
+                txt = raw.decode("cp1255")
+            except UnicodeDecodeError:
+                txt = ""
+            if re.search(r"[\u05d0-\u05ea\u20aa]", txt):   # עברית או ₪
+                return txt, "cp1255"
+    raise ValueError("קידוד הקובץ לא מזוהה. ב-Excel: «שמירה בשם» ← «CSV UTF-8 (מופרד בפסיקים)»")
+
+
+def _rows(text: str) -> list[list[str]]:
+    """מפריד: פסיק (ברירת המחדל), נקודה-פסיק (Excel באזור שבו הפסיק עשרוני) או טאב (טקסט Unicode).
+    נבחר לפי שורת הכותרת בלבד — המפריד שמופיע בה הכי הרבה פעמים (מחוץ למירכאות)."""
+    head = text.split("\n", 1)[0]
+    counts = {d: len(next(csv.reader([head], delimiter=d))) - 1 for d in (",", ";", "\t")}
+    delim = max(counts, key=lambda d: (counts[d], d == ","))
+    return list(csv.reader(io.StringIO(text), delimiter=delim))
+
+
 def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
     if isinstance(raw, bytes):
         if len(raw) > MAX_BYTES:
             raise ValueError("הקובץ גדול מדי (מקס׳ 2MB)")
-        raw = raw.decode("utf-8-sig", errors="strict")
-    rows = list(csv.reader(io.StringIO(raw)))
+        raw, _ = decode(raw)
+    rows = _rows(raw.lstrip("\ufeff"))
     if not rows:
         raise ValueError("קובץ ריק")
     head = [h.strip().lower() for h in rows[0]]
