@@ -104,6 +104,8 @@
 - 🧱 פרטי החברה המפעילה + עו״ד (מאיר).
 
 ## גבי מנוע
+- [ ] **(מבקר 203🟠) סכום החשבונית עולה בזמן הסדר פעיל ⇒ תשלום בזמן נספר «לא התקבל» וההסדר «הוחמץ»** — `app/service.py` → `plan_progress`/`_sweep_plans` («שולם» = סה״כ ההסדר − היתרה עכשיו) + `sync` (אין `plan_amount_changed` אחרי האישור). 1,200⇒1,500 בזמן ההסדר, הלקוח משלם 400 בזמן ⇒ paid=100, missed, כרטיס «תשלום 1… לא התקבל», תזכורות חוזרות. הצעה: כרטיס לבעל העסק על שינוי סכום בהסדר פעיל + «שולם» מול הסכום בעת האישור. xfail: `tests/test_critic_round203_plan_invoice_raised.py`.
+- [ ] **(מבקר 203ב🟡) תשלום חלקי בתשלום הראשון ⇒ כרטיס «לא התקבל» בלי לציין שהגיע חלק** — `app/service.py` → `_sweep_plans` (נוסח הכרטיס): 200 ₪ מתוך 400 ⇒ «תשלום 1 מתוך 3 (400 ₪) לא התקבל». xfail: `tests/test_critic_round203_plan_invoice_raised.py::test_partial_first_installment_card_mentions_partial`.
 <<<<<<< Updated upstream
 - [x] **(מבקר 202🟠) ✅ תוקן במנהל 356 (`_mark_plan_offered` — אישור ההצעה ב-/plans מעביר את השיחה ל-awaiting_plan_reply עם הלוח שיצא, רק כשנשלחה בפועל; `tests/test_mgr356_dashboard_plan_state.py` 8) — הצעת פריסה מהדשבורד: הלקוח עונה «מאשר» כמו שהתבקש — וגבי לא מזהה** — `app/service.py` → `approve_plan`/`_approve_plan_claimed` לא מעדכן את מצב השיחה (כמו הצעה מתור התשובות) ⇒ `Intent.PLAN_ACCEPT` (STATEFUL) לא נתפס. ההצעה במייל: «השיבו "מאשר" ובעל העסק יאשר סופית»; «מאשר»/«מאשרת»/«כן מאשר»/«מסכים» ⇒ unknown + כרטיס «לא זיהיתי», בלי `plan_accepted_by_customer`; «מאשר את הפריסה» ⇒ plan_request ⇒ **הצעה שנייה** (plans#2) — לולאה. גם ב-SMS. xfail ×4: `tests/test_critic_round202_dashboard_plan_accept.py`.
 =======
