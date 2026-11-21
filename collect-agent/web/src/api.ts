@@ -10,6 +10,7 @@ import type { WeekPoint } from './lib/series.ts';
 import type { OwnerMsg } from './lib/notices.ts';
 import type { DsrRow } from './lib/dsr.ts';
 import type { Role, Team } from './lib/team.ts';
+import type { PromiseDecision } from './lib/promiseRequest.ts';
 
 /** השרת ענה 401 — צריך קוד גישה של בעל העסק. */
 export class AuthError extends Error {}
@@ -191,7 +192,7 @@ export const api = {
   ownerDone: (id: number) => j<unknown>(`/owner/inbox/${id}/done`, { method: 'POST' }),
   /** critic סבב 192 (q22-04): הכרעה על DSN שלא אומת — confirm=true ⇒ הכתובת נחסמת למייל · false ⇒ המיילים חוזרים */
   /** הכרעת ראש צוות q21-19: approve=true ⇒ ההשהיה עד המועד המבוקש · false ⇒ נשאר 14 יום, ואז התזכורות חוזרות */
-  promiseRequest: (cid: number, approve: boolean) => j<{ customer: number; requested: string; approved: boolean; paused_until: string }>(
+  promiseRequest: (cid: number, approve: boolean) => j<PromiseDecision>(
     `/customers/${cid}/promise-request`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ approve }) }),
   emailBounce: (cid: number, confirm: boolean) => j<{ customer: number; email: 'blocked' | 'resumed' }>(`/customers/${cid}/email-bounce`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm }) }),

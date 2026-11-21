@@ -50,3 +50,5 @@ h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0
 .num { font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
 :focus-visible { outline: 3px solid var(--color-brand); outline-offset: 2px; border-radius: 6px; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+/* מנהל 360: כרטיס העדכון ללקוח שנוצר מ«בדוק ואשר» — מסומן כמה שניות אחרי הקפיצה אליו */
+[data-fresh="1"] > * { outline: 3px solid var(--color-brand); outline-offset: 2px; border-radius: 16px; }

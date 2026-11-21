@@ -7,7 +7,7 @@ import { smsSegments } from '../lib/message.ts';
 import { fmtWhenIL } from '../lib/policy.ts';
 import { fmtMoney } from '../lib/format.ts';
 import { ALREADY_DRAFT, ALREADY_DRAFT_CLOSED, alreadyDone, type Already } from '../lib/failure.ts';
-import { isPromiseOverLimit } from '../lib/promiseRequest.ts';
+import { isPromiseOverLimit, promiseDecisionText, promiseUpdateAnchor } from '../lib/promiseRequest.ts';
 import { promiseDecisionLocked, OWNER_ONLY_TEXT } from '../lib/roles.ts';
 
 const INTENT: Record<string, string> = {
@@ -79,6 +79,22 @@ function DraftCard({ d }: { d: Draft }) {
     // הפעלה 143: הפעולה בוצעה; כשל ברענון שאחריה לא מוצג כשגיאת הפעולה
     await reload().catch(() => { setBusy(false); }); showToast(was && already ? already.msg : ok);
   };
+  // מנהל 360: ההכרעה מנסחת עדכון ללקוח שממתין לאישור בעל העסק ⇒ הטוסט אומר זאת, והמסך קופץ לכרטיס החדש
+  const decide = async (approve: boolean) => {
+    setBusy(true); setErr(null);
+    let r;
+    try { r = await api.promiseRequest(d.customer_id, approve); } catch (e) { setErr(explainViolation((e as Error).message)); setBusy(false); return; }
+    await reload().catch(() => { setBusy(false); });
+    showToast(promiseDecisionText(r));
+    const id = promiseUpdateAnchor(r);
+    if (id) requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(`[data-testid="${id}"]`);
+      if (!el) return;
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      el.setAttribute('data-fresh', '1');
+      window.setTimeout(() => el.removeAttribute('data-fresh'), 4000);
+    });
+  };
   return (
     <li data-testid={`draft-${d.id}`} data-intent={d.intent} data-escalate={d.escalate}>
       <Card className="p-5">
@@ -95,9 +111,9 @@ function DraftCard({ d }: { d: Draft }) {
         {isPromiseOverLimit(d) && (
           <div className="mt-3 flex flex-wrap gap-2" data-testid="promise-request" role="group" aria-label="בדוק ואשר — המועד שהלקוח ביקש">
             <Button size="sm" disabled={busy || promiseLocked} data-testid="promise-approve"
-              onClick={() => run(() => api.promiseRequest(d.customer_id, true), '✓ המועד המבוקש אושר — אין תזכורות עד אז')}>✓ לאשר את המועד המבוקש</Button>
+              onClick={() => decide(true)}>✓ לאשר את המועד המבוקש</Button>
             <Button size="sm" variant="ghost" disabled={busy || promiseLocked} data-testid="promise-refuse"
-              onClick={() => run(() => api.promiseRequest(d.customer_id, false), 'המועד לא אושר — התזכורות יחזרו אחרי 14 יום')}>✗ לסרב (14 יום בלבד)</Button>
+              onClick={() => decide(false)}>✗ לסרב (14 יום בלבד)</Button>
             {promiseLocked && <span className="self-center text-xs font-bold text-ink-500" data-testid="promise-owner-only">{OWNER_ONLY_TEXT} — בעל העסק מכריע על המועד</span>}
           </div>
         )}

@@ -156,6 +156,13 @@ try {
   if (out) { await q.getByTestId('promise-request').first().scrollIntoViewIfNeeded(); await q.screenshot({ path: `${out}/promise-request-card.png` }); }
   await q.getByTestId('promise-approve').first().click();
   await q.getByText('המועד המבוקש אושר').first().waitFor();
+  // מנהל 360: ההכרעה ניסחה עדכון ללקוח ⇒ הטוסט אומר שהוא ממתין לאישור, והמסך קופץ לכרטיס החדש (מסומן)
+  await q.getByText('ממתין לאישורך בתור').first().waitFor();
+  const fresh = q.locator('[data-fresh="1"]');
+  await fresh.first().waitFor();
+  ok(await fresh.getAttribute('data-intent') === 'promise', 'הכרטיס המסומן אינו עדכון ההבטחה');
+  ok(await fresh.getByTestId('promise-request').count() === 0, 'העדכון ללקוח מציג שוב «בדוק ואשר»');
+  if (out) await q.screenshot({ path: `${out}/promise-decision-update-card.png` });
   await q.close();
   const audit = await (await fetch(`${base}/audit`, { headers: H })).json();
   ok(audit.some(a => a.action === 'promise_request_approved'), 'האישור לא נרשם');

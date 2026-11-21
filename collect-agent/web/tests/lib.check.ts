@@ -1634,3 +1634,19 @@ test('d018a41 · מועד מוערך: תאריך תקין בלוח, ותיקונ
   assert.equal(humanizeOpenListError('חשבונית 13 לא קיימת או לא פתוחה', [{ id: 13, number: '9303' }]), 'חשבונית 9303 לא קיימת או לא פתוחה');
   assert.equal(humanizeOpenListError('מועד לא תקין לחשבונית 99 (YYYY-MM-DD)', []), 'מועד לא תקין לחשבונית 99 (YYYY-MM-DD)');
 });
+
+test('מנהל 360: הטוסט אחרי «בדוק ואשר» אומר מה קרה ללקוח (עדכון בתור / הוחלף / אין) + עוגן הקפיצה', async () => {
+  const { promiseDecisionText, promiseUpdateAnchor } = await import('../src/lib/promiseRequest.ts');
+  const a = promiseDecisionText({ approved: true, customer_update: { draft: 9, replaced: [] } });
+  assert.match(a, /^✓ המועד המבוקש אושר/); assert.match(a, /ממתין לאישורך בתור/); assert.doesNotMatch(a, /הוחלפה/);
+  const r = promiseDecisionText({ approved: false, customer_update: { draft: 9, replaced: [4] } });
+  assert.match(r, /^המועד לא אושר/); assert.match(r, /התשובה הקודמת הוחלפה/); assert.match(r, /ממתין לאישורך/);
+  for (const u of [null, undefined]) {
+    const n = promiseDecisionText({ approved: true, customer_update: u });
+    assert.match(n, /לא נוסח עדכון/); assert.doesNotMatch(n, /בתור/);
+    assert.equal(promiseUpdateAnchor({ customer_update: u }), null);
+  }
+  assert.equal(promiseUpdateAnchor({ customer_update: { draft: 12, replaced: [] } }), 'draft-12');
+  // e2e הקיים (app-staff-owner-only) מחכה ל«המועד המבוקש אושר» — לא לשבור
+  assert.ok(a.includes('המועד המבוקש אושר'));
+});
