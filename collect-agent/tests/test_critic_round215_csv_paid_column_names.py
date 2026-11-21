@@ -19,7 +19,6 @@ def _parse_with_paid(col):
     return parse(txt.encode(), today=date(2026, 11, 8))
 
 
-@pytest.mark.xfail(strict=True, reason="215🟠: עמודת «שולם» בשם לא מוכר ⇒ 1,200 ברוטו כחוב, בלי שגיאה")
 @pytest.mark.parametrize("col", ["שולם עד כה", "התקבל", "נתקבל", "סכום שהתקבל", "Amount Received", "Received",
                                  "Paid to date", "Payments"])
 def test_paid_column_variant_blocks_gross_debt(col):

@@ -31,7 +31,10 @@ COLUMNS: dict[str, tuple[str, ...]] = {
     "currency": ("מטבע", "currency"),
     "status": ("סטטוס", "status"),
     # מנהל 370: סכום ששולם לצד סכום ברוטו (בלי עמודת יתרה) ⇒ לא דורשים את מה ששולם (ראו `_paid_conflict`)
-    "paid": ("סכום ששולם", "שולם", "תקבולים", "זכות", "paid", "amount paid", "paid amount"),
+    # מבקר 215: גם «שולם עד כה» / «התקבל» / «Amount Received» / «Payments» וכו׳; שמות אחרים ⇒ `_paid_like`
+    "paid": ("סכום ששולם", "שולם", "תקבולים", "זכות", "paid", "amount paid", "paid amount",
+             "שולם עד כה", "שולם עד היום", "התקבל", "נתקבל", "סכום שהתקבל", "סכום שנתקבל", "תקבול",
+             "amount received", "received", "paid to date", "payments", "payments received", "total paid"),
 }
 # שמות עמודת סכום שהם כבר נטו (אחרי תשלומים) — עמודת «שולם» לצידם לא משנה דבר
 BALANCE_NAMES = ("יתרה לתשלום", "יתרה", "amount due", "balance")
@@ -230,6 +233,22 @@ def _delim(line: str) -> str:
     return max(counts, key=lambda d: (counts[d], d == ","))
 
 
+# מבקר 215🟠 (הפעלה 371): רשימה סגורה של שמות «שולם» פספסה ניסוחים נפוצים ⇒ סכום ברוטו נקלט כחוב מלא.
+# שם עמודה שלא זוהה, שיש בו מילת תשלום-שהתקבל ⇒ עמודת «שולם». לא: שלילה («לא שולם», «unpaid» = יתרה),
+# תאריך («תאריך תשלום», «date paid»), מספר/כמות («מספר תשלומים», «# payments»), ולא «תשלום» לבד (דו-משמעי).
+_PAID_TOKENS = ("שולם", "התקבל", "נתקבל", "תקבול", "paid", "received", "payments")
+_PAID_NOT = ("לא שולם", "טרם", "unpaid", "not paid", "un-paid", "תאריך", "date", "מספר", "כמות", "count",
+             "number", "no.", "#", "אמצעי", "method", "via", "by")
+
+
+def _paid_like(h: str) -> bool:
+    t = re.sub(r"\s+", " ", h).replace("to date", "")      # «paid to date» = מצטבר, לא עמודת תאריך
+    if not any(k in t for k in _PAID_TOKENS):
+        return False
+    return not any(re.search(rf"(?<![a-z\u05d0-\u05ea]){re.escape(k)}(?![a-z\u05d0-\u05ea])", t)
+                   if k.isalpha() else k in t for k in _PAID_NOT)
+
+
 def _columns(cells: list[str]) -> dict[str, int]:
     head = [h.strip().lower() for h in cells]
     idx: dict[str, int] = {}
@@ -238,6 +257,12 @@ def _columns(cells: list[str]) -> dict[str, int]:
         for name in names:
             if name.lower() in head:
                 idx[key] = head.index(name.lower())
+                break
+    if "paid" not in idx:
+        used = set(idx.values())
+        for i, h in enumerate(head):
+            if i not in used and _paid_like(h):
+                idx["paid"] = i
                 break
     return idx
 
@@ -260,7 +285,14 @@ def _find_header(text: str) -> tuple[int, str]:
 _SUMMARY = re.compile(r'^(?:סה["\u05f4\'\u2019]?כ|סך\s*הכ[ו]?ל|סיכום|total|totals|grand\s+total|subtotal|sum)'
                       r'(?:\s+(?:לתשלום|כללי|כולל|חובות|יתרות|יתרה|פתוחות|amount|due|balance|open))?$',
                       re.IGNORECASE)
+# מבקר 214🟠 (הפעלה 371): הרשימה המעוגנת ב-$ פספסה «סה"כ לגבייה», «*** סה"כ ***», «סכום כולל», «Sub-total»,
+# «Total (ILS)» ⇒ חשבונית בשקט. בעמודת המספר: **תחילית** (אחרי עיטורים) מספיקה — שגיאה גלויה עדיפה על חוב מזויף.
+# בעמודת הלקוח נשאר המעוגן (לקוח «Total Solutions» / «סיכום בע״מ»).
+_DECOR = " \t*=#_~•·:.|>-–—«»\"'()[]"
+_SUMMARY_PREFIX = re.compile(r'^(?:סה["\u05f4\'\u2019]?כ|סך\s*ה?כ[ו]?ל|סיכום|סכום\s+כולל|grand\s+total|'
+                             r'sub[\s-]?totals?|totals?|sum|summary)(?![a-z\u05d0-\u05ea])', re.IGNORECASE)
 SUMMARY_MSG = "שורת סיכום (סה״כ) — לא חשבונית, לא נקלטה"
+NO_DIGIT_MSG = "מספר מסמך בלי ספרות ({!r}) — אולי שורת סיכום או הערה? לא נקלט"
 MERGED_HINT = " (אם התא ממוזג עם השורה שמעל ב-Excel — בטלו את המיזוג ומלאו את הערך בכל שורה)"
 
 
@@ -288,6 +320,11 @@ def _paid_conflict(v: str) -> None:
 
 def _is_summary(label: str) -> bool:
     return bool(_SUMMARY.match(label.strip().rstrip(":").strip()))
+
+
+def _is_summary_number(label: str) -> bool:
+    """תווית בעמודת **מספר המסמך**: מספיק שמתחילה (אחרי עיטורים) בסה״כ/סך הכל/סיכום/סכום כולל/total/sum."""
+    return _is_summary(label) or bool(_SUMMARY_PREFIX.match(label.strip(_DECOR)))
 
 
 def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
@@ -330,7 +367,7 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
         try:
             raw_num = cell("number")
             # «סה״כ» בעמודת המספר הוא אף פעם לא מספר מסמך (גם אם יש בשורה טלפון של העסק) ⇒ תמיד סיכום
-            if _is_summary(raw_num) or (not raw_num and _is_summary(cell("client"))
+            if _is_summary_number(raw_num) or (not raw_num and _is_summary(cell("client"))
                                         and not cell("phone") and not cell("email")):
                 raise ValueError(SUMMARY_MSG)
             if not raw_num:
@@ -340,6 +377,8 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
             num = clean_doc_number(raw_num)
             if not num:
                 raise ValueError(f"מספר מסמך לא תקין: {raw_num[:30]!r}")
+            if not any(ch.isdigit() for ch in num):     # מבקר 214: אין מספר מסמך בלי אף ספרה
+                raise ValueError(NO_DIGIT_MSG.format(raw_num[:30]))
             if len(num) > DOC_NUMBER_MAX:
                 raise ValueError(f"מספר מסמך ארוך מדי (מעל {DOC_NUMBER_MAX} תווים)")
             if num in seen:
