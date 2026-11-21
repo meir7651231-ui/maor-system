@@ -105,3 +105,54 @@ def test_summary_shows_open_list_waiting_for_owner(trap):
     out = morning.run_morning(trap)
     assert out["open_list_to_confirm"] == out["open_invoices"] >= 1
     assert out["pending_approval"] == 0 and out["planned"] == 0
+
+
+# ── גבי חיבורים (21.11): עסק שעובד עם CSV ─────────────────────────────────────────────────────────────
+# היה: sync() זורק «מקור החשבוניות הוא קובץ CSV» ⇒ status=sync_failed **כל בוקר** ⇒ check מתריע «הסנכרון נכשל»
+# לשווא וה-CLI יוצא 1 — ל-30%–50% מעסקי הבטא (market.md). עכשיו: דילוג מוצהר + האם הקובץ טרי (ר-4: 24 שעות).
+CSV = "מספר מסמך,שם לקוח,טלפון,יתרה לתשלום,תאריך לתשלום\n5001,דנה כהן,050-1234567,300,01/10/2026\n"
+
+
+@pytest.fixture
+def csv_biz(trap):
+    object.__setattr__(trap.s, "source_system", "csv")
+    return trap
+
+
+def test_csv_business_morning_is_ok_not_sync_failed(csv_biz, clock):
+    csv_biz.import_csv(CSV.encode())
+    out = morning.run_morning(csv_biz)
+    assert out["status"] == "ok" and out["sync"] == {"source": "csv", "skipped": True}
+    assert "sync_error" not in out
+    assert out["csv_upload_needed"] is False and out["csv_last_import"] == "2026-11-08"
+    assert out["planned"] >= 1                                       # הרשימה מה-CSV מוכנה
+    ok, msg = morning.check(csv_biz.db, now=clock.now)
+    assert ok, msg
+
+
+def test_csv_older_than_24h_asks_for_fresh_upload(csv_biz, clock):
+    csv_biz.import_csv(CSV.encode())
+    clock.now += timedelta(hours=25)
+    out = morning.run_morning(csv_biz)
+    assert out["status"] == "ok" and out["csv_upload_needed"] is True
+    assert out["csv_last_import"] == "2026-11-08"
+    clock.now += timedelta(days=1)
+    csv_biz.import_csv(CSV.encode())                                 # הועלה קובץ טרי ⇒ אין בקשה
+    assert morning.run_morning(csv_biz)["csv_upload_needed"] is False
+
+
+def test_csv_business_never_imported(csv_biz):
+    out = morning.run_morning(csv_biz)
+    assert out["status"] == "ok" and out["csv_upload_needed"] is True and out["csv_last_import"] is None
+
+
+def test_csv_cli_exit_zero(csv_biz, tmp_path, monkeypatch):
+    """ה-cron: עסק CSV ⇒ exit 0 (קודם 1 כל בוקר)."""
+    monkeypatch.setattr(morning, "_service_from_env", lambda _p: csv_biz)
+    db = tmp_path / "x.sqlite3"
+    db.write_bytes(b"")
+    assert morning.main(["m", str(db)]) == 0
+
+
+def test_api_source_keeps_no_csv_fields(trap):
+    assert "csv_upload_needed" not in morning.run_morning(trap)      # לא נוגע בעסק עם API

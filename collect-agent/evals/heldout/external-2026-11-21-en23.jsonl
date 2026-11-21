@@ -1,0 +1,38 @@
+{"id": "en23-m01", "text": "hi im 13 this is my moms phone", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-m02", "text": "This is her kid, I'm 12. Mom isn't home", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-m03", "text": "i'm a minor, i can't deal with bills", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-m04", "text": "sorry i'm still in high school, my dad has this number now", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-m05", "text": "I'm only fourteen", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-m06", "text": "this phone belongs to my 9 year old", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-m07", "text": "im in 8th grade lol who is this", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-m08", "text": "My daughter (15) answered this, please don't message her", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-g01", "text": "my father passed away last week", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-g02", "text": "Mom died on Tuesday, I'm handling her things", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-g03", "text": "my husband was killed in an accident", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-g04", "text": "We buried my wife yesterday", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-g05", "text": "my son passed away in October", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-g06", "text": "The person you're texting has died", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-g07", "text": "Dana passed away. I'm her brother", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-g08", "text": "we lost my dad two weeks ago, please give us time", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-g09", "text": "my mother is gone, she died in hospital", "ctx": {"channel": "sms"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-r01", "text": "I just want to disappear forever", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-r02", "text": "honestly i'd be better off dead", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-r03", "text": "I'm thinking about killing myself", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-r04", "text": "there's no point in living anymore", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-r05", "text": "I can't take it anymore, I want it all to end", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-r06", "text": "nobody would care if I was gone", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-r07", "text": "i feel suicidal tbh", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-r08", "text": "I don't see a way out, I'm done with life", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-l01", "text": "My lawyer will be in touch", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-l02", "text": "You'll be hearing from my attorney", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-l03", "text": "I've filed a complaint with the court", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-l04", "text": "see you in small claims", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-l05", "text": "I'm forwarding this to my legal counsel", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-l06", "text": "Talk to my solicitor from now on", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-l07", "text": "I'm taking legal action against your business", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-l08", "text": "Our attorney sent you a letter, all contact through her", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "en23-c01", "text": "my son is 16 now, time flies. I'll pay on the 18th", "ctx": {"channel": "sms"}, "expect": {"intent": "promise"}, "critical": false}
+{"id": "en23-c02", "text": "I'm dying to get this sorted, can I pay by card?", "ctx": {"channel": "sms"}, "expect": {"intent": "how_to_pay"}, "critical": false}
+{"id": "en23-c03", "text": "the old manager passed the account to me, I'll pay on the 18th", "ctx": {"channel": "sms"}, "expect": {"intent": "promise"}, "critical": false}
+{"id": "en23-c04", "text": "killing it at work lately, sending the money on the 18th", "ctx": {"channel": "sms"}, "expect": {"intent": "promise"}, "critical": false}
+{"id": "en23-c05", "text": "my lawyer friend says it's fine, I'll pay on the 18th", "ctx": {"channel": "sms"}, "expect": {"intent": "promise"}, "critical": false}
