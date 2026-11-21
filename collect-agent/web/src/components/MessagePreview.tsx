@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { DueEstimatedBadge } from './DueEstimatedBadge.tsx';
 import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, driftText, REAPPROVE_LABEL, REFRESH_LABEL, type Preview } from '../api.ts';
 import { failPrefix, staleChangeText, stalePreview } from '../lib/failure.ts';
+import { sharedWarningText } from '../lib/notices.ts';
 import { useApp } from '../store.tsx';
 import type { Channel, Invoice, Step } from '../lib/domain.ts';
 import { STEP_LABEL, STEP_ORDER, buildEmail, demoShortUrl, buildSms, nextStep, requiresApproval, smsSegments } from '../lib/message.ts';
@@ -50,6 +51,8 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
   // לקריאה בלבד: נפתחה דרך הפער, או שהתזכורת כבר לא ממתינה לאישור (אושרה/נשלחה בינתיים)
   const readOnly = live && (!!driftRid || (!!pv && pv.status !== 'pending_approval'));
   const drift = live ? pv?.amount_drift ?? null : null;
+  // מנהל 365: קטין/מצוקה/משפטי מכתובת משותפת שוחרר ב«אף אחד מהם» — סימון גלוי, לא חסימה (ההכרעה למאיר)
+  const sharedWarn = live ? sharedWarningText(pv?.shared_warning) : null;
   const failed = live && !pv && !!err;
   const [step, setStep] = useState<Step>(nextStep(invoice));
   const [tab, setTab] = useState<Channel>(c.phone && business.channels.sms ? 'sms' : 'email');
@@ -102,6 +105,8 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
 
         {drift && <div role="status" data-testid="mp-drift" className="mx-5 mt-4 rounded-xl bg-amber-50 ring-1 ring-inset ring-amber-200 text-amber-900 px-4 py-3 text-sm">
           <b>⚠️ {DRIFT_LABEL}.</b> {driftText({ was: drift.was_text, now: drift.now_text })} הנוסח למטה הוא מה שאישרתם, על הסכום הקודם.</div>}
+        {sharedWarn && <div role="alert" data-testid="mp-shared-warning" className="mx-5 mt-4 rounded-xl bg-amber-50 ring-1 ring-inset ring-amber-200 text-amber-900 px-4 py-3 text-sm">
+          <b>⚠️ לבדוק לפני אישור.</b> {sharedWarn}</div>}
         {changed && <div role="alert" data-testid="mp-stale" className="mx-5 mt-4 rounded-xl bg-amber-50 text-amber-900 px-4 py-3 text-sm font-bold">⚠️ {changed}</div>}
         {loading ? <PreviewSkeleton /> : failed ? (
           <div role="alert" data-testid="mp-error" className="p-8 text-center">

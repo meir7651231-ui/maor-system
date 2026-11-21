@@ -1677,3 +1677,17 @@ test('מנהל 364 (מבקר 209🟡): שיוך כרטיס כתובת משותפ
   assert.match(requeuedToast('שויכה', { requeued_drafts: [7] }), /^שויכה · תשובה שנעצרה חזרה לתור האישורים/);
   assert.match(requeuedToast('שויכה', { requeued_drafts: [7, 8] }), /2 תשובות שנעצרו חזרו לתור/);
 });
+
+test('מנהל 365 (ממצא גבייה סוכן 21.11): קטין/מצוקה/משפטי מכתובת משותפת ⇒ «אף אחד מהם» ⇒ שורת אזהרה בתצוגה המקדימה', async () => {
+  const { sharedWarningText } = await import('../src/lib/notices.ts');
+  assert.equal(sharedWarningText(null), null);
+  assert.equal(sharedWarningText(undefined), null);
+  assert.equal(sharedWarningText({ urgent: 'opt_out', card_id: 1 }), null);
+  assert.equal(sharedWarningText('minor'), null);
+  const t = sharedWarningText({ card_id: 9, urgent: 'minor', channel: 'sms', received_at: '2026-11-21T10:00:00+02:00' });
+  assert.match(t ?? '', /^קטין\/ה ענה\/תה מהמספר המשותף/);
+  assert.match(t ?? '', / ב-21\.11/);
+  assert.match(t ?? '', /«אף אחד מהם»/);
+  assert.match(sharedWarningText({ card_id: 9, urgent: 'legal', channel: 'email' }) ?? '', /מכתובת המייל המשותפת ללקוח/);
+  assert.doesNotMatch(sharedWarningText({ card_id: 9, urgent: 'distress', received_at: 'bad' }) ?? '', / ב-/);
+});

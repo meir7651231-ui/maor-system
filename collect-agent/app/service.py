@@ -1988,6 +1988,8 @@ class CollectService:
                 "numbers": [i["number"] for i in invs],
                 # הכרעת רכז: אילו מהחשבוניות בתזכורת על מועד מוערך (הנפקה+30, לא מועד מהמקור)
                 "due_estimated": [i["number"] for i in invs if i["due_estimated"]],
+                # מנהל 365: קטין/מצוקה/משפטי מכתובת משותפת שבעל העסק שייך ל«אף אחד מהם» ⇒ סימון באישור
+                "shared_warning": self.inbox.released_nobody_warning(invs[0]["customer_id"]),
                 **totals,
                 "messages": [self.sender.preview(m) for m in msgs]}
 

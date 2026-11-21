@@ -274,6 +274,7 @@ class ConversationInbox:
         self.svc.audit(actor, "shared_contact_assigned", {"card": card_id, "customer": customer_id})
         requeued = self._requeue_stopped_for_others(info, card_id, customer_id, actor)
         if customer_id is None:
+            self._mark_released_nobody(m, info, card_id, actor)
             return {"card_id": card_id, "assigned": None, "requeued_drafts": requeued}
         self._link_card_dsr(info, customer_id, actor)
         # critic 171ב: המועד החוקי לבקשת עיון/מחיקה נספר מקבלת ההודעה המקורית, לא מיום השיוך
@@ -283,6 +284,33 @@ class ConversationInbox:
             self.db.x("UPDATE drafts SET owner_summary=COALESCE(owner_summary,'') || ? WHERE id=?",
                       (UNVERIFIED_EMAIL_NOTE, res["draft_id"]))
         return {"card_id": card_id, "assigned": customer_id, **res, "requeued_drafts": requeued}
+
+    # מנהל 365 (ממצא «גבייה סוכן» 21.11, fuzz זרע 89): קטין / מצוקה / משפטי מכתובת משותפת ⇒ «אף אחד מהם» משחרר
+    # את ההשהיה, והתזכורת הבאה לאותו טלפון נבנתה בלי שום סימן במסך האישור. ההכרעה אם לחסום נשארת לבעלים
+    # (team/findings-gvia-sochen.md, אפשרות 1); כאן רק אפשרות 2 — סימון גלוי בתצוגה המקדימה של כל תזכורת למקושרים.
+    RELEASED_WARN_INTENTS = ("minor", "distress", "legal")
+
+    def _mark_released_nobody(self, m, info: dict, card_id: int, actor: str) -> None:
+        if m["intent"] != self.SHARED_URGENT or info.get("urgent") not in self.RELEASED_WARN_INTENTS:
+            return
+        info["released_nobody"] = _iso(self.svc.clock())
+        self.db.x("UPDATE messages SET payload=? WHERE id=?", (json.dumps(info, ensure_ascii=False), card_id))
+        self.svc.audit(actor, "shared_released_nobody_flagged", {"card": card_id, "urgent": info.get("urgent")})
+
+    def released_nobody_warning(self, customer_id: int) -> dict | None:
+        """הכרטיס האחרון שבו קטין/מצוקה/משפטי הגיע מכתובת משותפת ללקוח הזה ובעל העסק בחר «אף אחד מהם»."""
+        for r in self.db.q("SELECT id, channel, payload, created_at FROM messages WHERE intent=? AND needs_owner=0 "
+                           "AND payload LIKE '%released_nobody%' ORDER BY id DESC", (self.SHARED_URGENT,)):
+            try:
+                info = json.loads(r["payload"] or "{}")
+            except ValueError:
+                continue
+            if not info.get("released_nobody") or info.get("urgent") not in self.RELEASED_WARN_INTENTS:
+                continue
+            if customer_id in {x.get("id") for x in info.get("linked_customers", [])}:
+                return {"card_id": r["id"], "urgent": info["urgent"], "channel": r["channel"],
+                        "received_at": r["created_at"], "released_at": info["released_nobody"]}
+        return None
 
     REQUEUE_NOTE = (" · התשובה אושרה קודם ונעצרה בגלל הודעה דחופה מכתובת משותפת; בעל העסק שייך את ההודעה "
                     "ללקוח/ה אחר/ת — לבדוק ולאשר מחדש")

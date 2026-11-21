@@ -194,6 +194,10 @@ const why=b=>REAPPROVE[b]?REAPPROVE[b].split(". ")[0]:pause(b);
 // שאושרה, נשלחה או נדחתה היא שארית ⇒ מציגים את הסטטוס. תזכורת מאושרת שהסכום שלה השתנה במקור (amount_drift
 // מהשרת) מסומנת כמי שתחזור לאישור, כמו ההערה בלוח התצוגה (154).
 const DRIFT="הסכום השתנה במקור, תחזור לאישורך";
+// מנהל 365: קטין/מצוקה/משפטי מכתובת משותפת ⇒ «אף אחד מהם» ⇒ סימון בתצוגה המקדימה (זהה ל-web/src/lib/notices.ts)
+const SHWHO={minor:"קטין/ה ענה/תה",distress:"הגיעה הודעת מצוקה",legal:"הגיעה הודעה על צעד משפטי"};
+const sharedWarn=w=>{if(!w||!SHWHO[w.urgent])return "";const d=/^\d{4}-\d{2}-\d{2}/.test(w.received_at||"")?` ב-${w.received_at.slice(8,10)}.${w.received_at.slice(5,7)}`:"";
+  return `${SHWHO[w.urgent]} ${w.channel==="email"?"מכתובת המייל המשותפת":"מהמספר המשותף"} ללקוח/ה הזה/זו${d}, ובחרתם «אף אחד מהם». ודאו שהתזכורת לא תגיע אליו/ה לפני שמאשרים.`};
 const chipOf=r=>r.amount_drift?DRIFT:r.block_reason&&!(REAPPROVE[r.block_reason]&&r.status!=="pending_approval")?why(r.block_reason):STATUS[r.status]||r.status;
 let sel=null,shown=null,pvHash=null;
 const $=s=>document.querySelector(s);
@@ -630,6 +634,7 @@ async function show(id,info,stale){
     ${p.block_reason&&!(REAPPROVE[p.block_reason]&&p.status!=="pending_approval")?(REAPPROVE[p.block_reason]?`<div class="note" id="blockNote">לבדיקתך: ${esc(REAPPROVE[p.block_reason])}</div>`
       :`<div class="err" id="blockNote">חסום: ${esc(pause(p.block_reason))}</div>`):""}
     ${p.amount_drift?`<div class="note" id="driftNote" role="status">${esc(driftText(p.amount_drift))}</div>`:""}
+    ${sharedWarn(p.shared_warning)?`<div class="err" id="sharedWarn" role="alert">⚠ לבדוק לפני אישור: ${esc(sharedWarn(p.shared_warning))}</div>`:""}
     <div class="previews"><div><h2>SMS</h2>${smsHtml}</div><div><h2>מייל</h2>${mailHtml}</div></div>
     ${checks}
     <div class="decide">${p.status==="pending_approval"?`<button class="primary" id="ok" ${can?"":"disabled"}>אישור ושליחה</button>`:""}

@@ -133,7 +133,8 @@ export interface Preview { reminder_id: number; status: string; /** critic סב�
   needs_confirm_open?: boolean; numbers?: string[]; invoice_count?: number; total_text?: string;
   /** הפעלה 154: תזכורת מאושרת שהסכום שלה השתנה במקור (הנוסח עדיין על הסכום הקודם, ולא יישלח כך) */
   amount_drift?: { was_text: string | null; now_text: string } | null;
-  /** d018a41: מספרי החשבוניות בתזכורת שהמועד שלהן מוערך */ due_estimated?: string[] }
+  /** d018a41: מספרי החשבוניות בתזכורת שהמועד שלהן מוערך */ due_estimated?: string[];
+  /** מנהל 365: קטין/מצוקה/משפטי מכתובת משותפת ⇒ «אף אחד מהם» */ shared_warning?: unknown }
 /** תזכורת שממתינה לאישור, לפי חשבונית העוגן. count/totalText רק כשהתזכורת כוללת יותר מחשבונית אחת. */
 export interface PendingRef { reminderId: number; block: string | null; count?: number; totalText?: string;
   /** הפעלה 171: תזכורת מאוחדת — מזהי כל החשבוניות שבה (כולל העוגן), לחיפוש בתור לפי כל מספר */
