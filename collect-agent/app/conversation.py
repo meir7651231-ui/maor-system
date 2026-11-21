@@ -440,6 +440,12 @@ _EN_KIN = (r"(?:dad|father|mom|mum|mother|husband|wife|son|daughter|brother|sist
            r"|grandmother|grandfather|parent|baby|child|kid)")
 _EN_BEREAVE = (r"\b(?:my|our)\s+(?:\w+\s+)?" + _EN_KIN + r"s?\s+(?:just\s+|recently\s+|suddenly\s+)?(?:died\b|passed\s+away\b"
                r"|passed(?=\s*(?:$|[,.!;:\-–—]|(?:last|this|yesterday|today|on|in|recently|earlier)\b)))"
+               # מבקר 213🟠 (המראה באנגלית של 212): «he's/she is no longer with us», «she passed» (סוף משפט / זמן בלבד —
+               # לא «she passed the exam»), «the account holder is deceased», «RIP dad»
+               r"|\b(?:he|she|they)\s*(?:['’]s|['’]re|\s+is|\s+are|\s+has|\s+have)?\s+(?:sadly\s+)?no\s+longer\s+with\s+us\b"
+               r"|\b(?:he|she)\s+(?:has\s+|just\s+|sadly\s+)?passed(?=\s*(?:$|[,.!;:\-–—]|(?:away|last|this|yesterday|today|on|in|recently|earlier)\b))"
+               r"|\b(?:is|was|has\s+been)\s+(?:now\s+)?deceased\b|\bthe\s+deceased\b"
+               r"|\b(?:rip|r\.i\.p\.?)\s+(?:my\s+|our\s+)?" + _EN_KIN + r"\b"
                r"|\b(?:lost|buried)\s+(?:my|our)\s+(?:\w+\s+)?" + _EN_KIN + r"\b(?!\s*['’]?s\b|\s+(?:card|phone|keys?|wallet|number))"
                r"|\bsitting\s+shiva\b")
 # מבקר 212🟠: אבל בעברית שלא נתפס — «אבא שלי נפתר» (שגיאת כתיב; «נפתר» לבדו = «נפתרה הבעיה» ⇒ רק אחרי קרוב),
@@ -453,7 +459,8 @@ _SENSITIVE_ILL = (_HE_BEREAVE + r"|חולה|מחלה|מאושפז|אשפוז|נ�
                   # מנהל 299 (qa18 q18-19 🔴): «my dad passed last week» ⇒ היה cant_pay רגיל (לא דחוף). «passed» בלי away
                   r"|" + _EN_BEREAVE)
 # ר-6: חדלות פירעון (תגית insolvency)
-_INSOLVENCY_TAG = (r"\binsolvency\b|\bbankrupt(?:cy)?\b|\breceivership\b|\bliquidation\b|\bdebts?\s+(?:are\s+|were\s+)?(?:all\s+)?frozen\b|"
+_INSOLVENCY_TAG = (r"\binsolvency\b|\bbankrupt(?:cy)?\b|\breceivership\b|\bliquidation\b|"
+                   r"\bdebt\s+relief\s+(?:proceedings?|order|process|case)\b|\bdebts?\s+(?:are\s+|were\s+)?(?:all\s+)?frozen\b|"
                    r"פשיטת רגל|חדלות פירעון|צו כינוס|צו פתיחת הליכים|הליך חדלות|נאמן (?:בתיק|שמונה)|כונס נכסים"
                    r"|(?:תיק|תיקי) איחוד|איחוד תיקים|מעוקל|עיקול|דרך (?:ה)?לשכה|" + _INSOLVENT_ME)
 _RESERVIST_NOW = r"מילואים|צו 8|צו שמונה"
@@ -1258,6 +1265,7 @@ _extend(Intent.WRONG_PERSON,
 # («my 15 year old will drop off the cash tomorrow»).
 _extend(Intent.CANT_PAY,
         r"\b(?:insolvency|bankruptcy|bankrupt|receivership|liquidation)\b(?!\s+(?:lawyer|attorney)\s+(?:said|says)\s+pay)",
+        r"\bdebt\s+relief\s+(?:proceedings?|order|process|case)\b",   # מבקר 213🟠 (= «הליך חדלות פירעון»)
         r"\b(?:debts?|accounts?|payments?)\s+(?:are|is|were|was|have\s+been|has\s+been)\s+(?:all\s+)?frozen\b")
 _extend(Intent.WHO_IS_THIS, r"^\W*(?:hi|hey|hello|hiya)\W+who\s+(?:is|are)\s+(?:this|you)\b")
 # קטין שענה בטלפון של ההורה (אנגלית): «my son is 15 and he answered», «my kid answered, hes 13», «this phone belongs to
@@ -1458,6 +1466,16 @@ _extend(Intent.MINOR,
         r"(?<![\w])(?:אני\s+)?(?:עוד|עדיינ|בכלל)\s+לא\s+(?:בנ|בת)\s+(?:18|שמונה\s*עשרה|שמונה-עשרה)(?![\d\w])",
         r"(?<![\w])אני\s+(?:עוד\s+|עדיינ\s+)?(?:מתחת\s+ל|לפני\s+)(?:גיל\s+)?(?:18|שמונה\s*עשרה)(?![\d\w])")
 _extend(Intent.CANT_PAY, _HE_BEREAVE)
+
+# ═══ מבקר 213🟠: המראה באנגלית של 212 — קטין / מצוקה (אבל וחדלות פירעון: _EN_BEREAVE / _INSOLVENCY_TAG) ═══
+_extend(Intent.MINOR,
+        r"\bi\s*(?:['’]?m|\s+am)\s+(?:still\s+|only\s+|just\s+)?under\s+(?:18|eighteen|age)\b",
+        # הכותב/ת מזדהה כילד/ה של בעל/ת החשבון («this is her 16 year old son»); «my 16 year old son will pay» = הורה ⇒ לא
+        r"\b(?:this\s+is|i\s*['’]?m|i\s+am)\s+(?:her|his|their|the)\s+(?:[1-9]|1[0-7])\s*[- ]?\s*(?:years?|yrs?|y/?o)"
+        r"(?:\s*[- ]?\s*old)?\s+(?:son|daughter|kid|child|boy|girl)\b")
+_extend(Intent.DISTRESS,
+        r"\bi\s*(?:['’]?m|\s+am)\s+(?:in\s+)?(?:a\s+)?(?:really\s+|very\s+|such\s+a\s+|so\s+)?(?:dark|bad)\s+place\b"
+        r"(?![^.!?\n]*\b(?:financially|money|cash)\b)")
 
 # ═══ critic סבב 147: סלנג צ׳אט בעברית — סירוב/הסרה/קטין בהודעה קצרה ═══
 _extend(Intent.DISPUTE, r"^\W*(?:אני\s+)?לא\s+(?:משלמ|משלמת|משלמימ)(?:\s+(?:וזהו|וזהו זה|בכלל|על זה|לכמ|כלומ|שקל|אגורה))*\W*$")
