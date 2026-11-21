@@ -8,6 +8,7 @@ import { fmtWhenIL } from '../lib/policy.ts';
 import { fmtMoney } from '../lib/format.ts';
 import { ALREADY_DRAFT, ALREADY_DRAFT_CLOSED, alreadyDone, type Already } from '../lib/failure.ts';
 import { isPromiseOverLimit } from '../lib/promiseRequest.ts';
+import { promiseDecisionLocked, OWNER_ONLY_TEXT } from '../lib/roles.ts';
 
 const INTENT: Record<string, string> = {
   how_to_pay: 'שאל/ה איך משלמים', paid_claim: 'טוען/ת ששילם/ה', plan_request: 'מבקש/ת פריסה', opt_out: 'ביקש/ה הסרה',
@@ -56,7 +57,8 @@ export function Inbox() {
 }
 
 function DraftCard({ d }: { d: Draft }) {
-  const { reload, showToast } = useApp();
+  const { reload, showToast, me } = useApp();
+  const promiseLocked = promiseDecisionLocked(me);   // מבקר 201: הכרעת בעל העסק בלבד (השרת: 403)
   const [body, setBody] = useState(d.body ?? '');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -92,10 +94,11 @@ function DraftCard({ d }: { d: Draft }) {
         )}
         {isPromiseOverLimit(d) && (
           <div className="mt-3 flex flex-wrap gap-2" data-testid="promise-request" role="group" aria-label="בדוק ואשר — המועד שהלקוח ביקש">
-            <Button size="sm" disabled={busy} data-testid="promise-approve"
+            <Button size="sm" disabled={busy || promiseLocked} data-testid="promise-approve"
               onClick={() => run(() => api.promiseRequest(d.customer_id, true), '✓ המועד המבוקש אושר — אין תזכורות עד אז')}>✓ לאשר את המועד המבוקש</Button>
-            <Button size="sm" variant="ghost" disabled={busy} data-testid="promise-refuse"
+            <Button size="sm" variant="ghost" disabled={busy || promiseLocked} data-testid="promise-refuse"
               onClick={() => run(() => api.promiseRequest(d.customer_id, false), 'המועד לא אושר — התזכורות יחזרו אחרי 14 יום')}>✗ לסרב (14 יום בלבד)</Button>
+            {promiseLocked && <span className="self-center text-xs font-bold text-ink-500" data-testid="promise-owner-only">{OWNER_ONLY_TEXT} — בעל העסק מכריע על המועד</span>}
           </div>
         )}
         <label className="block mt-4">

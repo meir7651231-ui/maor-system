@@ -25,5 +25,8 @@ export const exportLocked = (me: Me | null | undefined) => exportOwnerOnly(me ??
 /** סגירת בקשת **מחיקה** במרשם (מאשרת שהמידע נמחק) — בעל העסק בלבד. עיון/תיקון — פתוח לכולם. */
 export const dsrCloseLocked = (me: Me | null | undefined, kind: string) => isStaff(me) && kind === 'deletion';
 
+/** מבקר 201: «בדוק ואשר» על מועד הבטחה שמעבר ל-14 יום (q21-19) — הכרעת בעל העסק בלבד (השרת: 403). */
+export const promiseDecisionLocked = (me: Me | null | undefined) => isStaff(me);
+
 export const OWNER_ONLY_TEXT = '🔒 בעל העסק בלבד';
 export const OWNER_ONLY_TAG = OWNER_ONLY_TEXT;

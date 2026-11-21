@@ -1611,6 +1611,13 @@ test('מבקר 195ג (+194): פעולות בעל העסק בלבד — עובד/
   assert.equal(dsrCloseLocked(staff, 'deletion'), true);
   for (const k of ['access', 'correction']) assert.equal(dsrCloseLocked(staff, k), false, k);
   assert.equal(dsrCloseLocked(ownerUser, 'deletion'), false);
+  // מבקר 201: «בדוק ואשר» על מועד מעבר ל-14 יום — עובד/ת נעול/ה, בעלים/קוד-בעלים/לא-נטען פתוח
+  const { promiseDecisionLocked } = await import('../src/lib/roles.ts');
+  assert.equal(promiseDecisionLocked(staff), true);
+  for (const m of [ownerUser, ownerTok, null]) assert.equal(promiseDecisionLocked(m), false);
+  const inbox = readFileSync(new URL('../src/pages/Inbox.tsx', import.meta.url), 'utf8');
+  assert.match(inbox, /disabled=\{busy \|\| promiseLocked\} data-testid="promise-approve"/);
+  assert.match(inbox, /disabled=\{busy \|\| promiseLocked\} data-testid="promise-refuse"/);
 });
 
 test('d018a41 · מועד מוערך: תאריך תקין בלוח, ותיקונים נשלחים רק לפתוחות שהשתנו ותקינות', async () => {

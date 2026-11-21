@@ -12,7 +12,6 @@
 import re
 from pathlib import Path
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app import totp
@@ -42,16 +41,23 @@ def _api(svc, clock, monkeypatch):
     return api, hdr, cid
 
 
-@pytest.mark.xfail(strict=True, reason="201🟠: עובד/ת מאשר/ת הבטחה מעבר ל-14 יום ⇒ ללקוח «בעל העסק אישר»")
 def test_staff_cannot_decide_far_promise(svc, clock, monkeypatch):
     api, hdr, cid = _api(svc, clock, monkeypatch)
-    r = api.post(f"/customers/{cid}/promise-request", json={"approve": True}, headers=hdr("staff"))
+    staff = hdr("staff")
+    r = api.post(f"/customers/{cid}/promise-request", json={"approve": True}, headers=staff)
     assert r.status_code == 403, r.text
     row = svc.db.one("SELECT paused_reason FROM customers WHERE id=?", (cid,))
     assert row["paused_reason"] == "promise:until=2026-11-23"
+    # מנהל 354: ניסיון העובד/ת נרשם על שמו/ה, ולא נחשב הכרעה — בעל העסק עדיין מכריע אחר כך
+    who = svc.db.one("SELECT actor FROM audit WHERE action='promise_request_refused_staff'")["actor"]
+    assert who.startswith("user:")
+    assert not svc.db.one("SELECT 1 FROM audit WHERE action IN ('promise_request_approved','promise_request_refused')")
+    r2 = api.post(f"/customers/{cid}/promise-request", json={"approve": False}, headers=staff)
+    assert r2.status_code == 403
+    r3 = api.post(f"/customers/{cid}/promise-request", json={"approve": True}, headers=hdr("owner"))
+    assert r3.status_code == 200 and r3.json()["paused_until"] == "2026-11-26"
 
 
-@pytest.mark.xfail(strict=True, reason="201🟠: /app/#/inbox מציג לעובד/ת את כפתורי «בדוק ואשר»")
 def test_inbox_locks_promise_decision_for_staff():
     src = (ROOT / "web" / "src" / "pages" / "Inbox.tsx").read_text(encoding="utf-8")
     code = "\n".join(ln for ln in src.splitlines() if not ln.strip().startswith(("//", "*", "/*", "{/*")))

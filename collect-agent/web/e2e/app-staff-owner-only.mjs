@@ -140,6 +140,16 @@ try {
     if (out && who === 'staff') { await row.first().scrollIntoViewIfNeeded(); await u.screenshot({ path: `${out}/ui-staff-resume-owner-only.png` }); }
     await ctx.close();
   }
+  // מבקר 201: עובדת — «בדוק ואשר» נעול + תג, והשרת מחזיר 403 (הכרעת בעל העסק בלבד)
+  { const s = await page({ width: 390, height: 844 }, 'inbox', staffTok);
+    await s.getByTestId('promise-request').first().waitFor();
+    ok(await s.getByTestId('promise-approve').first().isDisabled() && await s.getByTestId('promise-refuse').first().isDisabled(), 'עובדת: כפתורי «בדוק ואשר» פתוחים');
+    ok(await s.getByTestId('promise-owner-only').count() >= 1, 'עובדת: אין תג «בעל העסק בלבד» בבדוק ואשר');
+    if (out) { await s.getByTestId('promise-request').first().scrollIntoViewIfNeeded(); await s.screenshot({ path: `${out}/promise-request-staff-locked-390.png` }); }
+    await s.close();
+    const r = await fetch(`${base}/customers/${prom.id}/promise-request`, { method: 'POST',
+      headers: { Authorization: `Bearer ${staffTok}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ approve: true }) });
+    ok(r.status === 403, `עובדת: הכרעה על המועד ⇒ ${r.status} (צפוי 403)`); }
   // q21-19 — בעל העסק בתיבת התשובות: «בדוק ואשר» ⇒ לאשר
   const q = await page({ width: 1366, height: 900 }, 'inbox', TOKEN);
   await q.getByTestId('promise-request').first().waitFor();
@@ -150,5 +160,5 @@ try {
   const audit = await (await fetch(`${base}/audit`, { headers: H })).json();
   ok(audit.some(a => a.action === 'promise_request_approved'), 'האישור לא נרשם');
   ok(!errors.length, 'שגיאות: ' + errors.join(' | '));
-  console.log('✓ app-staff-owner-only: חידוש השהיית-בעלים (/app/ ו-/ui), «טופל» על התראת-ביטחון (403+נעול) וייצוא וסגירת מחיקה (/app/ ו-/ui) נעולים לעובדת (+תג), עיון פתוח, פתוחים לבעלים; «בדוק ואשר» על הבטחה מעל 14 יום אושר — דסקטופ+390, אפס שגיאות');
+  console.log('✓ app-staff-owner-only: חידוש השהיית-בעלים (/app/ ו-/ui), «טופל» על התראת-ביטחון (403+נעול) וייצוא וסגירת מחיקה (/app/ ו-/ui) נעולים לעובדת (+תג), עיון פתוח, פתוחים לבעלים; «בדוק ואשר» על הבטחה מעל 14 יום נעול לעובדת (403) ואושר ע״י בעל העסק — דסקטופ+390, אפס שגיאות');
 } finally { await b.close(); srv.kill(); }

@@ -635,6 +635,11 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         approve = body.get("approve") if isinstance(body, dict) else None
         if not isinstance(approve, bool):
             raise HTTPException(422, "approve: true (לאשר את המועד המבוקש) או false (לסרב)")
+        # מבקר 201🟠: עובד/ת אישר/ה מועד מעבר ל-max_defer_days (בלי תקרה) והלקוח קיבל «בעל העסק אישר».
+        # q21-19 = הכרעת **בעל העסק** ⇒ עובד/ת ⇒ 403 + audit (שם נפרד — לא «promise_request_refused», שמשמעו הכרעה)
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, "promise_request_refused_staff", {"customer": cid, "approve": approve})
+            raise HTTPException(403, "רק בעל העסק מאשר או מסרב למועד שמעבר ל-14 יום")
         return guard(svc.decide_promise_request, cid, approve, request.state.actor)
 
     @app.post("/customers/{cid}/opt-out", dependencies=auth)
