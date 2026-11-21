@@ -27,7 +27,6 @@ def _approved_then(svc, second):
                                        (n0,)) if "לשלם" in m["body"]]
 
 
-@pytest.mark.xfail(strict=True, reason="206🔴: טיוטה approved יוצאת אחרי «אני בן 16» / עו״ד / פשיטת רגל")
 @pytest.mark.parametrize("second", PROTECTIVE)
 def test_protective_reply_stops_approved_waiting_draft(svc, second):
     sent = _approved_then(svc, second)

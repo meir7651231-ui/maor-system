@@ -357,6 +357,11 @@ class ConversationInbox:
             from . import dsr
             for kind in dsr.detect(text):
                 dsr.open_request(self.svc, cust["id"], kind, channel, received_at=received_at)
+        stopped = self._stop_approved_on_protective(cust["id"], d)
+        if stopped:
+            d = replace(d, owner_actions=d.owner_actions + (
+                f"עצרנו {'תשובה שאישרת' if stopped == 1 else f'{stopped} תשובות שאישרת'} קודם ועוד לא יצא"
+                f"{'ה' if stopped == 1 else 'ו'} (ממתינ{'ה' if stopped == 1 else 'ות'} לחלון השליחה) — לא תישלח אחרי ההודעה הזו",))
         draft_id = None
         if d.reply or d.escalate != Escalation.NONE:
             # בלי טיוטה (למשל עו"ד) ⇒ כרטיס "דרוש טיפול" בתור, שבעל העסק יכול לענות ממנו בעצמו
@@ -523,6 +528,27 @@ class ConversationInbox:
             plan_id = row["id"] if row else None
             self.svc.audit("customer", "plan_accepted_by_customer", {"plan": plan_id})
         return plan_id
+
+    def _stop_approved_on_protective(self, cid: int, d: Decision) -> int:
+        """מנהל 360 (מבקר 206🔴): `_draft` מחליף רק `pending_approval` ⇒ תשובה שבעל העסק אישר בערב וממתינה לחלון
+        (`approved`) יצאה בבוקר אחרי «אני בן 16» / «אבא שלי נפטר» / עו״ד / פשיטת רגל / אשפוז — קישור תשלום לקטין,
+        למשפחה שבאבל אחרי «עצרנו את התזכורות». הודעה דחופה או השהיה קשה (`_HARD_PAUSES`) ⇒ הממתינות לחלון נעצרות
+        (`superseded`, `system:protective_reply`) וכרטיס ההודעה החדשה אומר זאת. לא נעצרות: אישור הסרה / «מספר שגוי»
+        ותשובות דחופות קודמות (אמפתיה/הפניה — לא גבייה). כמו 205 לסימון של בעל העסק."""
+        row = self.db.one("SELECT paused_reason FROM customers WHERE id=?", (cid,))
+        base = ((row["paused_reason"] if row else "") or "").split(":", 1)[0]
+        if d.escalate != Escalation.URGENT and base not in _HARD_PAUSES:
+            return 0
+        rows = self.db.q("SELECT id, intent FROM drafts WHERE customer_id=? AND status='approved' AND "
+                         "escalate!='urgent' AND intent NOT IN ('opt_out','wrong_person')", (cid,))
+        for r in rows:
+            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:protective_reply' WHERE id=?",
+                      (r["id"],))
+        if rows:
+            self.svc.audit("system", "approved_drafts_stopped_protective",
+                           {"customer": cid, "drafts": [r["id"] for r in rows], "intent": d.intent.value,
+                            "pause": base or None})
+        return len(rows)
 
     def _draft(self, cust, channel: str, d: Decision, plan_id: int | None) -> int:
         # טיוטה חדשה מחליפה טיוטות קודמות שעוד לא אושרו (למשל הצעת פריסה ישנה) — חוץ מדחופות
