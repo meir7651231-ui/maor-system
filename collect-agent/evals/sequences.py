@@ -125,6 +125,10 @@ def _state(svc) -> str:
     return conv["state"] if conv else "idle"
 
 
+_CHECKED = {"ok", "state", "state_not", "plan_status", "intent", "draft", "promise", "promise_not", "paid", "stop",
+            "escalate", "plans", "plan_n", "dsr", "not", "pause_until_max", "requested"}
+
+
 def run_seq(seq: dict) -> list[str]:
     from datetime import timedelta
     fails: list[str] = []
@@ -134,6 +138,9 @@ def run_seq(seq: dict) -> list[str]:
             if turn.get("advance_days"):
                 svc.clock.now += timedelta(days=turn["advance_days"])
             e, tag = turn.get("expect", {}), f"#{i}"
+            unknown = set(e) - _CHECKED   # גבי בדיקות: ציפייה שהמריץ לא בודק = עוברת בשקט ⇒ כישלון
+            if unknown:
+                fails.append(f"{tag} ציפייה שהמריץ לא בודק: {sorted(unknown)}")
             if "owner" in turn:
                 ok, err = _owner_turn(svc, turn)
                 if "ok" in e and ok != e["ok"]:
@@ -210,6 +217,19 @@ def run_seq(seq: dict) -> list[str]:
                 got = sorted(r["kind"] for r in svc.db.q("SELECT kind FROM dsr WHERE status='open'"))
                 if got != sorted(e["dsr"]):
                     fails.append(f"{tag} dsr {got}≠{sorted(e['dsr'])}")
+            if "promise_not" in e:    # גבי בדיקות (#21c): המועד המבוקש **לא** אושר אוטומטית
+                got = d.promise_date.isoformat() if d and d.promise_date else None
+                if got == e["promise_not"]:
+                    fails.append(f"{tag} promise {got} (אסור — אושר אוטומטית)")
+            if "pause_until_max" in e:   # גבי בדיקות (#21c): ההשהיה לא נמשכת מעבר ל-max_defer_days
+                c = svc.db.one("SELECT paused_reason FROM customers WHERE id=1")
+                v = svc.db.one("SELECT pause_until FROM conversations WHERE customer_id=1")
+                dates = [x for x in (((c["paused_reason"] or "").split("promise:until=")[1][:10]
+                                      if c and "promise:until=" in (c["paused_reason"] or "") else None),
+                                     (v["pause_until"] or "")[:10] if v and v["pause_until"] else None) if x]
+                late = [x for x in dates if x > e["pause_until_max"]]
+                if late:
+                    fails.append(f"{tag} pause_until {late}>{e['pause_until_max']}")
             all_i = [out["intent"], *out.get("secondary", [])]
             for n in e.get("not", []):
                 if n in all_i:
