@@ -372,11 +372,11 @@ function NeedsYou() {
             <div className="text-ink-700 text-xs mt-0.5 whitespace-pre-line">{n.body}</div>
             {/* critic סבב 172ב: «✓ טופל» סוגר רק את ההתראה; הבקשה עצמה נסגרת במרשם עם תיעוד */}
             {n.intent === 'dsr' && <a href="#/inbox?dsr=1" data-testid="notice-dsr-link"
-              className="mt-1 inline-block text-xs font-bold text-ink-700 underline">למרשם הבקשות — סגירה עם תיעוד ←</a>}
+              className="mt-1 inline-flex items-center min-h-10 text-xs font-bold text-ink-700 underline">למרשם הבקשות — סגירה עם תיעוד ←</a>}
             {/* critic סבב 177א: הכרטיס לא נסגר ב«טופל» — יורד רק בחידוש המתועד בבאנר שלמעלה */}
             {n.intent === 'restore_hold' ? (
               <a href="#/dashboard" data-testid="notice-restore-link" onClick={e => { e.preventDefault(); document.getElementById('restore-hold')?.scrollIntoView({ block: 'center' }); }}
-                className="mt-1 inline-block text-xs font-bold text-ink-700 underline">לחידוש השליחה עם תיעוד — בבאנר האדום למעלה ↑</a>
+                className="mt-1 inline-flex items-center min-h-10 text-xs font-bold text-ink-700 underline">לחידוש השליחה עם תיעוד — בבאנר האדום למעלה ↑</a>
             ) : n.intent === BOUNCE_REVIEW && n.customerId != null ? (
               // critic סבב 192: «טופל» השאיר את ההשהיה בשקט — כאן רק הכרעה (השרת מסרב ל«טופל» כל עוד ההשהיה פעילה)
               <div className="flex flex-wrap gap-2 mt-2">
