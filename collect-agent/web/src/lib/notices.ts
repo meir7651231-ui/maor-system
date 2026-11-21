@@ -70,9 +70,19 @@ export function stoppedApprovedLine(payload?: string | null): string {
   let n = 0;
   try { const v = JSON.parse(payload ?? '{}')?.stopped_approved; n = typeof v === 'number' && v > 0 ? Math.floor(v) : 0; } catch { n = 0; }
   if (!n) return '';
-  return n === 1
+  return (n === 1
     ? '⏸ עצרנו תשובה שאישרת קודם ועוד לא יצאה (ממתינה לחלון השליחה) — לא תישלח.'
-    : `⏸ עצרנו ${n} תשובות שאישרת קודם ועוד לא יצאו (ממתינות לחלון השליחה) — לא יישלחו.`;
+    : `⏸ עצרנו ${n} תשובות שאישרת קודם ועוד לא יצאו (ממתינות לחלון השליחה) — לא יישלחו.`
+  // מנהל 364 (מבקר 209🟡): בשיוך — מה שנעצר ללקוח שלא נבחר חוזר לתור לאישור מחדש (לא נשלח לבד)
+  ) + ' בשיוך: תשובות של מי שלא נבחר/ה יחזרו לתור לאישור מחדש.';
+}
+
+/** מנהל 364: טוסט אחרי שיוך — כמה תשובות שנעצרו חזרו לתור (POST assign ⇒ requeued_drafts). */
+export function requeuedToast(base: string, res: unknown): string {
+  const v = (res as { requeued_drafts?: unknown } | null)?.requeued_drafts;
+  const n = Array.isArray(v) ? v.length : 0;
+  if (!n) return base;
+  return `${base} · ${n === 1 ? 'תשובה שנעצרה חזרה' : `${n} תשובות שנעצרו חזרו`} לתור האישורים — לבדוק ולאשר מחדש`;
 }
 
 /** critic סבב 169: כרטיס ממייל שלא עבר אימות שולח (SPF/DKIM/DMARC) — payload.email_verified === false. */

@@ -55,7 +55,7 @@ iframe{width:100%;min-height:360px;border:1px solid var(--line);border-radius:10
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
 @media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
 .kpi .v{font-size:22px;font-weight:800}.kpi .l{color:var(--muted);font-size:13px}
-.kpi.warn .v{color:var(--warn)}.ownerOnly{display:inline-block;margin-inline-start:6px;padding:2px 8px;border-radius:999px;background:var(--chip);color:var(--ink);font-size:12px;font-weight:700;white-space:nowrap}.estate{display:block;white-space:normal;min-width:220px;margin-top:4px;padding:4px 8px;border-radius:8px;font-size:12px;color:var(--warn);background:var(--warn-bg);max-width:340px}.estate.spam{color:var(--bad)}.estate a{display:inline-flex;align-items:center;min-height:40px;color:inherit;font-weight:700}.tbl{overflow-x:auto}
+.kpi.warn .v{color:var(--warn)}.ownerOnly{display:inline-block;margin-inline-start:6px;padding:2px 8px;border-radius:999px;background:var(--chip);color:var(--ink);font-size:12px;font-weight:700;white-space:nowrap}.estbadge{display:inline-block;padding:1px 6px;border-radius:6px;background:var(--warn-bg);color:var(--ink);font-size:11px;font-weight:700;white-space:nowrap}.estfix{margin-top:6px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);font-size:13px;white-space:normal}.estfix label{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}.estfix input{min-height:40px;margin-inline-start:6px;font:inherit;border:1px solid var(--line);border-radius:8px;padding:4px 8px;background:var(--card);color:var(--ink)}.estate{display:block;white-space:normal;min-width:220px;margin-top:4px;padding:4px 8px;border-radius:8px;font-size:12px;color:var(--warn);background:var(--warn-bg);max-width:340px}.estate.spam{color:var(--bad)}.estate a{display:inline-flex;align-items:center;min-height:40px;color:inherit;font-weight:700}.tbl{overflow-x:auto}
 button.resume,button.markpaid{display:block;white-space:nowrap;min-height:32px;padding:4px 10px;font-size:13px;margin-top:4px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:right;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -295,7 +295,11 @@ async function loadDash(ask){
 // גבי לא מתזכר עליה, ושום דבר במסך לא אומר למה. עכשיו: open_unreviewed>0 ב-/dashboard ⇒ כרטיס עם הממתינות
 // מ-/open-list, «עדיין פתוח» / «כבר שולם» לכל אחת, ו«אישור» שולח POST /open-list/confirm. סימון נשמר בין רענונים
 // (לפי מזהה); מה שכבר לא ממתין יורד. כשל בטעינת הרשימה לא מפיל את הדשבורד — הכרטיס מציג את המונה ואת השגיאה.
-let olItems=[],olMark={},olBusy=false;
+let olItems=[],olMark={},olBusy=false,olDue={};
+// גבי עיצוב (d018a41): «מועד מוערך» — במסמך לא היה מועד ⇒ הנפקה+30. תג+הסבר, ושדה תיקון שנשלח עם «עדיין פתוח» (due)
+const EST_HELP="במסמך לא היה מועד; חושב: הנפקה + 30 יום";
+const estBadge=help=>`<span class="estbadge" title="${EST_HELP}" data-testid="due-estimated">מועד מוערך</span>${help?` <span class="slogan">(${EST_HELP})</span>`:""}`;
+const validDue=v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&new Date(v+"T12:00:00Z").toISOString().slice(0,10)===v;
 async function loadOpen(n){
   if(!n){olItems=[];olMark={};return drawOpen()}
   try{const r=await api("/open-list",{},false);olItems=r.enabled?r.pending:[];$("#olErr").textContent=""}
@@ -306,19 +310,23 @@ function drawOpen(n=0){
   const c=$("#ol"),cnt=olItems.length||n;c.hidden=!cnt;if(!cnt){$("#olList").innerHTML="";return}
   $("#olH").textContent=(cnt===1?"חשבונית אחת מחכה":`יש ${cnt} חשבוניות שמחכות`)+" לאישור שלך";
   $("#olList").innerHTML=olItems.map(i=>{const m=olMark[i.id];return `<li data-oid="${i.id}"><div class="who"><strong>${esc(i.customer)}</strong>
-    <div class="slogan">חשבונית ${esc(i.number)} · ${esc(fmtCur(i.amount_agorot,i.currency))}${i.due?` · לתשלום עד ${esc(i.due.split("-").reverse().join("."))}`:""}${i.source==="csv"?" · מקובץ CSV":""}</div></div>
+    <div class="slogan">חשבונית ${esc(i.number)} · ${esc(fmtCur(i.amount_agorot,i.currency))}${i.due?` · לתשלום עד ${esc(i.due.split("-").reverse().join("."))}`:""}${i.source==="csv"?" · מקובץ CSV":""}</div>${i.due_estimated?`<div class="estfix">${estBadge(true)}<label>המועד הנכון: <input type="date" dir="ltr" data-due-id="${i.id}" value="${esc(olDue[i.id]??i.due??"")}" aria-label="מועד התשלום של חשבונית ${esc(i.number)}"></label></div>`:""}</div>
     <div class="mk" role="group" aria-label="חשבונית ${esc(i.number)}"><button type="button" data-m="open" aria-pressed="${m==="open"}"${olBusy?" disabled":""}>עדיין פתוח</button><button type="button" class="paid" data-m="paid" aria-pressed="${m==="paid"}"${olBusy?" disabled":""}>כבר שולם</button></div></li>`}).join("");
   const k=Object.keys(olMark).length;$("#olOk").textContent=`אישור (${k})`;$("#olOk").disabled=olBusy||!k||locked;
   $("#olAll").disabled=olBusy||!olItems.length||locked}
 $("#olList").addEventListener("click",e=>{const b=e.target.closest("button[data-m]");if(!b||olBusy)return;
   const id=b.closest("li").dataset.oid;if(olMark[id]===b.dataset.m)delete olMark[id];else olMark[id]=b.dataset.m;drawOpen()});
 $("#olAll").onclick=()=>{for(const i of olItems)olMark[i.id]="open";drawOpen()};
+$("#olList").addEventListener("input",e=>{const t=e.target.closest("input[data-due-id]");if(t)olDue[t.dataset.dueId]=t.value});
 $("#olOk").onclick=async()=>{const ids=m=>Object.keys(olMark).filter(k=>olMark[k]===m).map(Number);
   const open=ids("open"),paid=ids("paid");if(!open.length&&!paid.length)return;
   olBusy=true;drawOpen();$("#olErr").textContent="";$("#olDone").hidden=true;
-  try{await api("/open-list/confirm",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({still_open:open,paid})});
-    olMark={};$("#olDone").textContent=`נשמר: ${open.length} פתוחות${paid.length?` · ${paid.length} סומנו כשולמו ולא יתוזכרו`:""}`;$("#olDone").hidden=false}
-  catch(e){failed(e,m=>{$("#olErr").textContent="האישור לא נשמר: "+m})}
+  // תיקון מועד: רק לפתוחות, רק כשהשתנה ותקין (השרת: 409 אחרת)
+  const due={};for(const id of open){const i=olItems.find(x=>x.id===id),v=(olDue[id]||"").trim();if(i&&v&&v!==(i.due||"")&&validDue(v))due[String(id)]=v}
+  const fixed=Object.keys(due).length;
+  try{await api("/open-list/confirm",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({still_open:open,paid,...(fixed?{due}:{})})});
+    olMark={};olDue={};$("#olDone").textContent=`נשמר: ${open.length} פתוחות${paid.length?` · ${paid.length} סומנו כשולמו ולא יתוזכרו`:""}${fixed?` · ${fixed} מועדים תוקנו`:""}`;$("#olDone").hidden=false}
+  catch(e){failed(e,m=>{$("#olErr").textContent="האישור לא נשמר: "+m.replace(/חשבונית (\d+)/g,(x,id)=>{const it=olItems.find(o=>o.id===Number(id));return it?`חשבונית ${it.number}`:x})})}
   finally{olBusy=false;await load()}};
 // הפעלה 232: critic סבב 95 — לקוח כתב משהו (טיוטה/כרטיס בתור) ⇒ awaiting_owner עוצר את התזכורות אליו, ו-/ui הציג
 // רק «הלקוח כתב לכם» בלי דרך לקרוא את ההודעה, לענות או לסגור. בעל עסק שעובד רק ב-/ui (גם demo.sh בלי build) היה
@@ -479,7 +487,7 @@ function drawDebts(){
       ?(holdOwnerOnly(x.paused_reason)?` <span data-testid="resume-owner-only"><button class="resume" disabled data-owner-only="1" title="השהיה שבעל העסק סימן — רק הוא יכול לחדש">↻ חידוש תזכורות</button>${OWNER_BADGE}</span>`
         :` <button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""}${PROTECT.has(String(x.paused_reason).split(":until=")[0])?' data-protect="1"':""} title="${PROTECT.has(String(x.paused_reason).split(":until=")[0])?"שימו לב: חידוש ישלח שוב תזכורות תשלום לאותו נייד/מייל. חדשו רק אחרי שבדקתם":"בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו"}">↻ חידוש תזכורות</button>`):""}</td><td>${esc(x.number)}${
     x.status==="open"?` <button class="markpaid" data-iid="${x.invoice_id}"${busy?" disabled":""} title="הלקוח שילם בביט/העברה/מזומן? החשבונית תיסגר כאן ולא יישלחו עליה תזכורות">✓ שולם מחוץ למערכת</button>`:""}</td>
-    <td class="num">${esc(fmtCur(x.amount_agorot,x.currency))}</td><td>${esc(x.due||"")}</td>
+    <td class="num">${esc(fmtCur(x.amount_agorot,x.currency))}</td><td>${esc(x.due||"")}${x.due_estimated?" "+estBadge(false):""}</td>
     <td class="${x.days_overdue>0?"late":""}">${x.days_overdue>0?x.days_overdue+" ימים":"—"}</td>
     <td class="num sent">${x.reminders_sent}${esc(lastSent(x))}</td><td><span class="chip ${x.status==="open"&&!x.customer_block&&L&&(L.status==="pending_approval"||L.amount_drift)?"pending":""}">${esc(st)}</span></td></tr>`}).join("");
 }

@@ -17,7 +17,7 @@ import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, REAPPROVE_LABEL } from '../ap
 import { ALREADY_PLAN, alreadyDone, failPrefix, type Already } from '../lib/failure.ts';
 import { mockAmountCheck } from '../lib/policy.ts';
 import { areaPath, cumulative, otherInSeries, toBars, type Bar } from '../lib/series.ts';
-import { BOUNCE_REVIEW } from '../lib/notices.ts';
+import { BOUNCE_REVIEW, requeuedToast } from '../lib/notices.ts';
 import { OWNER_ONLY_TAG, noticeDoneLocked, resumeOwnerOnly } from '../lib/roles.ts';
 
 const AGING_COLOR: Record<Aging, string> = { notDue: 'bg-ink-400', d0_30: 'bg-due', d31_60: 'bg-late', d61_90: 'bg-red-500', d90p: 'bg-red-700' };
@@ -346,17 +346,19 @@ function NeedsYou() {
   const proposed = plans.filter(p => p.status === 'proposed');
   const nameOfCustomer = (bid: number) => customers.find(c => c.backendId === bid)?.name ?? `לקוח ${bid}`;
   const numOf = (iid: number) => invoices.find(i => i.id === String(iid))?.number ?? String(iid);
-  const act = async (key: string, fn: () => Promise<unknown>, done: string, already?: Already) => {
+  const act = async (key: string, fn: () => Promise<unknown>, done: string | ((res: unknown) => string),
+    already?: Already) => {
     if (armed !== key) { setArmed(key); window.setTimeout(() => setArmed(a => a === key ? null : a), 4000); return; }
     setArmed(null);
     // הפעלה 143: כשל ברענון אחרי פעולה שהצליחה אינו «לא בוצע» (הפס «הנתונים לא עודכנו» מטפל בו)
     // הפעלה 147: 409 «כבר אושרה» (ניסיון חוזר אחרי תשובה שאבדה) אינו כשל: מרעננים ומציגים «כבר אושרה קודם»
     let was = false;
-    try { await fn(); } catch (e) {
+    let res: unknown;
+    try { res = await fn(); } catch (e) {
       if (!already || !alreadyDone(e, already.want)) { showFail(failPrefix('לא בוצע', (e as Error).message)); return; }
       was = true;
     }
-    await reload().catch(() => { /* stale / 401 מטופלים ב-store */ }); showToast(was && already ? already.msg : done);
+    await reload().catch(() => { /* stale / 401 מטופלים ב-store */ }); showToast(was && already ? already.msg : typeof done === 'function' ? done(res) : done);
   };
   if (!paused.length && !proposed.length && !notices.length) return null;
   return (
@@ -390,11 +392,13 @@ function NeedsYou() {
               <div className="flex flex-wrap gap-2 mt-2">
                 {n.linked.map(c => (
                   <Button key={c.id} size="sm" variant={armed === `a${n.id}-${c.id}` ? 'dark' : 'primary'} data-testid="notice-assign"
-                    onClick={() => act(`a${n.id}-${c.id}`, () => api.assignShared(n.id, c.id), `הפנייה שויכה ל${c.name}`)}>
+                    onClick={() => act(`a${n.id}-${c.id}`, () => api.assignShared(n.id, c.id),
+                      r => requeuedToast(`הפנייה שויכה ל${c.name}`, r))}>
                     {armed === `a${n.id}-${c.id}` ? 'לחצו שוב לאישור' : `שייך ל${c.name}`}</Button>
                 ))}
                 <Button size="sm" variant={armed === `a${n.id}-none` ? 'dark' : 'outline'} data-testid="notice-assign-none"
-                  onClick={() => act(`a${n.id}-none`, () => api.assignShared(n.id, null), 'סומן: אף אחד מהם — התזכורות חודשו')}>
+                  onClick={() => act(`a${n.id}-none`, () => api.assignShared(n.id, null),
+                    r => requeuedToast('סומן: אף אחד מהם — התזכורות חודשו', r))}>
                   {armed === `a${n.id}-none` ? 'לחצו שוב לאישור' : 'אף אחד מהם'}</Button>
               </div>
             ) : noticeDoneLocked(me, n.intent) ? (

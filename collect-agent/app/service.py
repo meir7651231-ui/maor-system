@@ -2660,7 +2660,9 @@ class CollectService:
         links = {i["pay_url"] for i in items}
         return {"code": code, "business": self.s.business_name, "number": inv["number"],
                 "amount": templates.fmt_amount(inv["amount_agorot"], inv["currency"]),
-                "due": inv["due"], "open": bool(items),
+                # גבי משפט (הגנת הצרכן §2): מועד **מוערך** (אין מועד במסמך; הנפקה+30) לא מוצג לחייב כמועד התשלום —
+                # הוא כלי פנימי של בעל העסק. מועד מהמסמך או שבעל העסק קבע ⇒ מוצג כרגיל.
+                "due": None if _estimated(inv) else inv["due"], "open": bool(items),
                 "opted_out": bool(cust["opted_out"]),
                 "pay_url": self._payment_link(inv) if inv["status"] == "open" and not held else None,
                 "held": held,
@@ -2693,7 +2695,8 @@ class CollectService:
             r = self._invoice(iid)
             if r is None or r["status"] != "open" or r["currency"] != inv["currency"]:
                 continue
-            out.append({"number": r["number"], "due": r["due"], "amount_agorot": r["amount_agorot"],
+            out.append({"number": r["number"], "due": None if _estimated(r) else r["due"],
+                        "amount_agorot": r["amount_agorot"],
                         "amount": templates.fmt_amount(r["amount_agorot"], r["currency"]),
                         "code": self._short_code(r), "pay_url": self._payment_link(r)})
         return out
@@ -3912,6 +3915,14 @@ def redact_tokens(text):
     בעותקים של ההודעות שנשלחו (messages.body/payload, reminders.payload). מי שקורא את ה-DB יכול
     להסיר כל לקוח. אחרי השליחה שומרים רק מסווה. הקישור עצמו ממשיך לעבוד דרך ה-hash."""
     return _UNSUB_TOKEN.sub(r"\1[redacted]", text) if text else text
+
+
+def _estimated(row) -> bool:
+    """המועד חושב (אין dueDate במקור) ולא תוקן/אושר ע״י בעל העסק ⇒ לא מוצג לחייב."""
+    try:
+        return bool(row["due_estimated"])
+    except (IndexError, KeyError):
+        return False
 
 
 def _sha(payload: str) -> str:

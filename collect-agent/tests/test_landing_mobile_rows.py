@@ -67,4 +67,5 @@ def test_landing_api_keeps_iso_due():
 
     from app.service import CollectService
     src = inspect.getsource(CollectService.landing) + inspect.getsource(CollectService._landing_items)
-    assert "fmt_due" not in src and '"due": inv["due"]' in src and '"due": r["due"]' in src
+    # גבי משפט 21.11: מועד מוערך ⇒ None לחייב (`else inv["due"]`); מועד אמיתי עדיין ISO כמו שהוא, לא מעוצב
+    assert "fmt_due" not in src and 'else inv["due"]' in src and 'else r["due"]' in src

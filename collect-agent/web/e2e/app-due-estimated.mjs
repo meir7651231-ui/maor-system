@@ -106,6 +106,44 @@ try {
   await noH(mp, 'רשימת הפתוחות 390'); await aa(mp, 'רשימת הפתוחות 390');
   if (out) await mp.getByTestId('open-item-9305').screenshot({ path: `${out}/due-estimated-mobile.png` });
   await m.close();
+  // /ui (דשבורד פשוט): תג+הסבר ושדה תיקון ברשימת הפתוחות, תג בטבלת החובות; בהיר+כהה, 390px; תיקון נשמר בשרת
+  await api('/settings/source/csv', { method: 'POST', headers: { 'Content-Type': 'text/csv' },
+    body: Buffer.from('מספר חשבונית,שם לקוח,טלפון,סכום,תאריך,תאריך לתשלום\n9306,עדי מוערכת,050-0000306,600,2026-10-06,\n', 'utf8') });
+  for (const scheme of ['light', 'dark']) for (const [w, h] of [[1280, 900], [390, 844]]) {
+    const uc = await b.newContext({ viewport: { width: w, height: h }, colorScheme: scheme });
+    await uc.addInitScript(t => { try { sessionStorage.setItem('gabi_owner_token', t); } catch { /* */ } }, TOKEN);
+    const up = await uc.newPage(); watch(up);
+    await up.goto(`${base}/ui`);
+    const li = up.locator('#olList li', { hasText: '9306' }); await li.waitFor();
+    ok(/מועד מוערך/.test(await li.textContent()) && /הנפקה \+ 30 יום/.test(await li.textContent()), `/ui ${scheme} ${w}: אין תג/הסבר`);
+    const inp = li.locator('input[type=date]'); ok(await inp.inputValue() === '2026-11-05', '/ui: השדה לא מאותחל');
+    const ib = await inp.boundingBox(); ok(ib && ib.height >= 40 && ib.x >= 0 && ib.x + ib.width <= w, `/ui ${w}: שדה: ` + JSON.stringify(ib));
+    ok(await up.locator('#olList li', { hasText: '9304' }).locator('input[type=date]').count() === 0, '/ui: שדה לחשבונית עם מועד');
+    await aa(up, `/ui ${scheme} ${w}`); await noH(up, `/ui ${scheme} ${w}`);
+    if (out && w === 390) await li.screenshot({ path: `${out}/due-estimated-ui-${scheme}.png` });
+    await uc.close();
+  }
+  {
+    const uc = await b.newContext({ viewport: { width: 1280, height: 900 } });
+    await uc.addInitScript(t => { try { sessionStorage.setItem('gabi_owner_token', t); } catch { /* */ } }, TOKEN);
+    const up = await uc.newPage(); watch(up);
+    await up.goto(`${base}/ui`);
+    const li = up.locator('#olList li', { hasText: '9306' }); await li.waitFor();
+    await li.locator('input[type=date]').fill('2026-11-20');
+    await li.getByRole('button', { name: 'עדיין פתוח' }).click();
+    const post = up.waitForRequest(r => r.url().endsWith('/open-list/confirm') && r.method() === 'POST');
+    await up.locator('#olOk').click();
+    const bd = JSON.parse((await post).postData()), id6 = (await api('/dashboard')).invoices.find(x => x.number === '9306').invoice_id;
+    ok(JSON.stringify(bd.due) === JSON.stringify({ [id6]: '2026-11-20' }), '/ui גוף due: ' + JSON.stringify(bd));
+    await up.locator('#olDone').filter({ hasText: 'מועדים תוקנו' }).waitFor();
+    const r6 = (await api('/dashboard')).invoices.find(x => x.number === '9306');
+    ok(r6.due === '2026-11-20' && r6.due_estimated === false, '/ui: השרת אחרי תיקון: ' + JSON.stringify([r6.due, r6.due_estimated]));
+    // טבלת החובות: 9302 (אושרה מוערכת) עם תג; 9306 אחרי תיקון בלי
+    const dRow = n => up.locator('#debts tr', { hasText: n });
+    await dRow('רון מוערך').first().waitFor();
+    ok(await dRow('רון מוערך').first().locator('[data-testid="due-estimated"]').count() === 1 && await dRow('עדי מוערכת').first().locator('[data-testid="due-estimated"]').count() === 0, '/ui: תגי טבלת החובות');
+    await uc.close();
+  }
   ok(!errors.length, 'שגיאות: ' + errors.join(' | '));
-  console.log('✓ מועד מוערך: תג+הסבר ברשימת הפתוחות/בטבלה/בתצוגת התזכורת · 409 בעברית בכרטיס · תיקון נשמר (due_estimated=false) · 390px · AA · 0 שגיאות');
+  console.log('✓ מועד מוערך: תג+הסבר ברשימת הפתוחות/בטבלה/בתצוגת התזכורת · 409 בעברית בכרטיס · תיקון נשמר (due_estimated=false) · /ui בהיר+כהה (תג, תיקון, טבלה) · 390px · AA · 0 שגיאות');
 } finally { await b.close(); srv.kill(); }

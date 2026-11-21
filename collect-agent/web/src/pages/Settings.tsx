@@ -105,7 +105,7 @@ export function Settings() {
 
   async function importCsv(file: File) {
     setCsv(null); setCsvErr(null);
-    try { const r = await api.importCsv(await file.text()); setCsv(r); await reload().catch(() => { /* יובא; כשל ברענון ⇒ הפס */ }); showToast(`יובאו ${r.imported} חשבוניות`); }
+    try { const r = await api.importCsv(file); setCsv(r); await reload().catch(() => { /* יובא; כשל ברענון ⇒ הפס */ }); showToast(`יובאו ${r.imported} חשבוניות`); }
     catch (e) { const m = explainImportError((e as { status?: number }).status, (e as Error).message); setCsvErr(m); showToast(m); }
   }
 

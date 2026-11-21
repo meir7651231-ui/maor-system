@@ -1667,3 +1667,13 @@ test('מנהל 361 (ביקורת 207): כרטיס כתובת משותפת אומ
   const [noStop] = systemNotices([row({ linked_customers: linked })]);
   assert.doesNotMatch(noStop.body, /עצרנו/);
 });
+
+test('מנהל 364 (מבקר 209🟡): שיוך כרטיס כתובת משותפת ⇒ תשובות שנעצרו חוזרות לתור — הכרטיס והטוסט אומרים זאת', async () => {
+  const { stoppedApprovedLine, requeuedToast } = await import('../src/lib/notices.ts');
+  assert.match(stoppedApprovedLine('{"stopped_approved":2}'), /יחזרו לתור לאישור מחדש/);
+  assert.equal(requeuedToast('שויכה', null), 'שויכה');
+  assert.equal(requeuedToast('שויכה', { requeued_drafts: [] }), 'שויכה');
+  assert.equal(requeuedToast('שויכה', { requeued_drafts: 'x' }), 'שויכה');
+  assert.match(requeuedToast('שויכה', { requeued_drafts: [7] }), /^שויכה · תשובה שנעצרה חזרה לתור האישורים/);
+  assert.match(requeuedToast('שויכה', { requeued_drafts: [7, 8] }), /2 תשובות שנעצרו חזרו לתור/);
+});
