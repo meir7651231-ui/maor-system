@@ -70,8 +70,9 @@ def test_preview_queries_depend_on_reminder_not_db_size(tmp_path):
                                               res.update(r=api.get(f"/reminders/{rid}/preview"))))
                 body = res["r"].json()
                 assert res["r"].status_code == 200 and len(body["numbers"]) == k, body
-            # אותו k ⇒ אותו מספר שאילתות בשני הגדלים, ובתוך החסם שנמדד (3·k+2, +1 של שכבת ה-API)
-            assert qs[0] == qs[1] <= 3 * k + 3, (k, qs)
+            # אותו k ⇒ אותו מספר שאילתות בשני הגדלים, ובתוך החסם שנמדד (3·k+2, +1 של שכבת ה-API,
+            # +1 של מנהל 365: `shared_warning` — שאילתה אחת קבועה, לא תלויה ב-k או בגודל)
+            assert qs[0] == qs[1] <= 3 * k + 4, (k, qs)
     finally:
         small.db.conn.close()
         big.db.conn.close()

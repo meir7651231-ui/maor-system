@@ -40,6 +40,8 @@ SEALED = {
                                      "51f886ccf8940bc0ed73e2eeee1caefb852fc0c313d276111b32c9cfbd0413b0"),
     "external-2026-11-16-qa9-seq.jsonl": ("גבי בדיקות", "af1c52d",
                                          "486ff4d2eb97e1ae4896abb2a43d410c972aac4e06952f5a760c3e9b14b0561e"),
+    "external-2026-11-21-en23.jsonl": ("גבי מנוע", "en23-21.11",
+                                      "e707641609ad5164a3b0b69d4f6ce7ac06d1b7194d3a8dc630b36cb7371b6549"),
     "external-2026-11-16-self4.jsonl": ("גבי מנוע", "444ccee",
                                        "c75f957296aec029d12c966b5b0b97cc21473b081c89af8d669b84a391ae8bab"),
     "external-2026-11-17-qa10-seq.jsonl": ("גבי בדיקות", "87ae532",
@@ -72,6 +74,10 @@ SEALED = {
                                              "781ed07a29f67938e88d924bb59b26ebde40e355e514bd6bcba526834d1e916b"),
     "external-2026-11-20-qa21b-seq.jsonl": ("גבי בדיקות", "(this)",
                                            "132b4da86cfdd730acaf785e2c1277f3d6e4723fd879abcbec515fd69da363eb"),
+    "external-2026-11-21-qa21c-seq.jsonl": ("גבי בדיקות", "(this)",
+                                           "867ad53645406ccea71ba1d7644e49a36d79a8bb5bf6e99aa4ee867c9d448ed2"),
+    "external-2026-11-21-qa22c-flows.jsonl": ("גבי בדיקות", "(this)",
+                                             "ccada02ea613e9dc765ee80c32654e1d4fc4242543d9cb6f456c0a851970fe98"),
 }
 
 

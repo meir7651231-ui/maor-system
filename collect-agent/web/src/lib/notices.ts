@@ -85,6 +85,19 @@ export function requeuedToast(base: string, res: unknown): string {
   return `${base} · ${n === 1 ? 'תשובה שנעצרה חזרה' : `${n} תשובות שנעצרו חזרו`} לתור האישורים — לבדוק ולאשר מחדש`;
 }
 
+/** מנהל 365: /preview ⇒ shared_warning — קטין/מצוקה/משפטי מכתובת משותפת שבעל העסק שייך ל«אף אחד מהם». */
+export interface SharedWarning { card_id: number; urgent: string; channel?: string | null; received_at?: string | null; released_at?: string | null }
+const SHARED_WARN_WHO: Record<string, string> = { minor: 'קטין/ה ענה/תה', distress: 'הגיעה הודעת מצוקה', legal: 'הגיעה הודעה על צעד משפטי' };
+/** שורת אזהרה לתצוגה המקדימה של תזכורת. null ⇒ אין מה להציג (גם על קלט שאינו בצורה הצפויה). */
+export function sharedWarningText(w: unknown): string | null {
+  const v = w as Partial<SharedWarning> | null;
+  if (!v || typeof v !== 'object' || typeof v.urgent !== 'string' || !(v.urgent in SHARED_WARN_WHO)) return null;
+  const via = v.channel === 'email' ? 'מכתובת המייל המשותפת' : 'מהמספר המשותף';
+  const d = typeof v.received_at === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v.received_at)
+    ? ` ב-${v.received_at.slice(8, 10)}.${v.received_at.slice(5, 7)}` : '';
+  return `${SHARED_WARN_WHO[v.urgent]} ${via} ללקוח/ה הזה/זו${d}, ובחרתם «אף אחד מהם». ודאו שהתזכורת לא תגיע אליו/ה לפני שמאשרים.`;
+}
+
 /** critic סבב 169: כרטיס ממייל שלא עבר אימות שולח (SPF/DKIM/DMARC) — payload.email_verified === false. */
 export const UNVERIFIED_EMAIL_LINE = '⚠️ המייל לא עבר אימות שולח (SPF/DKIM) — ייתכן שלא נשלח ע״י הלקוח. לפני שיוך או «שולם» כדאי לוודא מולו.';
 function unverifiedEmail(payload?: string | null): boolean {

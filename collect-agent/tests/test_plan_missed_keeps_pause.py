@@ -181,3 +181,26 @@ def test_owner_resume_after_paid_claim_then_missed_plan_does_release(svc, clock)
         clock.now += timedelta(minutes=5)
     _plan_after(svc, clock, first)
     assert "חוזרות לאישורכם" in _missed_card(svc)
+
+
+# ── fuzz ב׳ זרעים 40605/40950 (21.11): הבטחה בזמן הסדר מאושר ⇒ _keeps_old_pause שומר את השהיית ההסדר (plan_accept) ולא
+#    רושם את השהיית ההבטחה — אבל ללקוח נאמר «עד X לא נשלח תזכורות». ההסדר הוחמץ ⇒ השחרור (ec6b043) איפס ל«אין השהיה» ⇒
+#    תזכורת לפני המועד שנאמר ללקוח. עכשיו: שחרור השהיית-הסדר כשהשיחה ב-PROMISED עם מועד עתידי ⇒ promise:until=המועד.
+def test_missed_plan_release_keeps_later_promise_window(svc, clock):
+    _approved_plan(svc)
+    clock.now += timedelta(days=8)                          # 16.11 — התשלום הראשון (15.11) עוד בחסד
+    svc.inbound("sms", DANA, "אשלם ב-30")                    # 14 ימים ⇒ «עד 30.11 לא נשלח תזכורות»
+    assert svc.db.one("SELECT paused_reason FROM customers WHERE external_id='cl1'")["paused_reason"] \
+        .startswith("plan_accept")                          # ההבטחה לא נרשמה כהשהיה (המצב היום)
+    before = len(_to_dana_reminders(svc))
+    clock.now += timedelta(days=7)                          # 23.11 — החסד (7 ימים) עבר ⇒ ההסדר הוחמץ
+    for rid in svc.plan():
+        try:
+            svc.approve(rid, confirm_open=True)
+        except (ValueError, PermissionError):
+            pass
+    svc.dispatch()
+    assert svc.db.one("SELECT status FROM plans ORDER BY id DESC LIMIT 1")["status"] == "missed"
+    assert len(_to_dana_reminders(svc)) == before            # היה: תזכורת ב-23.11 למרות «עד 30.11»
+    assert svc.db.one("SELECT paused_reason FROM customers WHERE external_id='cl1'")["paused_reason"] == \
+        "promise:until=2026-12-01"

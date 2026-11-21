@@ -5,7 +5,7 @@
 אין רשת (socket חסום), אין ספק אמיתי (dry-run), אותו שעון כמו הרצפים (ראשון 8.11.2026 10:00).
 
 פורמט שורה: {id, critical, observe?, steps:[{<פעולה>, expect?}]}. `observe: true` = שאלת מדיניות פתוחה — מודפס, לא נספר.
-פעולות: cycle (plan+אישור+שליחה, עם advance_days) · advance_days · dsn · arf · email_in · source_email · http.
+פעולות: cycle (plan+אישור+שליחה, עם advance_days) · advance_days · dsn · arf · email_in · inbound · source_email · http.
 ציפיות (אחרי הצעד): status · mails {כתובת: 0 | ">0"} (מיילים מאז הצעד הקודם) · sms (">0"/0, מאז הצעד הקודם) ·
 bounced {כתובת: bool} · suppressed {כתובת: bool} · cards {intent: n פתוחים} · role {מייל: תפקיד} · payment_link.
 
@@ -150,6 +150,9 @@ def _do(w, st: dict):
         e = st["email_in"]
         return svc.email_webhook(e["from"], e["text"], e.get("id", ""), auth_results=e.get("auth", ""),
                                  subject=e.get("subject", ""))
+    if "inbound" in st:   # הודעת לקוח (מנוע השיחה) — למשל הבטחה שמעבר ל-14 יום שפותחת «בדוק ואשר»
+        m = st["inbound"]
+        return svc.inbound(m.get("channel", "sms"), m.get("from", "050-1234567"), m["text"])
     if "source_email" in st:
         s = st["source_email"]
         for doc in w["fake"].docs:

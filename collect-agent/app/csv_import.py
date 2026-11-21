@@ -107,9 +107,66 @@ def _agorot(v: str) -> int:
     # מבקר סבב 3: "Infinity"/"NaN" הפילו את הייבוא; סכום לא סביר (מעל 100 מיליון ₪) נדחה.
     # הפעלה 111: אותו מפענח כמו במקורות ה-API. קודם כל פסיק נמחק ⇒ "1200,50" יובא כ-120,050 ₪
     # ו-"1.200,50" כ-1.20 ₪. עכשיו פסיק מותר רק כמפריד אלפים, אחרת השורה נדחית עם הודעה.
-    if not (v or "").replace("\u200f", "").strip():
+    return _amount_cell(v)[0]
+
+
+# הפעלה 369 (חיבורים): ייצוא חשבונאי (Excel «חשבונאות», חשבשבת, פריוריטי) כותב שלילי כ-«(500)» או «500-»,
+# ולפעמים מטבע בתוך התא («1,200 ש"ח», «$500»). קודם: «(500)»/«500-»/«ש"ח» ⇒ «סכום לא תקין» ⇒ זיכוי נעלם
+# מרשימת הבדיקה, וקובץ שכולו בפורמט הזה נדחה כולו. וגם: «₪500» בשורה שעמודת המטבע שלה USD נקלט בשקט
+# כ-500 דולר. עכשיו: סוגריים / מינוס בסוף = שלילי ⇒ זיכוי (לבדיקה, אף פעם לא חוב); סימן כפול
+# («(-500)», «-500-») ⇒ שגיאה; סימן מטבע בתא נבדק מול עמודת המטבע — סתירה ⇒ שגיאה גלויה, בלי ניחוש.
+_CELL_INVISIBLE = ("\u200f", "\u200e", "\u202a", "\u202b", "\u202c", "\ufeff")
+_CUR_MARK = re.compile(r'^([+-]?)\s*(?:US\$|₪|\$|€|£|ש["״\'׳]?ח|NIS|ILS|USD|EUR|GBP)', re.I)
+_CUR_MARK_END = re.compile(r'(?:US\$|₪|\$|€|£|ש["״\'׳]?ח|NIS|ILS|USD|EUR|GBP)$', re.I)
+
+
+def _mark_currency(m: str) -> str:
+    m = m.upper() if m.isascii() else m
+    return parse_currency(m.replace("׳", "'"))
+
+
+def _amount_cell(v: str) -> tuple[int, str | None]:
+    """תא סכום ⇒ (אגורות, מטבע שהופיע בתא או None)."""
+    t = v or ""
+    for ch in _CELL_INVISIBLE:
+        t = t.replace(ch, "")
+    t = t.replace("\u00a0", " ").replace("\u202f", " ").strip()
+    if not t:
         raise ValueError(f"סכום לא תקין: {v}")   # תא ריק = שגיאה, לא 0
-    return parse_amount_agorot(v, max_agorot=10_000_000_000)
+    marks: set[str] = set()
+    neg = False
+
+    def strip_marks(t: str) -> str:
+        while True:
+            m = _CUR_MARK.match(t) or _CUR_MARK_END.search(t)
+            if not m:
+                return t
+            if m.re is _CUR_MARK:
+                marks.add(_mark_currency(m.group(0)[len(m.group(1)):].strip()))
+                t = m.group(1) + t[m.end():].strip()
+            else:
+                marks.add(_mark_currency(m.group(0)))
+                t = t[:m.start()].strip()
+
+    t = strip_marks(t)
+    if t.startswith("(") and t.endswith(")"):
+        neg = True
+        t = strip_marks(t[1:-1].strip())
+    if t.endswith("-") and len(t) > 1:
+        if neg:
+            raise ValueError(f"סכום לא תקין (סימן שלילי כפול): {v}")
+        neg = True
+        t = strip_marks(t[:-1].strip())
+    if not t or not any(c.isdigit() for c in t):
+        raise ValueError(f"סכום לא תקין: {v}")   # «()», «₪», «-» לבד ⇒ שגיאה, לא 0
+    if neg and t[0] in "+-":
+        raise ValueError(f"סכום לא תקין (סימן שלילי כפול): {v}")
+    if "(" in t or ")" in t or t.endswith("-"):
+        raise ValueError(f"סכום לא תקין: {v}")
+    if len(marks) > 1:
+        raise ValueError(f"שני מטבעות שונים בתא הסכום: {v}")
+    out = parse_amount_agorot(t, max_agorot=10_000_000_000)
+    return (-out if neg else out), (next(iter(marks)) if marks else None)
 
 
 # הפעלה 114: Excel שומר טלפון כמספר ⇒ האפס המוביל נמחק ('0501234567' ⇒ 501234567, לפעמים '501234567.0').
@@ -151,24 +208,19 @@ def decode(raw: bytes) -> tuple[str, str]:
     raise ValueError("קידוד הקובץ לא מזוהה. ב-Excel: «שמירה בשם» ← «CSV UTF-8 (מופרד בפסיקים)»")
 
 
-def _rows(text: str) -> list[list[str]]:
-    """מפריד: פסיק (ברירת המחדל), נקודה-פסיק (Excel באזור שבו הפסיק עשרוני) או טאב (טקסט Unicode).
-    נבחר לפי שורת הכותרת בלבד — המפריד שמופיע בה הכי הרבה פעמים (מחוץ למירכאות)."""
-    head = text.split("\n", 1)[0]
-    counts = {d: len(next(csv.reader([head], delimiter=d))) - 1 for d in (",", ";", "\t")}
-    delim = max(counts, key=lambda d: (counts[d], d == ","))
-    return list(csv.reader(io.StringIO(text), delimiter=delim))
+HEADER_SCAN = 5   # מבקר 211: ייצוא «דוח חשבוניות פתוחות» מתחיל לעיתים בשורת כותרת-דוח / שורה ריקה
+REQUIRED = ("number", "client", "amount")
 
 
-def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
-    if isinstance(raw, bytes):
-        if len(raw) > MAX_BYTES:
-            raise ValueError("הקובץ גדול מדי (מקס׳ 2MB)")
-        raw, _ = decode(raw)
-    rows = _rows(raw.lstrip("\ufeff"))
-    if not rows:
-        raise ValueError("קובץ ריק")
-    head = [h.strip().lower() for h in rows[0]]
+def _delim(line: str) -> str:
+    """המפריד שמופיע בשורה הכי הרבה פעמים (מחוץ למירכאות); תיקו ⇒ פסיק."""
+    line = line.rstrip("\r")
+    counts = {d: len(next(csv.reader([line], delimiter=d), [])) - 1 for d in (",", ";", "\t")}
+    return max(counts, key=lambda d: (counts[d], d == ","))
+
+
+def _columns(cells: list[str]) -> dict[str, int]:
+    head = [h.strip().lower() for h in cells]
     idx: dict[str, int] = {}
     for key, names in COLUMNS.items():
         # מבקר סבב 3: עדיפות לפי סדר השמות ב-COLUMNS (יתרה לפני סה"כ), לא לפי סדר העמודות בקובץ
@@ -176,9 +228,52 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
             if name.lower() in head:
                 idx[key] = head.index(name.lower())
                 break
-    missing = [k for k in ("number", "client", "amount") if k not in idx]
+    return idx
+
+
+def _find_header(text: str) -> tuple[int, str]:
+    """(מספר השורה של שורת העמודות, המפריד). מחפש ב-HEADER_SCAN השורות הראשונות את השורה הראשונה
+    שיש בה כל עמודות החובה; לא נמצאה ⇒ השורה הראשונה (וההודעה «חסרות עמודות חובה» כמו קודם)."""
+    lines = text.split("\n", HEADER_SCAN)[:HEADER_SCAN]
+    for i, line in enumerate(lines):
+        d = _delim(line)
+        cells = next(csv.reader([line.rstrip("\r")], delimiter=d), [])
+        if all(k in _columns(cells) for k in REQUIRED):
+            return i, d
+    return 0, _delim(lines[0] if lines else "")
+
+
+# הפעלה 368 (BACKLOG חיבורים): ייצוא Excel מסתיים לעיתים בשורת «סה״כ» / «סיכום». קודם נדחתה בהודעה מטעה
+# («אין טלפון ואין מייל» / «חסר מספר מסמך») ⇒ בעל העסק חיפש חייב חסר. עכשיו: שגיאה גלויה וברורה.
+# תווית בעמודת המספר ⇒ תמיד סיכום; בעמודת הלקוח ⇒ רק בלי מספר, טלפון ומייל (לקוח «סיכום בע״מ» לא נפגע).
+_SUMMARY = re.compile(r'^(?:סה["\u05f4\'\u2019]?כ|סך\s*הכ[ו]?ל|סיכום|total|totals|grand\s+total|subtotal|sum)'
+                      r'(?:\s+(?:לתשלום|כללי|כולל|חובות|יתרות|יתרה|פתוחות|amount|due|balance|open))?$',
+                      re.IGNORECASE)
+SUMMARY_MSG = "שורת סיכום (סה״כ) — לא חשבונית, לא נקלטה"
+MERGED_HINT = " (אם התא ממוזג עם השורה שמעל ב-Excel — בטלו את המיזוג ומלאו את הערך בכל שורה)"
+
+
+def _is_summary(label: str) -> bool:
+    return bool(_SUMMARY.match(label.strip().rstrip(":").strip()))
+
+
+def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
+    if isinstance(raw, bytes):
+        if len(raw) > MAX_BYTES:
+            raise ValueError("הקובץ גדול מדי (מקס׳ 2MB)")
+        raw, _ = decode(raw)
+    text = raw.lstrip("\ufeff")
+    skip, delim = _find_header(text)
+    if skip:   # שורות כותרת-דוח / ריקות מעל שורת העמודות — מדלגים; מספרי השורות בשגיאות נשארים של הקובץ
+        text = text.split("\n", skip)[skip]
+    rows = list(csv.reader(io.StringIO(text), delimiter=delim))
+    if not rows:
+        raise ValueError("קובץ ריק")
+    idx = _columns(rows[0])
+    missing = [k for k in REQUIRED if k not in idx]
     if missing:
-        raise ValueError(f"חסרות עמודות חובה: {', '.join(missing)}")
+        raise ValueError(f"חסרות עמודות חובה: {', '.join(missing)} — "
+                         f"שורת שמות העמודות צריכה להיות באחת מ-{HEADER_SCAN} השורות הראשונות בקובץ")
     if len(rows) - 1 > MAX_ROWS:
         raise ValueError(f"יותר מדי שורות (מקס׳ {MAX_ROWS})")
     out = CsvResult()
@@ -187,16 +282,22 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
                   if k in idx and idx[k] < len(r)]
     order = detect_date_order(date_cells)
     out.date_order = order
-    for n, row in enumerate(rows[1:], start=2):
+    prev: dict[str, str] = {}
+    for n, row in enumerate(rows[1:], start=skip + 2):
         def cell(k: str, row=row) -> str:
             i = idx.get(k)
             return row[i].strip() if i is not None and i < len(row) else ""
         if not any(c.strip() for c in row):
             continue
+        last, prev = prev, {k: cell(k) for k in ("number", "client", "phone", "email")}
         try:
             raw_num = cell("number")
+            # «סה״כ» בעמודת המספר הוא אף פעם לא מספר מסמך (גם אם יש בשורה טלפון של העסק) ⇒ תמיד סיכום
+            if _is_summary(raw_num) or (not raw_num and _is_summary(cell("client"))
+                                        and not cell("phone") and not cell("email")):
+                raise ValueError(SUMMARY_MSG)
             if not raw_num:
-                raise ValueError("חסר מספר מסמך")
+                raise ValueError("חסר מספר מסמך" + (MERGED_HINT if last.get("number") else ""))
             # הפעלה 116: אותו ניקוי כמו ב-Invoice (מפתח `csv:{מספר}` ואיחוד מול ה-API). "None"/קישור ⇒
             # שגיאה גלויה; "1234.0" מ-Excel ⇒ "1234"; RLM/רווחים כפולים לא מפצלים מסמך.
             num = clean_doc_number(raw_num)
@@ -208,7 +309,11 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
                 raise ValueError(f"מספר מסמך כפול: {num}")
             if cell("status").strip().lower() in CLOSED_STATUSES:
                 continue                                   # מסמך סגור/מבוטל ⇒ לא חוב
-            amount = _agorot(cell("amount"))
+            amount, cell_cur = _amount_cell(cell("amount"))
+            currency = parse_currency(cell("currency")) if cell("currency").strip() else (cell_cur or "ILS")
+            if cell_cur and cell_cur != currency:
+                raise ValueError(f"המטבע בתא הסכום ({cell_cur}) שונה מעמודת המטבע ({currency})"
+                                 " — לא נקלט, כדי לא לשלוח תזכורת בסכום שגוי")
             if amount == 0:
                 continue                                   # שולמה / אפס ⇒ לא חוב
             issued = _parse_date(cell("issued"), order)
@@ -230,7 +335,9 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
             if due is None and issued is not None:
                 due = issued + timedelta(days=DEFAULT_TERMS_DAYS)
             if not cell("phone") and not cell("email"):
-                raise ValueError("אין טלפון ואין מייל")
+                raise ValueError("אין טלפון ואין מייל"
+                                 + (MERGED_HINT if (last.get("phone") or last.get("email"))
+                                    and cell("client") in ("", last.get("client")) else ""))
             phone = _csv_phone(cell("phone"))
             # הפעלה 114: טלפון שלא מזוהה ובלי מייל תקין = חייב שאי אפשר להגיע אליו ⇒ שגיאה גלויה בייבוא
             # (קודם נקלט בשקט ואף תזכורת לא יצאה).
@@ -242,7 +349,7 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
             (out.credits if amount < 0 else out.invoices).append(Invoice(
                 external_id=f"csv:{num}", number=num, doc_type=330 if amount < 0 else 305,
                 amount_agorot=abs(amount),
-                currency=parse_currency(cell("currency")), issued=issued, due=due,
+                currency=currency, issued=issued, due=due,
                 client_external_id="", client_name=cell("client"), client_phone=phone,
                 client_email=cell("email"), due_estimated=est))
         except ValueError as e:
