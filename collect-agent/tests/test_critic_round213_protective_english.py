@@ -58,3 +58,28 @@ def test_english_variants_get_the_same_tags_as_hebrew(text, tag):
     """כמו המקבילות בעברית: תגית ההשהיה הנכונה (רגיש / חדלות פירעון / קטין) — לא רק «דחוף»."""
     d = _d(text)
     assert tag in d.tags and d.stop != cv.Stop.NONE, (d.intent, d.tags, d.stop)
+
+
+# ── סט #23 (גבי מנוע ⇒ צורף לתיקון 213): עוד 8 ניסוחים מגינים באנגלית + 4 בקרות שאסור לתפוס ─────────────────
+EN23 = [("I'm only fourteen", "minor"), ("My daughter (15) answered this, please don't message her", "minor"),
+        ("Mom died on Tuesday, I'm handling her things", "cant_pay"),
+        ("my husband was killed in an accident", "cant_pay"),
+        ("The person you're texting has died", "cant_pay"), ("nobody would care if I was gone", "distress"),
+        ("I'm forwarding this to my legal counsel", "legal"), ("Talk to my solicitor from now on", "legal")]
+
+
+@pytest.mark.parametrize("text,intent", EN23)
+def test_en23_protective_urgent_with_pause(text, intent):
+    d = _d(text)
+    assert d.intent.value == intent and d.escalate == cv.Escalation.URGENT and d.stop != cv.Stop.NONE, \
+        (text, d.intent, d.escalate, d.stop)
+
+
+@pytest.mark.parametrize("text", ["my son is 16 now, time flies. I'll pay on the 18th",
+                                  "I'm dying to get this sorted, can I pay by card?",
+                                  "the old manager passed the account to me, I'll pay on the 18th",
+                                  "my lawyer friend says it's fine, I'll pay on the 18th",
+                                  "I'm only fifteen minutes away, will pay at the shop"])
+def test_en23_controls_not_protective(text):
+    d = _d(text)
+    assert d.intent.value not in ("minor", "distress", "legal"), (text, d.intent)

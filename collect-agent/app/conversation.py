@@ -446,6 +446,12 @@ _EN_BEREAVE = (r"\b(?:my|our)\s+(?:\w+\s+)?" + _EN_KIN + r"s?\s+(?:just\s+|recen
                r"|\b(?:he|she)\s+(?:has\s+|just\s+|sadly\s+)?passed(?=\s*(?:$|[,.!;:\-–—]|(?:away|last|this|yesterday|today|on|in|recently|earlier)\b))"
                r"|\b(?:is|was|has\s+been)\s+(?:now\s+)?deceased\b|\bthe\s+deceased\b"
                r"|\b(?:rip|r\.i\.p\.?)\s+(?:my\s+|our\s+)?" + _EN_KIN + r"\b"
+               # סט #23 (גבי מנוע ⇒ 213): «Mom died on Tuesday», «my husband was killed in an accident»,
+               # «The person you're texting has died»
+               r"|\b(?:mom|mum|dad|mommy|mummy|daddy|grandma|grandpa)\s+(?:just\s+|recently\s+|suddenly\s+)?(?:died|passed\s+away)\b"
+               r"|\b(?:my|our)\s+(?:\w+\s+)?" + _EN_KIN + r"s?\s+(?:was|were|got)\s+killed\b"
+               r"|\b(?:the\s+)?(?:person|customer|client|account\s+holder)\s+(?:you(?:['’]re|\s+are)\s+"
+               r"(?:texting|messaging|emailing|writing\s+to|contacting|trying\s+to\s+reach)\s+)?(?:has\s+|had\s+)?(?:died|passed\s+away)\b"
                r"|\b(?:lost|buried)\s+(?:my|our)\s+(?:\w+\s+)?" + _EN_KIN + r"\b(?!\s*['’]?s\b|\s+(?:card|phone|keys?|wallet|number))"
                r"|\bsitting\s+shiva\b")
 # מבקר 212🟠: אבל בעברית שלא נתפס — «אבא שלי נפתר» (שגיאת כתיב; «נפתר» לבדו = «נפתרה הבעיה» ⇒ רק אחרי קרוב),
@@ -1475,7 +1481,20 @@ _extend(Intent.MINOR,
         r"(?:\s*[- ]?\s*old)?\s+(?:son|daughter|kid|child|boy|girl)\b")
 _extend(Intent.DISTRESS,
         r"\bi\s*(?:['’]?m|\s+am)\s+(?:in\s+)?(?:a\s+)?(?:really\s+|very\s+|such\s+a\s+|so\s+)?(?:dark|bad)\s+place\b"
-        r"(?![^.!?\n]*\b(?:financially|money|cash)\b)")
+        r"(?![^.!?\n]*\b(?:financially|money|cash)\b)",
+        # סט #23: «nobody would care if I was gone»
+        r"\b(?:no\s*one|nobody|noone)\s+would\s+(?:care|notice|miss\s+me)\s+if\s+i\s+(?:was|were|wasn['’]?t\s+here)\b"
+        r"|\bif\s+i\s+(?:was|were)\s+gone\b")
+# סט #23 (גבי מנוע ⇒ 213): «I'm only fourteen» (במילים; «fifteen minutes away» ⇒ לא), «My daughter (15) answered this»
+_extend(Intent.MINOR,
+        r"\bi\s*(?:['’]?m|\s+am)\s+(?:only\s+|just\s+|still\s+)?(?:nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|"
+        r"seventeen)\b(?!\s*(?:minutes?|mins?|hours?|days?|weeks?|months?|seconds?|dollars?|bucks|shekels?|percent|%|away|late|short)\b)",
+        r"\bmy\s+(?:son|daughter|kid|child|boy|girl)\s*\(\s*(?:[1-9]|1[0-7])\s*\)\s+(?:answered|replied|read|has|got|uses|is\s+using)\b")
+# סט #23: «I'm forwarding this to my legal counsel», «Talk to my solicitor from now on» (בלי פועל ⇒ «my lawyer friend» לא)
+_extend(Intent.LEGAL,
+        r"\b(?:forward(?:ing)?|send(?:ing)?|pass(?:ing)?|refer(?:ring)?|hand(?:ing)?)\s+(?:this|it|that|your\s+\w+)\s+(?:over\s+|on\s+)?"
+        r"to\s+(?:my|our)\s+(?:legal\s+counsel|lawyer|attorney|solicitor|barrister|legal\s+team)\b",
+        r"\b(?:talk|speak|write|go)\s+(?:directly\s+)?(?:to|through)\s+(?:my|our)\s+(?:legal\s+counsel|lawyer|attorney|solicitor|barrister|legal\s+team)\b")
 
 # ═══ critic סבב 147: סלנג צ׳אט בעברית — סירוב/הסרה/קטין בהודעה קצרה ═══
 _extend(Intent.DISPUTE, r"^\W*(?:אני\s+)?לא\s+(?:משלמ|משלמת|משלמימ)(?:\s+(?:וזהו|וזהו זה|בכלל|על זה|לכמ|כלומ|שקל|אגורה))*\W*$")
