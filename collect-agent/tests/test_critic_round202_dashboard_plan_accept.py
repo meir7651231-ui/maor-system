@@ -25,7 +25,7 @@ def _offer_by_dashboard(svc):
     return pid, svc.db.one("SELECT email FROM customers WHERE id=1")["email"]
 
 
-@pytest.mark.xfail(strict=True, reason="202🟠: «מאשר» על הצעה מהדשבורד ⇒ unknown + «לא זיהיתי»")
+
 @pytest.mark.parametrize("reply", ["מאשר", "מאשרת", "כן מאשר"])
 def test_marer_after_dashboard_offer_is_plan_accept(svc, reply):
     pid, email = _offer_by_dashboard(svc)
@@ -35,7 +35,7 @@ def test_marer_after_dashboard_offer_is_plan_accept(svc, reply):
                       "AND json_extract(detail,'$.plan')=?", (pid,))
 
 
-@pytest.mark.xfail(strict=True, reason="202🟠: «מאשר את הפריסה» ⇒ הצעה שנייה ללקוח שכבר אישר")
+
 def test_accept_with_words_does_not_reoffer(svc):
     pid, email = _offer_by_dashboard(svc)
     svc.inbound("email", email, "מאשר את הפריסה")

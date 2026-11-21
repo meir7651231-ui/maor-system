@@ -3604,11 +3604,30 @@ class CollectService:
                 self.db.x("UPDATE plans SET status='superseded' WHERE customer_id=? AND status='approved' "
                           "AND id!=?", (cust["id"], plan_id))
                 self.audit("system", "plan_replaced", {"plan": plan_id, "replaced": old})
+            self._mark_plan_offered(cust["id"], items)
         self.audit(actor, "plan_approved", {"plan": plan_id, "draft": did,
                                             "message_id": dr["message_id"]})
         return {"plan_id": plan_id, "message_id": dr["message_id"], "channel": channel,
                 "text": text, "queued": not sent and dr["status"] == "approved",
                 "draft_status": dr["status"]}
+
+    def _mark_plan_offered(self, cid: int, items: list[dict]) -> None:
+        """מבקר 202🟠: הצעה שנשלחה מהדשבורד (/plans → אישור) אומרת ללקוח «השיבו "מאשר"», אבל השיחה לא ידעה
+        שנשלחה הצעה ⇒ «מאשר» = unknown + «לא זיהיתי», ו«מאשר את הפריסה» = הצעה שנייה. עכשיו כמו המסלול שבתור:
+        השיחה עוברת ל«הצעת פריסה נשלחה» עם הלוח שיצא (ההשהיה ומונה התורות נשמרים)."""
+        if not self._table_exists("conversations"):
+            return
+        sent = [{"n": i["n"], "due": i["due"], "amount_agorot": i["amount_agorot"]} for i in items]
+        conv = self.db.one("SELECT offered_plan FROM conversations WHERE customer_id=?", (cid,))
+        if conv and conv["offered_plan"] and json.loads(conv["offered_plan"]) == sent:
+            # ההצעה נוסחה בשיחה עצמה (תור התשובות) ⇒ השיחה כבר יודעת עליה, ומצבה (למשל הלקוח כבר אישר
+            # והיא ממתינה לבעל העסק) נשמר כמו שהוא
+            return
+        self.db.x(
+            "INSERT INTO conversations(customer_id,state,offered_plan,bot_turns,pause_until,updated_at)"
+            " VALUES(?, 'awaiting_plan_reply', ?, 0, NULL, ?) ON CONFLICT(customer_id) DO UPDATE SET "
+            "state=excluded.state, offered_plan=excluded.offered_plan, updated_at=excluded.updated_at",
+            (cid, json.dumps(sent), _iso(self.clock())))
 
     def _supersede_plan_drafts(self, plan_id: int, by: str = "system:plan_approved") -> None:
         """אישור הפריסה ב-/plans שולח את ההצעה ללקוח, ולכן טיוטת plan_request המקבילה
