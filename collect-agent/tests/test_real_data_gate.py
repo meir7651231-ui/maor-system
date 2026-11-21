@@ -70,3 +70,37 @@ def test_blocked_attempt_audited_without_content(gi_client, clock):
 ])
 def test_is_synthetic_contact(phone, email, ok):
     assert is_synthetic_contact(phone, email) is ok
+
+
+# גבי משפט 21.11: שורת זיכוי («(500)», 968e9ee) עם פרטים אמיתיים עקפה את השער — הקובץ נקלט, והפרטים לא נשמרו
+# רק כי הזיכוי לא שויך. השער חל עכשיו על כל שורה.
+CREDIT_REAL = DEMO + "3009,אדם אמיתי,052-7654321,real@gmail.com,(500),2026-09-01,2026-10-01\n"
+CREDIT_DEMO = DEMO + "3010,רון (דמו),050-0000002,ron@example.com,500-,2026-09-01,2026-10-01\n"
+
+
+def test_real_contact_in_credit_row_blocks_whole_file(gi_client, clock):
+    svc, api = _client(gi_client, clock, "")
+    r = api.post("/import/csv", content=CREDIT_REAL.encode())
+    assert r.status_code == 403
+    assert svc.db.one("SELECT COUNT(*) n FROM invoices")["n"] == 0          # כל הקובץ נדחה, כמו קובץ מעורב
+    assert svc.db.one("SELECT 1 FROM audit WHERE action='csv_import_blocked'")
+
+
+def test_synthetic_credit_row_still_allowed(gi_client, clock):
+    svc, api = _client(gi_client, clock, "")
+    assert api.post("/import/csv", content=CREDIT_DEMO.encode()).status_code == 200
+
+
+def test_switch_on_allows_real_credit_row(gi_client, clock):
+    svc, api = _client(gi_client, clock, "1")
+    assert api.post("/import/csv", content=CREDIT_REAL.encode()).status_code == 200
+
+
+@pytest.mark.parametrize("enc", ["utf-16", "cp1255", "semicolon"])
+def test_excel_encodings_go_through_the_same_gate(gi_client, clock, enc):
+    """3ef599b: CSV מ-Excel עברי (UTF-16 / Windows-1255 / «;») — אותו שער, אין מסלול עוקף."""
+    text = REAL.replace(",", ";") if enc == "semicolon" else REAL
+    raw = text.encode("utf-8" if enc == "semicolon" else enc)
+    svc, api = _client(gi_client, clock, "")
+    assert api.post("/import/csv", content=raw).status_code == 403
+    assert svc.db.one("SELECT COUNT(*) n FROM customers")["n"] == 0
