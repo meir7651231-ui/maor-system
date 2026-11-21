@@ -1691,3 +1691,10 @@ test('מנהל 365 (ממצא גבייה סוכן 21.11): קטין/מצוקה/מ�
   assert.match(sharedWarningText({ card_id: 9, urgent: 'legal', channel: 'email' }) ?? '', /מכתובת המייל המשותפת ללקוח/);
   assert.doesNotMatch(sharedWarningText({ card_id: 9, urgent: 'distress', received_at: 'bad' }) ?? '', / ב-/);
 });
+
+test('b050cc8 · באנר «העלו קובץ CSV עדכני»: רק כש-upload_needed, עם תאריך הייבוא האחרון', async () => {
+  const { csvBannerText } = await import('../src/lib/csvFreshness.ts');
+  for (const f of [null, undefined, { last_import: '2026-11-20', upload_needed: false }]) assert.equal(csvBannerText(f), null);
+  assert.equal(csvBannerText({ last_import: '2026-11-08', upload_needed: true }), 'העלו קובץ CSV עדכני — הרשימה של היום מבוססת על ייבוא מ-08.11.2026');
+  assert.match(csvBannerText({ last_import: null, upload_needed: true })!, /עוד לא הועלה קובץ CSV/);
+});

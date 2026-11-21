@@ -106,6 +106,7 @@ export interface DashRow {
 /** סיכום למטבע שאינו ₪ (app/service.py _other_currency). הסכומים ב-totals הם ₪ בלבד. */
 export interface OtherCurrency { currency: string; open_invoices: number; open_agorot: number; overdue_agorot: number; at_risk_agorot: number; collected_agorot: number }
 import type { SendWindow } from './lib/holidays.ts';
+import type { CsvFreshness } from './lib/csvFreshness.ts';
 export interface Dashboard {
   today: string;
   totals: { open_invoices: number; open_agorot: number; overdue_agorot: number; closed_invoices: number; pending_approval: number; sent_sms: number; sent_email: number; sent_owner?: number; owner_inbox: number;
@@ -120,6 +121,8 @@ export interface Dashboard {
   send_window?: SendWindow;
   /** critic סבב 177: עצירת שליחה אחרי שחזור מגיבוי (null = אין). חסר בשרת ישן. */
   restore_hold?: RestoreHold | null;
+  /** b050cc8: עסק CSV — טריות הקובץ (null למקור אחר). חסר בשרת ישן. */
+  csv_freshness?: CsvFreshness | null;
 }
 export interface RestoreHold { restored_at: string; ledger_applied: number }
 export interface PreviewMsg {

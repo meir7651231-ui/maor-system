@@ -22,8 +22,10 @@ export function Settings() {
   const { mode, business, setBusiness, showToast, reload, dataSeq, me, sendWindow } = useApp();
   // «לפרטים ועדכון» מבאנר לוח החגים בבית ⇒ #/settings?s=holidays ⇒ גוללים לסעיף (אחרי גלילת-הראוטר לראש)
   useEffect(() => {
-    if (hashParam(location.hash, 's') !== 'holidays') return;
-    const t = setTimeout(() => document.getElementById('holidays')?.scrollIntoView({ block: 'center' }), 50);
+    // b050cc8: באנר «העלו קובץ CSV עדכני» ⇒ #/settings?s=csv ⇒ גוללים לייבוא ה-CSV
+    const target = { holidays: 'holidays', csv: 'csv-import' }[hashParam(location.hash, 's') ?? ''];
+    if (!target) return;
+    const t = setTimeout(() => document.getElementById(target)?.scrollIntoView({ block: 'center' }), 50);
     return () => clearTimeout(t);
   }, [sendWindow]);
   const live = mode === 'live';
@@ -169,6 +171,7 @@ export function Settings() {
             </>
           )}
         </div>
+        <div id="csv-import" />
         <Field label="📄 חלופה: ייבוא קובץ CSV של חשבוניות פתוחות" hint="עמודות: מספר חשבונית, שם לקוח, טלפון, מייל, סכום/יתרה, תאריך לתשלום. שורה לא תקינה מדווחת ולא מפילה את הקובץ.">
           {/* קלט קובץ נייטיב מציג טקסט באנגלית ⇒ מוסתר, ותווית-כפתור בעברית במקומו */}
           <span className={`inline-flex items-center gap-2 rounded-xl border px-4 h-11 font-bold ${live ? 'border-ink-200 bg-white cursor-pointer hover:bg-ink-50 focus-within:ring-2 focus-within:ring-brand' : 'border-ink-200 bg-ink-100 text-ink-400'}`}>

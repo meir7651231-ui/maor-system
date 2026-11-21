@@ -1085,6 +1085,15 @@ class CollectService:
         return bool(addr) and self.db.one("SELECT 1 FROM suppressions WHERE hash=?",
                                           (self.addr_hash(channel, addr),)) is not None
 
+    def _csv_freshness(self) -> dict | None:
+        """מקור CSV ⇒ {last_import (YYYY-MM-DD|None), upload_needed}; מקור אחר ⇒ None.
+        מקור יחיד: morning._csv_freshness (אותו סף 24 שעות כמו סיכום הבוקר)."""
+        if getattr(self.s, "source_system", None) != "csv":
+            return None
+        from .morning import _csv_freshness
+        f = _csv_freshness(self)
+        return {"last_import": f["csv_last_import"], "upload_needed": f["csv_upload_needed"]}
+
     def email_states(self) -> Callable[[str | None], str | None]:
         """גבי עיצוב: מצב כתובת המייל לתצוגה בטבלת החובות — 'spam' (הלקוח סימן ספאם ⇒ suppress, סעיף 30א,
         לא שולחים שוב למייל הזה) · 'bounced' (bounce קבוע ⇒ הכתובת לא קיימת; לתקן במקור ⇒ גיבוב חדש) · None.
@@ -3395,7 +3404,7 @@ class CollectService:
             sw = full["send_window"]
             return {"today": full["today"], "trial": full["trial"], "totals": full["totals"], "invoices": inv,
                     "holidays": {"until": sw["holidays_until"], "expiring": sw["holidays_expiring"]},
-                    "restore_hold": full["restore_hold"]}
+                    "restore_hold": full["restore_hold"], "csv_freshness": full["csv_freshness"]}
         today = self.clock().date()
         rows = []
         # הפעלה 175: היו 3 שאילתות לכל חשבונית (תזכורת אחרונה / ספירת יוצאות / אחרונה שיצאה) + שאילתות
@@ -3501,6 +3510,9 @@ class CollectService:
             "restore_hold": None if hold is None else {
                 "restored_at": hold["restored_at"], "ledger_applied": hold["ledger_applied"]},
             "series": self._collection_series(today, closed_all),
+            # גבי עיצוב (b050cc8, ממצא חיבורים §3): עסק CSV — אין סנכרון; הרשימה טרייה רק כמו הקובץ. ייבוא אחרון מעל 24
+            # שעות ⇒ תזכורות על חשבוניות CSV לא ייצאו (ר-4) ⇒ באנר «העלו קובץ עדכני». אותו חישוב כמו סיכום הבוקר
+            "csv_freshness": self._csv_freshness(),
             "today": today.isoformat(),
             "trial": self.trial(),
             # critic 2.3.2: בשבת/בלילה/בחג «לא נשלח כלום» נראה כמו תקלה. מציגים מתי מותר ולמה

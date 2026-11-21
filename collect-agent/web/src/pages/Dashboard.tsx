@@ -10,6 +10,7 @@ import { MessagePreview } from '../components/MessagePreview.tsx';
 import { OpenListCard } from '../components/OpenListCard.tsx';
 import type { Invoice } from '../lib/domain.ts';
 import { HolidayBanner } from '../components/HolidayBanner.tsx';
+import { CsvFreshBanner } from '../components/CsvFreshBanner.tsx';
 import { DueEstimatedBadge } from '../components/DueEstimatedBadge.tsx';
 import { nextLine, paidPct, planBadge, plansVisible, type PlanTone } from '../lib/plans.ts';
 import { RestoreHoldBanner } from '../components/RestoreHoldBanner.tsx';
@@ -68,6 +69,7 @@ export function Dashboard() {
       )}
       {live && <RestoreHoldBanner />}
       {live && <HolidayBanner where="dashboard" />}
+      {live && <CsvFreshBanner />}
       {live && <OpenListCard count={totals?.open_unreviewed ?? 0} />}
       <section aria-label="מדדי גבייה" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" data-testid="kpis">
         <Kpi hero label="נגבה" value={fmtIls(collected)} sub={sub(live ? `${totals?.closed_invoices ?? 0} חשבוניות שולמו` : 'יוני–נובמבר', 'collected_agorot')} tone="good" />
