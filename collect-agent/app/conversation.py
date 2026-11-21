@@ -3095,6 +3095,15 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
                      and ("?" in t or _s(r"(?<![\w])(?:ה)?(?:שיעור|חוג|קבוצה|מורה|מתי|איפה|להעביר|לרשומ|הרשמה|לבטל)", t))
                      and not _s(r"(?<![\w])(?:מייל|אימייל|דוא\"?ל|שלו|שלה)(?![\w])", t))):
         found.discard(Intent.MINOR)
+    # מבקר סבב 215ב: «I'm 16 days late» / «I'm 15 minutes away» / «I'm 12 weeks pregnant» ⇒ היה קטין (השהיה קשה + כרטיס
+    # «קטין»). «I'm <מספר> <יחידת זמן/מידה>» ≠ גיל. רק כשזה הסימן היחיד — «I'm 16», «I'm 15 years old», «I'm 14, this is
+    # my mom's phone», «im in 8th grade» נשארים קטין.
+    _unit = (r"\b(?:i'?m|i\s+am|im)\s+(?:only\s+|like\s+|about\s+)?\d{1,2}\s*"
+             r"(?:days?|hours?|hrs?|minutes?|mins?|seconds?|secs?|weeks?|wks?|months?|mos?|percent|%|miles?|km|kilometers?"
+             r"|payments?|installments?|dollars?|bucks|shekels?|nis)\b")
+    if Intent.MINOR in found and re.search(_unit, t) and \
+            not _hits(RX[Intent.MINOR], re.sub(_unit, " ", t)):
+        found.discard(Intent.MINOR)
     # "הנכד בן 16 ישלם בשבילי" — הקטין משלם עבור המבוגר, לא עונה במקומו (qa3) ⇒ לא קטין
     if Intent.MINOR in found and _s(r"(?:ישלם|תשלם|יעביר|תעביר|יסדר|תסדר)\w*\s+(?:\w+\s+){0,2}(?:בשבילי|עבורי|במקומי|לכם)", t) \
             and not _s(r"ענה|ענתה|קיבל|קיבלה|ראה|ראתה|הטלפון של|המספר של|המכשיר של|אל תכתבו|תפסיקו|אני (?:בן|בת|קטין)", t):

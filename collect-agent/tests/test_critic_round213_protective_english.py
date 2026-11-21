@@ -97,7 +97,6 @@ def test_control_no_overmatch_after_fix(text):
 
 # סבב 215 🟡 — הכללת-יתר קיימת (כבר ב-83ddb34c, לא מהתיקון): «I'm <מספר> <יחידה>» נקרא כגיל ⇒ minor + דחוף +
 # השהיה קשה, כרטיס «קטין» לבעל העסק. הלקוח באיחור / בדרך / בהריון — לא קטין. «I'm 16» / «I'm 17» לבד — נשארים minor.
-@pytest.mark.xfail(strict=True, reason="215🟡: «I'm 16 days late» / «I'm 12 weeks pregnant» ⇒ minor")
 @pytest.mark.parametrize("text", ["I'm 16 days late, sorry", "I'm 15 minutes away", "I'm 17 days overdue",
                                   "I'm 14 hours behind", "I'm 12 weeks pregnant, will pay later"])
 def test_number_with_unit_is_not_an_age(text):

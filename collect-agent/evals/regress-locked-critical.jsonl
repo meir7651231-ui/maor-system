@@ -64,3 +64,4 @@
 {"id": "lk65", "text": "אין לי כח לחיות", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
 {"id": "lk66", "text": "I'm suing you", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
 {"id": "lk67", "text": "no dana here", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "lk68", "text": "im 14, this is my moms phone, im 14 minutes from home", "ctx": {"channel": "sms"}, "expect": {"intent": "minor", "escalate": "urgent"}, "critical": true}
