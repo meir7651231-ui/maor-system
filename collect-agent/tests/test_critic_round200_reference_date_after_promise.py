@@ -20,7 +20,7 @@ def _req(text):
     return getattr(d, "requested_date", None) or d.promise_date
 
 
-@pytest.mark.xfail(strict=True, reason="200🟠: הפניה «מ-1.11» אחרי «אשלם ב-15» ⇒ 1.11.2027")
+
 @pytest.mark.parametrize(("text", "want"), [
     ("אשלם ב-15 לגבי החשבונית מ-1.11", date(2026, 11, 15)),
     ("אעביר ב-20 על החשבונית של 3.11", date(2026, 11, 20)),
@@ -35,4 +35,25 @@ def test_reference_date_after_promise_does_not_win(text, want):
     ("לגבי החשבונית מ-1.11 אשלם ב-15", date(2026, 11, 15)),   # 199א — תוקן ב-8db00581
 ])
 def test_control(text, want):
+    assert _req(text) == want
+
+
+# מנהל 353: תיקון כללי (_REF_DATED) — הפניה באמצע, בלי מועד, באנגלית
+@pytest.mark.parametrize(("text", "want"), [
+    ("אשלם על החשבונית מ-1.11 ב-15", date(2026, 11, 15)),
+    ("אשלם ב-15 על החשבון של 1.11", date(2026, 11, 15)),
+    ("אשלם ב-10.12 לגבי החשבונית מ-1.11", date(2026, 12, 10)),
+    ("I'll pay on 15.11 for the invoice from 1.11", date(2026, 11, 15)),
+    ("אשלם עבור החשבונית של 3.11", None),   # אין מועד ⇒ שואלים «עד מתי?», לא 3.11.2027
+])
+def test_reference_date_anywhere(text, want):
+    assert _req(text) == want
+
+
+# מנהל 353: מסמך + תאריך *בלי* מילת קישור (מ/של) הוא מועד ההבטחה — לא נמחק
+@pytest.mark.parametrize(("text", "want"), [
+    ("אשלם את החשבונית 15.11", date(2026, 11, 15)),
+    ("אשלם את החשבונית ב-15.11", date(2026, 11, 15)),
+])
+def test_document_with_promise_date_kept(text, want):
     assert _req(text) == want
