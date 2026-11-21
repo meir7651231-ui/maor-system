@@ -6,6 +6,7 @@
 מה זה עושה:
   1. סנכרון מהמקור (חשבונית ירוקה / iCount / … לפי ההגדרות; שלב 1 = sandbox/mock). כשל בסנכרון ⇒ נרשם,
      וממשיכים עם מה שכבר ב-DB (כל שליחה ממילא מרעננת סכום ומקור לפני שהיא יוצאת — ר-4).
+     מקור CSV ⇒ אין סנכרון (לא כשל): הסיכום מוסיף csv_last_import + csv_upload_needed (ייבוא מעל 24 שעות).
   2. plan(): הכנת תזכורות. מועד השליחה שלהן ממילא נקבע לפי חלון השליחה (בלי שבת/חג, 08–20).
   3. סיכום לבעל העסק: כמה ממתינות לאישורו, כמה דורשות טיפול, כמה חובות פתוחים.
 
@@ -39,8 +40,25 @@ def _summary(svc) -> dict[str, Any]:
     # שער «אישור רשימת הפתוחות»: חשבונית שבעל העסק עוד לא סימן «עדיין פתוחה» לא מקבלת תזכורת.
     # בלי השורה הזו הבוקר הראשון נראה «אין מה לעשות» — והרשימה בעצם מחכה לו.
     list_review = len(svc.open_list()["pending"]) if getattr(svc.s, "open_review", False) else 0
-    return {"pending_approval": pending, "needs_owner": attention, "open_invoices": open_inv,
-            "open_list_to_confirm": list_review}
+    out = {"pending_approval": pending, "needs_owner": attention, "open_invoices": open_inv,
+           "open_list_to_confirm": list_review}
+    if svc.s.source_system == "csv":
+        out.update(_csv_freshness(svc))
+    return out
+
+
+CSV_FRESH = timedelta(hours=24)   # ר-4: חשבונית CSV תקפה לשליחה 24 שעות (service._refresh_invoice / refresh_customer)
+
+
+def _csv_freshness(svc) -> dict[str, Any]:
+    """עסק שעובד עם CSV: אין סנכרון. מה שבעל העסק צריך לדעת בבוקר = האם הקובץ טרי. ייבוא אחרון מעל 24 שעות ⇒
+    תזכורות על חשבוניות CSV לא ייצאו (ר-4) ⇒ «העלו קובץ עדכני היום». ספירות/תאריך בלבד, בלי פרטי לקוח."""
+    last = svc.db.one("SELECT MAX(synced_at) m FROM invoices WHERE source='csv'")["m"]
+    last_dt = datetime.fromisoformat(last) if last else None
+    if last_dt is not None and last_dt.tzinfo is None:
+        last_dt = last_dt.replace(tzinfo=TZ)
+    return {"csv_last_import": last_dt.astimezone(TZ).date().isoformat() if last_dt else None,
+            "csv_upload_needed": last_dt is None or svc.clock() - last_dt > CSV_FRESH}
 
 
 def run_morning(svc, now: datetime | None = None, *, force: bool = False) -> dict[str, Any]:
@@ -56,11 +74,16 @@ def run_morning(svc, now: datetime | None = None, *, force: bool = False) -> dic
                                "reason": svc.policy.reason_closed(now) or "אין חלון שליחה היום"}
     else:
         out = {"day": day, "status": "ok"}
-        try:
-            out["sync"] = svc.sync()
-        except Exception as e:  # noqa: BLE001 — כל כשל סנכרון: ממשיכים עם מה שב-DB, ומדווחים
-            out["status"] = "sync_failed"
-            out["sync_error"] = f"{type(e).__name__}: {str(e)[:200]}"
+        if svc.s.source_system == "csv":
+            # עסק CSV (30%–50% מהבטא, market.md): אין API לסנכרן. קודם sync() זרק ⇒ «sync_failed» כל בוקר ⇒
+            # הניטור התריע «הסנכרון נכשל» לשווא, וה-cron יצא 1. במקום: מדלגים, והסיכום אומר אם הקובץ טרי.
+            out["sync"] = {"source": "csv", "skipped": True}
+        else:
+            try:
+                out["sync"] = svc.sync()
+            except Exception as e:  # noqa: BLE001 — כל כשל סנכרון: ממשיכים עם מה שב-DB, ומדווחים
+                out["status"] = "sync_failed"
+                out["sync_error"] = f"{type(e).__name__}: {str(e)[:200]}"
         out["planned"] = len(svc.plan())
         out.update(_summary(svc))
     svc.db.x("INSERT OR REPLACE INTO morning_runs(day,at,status,summary) VALUES(?,?,?,?)",
