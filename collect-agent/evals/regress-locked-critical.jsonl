@@ -61,3 +61,6 @@
 {"id": "lk61", "text": "I'm out of the office today but I will pay on the 19th.", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "promise_in_days": 11}, "critical": true}
 {"id": "lk62", "text": "Automatic reply: I'm away until 30 November 2026. I will respond on my return.", "ctx": {"channel": "email", "state": "awaiting_date"}, "expect": {"intent": "unknown"}, "critical": true}
 {"id": "lk63", "text": "Auto-reply: away until Dec 1. Payment will be sent on the 20th.", "ctx": {"channel": "email", "state": "awaiting_date"}, "expect": {"intent": "promise", "promise_in_days": 12}, "critical": true}
+{"id": "lk65", "text": "אין לי כח לחיות", "ctx": {"channel": "sms"}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause"}, "critical": true}
+{"id": "lk66", "text": "I'm suing you", "ctx": {"channel": "sms"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "lk67", "text": "no dana here", "ctx": {"channel": "sms"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}

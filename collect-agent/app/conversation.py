@@ -1234,6 +1234,20 @@ _extend(Intent.LEGAL,
         r"\bmy\s+client\s+(?:will\s+not|won'?t|refuses|disputes|denies|does\s+not\s+owe|doesn'?t\s+owe)\b")
 _extend(Intent.OPT_OUT,
         r"\bcease\s+(?:all\s+)?(?:further\s+)?(?:contact|contacting|communications?|communicating)\b")
+# גבי מנוע 21.11 (בדיקה שיטתית של כוונות מגינות, 4/50 פערים — כולם ל«לא ברור» בלי השהיה ⇒ התזכורות ממשיכות):
+# מצוקה בכתיב «כח» / מילה באמצע / «לא בא לי לחיות»; תביעה בהווה/סביל; «אין פה X» / «X לא גר פה» באנגלית.
+_extend(Intent.DISTRESS,
+        r"אין (?:לי )?(?:כח|כוח) (?:יותר |כבר )?(?:לחיות|לחיים)",
+        r"(?<![\w])לא בא לי (?:יותר |כבר )?לחיות")
+_extend(Intent.LEGAL,
+        r"\b(?:i'?m|i\s+am|we'?re|we\s+are)\s+(?:going\s+to\s+be\s+)?suing\b",
+        r"\b(?:will|gonna|going\s+to)\s+(?:be|get)\s+sued\b")
+_extend(Intent.WRONG_PERSON,
+        r"^\W*(?:there\s*(?:'s|is)\s+)?no\s+(?!(?:problem|problems|issue|issues|worries|need|one|debt|debts|money|cash|funds|income|job|work|savings|payment|payments|bill|bills|invoice|way|rush|hurry|thanks|chance|choice|time|deal|sense|doubt|reason|answer|signal|reception|service|internet|wifi|food|stress|pressure|change|luck|hope|help)\b)"
+        r"[a-z]+\s+here\W*$",
+        r"\bno\s*(?:one|body)\s+(?:named|called|by\s+(?:that|the)\s+name)\b",
+        r"\b(?:is\s*n'?t|is\s+not|isnt)\s+[a-z]+'?s\s+(?:phone|number|cell|mobile|email)\b",
+        r"\b[a-z]+\s+(?:does\s*n'?t|does\s+not|doesnt|no\s+longer)\s+(?:live|lives|work|works)\s+here\b")
 # סט #19 (qa19, עיוור 19.11) — מחלקות: חדלות פירעון באנגלית (דחוף); «Hi who is this?»; הבטחה דרך צד שלישי
 # («my 15 year old will drop off the cash tomorrow»).
 _extend(Intent.CANT_PAY,
@@ -2865,6 +2879,9 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
                                   r"\W+(?:\w+\W+){0,2}" + re.escape(fn) + r"(?![\w])", t):
         found.add(Intent.WRONG_PERSON)
     if fn and len(fn) >= 2 and _s(r"(?<![\w])לא\W+" + re.escape(fn) + r"\W+(?:פה|כאן|בבית|גר|גרה)(?![\w])", t):
+        found.add(Intent.WRONG_PERSON)
+    # גבי מנוע 21.11: «דנה לא גרה פה» / «דנה כבר לא גרה כאן» (השם לפני השלילה)
+    if fn and len(fn) >= 2 and _s(r"(?<![\w])" + re.escape(fn) + r"\W+(?:כבר\W+)?לא\W+(?:גר|גרה|גרים|נמצא\w*)\W+(?:פה|כאן|בבית)(?![\w])", t):
         found.add(Intent.WRONG_PERSON)
     # שאלה על תשלום ("מתי שילמתי?") ≠ טענת תשלום
     if Intent.PAID_CLAIM in found and _s(r"^\W*(?:מתי|האם|כמה|למה|איך|מה)\b[^.!]*\?\W*$", t) \
