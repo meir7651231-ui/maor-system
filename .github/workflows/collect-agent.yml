@@ -232,7 +232,7 @@ jobs:
         run: TZ=UTC node e2e/app-email-state.mjs "$RUNNER_TEMP/shots"
       - name: e2e — «מועד מוערך» (תג+הסבר, תיקון מועד ברשימת הפתוחות, 409 בעברית), 390px, AA
         run: TZ=UTC node e2e/app-due-estimated.mjs "$RUNNER_TEMP/shots"
-      - name: e2e — סריקת עיצוב למצבים מותנים (הבטחה>14, שיוך משותף, bounce לבדיקה, ספאם, DSR, מוערך, קטין): AA, 390px, יעדים ≥40px
+      - name: "e2e — סריקת עיצוב למצבים מותנים (הבטחה>14, שיוך משותף, bounce לבדיקה, ספאם, DSR, מוערך, קטין): AA, 390px, יעדים ≥40px"
         run: TZ=UTC node e2e/app-states-sweep.mjs "$RUNNER_TEMP/shots"
       - name: "e2e — ייבוא CSV מהמסך בקבצי Excel עברי (Windows-1255, UTF-16+טאבים, «;»), קידוד לא מזוהה ⇒ עברית, 390px"
         run: TZ=UTC node e2e/app-csv-excel.mjs "$RUNNER_TEMP/shots"
