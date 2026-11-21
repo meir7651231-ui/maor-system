@@ -199,11 +199,19 @@ class ConversationInbox:
                 self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (card, c["id"]))
             for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (c["id"],)):
                 self.svc._cancel_invoice(inv["id"], card)
-        # מבנה ה-payload נקרא ב-web (notices.ts: linked_customers[].name) — לא לשנות שמות שדות
+        # מבנה ה-payload נקרא ב-web (notices.ts: linked_customers[].name, stopped_approved) — לא לשנות שמות שדות
         info = {"linked_customers": [{"id": c["id"], "name": c["name"]} for c in linked], "urgent": intent}
         mid = self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,payload,"
                         "created_at) VALUES(NULL,'in',?,?,?,1,?,?)",
                         (channel, text, card, json.dumps(info, ensure_ascii=False), _iso(now)))
+        if card == self.SHARED_URGENT:
+            # מנהל 361 (ביקורת 207🔴): «אני בן 15» / «אבא נפטר» / עו״ד מכתובת משותפת עוקף את handle_customer ⇒
+            # תשובה שבעל העסק אישר לאחד המקושרים וממתינה לחלון (קישור תשלום) יצאה ב-dispatch, אף שהכרטיס מבטיח
+            # «בלי תשובה ללקוח עד שבעל העסק בוחר». עכשיו נעצרות לכל המקושרים, כמו בפנייה ישירה (360).
+            stopped = sum(self._stop_approved(c["id"], intent, pause=card, shared_card=mid) for c in linked)
+            if stopped:
+                info["stopped_approved"] = stopped
+                self.db.x("UPDATE messages SET payload=? WHERE id=?", (json.dumps(info, ensure_ascii=False), mid))
         self._register_unlinked_dsr(mid, channel, text, found, info)
         self.svc.audit("customer", card, {"message": mid, "customers": ids, "intent": intent})
         urgent = card == self.SHARED_URGENT
@@ -359,9 +367,10 @@ class ConversationInbox:
                 dsr.open_request(self.svc, cust["id"], kind, channel, received_at=received_at)
         stopped = self._stop_approved_on_protective(cust["id"], d)
         if stopped:
+            one = stopped == 1
             d = replace(d, owner_actions=d.owner_actions + (
-                f"עצרנו {'תשובה שאישרת' if stopped == 1 else f'{stopped} תשובות שאישרת'} קודם ועוד לא יצא"
-                f"{'ה' if stopped == 1 else 'ו'} (ממתינ{'ה' if stopped == 1 else 'ות'} לחלון השליחה) — לא תישלח אחרי ההודעה הזו",))
+                f"עצרנו {'תשובה שאישרת' if one else f'{stopped} תשובות שאישרת'} קודם ועוד לא יצא"
+                f"{'ה' if one else 'ו'} (ממתינ{'ה' if one else 'ות'} לחלון השליחה) — לא תישלח אחרי ההודעה הזו",))
         draft_id = None
         if d.reply or d.escalate != Escalation.NONE:
             # בלי טיוטה (למשל עו"ד) ⇒ כרטיס "דרוש טיפול" בתור, שבעל העסק יכול לענות ממנו בעצמו
@@ -539,15 +548,22 @@ class ConversationInbox:
         base = ((row["paused_reason"] if row else "") or "").split(":", 1)[0]
         if d.escalate != Escalation.URGENT and base not in _HARD_PAUSES:
             return 0
+        return self._stop_approved(cid, d.intent.value, pause=base or None)
+
+    def _stop_approved(self, cid: int, intent: str, *, pause: str | None = None,
+                       shared_card: int | None = None) -> int:
+        """הממתינות לחלון (`approved`) של לקוח ⇒ `superseded` (`system:protective_reply`) + audit. משותף לפנייה
+        ישירה (360) ולכרטיס כתובת משותפת (361). לא נעצרות: אישור הסרה / «מספר שגוי» / תשובות דחופות קודמות."""
         rows = self.db.q("SELECT id, intent FROM drafts WHERE customer_id=? AND status='approved' AND "
                          "escalate!='urgent' AND intent NOT IN ('opt_out','wrong_person')", (cid,))
         for r in rows:
             self.db.x("UPDATE drafts SET status='superseded', decided_by='system:protective_reply' WHERE id=?",
                       (r["id"],))
         if rows:
-            self.svc.audit("system", "approved_drafts_stopped_protective",
-                           {"customer": cid, "drafts": [r["id"] for r in rows], "intent": d.intent.value,
-                            "pause": base or None})
+            detail = {"customer": cid, "drafts": [r["id"] for r in rows], "intent": intent, "pause": pause}
+            if shared_card is not None:
+                detail["shared_card"] = shared_card
+            self.svc.audit("system", "approved_drafts_stopped_protective", detail)
         return len(rows)
 
     def _draft(self, cust, channel: str, d: Decision, plan_id: int | None) -> int:

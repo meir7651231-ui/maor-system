@@ -65,6 +65,16 @@ function linkedCustomers(payload?: string | null): { id: number; name: string }[
   } catch { return []; }
 }
 
+/** מנהל 361 (ביקורת 207): כמה תשובות מאושרות (ממתינות לחלון) נעצרו בגלל הפנייה הדחופה מהכתובת המשותפת. */
+export function stoppedApprovedLine(payload?: string | null): string {
+  let n = 0;
+  try { const v = JSON.parse(payload ?? '{}')?.stopped_approved; n = typeof v === 'number' && v > 0 ? Math.floor(v) : 0; } catch { n = 0; }
+  if (!n) return '';
+  return n === 1
+    ? '⏸ עצרנו תשובה שאישרת קודם ועוד לא יצאה (ממתינה לחלון השליחה) — לא תישלח.'
+    : `⏸ עצרנו ${n} תשובות שאישרת קודם ועוד לא יצאו (ממתינות לחלון השליחה) — לא יישלחו.`;
+}
+
 /** critic סבב 169: כרטיס ממייל שלא עבר אימות שולח (SPF/DKIM/DMARC) — payload.email_verified === false. */
 export const UNVERIFIED_EMAIL_LINE = '⚠️ המייל לא עבר אימות שולח (SPF/DKIM) — ייתכן שלא נשלח ע״י הלקוח. לפני שיוך או «שולם» כדאי לוודא מולו.';
 function unverifiedEmail(payload?: string | null): boolean {
@@ -81,6 +91,8 @@ export function systemNotices(rows: OwnerMsg[]): Notice[] {
       const linked = SHARED_CARDS.has(r.intent ?? '') ? linkedCustomers(r.payload) : [];
       const unverified = r.direction === 'in' && unverifiedEmail(r.payload);
       let body = linked.length ? `${r.body}\n\nלקוחות מקושרים: ${linked.map(c => c.name).join(' · ')}` : r.body;
+      const stopped = linked.length ? stoppedApprovedLine(r.payload) : '';
+      if (stopped) body = `${body}\n\n${stopped}`;
       if (unverified) body = `${UNVERIFIED_EMAIL_LINE}\n\n${body}`;
       return { id: r.id, icon: k.icon, title: k.title, body, tone: k.tone, intent: r.intent ?? '',
         ...(linked.length ? { linked } : {}), ...(unverified ? { unverified: true } : {}),

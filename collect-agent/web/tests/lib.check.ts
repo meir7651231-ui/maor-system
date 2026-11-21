@@ -1650,3 +1650,20 @@ test('מנהל 360: הטוסט אחרי «בדוק ואשר» אומר מה קר
   // e2e הקיים (app-staff-owner-only) מחכה ל«המועד המבוקש אושר» — לא לשבור
   assert.ok(a.includes('המועד המבוקש אושר'));
 });
+
+test('מנהל 361 (ביקורת 207): כרטיס כתובת משותפת אומר שתשובות מאושרות נעצרו', async () => {
+  const { systemNotices, stoppedApprovedLine } = await import('../src/lib/notices.ts');
+  assert.equal(stoppedApprovedLine(null), '');
+  assert.equal(stoppedApprovedLine('{bad'), '');
+  assert.equal(stoppedApprovedLine('{"stopped_approved":0}'), '');
+  assert.equal(stoppedApprovedLine('{"stopped_approved":"2"}'), '');
+  assert.match(stoppedApprovedLine('{"stopped_approved":1}'), /עצרנו תשובה שאישרת.*לא תישלח/);
+  assert.match(stoppedApprovedLine('{"stopped_approved":3}'), /עצרנו 3 תשובות.*לא יישלחו/);
+  const linked = [{ id: 1, name: 'דנה' }, { id: 2, name: 'יוסי' }];
+  const row = (payload: object) => ({ id: 5, direction: 'in', customer_id: null, intent: 'shared_contact_urgent',
+    body: 'אני בן 15', payload: JSON.stringify(payload), created_at: '' }) as any;
+  const [withStop] = systemNotices([row({ linked_customers: linked, stopped_approved: 1 })]);
+  assert.match(withStop.body, /לקוחות מקושרים: דנה · יוסי\n\n⏸ עצרנו תשובה/);
+  const [noStop] = systemNotices([row({ linked_customers: linked })]);
+  assert.doesNotMatch(noStop.body, /עצרנו/);
+});
