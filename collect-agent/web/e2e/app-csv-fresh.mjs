@@ -1,7 +1,8 @@
 // גבי עיצוב (משימת מקשר על b050cc8): עסק שעובד עם CSV — באנר «העלו קובץ CSV עדכני — הרשימה של היום מבוססת על ייבוא
 // מ-<תאריך>» בבית, כשהייבוא האחרון מעל 24 שעות (אותו חישוב כמו סיכום הבוקר; /dashboard csv_freshness). מול שרת DEMO=1
-// עם DEMO_CLOCK=1, והמקור מוחלף ל-CSV דרך PUT /settings (כמו בעל עסק; SOURCE_SYSTEM=csv בסביבה מפיל את סנכרון-ההדגמה בעלייה): לפני ייבוא ⇒ «עוד לא הועלה» · ייבוא ⇒ אין באנר · +2 ימים ⇒ באנר עם 08.11.2026 ·
+// עם DEMO_CLOCK=1 ו-SOURCE_SYSTEM=csv (הדגמת עסק CSV — ייבוא דמו בעלייה, bf528ae): ייבוא טרי ⇒ אין באנר · +2 ימים ⇒ באנר עם 08.11.2026 ·
 // «ייבוא קובץ» ⇒ הגדרות, גלול לייבוא ה-CSV · ייבוא טרי ⇒ הבאנר נעלם. דסקטופ+390px, AA, בלי גלילה רוחבית, 0 שגיאות.
+// («עוד לא הועלה קובץ» — בבדיקת היחידה csvBannerText ב-tests/lib.check.ts.)
 // הרצה: node e2e/app-csv-fresh.mjs [תיקיית-צילומים]
 import { createRequire } from 'node:module';
 import { randomBytes } from 'node:crypto';
@@ -14,7 +15,7 @@ const TOKEN = randomBytes(32).toString('base64url');
 const ROOT = new URL('../..', import.meta.url).pathname;
 await assertPortFree(PORT);
 const srv = spawnServer('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
-  { cwd: ROOT, env: { ...process.env, DEMO: '1', DEMO_CLOCK: '1', OWNER_API_TOKEN: TOKEN }, stdio: srvStdio('server-app-csv-fresh') });
+  { cwd: ROOT, env: { ...process.env, DEMO: '1', DEMO_CLOCK: '1', SOURCE_SYSTEM: 'csv', OWNER_API_TOKEN: TOKEN }, stdio: srvStdio('server-app-csv-fresh') });
 const ok = (c, m) => { if (!c) throw new Error(m); };
 const H = { Authorization: `Bearer ${TOKEN}` };
 const api = async (p, o = {}) => { const r = await fetch(base + p, { ...o, headers: { ...H, ...(o.headers || {}) } }); ok(r.ok, `${p}: ${r.status} ${await r.clone().text()}`); return r.json(); };
@@ -24,9 +25,7 @@ await waitHealthy(base, srv);
 const errors = [];
 const b = await launchChromium(chromium);
 try {
-  ok((await api('/dashboard')).csv_freshness == null, 'מקור API: csv_freshness צריך להיות null');
-  await api('/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ source: { system: 'csv' } }) });
-  ok((await api('/dashboard')).csv_freshness?.upload_needed === true, 'אחרי מעבר ל-CSV, לפני ייבוא: csv_freshness לא מבקש קובץ');
+  ok((await api('/dashboard')).csv_freshness?.upload_needed === false, 'הדגמת CSV בעלייה: מבקש קובץ למרות ייבוא הדמו');
   const watch = p => {
     p.on('pageerror', e => errors.push(`pageerror: ${e.message}`));
     p.on('console', m => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
@@ -36,10 +35,10 @@ try {
   await ctx.addInitScript(t => { try { sessionStorage.setItem('gabi_owner_token', t); } catch { /* */ } }, TOKEN);
   const p = await ctx.newPage(); watch(p);
   const banner = p.getByTestId('csv-fresh-banner');
-  // 1) עוד לא הועלה קובץ
-  await p.goto(`${base}/app/#/dashboard`); await banner.waitFor();
-  ok(/עוד לא הועלה קובץ CSV/.test(await banner.textContent()), 'לפני ייבוא: ' + await banner.textContent());
-  // 2) ייבוא טרי ⇒ אין באנר
+  // 1) ייבוא הדמו בעלייה טרי ⇒ אין באנר
+  await p.goto(`${base}/app/#/dashboard`); await p.getByTestId('kpis').waitFor();
+  ok(await banner.count() === 0, 'באנר אחרי ייבוא הדמו הטרי');
+  // 2) ייבוא נוסף מאותו יום (מבעל העסק) ⇒ עדיין אין באנר
   await importCsv(); await p.reload(); await p.getByTestId('kpis').waitFor();
   ok(await banner.count() === 0, 'באנר אחרי ייבוא טרי');
   // 3) +2 ימים ⇒ «מבוססת על ייבוא מ-08.11.2026»
@@ -87,5 +86,5 @@ try {
   ok(await banner.count() === 0, 'הבאנר נשאר אחרי ייבוא טרי');
   await ctx.close();
   ok(!errors.length, 'שגיאות: ' + errors.join(' | '));
-  console.log('✓ CSV: «עוד לא הועלה» · ייבוא ⇒ אין באנר · +48ש ⇒ «מבוססת על ייבוא מ-08.11.2026» · «ייבוא קובץ» ⇒ הגדרות · /ui בהיר+כהה · ייבוא טרי ⇒ נעלם · 390px · AA · 0 שגיאות');
+  console.log('✓ CSV (SOURCE_SYSTEM=csv): ייבוא דמו ⇒ אין באנר · +48ש ⇒ «מבוססת על ייבוא מ-08.11.2026» · «ייבוא קובץ» ⇒ הגדרות · /ui בהיר+כהה · ייבוא טרי ⇒ נעלם · 390px · AA · 0 שגיאות');
 } finally { await b.close(); srv.kill(); }
