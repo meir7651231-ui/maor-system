@@ -209,8 +209,10 @@ export const api = {
   optOut: (cid: number) => j<unknown>(`/customers/${cid}/opt-out`, { method: 'POST' }),
   settings: () => j<DesignSettings>('/settings'),
   saveSettings: (patch: Record<string, unknown>) => j<DesignSettings>('/settings', { method: 'PUT', body: JSON.stringify(patch) }),
-  importCsv: (csv: string) => j<{ imported: number; credits?: number; date_order?: string; amount_check?: AmountCheck[]; rejected: { row: number; reason: string }[] }>('/settings/source/csv',
-    { method: 'POST', body: csv, headers: { 'Content-Type': 'text/csv; charset=utf-8' } }),
+  /** גבי חיבורים: הקובץ נשלח כבייטים (File/Blob) — Excel עברי שומר Windows-1255/UTF-16, והשרת מזהה את הקידוד.
+   *  `file.text()` פענח תמיד כ-UTF-8 ⇒ העברית הפכה ל-� ⇒ «חסרות עמודות חובה». */
+  importCsv: (csv: Blob | string) => j<{ imported: number; credits?: number; date_order?: string; amount_check?: AmountCheck[]; rejected: { row: number; reason: string }[] }>('/settings/source/csv',
+    { method: 'POST', body: csv, headers: { 'Content-Type': 'text/csv' } }),
   inbound: (channel: 'sms' | 'email', sender: string, text: string) =>
     j<InboundResult>('/inbound', { method: 'POST', body: JSON.stringify({ channel, sender, text }) }),
 };
