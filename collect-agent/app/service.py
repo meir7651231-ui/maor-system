@@ -903,6 +903,7 @@ class CollectService:
     def import_csv(self, raw: bytes, actor: str = "owner") -> dict:
         """חלופה ל-API: ייבוא חלקי (לא סוגר חשבוניות שלא בקובץ). שגיאות לפי שורה."""
         from . import csv_import
+        from .morning import CSV_LAST_IMPORT_KEY
         res = csv_import.parse(raw, today=self.clock().date())
         if not self.s.real_data_allowed:
             # גבי משפט (שער בטא 4): גם שורות **זיכוי** (968e9ee: «(500)»/«500-») נושאות שם/טלפון/מייל ונכנסות
@@ -912,12 +913,42 @@ class CollectService:
             if bad:
                 self.audit(actor, "csv_import_blocked", {"rows": len(bad)})
                 raise RealDataBlocked(REAL_DATA_MSG)
-        counts = self.ingest(res.invoices, source="csv", full=False,
-                             review=[(c, "csv_negative_balance") for c in res.credits])
-        self.audit(actor, "csv_import", {"rows": len(res.invoices), "errors": len(res.errors),
-                                         "credits": len(res.credits)})
+        with self.db.batch():
+            counts = self.ingest(res.invoices, source="csv", full=False,
+                                 review=[(c, "csv_negative_balance") for c in res.credits])
+            closed = self._csv_close_paid(res)
+            # מנהל 374 (מבקר 217): טריות = מועד הייבוא האחרון שזוהו בו שורות (או קובץ נקי בלי חוב פתוח בכלל),
+            # לא MAX(synced_at) של חשבוניות פתוחות — אחרת קובץ שבו הכול שולם לא מוריד את הבאנר לעולם.
+            # קובץ שכל שורותיו נדחו לא נחשב טרי (הרשימה לא התעדכנה).
+            if res.invoices or res.credits or res.closed or not res.errors:
+                self.db.x("INSERT INTO business_settings(key,value,updated_at) VALUES(?,?,?) "
+                          "ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                          (CSV_LAST_IMPORT_KEY, json.dumps(_iso(self.clock())), _iso(self.clock())))
+            self.audit(actor, "csv_import", {"rows": len(res.invoices), "errors": len(res.errors),
+                                             "credits": len(res.credits), "closed": closed})
         return {"imported": counts["open"], "errors": res.errors, "credits": len(res.credits),
-                "date_order": res.date_order, "amount_check": self._csv_amount_check(res.invoices)}
+                "closed": closed, "date_order": res.date_order,
+                "amount_check": self._csv_amount_check(res.invoices)}
+
+    def _csv_close_paid(self, res) -> int:
+        """מנהל 374 (מבקר 217🟠): ייבוא CSV חלקי לא סוגר חשבונית **שלא** בקובץ — אבל שורה שהקובץ מסמן במפורש
+        «שולם»/«מבוטל»/יתרה 0 היא ראיה שהחוב נסגר (כמו סנכרון API). קודם השורה דולגה ⇒ החשבונית נשארה פתוחה
+        (חוב בדשבורד). רק חשבונית CSV פתוחה באותו מספר; מספר שמופיע באותו קובץ גם כפתוח/זיכוי ⇒ סותר ⇒ לא
+        נסגר. חשבונית שהגיעה מה-API לא נסגרת מ-CSV (ה-API הוא מקור האמת)."""
+        live = {i.number for i in (*res.invoices, *res.credits)}
+        now = _iso(self.clock())
+        n = 0
+        for num in dict.fromkeys(res.closed):
+            if num in live:
+                continue
+            row = self.db.one("SELECT id FROM invoices WHERE external_id=? AND source='csv' AND status='open'",
+                              ("csv:" + num,))
+            if not row:
+                continue
+            self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?", (now, row["id"]))
+            self._cancel_invoice(row["id"], "invoice_closed")
+            n += 1
+        return n
 
     def _csv_amount_check(self, invoices) -> list[dict]:
         """הפעלה 124: סכום חריג (פי 50 מהרגיל ללקוח) כבר ברגע הייבוא — לא רק בתכנון. בעל העסק רואה

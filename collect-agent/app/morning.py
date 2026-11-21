@@ -50,13 +50,23 @@ def _summary(svc) -> dict[str, Any]:
 CSV_FRESH = timedelta(hours=24)   # ר-4: חשבונית CSV תקפה לשליחה 24 שעות (service._refresh_invoice / refresh_customer)
 
 
+CSV_LAST_IMPORT_KEY = "csv_last_import"   # business_settings: מועד הייבוא האחרון (מנהל 374)
+
+
+def _aware(dt: datetime) -> datetime:
+    return dt.replace(tzinfo=TZ) if dt.tzinfo is None else dt
+
+
 def _csv_freshness(svc) -> dict[str, Any]:
     """עסק שעובד עם CSV: אין סנכרון. מה שבעל העסק צריך לדעת בבוקר = האם הקובץ טרי. ייבוא אחרון מעל 24 שעות ⇒
     תזכורות על חשבוניות CSV לא ייצאו (ר-4) ⇒ «העלו קובץ עדכני היום». ספירות/תאריך בלבד, בלי פרטי לקוח."""
     last = svc.db.one("SELECT MAX(synced_at) m FROM invoices WHERE source='csv'")["m"]
-    last_dt = datetime.fromisoformat(last) if last else None
-    if last_dt is not None and last_dt.tzinfo is None:
-        last_dt = last_dt.replace(tzinfo=TZ)
+    # מנהל 374 (מבקר 217): גם ייבוא שלא השאיר חשבונית פתוחה (הכול «שולם») הוא קובץ טרי
+    stamp = svc.db.one("SELECT value FROM business_settings WHERE key=?", (CSV_LAST_IMPORT_KEY,))
+    if stamp:
+        v = json.loads(stamp["value"])
+        last = max(filter(None, (last, v)), key=lambda x: _aware(datetime.fromisoformat(x)))
+    last_dt = _aware(datetime.fromisoformat(last)) if last else None
     return {"csv_last_import": last_dt.astimezone(TZ).date().isoformat() if last_dt else None,
             "csv_upload_needed": last_dt is None or svc.clock() - last_dt > CSV_FRESH}
 

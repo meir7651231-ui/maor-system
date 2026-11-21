@@ -54,6 +54,8 @@ class CsvResult:
     errors: list[dict] = field(default_factory=list)
     credits: list[Invoice] = field(default_factory=list)   # critic סבב 35: יתרה שלילית = זיכוי ⇒ לבדיקה
     date_order: str = "dmy"                                # הפעלה 112: dmy / mdy / mixed (זוהה מהקובץ)
+    # מנהל 374 (מבקר 217): מספרי מסמך שהקובץ מסמן סגורים («שולם»/«מבוטל») או ביתרה 0 ⇒ הייבוא סוגר את הקיימת
+    closed: list[str] = field(default_factory=list)
 
 
 _DMY = re.compile(r"^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4}|\d{2})$")
@@ -419,7 +421,8 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
             if num in seen:
                 raise ValueError(f"מספר מסמך כפול: {num}")
             if _status_norm(cell("status")) in CLOSED_STATUSES:
-                continue                                   # מסמך סגור/מבוטל ⇒ לא חוב
+                out.closed.append(num)                     # מסמך סגור/מבוטל ⇒ לא חוב (וסוגר קיימת)
+                continue
             amount, cell_cur = _amount_cell(cell("amount"))
             currency = parse_currency(cell("currency")) if cell("currency").strip() else (cell_cur or "ILS")
             if cell_cur and cell_cur != currency:
@@ -430,7 +433,8 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
             if not amount_is_balance and amount > 0 and _status_partial(cell("status")):
                 raise ValueError(PARTIAL_MSG.format(cell("status").strip()[:30]))
             if amount == 0:
-                continue                                   # שולמה / אפס ⇒ לא חוב
+                out.closed.append(num)                     # שולמה / אפס ⇒ לא חוב (וסוגר קיימת)
+                continue
             issued = _parse_date(cell("issued"), order)
             due = _parse_date(cell("due"), order)
             # הפעלה 121: תאריך מסמך מעל שנה בעתיד = טעות בשנה ⇒ שגיאה גלויה (קודם: «אולי העמודות הפוכות?» מטעה,

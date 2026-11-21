@@ -25,7 +25,7 @@ def _csv_business(svc, clock):
     assert svc._csv_freshness()["upload_needed"] is True
 
 
-@pytest.mark.xfail(strict=True, reason="217🟠: קובץ עדכני עם «שולם»/0 ⇒ החשבונית נשארת פתוחה")
+
 @pytest.mark.parametrize("row", ["7001,רוני,0541112222,500,שולם,01/11/26,15/11/26\n",
                                  "7001,רוני,0541112222,0,פתוח,01/11/26,15/11/26\n"])
 def test_reupload_marks_paid_invoice_closed(svc, clock, row):
@@ -34,7 +34,7 @@ def test_reupload_marks_paid_invoice_closed(svc, clock, row):
     assert svc.db.one("SELECT status FROM invoices WHERE number='7001'")["status"] != "open"
 
 
-@pytest.mark.xfail(strict=True, reason="217🟠: קובץ עדכני בלי שורה פתוחה ⇒ באנר «העלו קובץ עדכני» לא יורד")
+
 def test_successful_upload_refreshes_banner(svc, clock):
     _csv_business(svc, clock)
     svc.import_csv((H + "7001,רוני,0541112222,500,שולם,01/11/26,15/11/26\n").encode())

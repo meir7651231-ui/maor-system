@@ -50,8 +50,9 @@ class _DB:
     def __init__(self, m):
         self.m = m
 
-    def one(self, *_):
-        return {"m": self.m}
+    def one(self, sql, *_):
+        # מנהל 374: חותמת הייבוא (business_settings) — אין בזיוף הזה ⇒ None (נופל ל-MAX(synced_at))
+        return None if "business_settings" in sql else {"m": self.m}
 
 
 @pytest.mark.parametrize("hours_ago,needed", [(2, False), (23, False), (25, True), (None, True)])

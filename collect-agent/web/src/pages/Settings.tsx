@@ -42,7 +42,7 @@ export function Settings() {
   const [restored, setRestored] = useState(false);
   const [busy, setBusy] = useState(false);
   const [csvErr, setCsvErr] = useState<string | null>(null);
-  const [csv, setCsv] = useState<{ imported: number; credits?: number; date_order?: string; amount_check?: AmountCheck[]; rejected: { row: number; reason: string }[] } | null>(null);
+  const [csv, setCsv] = useState<{ imported: number; credits?: number; closed?: number; date_order?: string; amount_check?: AmountCheck[]; rejected: { row: number; reason: string }[] } | null>(null);
 
   // הפעלה 143: בחי הטופס נטען מהשרת פעם אחת בכניסה למסך. קודם האפקט היה תלוי גם ב-mockForm, שמתחלף בכל
   // רענון ברקע (שם העסק מהשרת) ⇒ GET /settings נוסף שדרס את מה שהמשתמש כבר הקליד, ו«שמירה» נשארה כבויה.
@@ -185,6 +185,7 @@ export function Settings() {
         {csv && (
           <div className="rounded-xl bg-white border border-ink-200 p-3 text-sm" data-testid="csv-result">
             ✓ יובאו <b className="num">{csv.imported}</b> חשבוניות{csv.rejected.length ? ` · ${csv.rejected.length} שורות נדחו:` : ''}
+            {(csv.closed ?? 0) > 0 && <p className="mt-1 text-xs text-ink-700" data-testid="csv-closed">✓ <span className="num">{csv.closed}</span> חשבוניות סומנו בקובץ כשולמו / יתרה 0 — נסגרו, ותזכורות עליהן בוטלו.</p>}
             {csv.rejected.length > 0 && <ul className="mt-1 text-xs text-critical-ink">{csv.rejected.map(r => <li key={r.row}>שורה <span className="num">{r.row}</span>: {r.reason}</li>)}</ul>}
             {csv.date_order === 'mdy' && <p className="mt-1 text-xs text-amber-700" data-testid="csv-date-order">📅 התאריכים בקובץ זוהו בפורמט אמריקאי (חודש/יום) ונקראו כך. אם זו טעות — ייצאו מחדש בפורמט YYYY-MM-DD.</p>}
             {csv.date_order === 'mixed' && <p className="mt-1 text-xs text-amber-700" data-testid="csv-date-order">📅 בקובץ יש גם יום/חודש וגם חודש/יום — שורות עם תאריך דו-משמעי נדחו.</p>}

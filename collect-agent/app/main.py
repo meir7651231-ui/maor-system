@@ -930,6 +930,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         except (ValueError, UnicodeDecodeError) as e:
             raise HTTPException(400, str(e)) from e
         return {"imported": r["imported"], "credits": r.get("credits", 0),   # critic סבב 35: זיכויים ⇒ בדיקה
+                "closed": r.get("closed", 0),                                # מנהל 374: «שולם» סגר קיימת
                 "date_order": r.get("date_order", "dmy"),                    # הפעלה 112
                 "amount_check": r.get("amount_check", []),                   # הפעלה 124
                 "rejected": [{"row": e["row"], "reason": e["error"]} for e in r["errors"]]}
