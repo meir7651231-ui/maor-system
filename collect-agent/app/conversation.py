@@ -2017,8 +2017,10 @@ def _extract_date_core(t: str, today: date) -> tuple[date | None, bool]:
     m = _s(r"(?:(?:עד |ב|ל)?יום |ב|עד ה?|ל)-?(ראשון|שני|שלישי|רביעי|חמישי|שישי)(?![\w])(?:\s+(?:ה)?(הבא|הקרוב)(?![\w]))?", t)
     if m and not _s(r"(?:תשלום|חלק) (?:ה)?" + m.group(1), t):
         return _next_weekday_he(today, _WEEKDAYS[m.group(1)], m.group(2) or "")
-    m = _s(r"(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?", t)
-    if m:
+    # מנהל 351 (מבקר 199): «אשלם 1.500 ב-10.12» ⇒ היה «עד איזה תאריך?» — החיפוש הראשון תפס «1.50» מתוך הסכום
+    # (חודש 50 ⇒ ValueError) ונעצר. עכשיו: גבולות ספרה משני הצדדים (סכום באלפים עם נקודה אינו D.M), וממשיכים
+    # למופע הבא כשהמופע לא תאריך תקין.
+    for m in _c(r"(?<!\d)(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?(?!\d)").finditer(t):
         d, mo = int(m.group(1)), int(m.group(2))
         y = int(m.group(3)) if m.group(3) else today.year
         if y < 100:
@@ -2029,7 +2031,7 @@ def _extract_date_core(t: str, today: date) -> tuple[date | None, bool]:
                 cand = date(y + 1, mo, d)
             return cand, False
         except ValueError:
-            pass
+            continue
     m = _s(r"(?:ב|עד ה?)-?(\d{1,2})\s*(?:ל|ב)(?:ה)?(?:חודש)(?:\s+(?:ה)?(הבא))?", t)
     if m and 1 <= int(m.group(1)) <= 31:
         if m.group(2):   # מנהל 255: «ב-23 לחודש הבא» ⇒ היה 23 בחודש *הזה* (טעות בטוחה-בעצמה, חודש מוקדם מדי)

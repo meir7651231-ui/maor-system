@@ -69,3 +69,44 @@ def test_approved_unsent_draft_is_replaced_and_needs_reapproval(svc):
     r = api.post(f"/customers/{cid}/promise-request", json={"approve": True}).json()
     assert _draft(svc, did)["status"] == "superseded"
     assert _draft(svc, r["customer_update"]["draft"])["status"] == "pending_approval"
+
+
+def _long_names(svc):
+    """מנהל 351 (מבקר 199): שם עסק 40 תווים (התקרה בהגדרות) + שם פרטי ארוך ⇒ הסירוב יצא 274 תווים (> 268),
+    בעל העסק אישר והטיוטה נדחתה בשער — הלקוח לא שמע על ההכרעה."""
+    import dataclasses
+    svc.s = dataclasses.replace(svc.s, business_name="מספרת הדוגמניות של רחוב הרצל בתל אביב",
+                                public_base_url="https://pay.gabi-reminders.co.il")
+    api, cid, did = _setup(svc)
+    svc.db.x("UPDATE customers SET name='אלכסנדרה-מרגריטה כהן' WHERE id=?", (cid,))
+    assert api.post(f"/conversation/drafts/{did}/approve", json={}).status_code == 200
+    return api, cid
+
+
+def test_long_names_refusal_update_fits_and_is_sent(svc):
+    from app import compliance
+    api, cid = _long_names(svc)
+    r = api.post(f"/customers/{cid}/promise-request", json={"approve": False}).json()
+    new = r["customer_update"]["draft"]
+    body = _draft(svc, new)["body"]
+    assert len(body) <= compliance.SMS_REPLY_MAX, (len(body), body)
+    assert body.startswith("מספרת הדוגמניות של רחוב הרצל בתל אביב:")
+    assert "22.11" in body and "25.11" in body and "התזכורות יחזרו" in body and "להפסקה" in body
+    assert api.post(f"/conversation/drafts/{new}/approve", json={}).status_code == 200
+    assert _draft(svc, new)["status"] == "sent_dry_run"
+
+
+def test_long_names_approval_update_fits(svc):
+    from app import compliance
+    api, cid = _long_names(svc)
+    r = api.post(f"/customers/{cid}/promise-request", json={"approve": True}).json()
+    body = _draft(svc, r["customer_update"]["draft"])["body"]
+    assert len(body) <= compliance.SMS_REPLY_MAX and "בעל העסק אישר" in body and "25.11" in body
+
+
+def test_short_names_keep_full_wording(svc):
+    """בקרה: שם רגיל ⇒ הנוסח המלא (עם שם היום ו«אם יש קושי»)."""
+    api, cid, did = _setup(svc)
+    r = api.post(f"/customers/{cid}/promise-request", json={"approve": False}).json()
+    body = _draft(svc, r["customer_update"]["draft"])["body"]
+    assert "יום ראשון 22.11" in body and "אם יש קושי" in body

@@ -3031,15 +3031,16 @@ class CollectService:
         requested = date.fromisoformat(info["requested"])
         cap = date.fromisoformat(info["until"]) - timedelta(days=1)
         first = (cust["name"] or "").split()[0] if (cust["name"] or "").strip() else ""
-        hi = f" {first}" if first else ""
+
+        def _body(hi: str, dt, tail: bool) -> str:
+            if approve:
+                return f"שלום{hi}, בעל העסק אישר: התשלום צפוי עד {dt(requested)}. עד אז לא נשלח תזכורות."
+            return (f"שלום{hi}, בעל העסק בדק את בקשתכם: נוכל להמתין עד {dt(cap)}, ולא עד {dt(requested)}. "
+                    f"אחרי {dt(cap)} התזכורות יחזרו." + (" אם יש קושי — השיבו להודעה זו." if tail else ""))
+
         if approve:
-            body = (f"שלום{hi}, בעל העסק אישר: התשלום צפוי עד {_he_date(requested)}. "
-                    f"עד אז לא נשלח תזכורות.")
             summary = f"עדכון ללקוח/ה: אישרת את {_he_date(requested)}."
         else:
-            body = (f"שלום{hi}, בעל העסק בדק את בקשתכם: נוכל להמתין עד {_he_date(cap)}, "
-                    f"ולא עד {_he_date(requested)}. אחרי {_he_date(cap)} התזכורות יחזרו. "
-                    f"אם יש קושי — השיבו להודעה זו.")
             summary = f"עדכון ללקוח/ה: סירבת ל-{_he_date(requested)}; ההמתנה עד {_he_date(cap)}."
         # הטיוטה לא נכתבת מחדש במקום (מגן `test_drafts_and_plans_are_not_rewritten_in_place`: מה שיוצא = מה שבעל
         # העסק ראה ואישר) ⇒ הטיוטה הישנה מוחלפת (superseded) וטיוטה חדשה בנוסח הסופי ממתינה לאישור — גם אם הישנה
@@ -3059,7 +3060,20 @@ class CollectService:
             return None
         # מבקר 198🟡: כל הודעה ללקוח נפתחת בשם העסק (§3.1 סעיף 1) — כמו התשובה המקורית ו-`approve_draft`.
         from .conversation import Context, frame  # noqa: PLC0415
-        body = frame(body, Context(today=self.clock().date(), business=self.s.business_name, channel=channel))
+        ctx = Context(today=self.clock().date(), business=self.s.business_name, channel=channel,
+                      footer_len=len("\nלהפסקה: " + self.unsub_url("x" * 22)) if channel == "sms" else 0)
+        # מנהל 351 (מבקר 199): שם עסק ארוך (עד 40) + שם פרטי ארוך ⇒ הסירוב יצא 274 תווים (> 268) ⇒ בעל העסק אישר
+        # והטיוטה נדחתה בשער («לא נשלחה») — הלקוח לא שמע על ההכרעה. סולם קיצור: בלי «אם יש קושי» ⇒ תאריך בלי
+        # שם היום ⇒ בלי השם הפרטי. המועדים עצמם נשארים תמיד.
+        def _short(d: date) -> str:
+            return f"{d.day}.{d.month}"
+        hi = f" {first}" if first else ""
+        ladder = [(hi, _he_date, True), (hi, _he_date, False), (hi, _short, False), ("", _short, False)]
+        for step in ladder:
+            body = _body(*step)
+            if ctx.fits_sms(body):
+                break
+        body = frame(body, ctx)
         did = self.db.x(
             "INSERT INTO drafts(customer_id,channel,to_addr,body,intent,status,escalate,owner_summary,"
             "owner_actions,created_at,total_agorot) VALUES(?,?,?,?, 'promise', 'pending_approval', 'none', ?, "
