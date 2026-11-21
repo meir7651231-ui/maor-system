@@ -18,9 +18,9 @@ from datetime import datetime
 from .channels import sent_mark, sent_since
 from .config import load_settings
 from .db import DB
-from .demo_data import demo_client, demo_source_factory
+from .demo_data import demo_client, demo_docs, demo_source_factory
 from .policy import TZ
-from .service import AMOUNT_CHECK, CollectService
+from .service import AMOUNT_CHECK, CollectService, is_synthetic_contact
 from .templates import fmt_amount
 
 log = logging.getLogger("gabi.demo")
@@ -36,8 +36,14 @@ class FixedClock:
         return self.now
 
 
+def demo_source() -> str:
+    """גבי חיבורים (משימת מקשר, 21.11): `DEMO=1 SOURCE_SYSTEM=csv` ⇒ הדגמה של עסק שעובד עם CSV. כל ערך אחר ⇒
+    ההדגמה הרגילה (חשבונית ירוקה מדומה). קודם הסביבה התעלמה מ-SOURCE_SYSTEM ולא הייתה דרך להעלות דמו CSV."""
+    return "csv" if os.environ.get("SOURCE_SYSTEM", "").strip().lower() == "csv" else "greeninvoice"
+
+
 def demo_settings():
-    return load_settings({"BUSINESS_NAME": "סטודיו דמו", "SMS_SENDER_ID": "StudioDemo",
+    return load_settings({"SOURCE_SYSTEM": demo_source(), "BUSINESS_NAME": "סטודיו דמו", "SMS_SENDER_ID": "StudioDemo",
                           "PAYMENT_LINK_MODE": "static", "PAYMENT_LINK": DEMO_PAY_LINK,
                           "PAYMENT_DOMAINS": "pay.example", "EMAIL_FROM": "gabi@example.com",
                           "EMAIL_REPLY_TO": "owner@example.com",
@@ -194,7 +200,43 @@ def open_debt_text(totals: dict) -> str:
     return " + ".join(parts)
 
 
+def demo_csv() -> bytes:
+    """אותם לקוחות בדויים כמו ב-mock (example.com · 05X-000XXXX), כקובץ שבעל עסק מייצא מ-Excel — Windows-1255,
+    כמו «שמירה בשם ← CSV» בעברית. חשבונית במטבע זר נשארת עם עמודת מטבע."""
+    rows = ["מספר מסמך,שם לקוח,טלפון,מייל,יתרה לתשלום,מטבע,תאריך,תאריך לתשלום"]
+    for d in demo_docs():
+        c = d["client"]
+        # שער הבטא (נתוני דמו מסומנים בלבד) בודק טלפון בטווח 05X-000XXXX. הקווי של הקליניקה (מייל בלבד ממילא) ו-«123»
+        # (אין ערוץ) נשארים בלי טלפון ⇒ הקליניקה במייל, «בלי פרטים» נדחה בייבוא עם הסבר — כמו בהדגמה הרגילה
+        phone = c["phone"] if is_synthetic_contact(c["phone"], "") and c["phone"] else ""
+        rows.append(",".join([d["number"], f'"{c["name"]}"', phone, (c["emails"] or [""])[0], d["amount"],
+                              d["currency"], d["documentDate"], d["dueDate"]]))
+    return ("\r\n".join(rows) + "\r\n").encode("cp1255")
+
+
+def run_csv_scenario(svc: CollectService, out: Callable[[str], None] = print) -> dict:
+    """הדגמת עסק CSV: אין סנכרון (sync זורק במכוון — אין API). ייבוא הקובץ ⇒ אישור רשימת הפתוחות ⇒ תזכורות
+    שממתינות לאישור. **בלי שליחה** — כדי שבמסך יהיה מה לאשר, כמו בהדגמה הרגילה אחרי שלב ②."""
+    out("══ גבי · הדגמה, עסק שעובד עם קובץ CSV (dry-run, נתונים בדויים, אף הודעה לא יוצאת) ══")
+    r = svc.import_csv(demo_csv(), actor="owner:demo")
+    out(f"① ייבוא קובץ CSV (Windows-1255, כמו Excel בעברית): {r['imported']} חשבוניות"
+        + "".join(f" · שורה {e['row']} נדחתה: {e['error']}" for e in r["errors"]))
+    assert r["imported"] >= 8, r
+    pending = [x["id"] for x in svc.open_list()["pending"]]
+    if pending:
+        svc.confirm_open_list(pending, [], actor="owner:demo")
+        out(f"①ב בעל העסק אישר את רשימת הפתוחות ({len(pending)} חשבוניות)")
+    created = svc.plan()
+    out(f"② הוכנו {len(created)} תזכורות — ממתינות לאישור בעל העסק. אחרי 24 שעות בלי קובץ חדש ⇒ «העלו קובץ עדכני»")
+    assert created, "דמו CSV: לא נבנתה אף תזכורת"
+    assert svc.dispatch() == [], "נשלח משהו לפני אישור!"
+    return {"imported": r["imported"], "reminders": len(created)}
+
+
 def demo_service_ready() -> CollectService:
     svc, fake, _ = build_demo_service()
-    run_scenario(svc, fake, out=lambda s: print(s, flush=True))
+    if svc.s.source_system == "csv":
+        run_csv_scenario(svc, out=lambda s: print(s, flush=True))
+    else:
+        run_scenario(svc, fake, out=lambda s: print(s, flush=True))
     return svc
