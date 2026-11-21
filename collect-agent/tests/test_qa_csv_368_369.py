@@ -3,7 +3,7 @@
 368: שורת «סה״כ»/«סיכום»/Total ⇒ שגיאה גלויה, לא חשבונית; לקוח בשם «סיכום בע״מ» עם מספר נקלט.
 369: «(500)»/«500-» ⇒ זיכוי לבדיקה; סימן מטבע בתא (ש״ח/₪/$/NIS) ⇒ מטבע; סתירה מול עמודת המטבע ⇒ שגיאה; «(-500)» ⇒ שגיאה.
 
-🟠 ממצא (xfail strict, לתיקון בונה): «500.-» — כתיב ישראלי נפוץ לסכום שלם («500.- ש״ח») — מסווג **זיכוי** מאז 369
+🟠 ממצא (תוקן, גבי חיבורים; היה xfail): «500.-» — כתיב ישראלי נפוץ לסכום שלם («500.- ש״ח») — מסווג **זיכוי** מאז 369
 (הסימן `-` בסוף נקרא כשלילי). לפני 369 = שגיאה גלויה «סכום לא תקין». עכשיו, בזרימה מלאה דרך `import_csv`: חשבונית
 חדשה ב-«300.-» לא נקלטת בכלל (imported=0) ובעל העסק מקבל כרטיס «זיכוי שלא הצלחנו לשייך»; ללקוחה קיימת התזכורות נעצרות
 עם כרטיס «זיכוי» כוזב. קובץ שכולו בכתיב הזה ⇒ אפס חשבוניות, בשקט. «1,200.-» דווקא נדחה ⇒ גם לא עקבי.
@@ -84,13 +84,23 @@ def test_credit_keeps_currency_column():
     assert [(c.amount_agorot, c.currency) for c in r.credits] == [(50000, "USD")]
 
 
-_DOT_DASH = ("🟠 גבי בדיקות 21.11: «500.-» (כתיב ישראלי לסכום שלם) מסווג זיכוי מאז מנהל 369 — חשבונית נעלמת "
-             "מהתזכורות; לפני 369 שגיאה גלויה. לתיקון בונה")
+# 🟠 גבי בדיקות 21.11: «500.-» (כתיב ישראלי לסכום שלם) סווג זיכוי מאז מנהל 369 ⇒ החשבונית נעלמה מהתזכורות.
+# תוקן (גבי חיבורים): «\d[\d,]*.-» = סכום שלם. ה-xfail הוסר.
 
 
-@pytest.mark.xfail(strict=True, reason=_DOT_DASH)
 @pytest.mark.parametrize("amount", ["500.-", '"500.- ש""ח"'], ids=["dot-dash", "dot-dash-shach"])
 def test_israeli_whole_amount_dot_dash_is_not_a_credit(amount):
     r = _one(amount)
     assert not r.credits, "«500.-» = 500 ₪ (סכום שלם), לא זיכוי"
-    assert [i.amount_agorot for i in r.invoices] == [50000] or len(r.errors) == 1
+    assert [i.amount_agorot for i in r.invoices] == [50000] and not r.errors
+
+
+@pytest.mark.parametrize("amount,kind,agorot", [
+    ('"1,200.-"', "inv", 120000), ("(500.-)", "credit", 50000), ("₪500.-", "inv", 50000),
+    ("500.-.-", "err", 0), ("500.5-", "credit", 50050), ("-.-", "err", 0)])
+def test_dot_dash_boundaries(amount, kind, agorot):
+    """«.-» רק אחרי ספרות = שלם; בתוך סוגריים = זיכוי שלם; «500.5-» נשאר מינוס-בסוף (זיכוי, 369)."""
+    r = _one(amount)
+    got = ("inv", r.invoices[0].amount_agorot) if r.invoices else \
+        ("credit", r.credits[0].amount_agorot) if r.credits else ("err", 0)
+    assert got == (kind, agorot), (amount, got, r.errors)

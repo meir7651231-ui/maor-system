@@ -166,7 +166,11 @@ def _amount_cell(v: str) -> tuple[int, str | None]:
     if t.startswith("(") and t.endswith(")"):
         neg = True
         t = strip_marks(t[1:-1].strip())
-    if t.endswith("-") and len(t) > 1:
+    # גבי חיבורים (xfail של גבי בדיקות 21.11): «500.-» / «1,200.- ש״ח» = כתיב ישראלי לסכום **שלם** (אין אגורות),
+    # לא מינוס בסוף. מאז 369 נקרא כזיכוי ⇒ החשבונית נעלמה מהתזכורות. נקודה מיד לפני המקף, אחרי ספרה ⇒ שלם.
+    if re.fullmatch(r"\d[\d,]*\.-", t):
+        t = t[:-2]
+    elif t.endswith("-") and len(t) > 1:
         if neg:
             raise ValueError(f"סכום לא תקין (סימן שלילי כפול): {v}")
         neg = True
