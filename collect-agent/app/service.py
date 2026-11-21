@@ -905,7 +905,10 @@ class CollectService:
         from . import csv_import
         res = csv_import.parse(raw, today=self.clock().date())
         if not self.s.real_data_allowed:
-            bad = [i.number for i in res.invoices if not is_synthetic_contact(i.client_phone, i.client_email)]
+            # גבי משפט (שער בטא 4): גם שורות **זיכוי** (968e9ee: «(500)»/«500-») נושאות שם/טלפון/מייל ונכנסות
+            # ל-ingest — השער חל על כל שורה בקובץ, לא רק על חשבוניות (fail-closed, לא תלוי בשיוך הזיכוי)
+            bad = [i.number for i in (*res.invoices, *res.credits)
+                   if not is_synthetic_contact(i.client_phone, i.client_email)]
             if bad:
                 self.audit(actor, "csv_import_blocked", {"rows": len(bad)})
                 raise RealDataBlocked(REAL_DATA_MSG)
