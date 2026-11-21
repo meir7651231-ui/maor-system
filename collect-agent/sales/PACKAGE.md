@@ -71,6 +71,7 @@
 | "בקליניקה: שום פרט על הטיפול לא מופיע בהודעה" | `tests/test_beta_kit.py::test_clinic_privacy_no_treatment_words` |
 | "חשבונית בת יותר מ-3 שנים: רק טיפול ידני" | `tests/test_legal_requirements.py::test_r7_old_invoice_is_manual_only` |
 | "קודם אתה מאשר את רשימת הפתוחות. על מה שסימנת כשולם אין תזכורת" | `tests/test_open_list_gate.py::test_no_reminder_before_owner_confirms` |
+| "אין API? שומרים מ-Excel כ-CSV, וכל סוג CSV ש-Excel שומר נקלט, גם בעברית" | `tests/test_csv_import.py::test_excel_encodings_and_delimiters` |
 | "סכום חריג (למשל נקודה עשרונית שנשמטה)? גבי עוצר ושואל לפני שליחה" | `tests/test_amount_outlier.py::test_e2e_outlier_needs_explicit_confirm` |
 | "עובד יכול לאשר בשמך, וכל אישור נרשם בשם מי שאישר" | `tests/test_users_2fa.py::test_mutating_actions_are_audited_under_the_employee` |
 | "רק בעל העסק מנהל את הצוות" | `tests/test_mgr328_team_screen.py::test_staff_cannot_change_roles_or_deactivate` |
@@ -80,6 +81,7 @@
 | "סימנת לקוח כקטין, כנפטר או בחדלות פירעון? שום דבר לא יוצא אליו" | `tests/test_legal_requirements.py::test_r6_owner_hold_stops_everything` |
 
 ### מה **אסור** לטעון (אין גיבוי, או שמדובר בהבטחה)
+- «כל קובץ נקלט» על הייבוא: רק קבצים ש-Excel שומר נקלטים (למשל Windows-1252 עם מירכאות «חכמות» נדחה; גבי חיבורים, `3ef599b`).
 - **SMS או «לא בשבת/חג» כבידול מול מתחרים.** ה«נודניק» של iCount שולח SMS ב-₪29 לחודש, ו-morning דוחה תזכורת שיוצאת בשבת (`team/market.md` §1.6). אלה כללי עבודה, לא יתרון. **הבידול:** אישור פרטני לכל הודעה, תשובות הלקוח מגיעות לבעל העסק ומסווגות, ועצירה אחרי 3 תזכורות (נאכף ב-`tests/test_sales_differentiation.py`).
 - כל סכום או אחוז שייגבה, "מובטח", "החזר השקעה".
 - "המידע מוצפן" (שער 5 ב-`legal/BETA-GATE.md` עוד לא נסגר; נאכף ב-`tests/test_no_unproven_claims.py`).

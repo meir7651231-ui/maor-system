@@ -91,3 +91,50 @@ def test_dashboard_marks_invoice_source_for_confirm_open_ui(api):
     rows = {r["number"]: r for r in api.get("/dashboard").json()["invoices"]}
     assert rows["2001"]["source"] == "csv" and rows["2002"]["source"] == "csv"
     assert all(r["source"] in ("api", "csv") for r in rows.values())
+
+
+# ── גבי חיבורים (21.11): קובץ כפי ש-Excel עברי שומר אותו ─────────────────────────────────────────────
+# «שמירה בשם ← CSV» ב-Excel עברי = Windows-1255; «טקסט Unicode» = UTF-16 עם טאבים; אזור עם פסיק עשרוני = «;».
+# קודם: כל אלה נדחו — UnicodeDecodeError באנגלית, או «חסרות עמודות חובה» כשהמפריד לא פסיק.
+EXCEL_HE = ("מספר מסמך,שם לקוח,טלפון,יתרה לתשלום,תאריך לתשלום\n"
+            "2001,\"כהן, דנה\",050-1234567,\"1,200.50\",01/10/2026\n"
+            "2002,יוסי לוי,052-7654321,450 ₪,15/10/2026\n")
+
+
+def _summary(r):
+    return [(i.number, i.client_name, i.amount_agorot, i.due.isoformat()) for i in r.invoices], r.errors
+
+
+@pytest.mark.parametrize("enc", ["utf-8", "utf-8-sig", "cp1255", "utf-16", "utf-16-le-bom"])
+@pytest.mark.parametrize("delim", [",", ";", "\t"])
+def test_excel_encodings_and_delimiters(enc, delim):
+    text = EXCEL_HE if delim == "," else (
+        EXCEL_HE.replace(",", delim).replace(f"כהן{delim} דנה", "כהן, דנה").replace(f"1{delim}200.50", "1200.50"))
+    raw = (b"\xff\xfe" + text.encode("utf-16-le")) if enc == "utf-16-le-bom" else text.encode(enc)
+    invs, errs = _summary(csv_import.parse(raw))
+    assert errs == []
+    assert invs == [("2001", "כהן, דנה", 120050, "2026-10-01"), ("2002", "יוסי לוי", 45000, "2026-10-15")]
+
+
+def test_unknown_encoding_is_hebrew_error_not_python_traceback():
+    # Windows-1252 (אנגלית עם מירכאות «חכמות»): לא UTF-8 ובלי עברית ⇒ לא מנחשים
+    latin = b"number,client,phone,amount\n1,\x93Acme\x94,0501234567,10\n"
+    with pytest.raises(ValueError, match="קידוד הקובץ לא מזוהה"):
+        csv_import.parse(latin)
+    with pytest.raises(ValueError, match="קידוד הקובץ לא מזוהה"):
+        csv_import.parse(b"\xff\xfe\x00")          # BOM של UTF-16 עם גוף שבור
+
+
+def test_comma_inside_amount_not_split_into_columns_with_semicolon_delim():
+    """«;» נבחר לפי הכותרת; פסיק בתוך תא (סכום/שם) נשאר חלק מהתא."""
+    raw = "מספר מסמך;שם לקוח;טלפון;יתרה לתשלום\n7;כהן, דנה;0501234567;1,200\n".encode("cp1255")
+    r = csv_import.parse(raw)
+    assert r.errors == [] and [(i.client_name, i.amount_agorot) for i in r.invoices] == [("כהן, דנה", 120000)]
+
+
+def test_api_accepts_cp1255_upload(api):
+    r = api.post("/settings/source/csv", content=EXCEL_HE.encode("cp1255"), headers={"Content-Type": "text/csv"})
+    assert r.status_code == 200, r.text
+    assert r.json()["imported"] == 2 and r.json()["rejected"] == []
+    bad = api.post("/settings/source/csv", content=b"number,client,amount\n1,\x93Acme\x94,1\n")
+    assert bad.status_code == 400 and "קידוד" in bad.json()["detail"]
