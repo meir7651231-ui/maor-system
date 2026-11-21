@@ -19,7 +19,6 @@ def _plan(svc):
     return pid
 
 
-@pytest.mark.xfail(strict=True, reason="204🟠: «מאשר» אחרי הסדר שהושלם/הוחמץ ⇒ «הועבר לאישור סופי»")
 @pytest.mark.parametrize("case", ["completed", "missed"])
 def test_marer_after_closed_plan_is_not_plan_accept(svc, clock, fake_gi, case):
     pid = _plan(svc)

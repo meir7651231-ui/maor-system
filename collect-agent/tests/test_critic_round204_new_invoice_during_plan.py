@@ -8,12 +8,9 @@
 xfail(strict=True)."""
 from datetime import timedelta
 
-import pytest
-
 from tests.conftest import gi_doc
 
 
-@pytest.mark.xfail(strict=True, reason="204ב🟡: חשבונית מחוץ להסדר — בלי תזכורת ובלי כרטיס עד סוף ההסדר")
 def test_new_invoice_outside_plan_is_surfaced(svc, clock, fake_gi):
     fake_gi.docs.append(gi_doc(4, amount="600.00", client_id="cl1"))
     svc.sync()

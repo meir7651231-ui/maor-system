@@ -98,6 +98,17 @@ def plan_raised_text(name: str | None, number: str, old_agorot: int, new_agorot:
             "כשכל תשלומי ההסדר יתקבלו, התזכורות על היתרה יחזרו לאישורכם.")
 
 
+def plan_outside_text(name: str | None, number: str, amount_agorot: int, due: str | None,
+                      currency: str = "ILS") -> str:
+    """מבקר 204ב: חשבונית שאינה בהסדר הגיעה למועד בזמן שהסדר פעיל — ההסדר חוסם תזכורות ללקוח כולו."""
+    who = name or "לקוח"
+    d = date.fromisoformat(due[:10]) if due else None
+    when = f" (מועד {d.day}.{d.month}.{d.year})" if d else ""
+    return (f"חשבונית {number} ({who}) על {templates.fmt_amount(amount_agorot, currency)}{when} אינה כלולה בהסדר "
+            "התשלומים הפעיל של הלקוח, ובזמן ההסדר לא יוצאות אליו תזכורות — גם לא עליה. כדאי להחליט: לפנות ללקוח "
+            "בעצמכם או לצרף אותה להסדר חדש. אחרת, התזכורות עליה יחזרו לאישורכם כשההסדר יסתיים.")
+
+
 def refresh_stuck_text(items: list[tuple[str, str, str]]) -> str:
     """(שם לקוח, מספר חשבונית, סיבה) ⇒ גוף ההתראה. טהור — נבדק ביחידה. עד 5 שמות, והשאר «ועוד N»."""
     n = len(items)
@@ -2258,6 +2269,25 @@ class CollectService:
                 self.audit("system", "plan_amount_changed_active",
                            {"plan": p["id"], "invoice": iid, "was": old, "now": inv["amount_agorot"]})
 
+    def _note_outside_invoices(self, p, ids: list[int], today: date) -> None:
+        """מבקר 204ב🟡: `plan_active` חוסם את **הלקוח** כולו, כך שחשבונית חדשה שלא בהסדר שותקת עד סוף ההסדר (חודשים)
+        ובעל העסק לא יודע. ההסדר עדיין פעיל וחשבונית מחוץ לו הגיעה למועד ⇒ כרטיס אחד לבעל העסק (פעם אחת לכל
+        הסדר+חשבונית). לא שולחים ללקוח כלום — ההכרעה (לפנות / לצרף להסדר) של בעל העסק."""
+        for inv in self.db.q("SELECT * FROM invoices WHERE customer_id=? AND status='open' ORDER BY id",
+                             (p["customer_id"],)):
+            if inv["id"] in ids or (inv["due"] and date.fromisoformat(inv["due"][:10]) >= today):
+                continue
+            mid = f"plan_outside:{p['id']}:{inv['id']}"
+            if self.db.one("SELECT 1 FROM messages WHERE message_id=?", (mid,)):
+                continue
+            cust = self.db.one("SELECT name FROM customers WHERE id=?", (p["customer_id"],))
+            body = plan_outside_text(cust["name"] if cust else None, inv["number"], inv["amount_agorot"], inv["due"],
+                                     inv["currency"] or "ILS")
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
+                      "created_at) VALUES(?,'system','owner',?,'plan_outside_invoice',1,?,?)",
+                      (p["customer_id"], body, mid, _iso(self.clock())))
+            self.audit("system", "plan_outside_invoice", {"plan": p["id"], "invoice": inv["id"]})
+
     def _sweep_plans(self) -> dict[str, list[int]]:
         """מנהל 332 (מבקר סבב 183 🟠): להסדר לא היה מחזור-חיים — `approved` (= ההצעה נשלחה) חסם כל תזכורת **לתמיד**,
         גם כשכל המועדים עברו והחשבונית פתוחה, ובלי כרטיס לבעל העסק; וגם ללקוח שהתעלם מההצעה. עכשיו בכל סבב תכנון:
@@ -2290,6 +2320,7 @@ class CollectService:
                 if self.db.update("UPDATE plans SET status='completed' WHERE id=? AND status='approved'",
                                   (p["id"],)) == 1:
                     self.audit("system", "plan_completed", {"plan": p["id"]})
+                    self._clear_plan_offer(p)
                     out["completed"].append(p["id"])
                 continue
             total = sum(i["amount_agorot"] for i in items)
@@ -2304,9 +2335,11 @@ class CollectService:
                     late, before_late = i, owed
                 owed += i["amount_agorot"]
             if late is None:
+                self._note_outside_invoices(p, ids, today)
                 continue
             if self.db.update("UPDATE plans SET status='missed' WHERE id=? AND status='approved'", (p["id"],)) != 1:
                 continue
+            self._clear_plan_offer(p)
             cust = self.db.one("SELECT name, paused_reason FROM customers WHERE id=?", (p["customer_id"],))
             # fuzz ב׳ (20.11): הסדר שנולד בשיחה («אפשר בתשלומים?» / «אין לי כסף» / «מאשר») השהה את הלקוח
             # (plan_request / cant_pay / plan_accept) — וההשהיה נשארה לנצח אחרי שההסדר הוחמץ, בזמן שהכרטיס הבטיח
@@ -3688,6 +3721,26 @@ class CollectService:
             " VALUES(?, 'awaiting_plan_reply', ?, 0, NULL, ?) ON CONFLICT(customer_id) DO UPDATE SET "
             "state=excluded.state, offered_plan=excluded.offered_plan, updated_at=excluded.updated_at",
             (cid, json.dumps(sent), _iso(self.clock())))
+
+    def _clear_plan_offer(self, plan) -> None:
+        """מבקר 204🟠 (רגרסיה של 202): `_mark_plan_offered` משאיר את השיחה ב«הצעת פריסה נשלחה» — וכשההסדר נסגר
+        (`completed`/`missed`) המצב נשאר ⇒ «מאשר» (למשל «מאשר שקיבלתי») = plan_accept על הסדר שלא קיים, ללקוח ששילם
+        הכול «ההסדר הועבר לאישור סופי… התשלום הראשון». עכשיו: ההסדר נסגר ⇒ השיחה חוזרת ל-idle — רק אם ההצעה
+        שבשיחה היא **הלוח של ההסדר הזה** (הצעה חדשה שכבר נוסחה בשיחה לא נמחקת). ההשהיה ומונה התורות נשמרים."""
+        if not self._table_exists("conversations"):
+            return
+        conv = self.db.one("SELECT state, offered_plan FROM conversations WHERE customer_id=?", (plan["customer_id"],))
+        if not conv or conv["state"] not in ("awaiting_plan_reply", "plan_pending_owner") or not conv["offered_plan"]:
+            return
+        mine = [{"n": i["n"], "due": i["due"], "amount_agorot": i["amount_agorot"]}
+                for i in json.loads(plan["installments"])]
+        offered = [{"n": i.get("n"), "due": i.get("due"), "amount_agorot": i.get("amount_agorot")}
+                   for i in json.loads(conv["offered_plan"])]
+        if offered != mine:
+            return
+        self.db.x("UPDATE conversations SET state='idle', offered_plan=NULL, updated_at=? WHERE customer_id=?",
+                  (_iso(self.clock()), plan["customer_id"]))
+        self.audit("system", "plan_offer_cleared", {"plan": plan["id"], "was": conv["state"]})
 
     def _supersede_plan_drafts(self, plan_id: int, by: str = "system:plan_approved") -> None:
         """אישור הפריסה ב-/plans שולח את ההצעה ללקוח, ולכן טיוטת plan_request המקבילה
