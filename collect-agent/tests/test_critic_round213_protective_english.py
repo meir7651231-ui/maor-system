@@ -41,3 +41,13 @@ def test_control_close_english_variants_urgent(text):
 @pytest.mark.parametrize("text", ["I want to end this subscription", "he no longer works here", "my husband will pay"])
 def test_control_no_overmatch(text):
     assert _d(text).intent.value not in ("distress", "minor")
+
+
+# סבב 214 (בקשת ראש הצוות: «ניסוחים מגינים באנגלית אחרי התיקון»): שומרי הכללת-יתר לתיקון של 213 — ירוקים היום,
+# חייבים להישאר ירוקים אחריו (אף אחד מהם אינו פטירה/קטין/מצוקה).
+@pytest.mark.parametrize("text", ["I passed the payment to my accountant", "he's no longer with the company",
+                                  "I'm under budget this month", "she passed the exam, I'll pay tomorrow",
+                                  "RIP the old invoice, send a new one", "I'm in a dark mode theme lol",
+                                  "under 18 days I'll pay", "no longer with us as a supplier"])
+def test_control_no_overmatch_after_fix(text):
+    assert _d(text).escalate != cv.Escalation.URGENT
