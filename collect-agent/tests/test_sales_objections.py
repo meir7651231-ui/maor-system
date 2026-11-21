@@ -40,3 +40,22 @@ def test_expected_objections_have_an_answer_in_the_script():
 def test_each_answer_is_backed_by_a_claim_in_the_package():
     missing = [ref for refs in REQUIRED.values() for ref in refs if f"`{ref}`" not in PKG]
     assert not missing, missing
+
+
+def test_csv_wording_is_excel_csv_not_any_file():
+    """גבי חיבורים, 21.11 (`3ef599b`, team/findings-integrations-2026-11-21.md): ייבוא CSV קולט כל CSV שנשמר
+    מ-Excel עברי (Windows-1255, UTF-16 עם טאבים, «;»), אבל **לא כל קובץ**: למשל Windows-1252 עם מירכאות «חכמות»
+    נדחה. לכן בחומרי המכירות כתוב «CSV שנשמר מ-Excel», לא «כל קובץ», והטענה נעולה לבדיקת הקידודים."""
+    import re
+    texts = {p: p.read_text(encoding="utf-8") for p in (ROOT / "sales").glob("*.md")}
+    texts[ROOT / "team/sales.md"] = (ROOT / "team/sales.md").read_text(encoding="utf-8")
+    # רשימת «מה אסור לטעון» בחבילה מצטטת את הניסוח האסור בכוונה — לא נסרקת
+    pkg = texts[ROOT / "sales/PACKAGE.md"]
+    head, rest = pkg.split("מה **אסור** לטעון", 1)
+    texts[ROOT / "sales/PACKAGE.md"] = head + "\n## " + rest.split("\n## ", 1)[-1]
+    bad = [f"{p.relative_to(ROOT)}:{n}" for p, t in texts.items() for n, ln in enumerate(t.splitlines(), 1)
+           if re.search(r"CSV|אקסל|Excel", ln) and re.search(r"כל קובץ|כל פורמט|כל סוג קובץ", ln)]
+    assert not bad, bad
+    script = texts[ROOT / "sales/call-script.md"]
+    assert re.search(r"CSV[^\n]*Excel|Excel[^\n]*CSV|אקסל[^\n]*CSV", script), "התסריט לא אומר «CSV מ-Excel»"
+    assert "`tests/test_csv_import.py::test_excel_encodings_and_delimiters`" in PKG, "הטענה על CSV לא נעולה בחבילה"
