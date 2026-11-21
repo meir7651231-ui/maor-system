@@ -10,7 +10,7 @@
   ב. 🟠 **שנה לא מוצגת:** מועד בשנה אחרת מוצג בלי שנה גם ללקוח וגם בפעולה שבעל העסק מאשר: «אשלם ב-25.11.2027» ⇒
      «לאשר את יום חמישי 25.11» — «(382 ימים)» רק בסיכום. בעל העסק שקורא «25.11» ולוחץ «✓ לאשר את המועד המבוקש» משהה
      תזכורות לשנה. מועד בשנה אחרת מהיום ⇒ השנה צריכה להופיע (בתשובה ובפעולה).
-xfail(strict=True); בקרות ירוקות."""
+תוקן במנהל 352 (xfail הוסר); בקרות ירוקות."""
 from datetime import date
 
 import pytest
@@ -28,7 +28,6 @@ def _req(d):
     return getattr(d, "requested_date", None) or d.promise_date
 
 
-@pytest.mark.xfail(strict=True, reason="199א🔴: תאריך-הפניה עם נקודה לפני ההבטחה גובר (1.11 ⇒ 1.11.2027)")
 @pytest.mark.parametrize(("text", "want"), [
     ("לגבי החשבונית מ-1.11 אשלם ב-15", date(2026, 11, 15)),
     ("קיבלתי את ההודעה מה-3.11 אשלם ב-20", date(2026, 11, 20)),
@@ -39,7 +38,6 @@ def test_reference_date_before_promise_does_not_win(text, want):
     assert _req(_d(text)) == want
 
 
-@pytest.mark.xfail(strict=True, reason="199ב🟠: מועד בשנה אחרת מוצג בלי שנה בפעולת «בדוק ואשר» ובתשובה")
 def test_other_year_shown_with_year():
     d = _d("אשלם ב-25.11.2027")
     assert _req(d) == date(2027, 11, 25)

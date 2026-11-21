@@ -2526,13 +2526,17 @@ _AFTER_VERB_FILL = r"^\W*(?:(?:לכם|לכן|לך|את זה|את הכל|את ה�
 
 def _promise_clause_date(t: str, today: date, min_clauses: int = 2) -> date | None:
     clauses = [c.strip() for c in re.split(_CLAUSE_SPLIT, t) if c.strip()]
-    if len(clauses) < min_clauses:
-        return None
+    # מבקר 199א🔴 (רגרסיה של 68c2535c): «לגבי החשבונית מ-1.11 אשלם ב-15» — מאז שנקודה בין ספרות לא חותכת, תאריך-ההפניה
+    # ופועל ההבטחה באותו משפט ⇒ משפט יחיד ⇒ extract_date החזיר 1.11 (שעבר ⇒ 1.11.2027). משפט יחיד נבדק כאן רק כשיש
+    # ספרה *לפני* הפועל (תאריך-הפניה) — אחרת ביט-זהה.
+    few = len(clauses) < min_clauses
     for c in clauses:
         m = re.search(_c(_PROMISE_VERB_HE), c)
         if m is None and re.search(r"[a-z]", c):
             m = re.search(_PROMISE_VERB_EN, c)
         if m is None:
+            continue
+        if few and not re.search(r"\d", c[:m.start()]):
             continue
         u = re.sub(_c(_AFTER_VERB_FILL), "", c[m.end():])
         if not u.strip() or re.search(_c(r"\d\s*(?:תשלומ|payments|installments)"), u):
@@ -3248,9 +3252,15 @@ def propose_plan(ctx: Context, requested: int | None, start: date | None = None)
                  for i in range(n))
 
 
-def _he_date(d: date) -> str:
+def _far_year(d: date, today: date | None) -> bool:
+    """מבקר 199ב🟠: «אשלם ב-25.11.2027» ⇒ «לאשר את יום חמישי 25.11» — בעל העסק קורא «בעוד שבועיים», מאשר, והתזכורות
+    מושהות לשנה. מועד בשנה אחרת שרחוק מחצי שנה (בשני הכיוונים) ⇒ עם שנה. «5.1» מדצמבר נשאר בלי שנה (חד-משמעי)."""
+    return today is not None and d.year != today.year and abs((d - today).days) > 183
+
+
+def _he_date(d: date, today: date | None = None) -> str:
     names = {6: "ראשון", 0: "שני", 1: "שלישי", 2: "רביעי", 3: "חמישי", 4: "שישי", 5: "שבת"}
-    return f"יום {names[d.weekday()]} {d.day}.{d.month}"
+    return f"יום {names[d.weekday()]} {d.day}.{d.month}" + (f".{d.year}" if _far_year(d, today) else "")
 
 
 def plan_lines(plan: tuple[Installment, ...], currency: str = "ILS") -> str:
@@ -3688,7 +3698,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             # אישור ראשון של הלקוח (או אישור חוזר עם שאלה) ⇒ אישור ללקוח עם התשלום הקרוב. טיוטה לאישור, כרגיל.
             which = "הראשון" if first is plan[0] else "הבא"
             base = (f"מעולה, תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! ההסדר בתוקף. "
-                    f"התשלום {which}: {fmt_amount(first.amount_agorot, ctx.currency)} עד {_he_date(first.due)}.")
+                    f"התשלום {which}: {fmt_amount(first.amount_agorot, ctx.currency)} עד {_he_date(first.due, ctx.today)}.")
             link = f" לתשלום: {ctx.payment_link}" if ctx.payment_link else ""
             reply = f"{base}{link}{sig}"
             if link and not ctx.fits_sms(reply):
@@ -3745,8 +3755,8 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         dd, _ = extract_date_ctx(t, ctx)
         if Intent.PROMISE in allset and dd is not None and dd >= ctx.today:
             promise_date = dd
-            summary += f" מציע/ה במקום לשלם עד {_he_date(dd)} ({(dd - ctx.today).days} ימים)."
-            actions.append(f"לאשר את המועד {_he_date(dd)} או להציע אחר")
+            summary += f" מציע/ה במקום לשלם עד {_he_date(dd, ctx.today)} ({(dd - ctx.today).days} ימים)."
+            actions.append(f"לאשר את המועד {_he_date(dd, ctx.today)} או להציע אחר")
         if ctx.plan_approved:
             actions.append("לדבר עם הלקוח/ה; אם ההסדר מתבטל — לבטל אותו ב«הסדרים»")
         else:
@@ -3760,8 +3770,8 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         dd, _ = extract_date_ctx(t, ctx)   # מנהל 256 (q10-02): «לא… אשלם הכל ב-20» — גם יום בחודש לבד
         if Intent.PROMISE in allset and dd is not None and dd >= ctx.today:
             promise_date = dd
-            summary += f" מציע/ה במקום לשלם עד {_he_date(dd)} ({(dd - ctx.today).days} ימים)."
-            actions.append(f"לאשר את המועד {_he_date(dd)} או להציע אחר")
+            summary += f" מציע/ה במקום לשלם עד {_he_date(dd, ctx.today)} ({(dd - ctx.today).days} ימים)."
+            actions.append(f"לאשר את המועד {_he_date(dd, ctx.today)} או להציע אחר")
         state = State.AWAITING_OWNER
     elif primary == Intent.CANT_PAY and ctx.state == State.AWAITING_OWNER and ctx.offered_plan \
             and Intent.PLAN_REQUEST not in allset and "sensitive" not in tags and "reservist" not in tags:
@@ -3779,8 +3789,8 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         dd, _ = extract_date_ctx(t, ctx)
         if Intent.PROMISE in allset and dd is not None and dd >= ctx.today:
             promise_date = dd
-            summary += f" מציע/ה לשלם עד {_he_date(dd)} ({(dd - ctx.today).days} ימים)."
-            actions.append(f"לאשר את המועד {_he_date(dd)} או להציע אחר")
+            summary += f" מציע/ה לשלם עד {_he_date(dd, ctx.today)} ({(dd - ctx.today).days} ימים)."
+            actions.append(f"לאשר את המועד {_he_date(dd, ctx.today)} או להציע אחר")
         actions.append("לדבר עם הלקוח/ה או להציע הסדר אחר ב«הסדרים»")
         state = State.AWAITING_OWNER
     elif primary in (Intent.PLAN_REQUEST, Intent.PLAN_REJECT, Intent.CANT_PAY):
@@ -3963,7 +3973,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                      f"כשיהיה נוח. אין שום לחץ.{sig}")
             # הפעלה 246: ההשהיה לא משתחררת לבד (רק הבטחה משתחררת, inbox.py) ⇒ הנוסח לא מבטיח "30 יום".
             summary = (f"{name} במילואים. התזכורות הושהו ולא יתחדשו לבד — רק כשתחדש/י אותן. "
-                       f"מוצע לבדוק שוב סביב {_he_date(ctx.today + timedelta(days=30))}.")
+                       f"מוצע לבדוק שוב סביב {_he_date(ctx.today + timedelta(days=30), ctx.today)}.")
             actions.append("לחזור אחרי המילואים; לשקול דחייה בלי לחץ")
             actions.append("לחדש תזכורות ידנית כשמתאים (לא מתחדשות לבד)")
             pause_until = ctx.today + timedelta(days=30)
@@ -3977,7 +3987,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             reply = (f"{hi}מצטערים לשמוע, ומאחלים שיהיה רק טוב. עצרנו את התזכורות לתקופה הקרובה, "
                      f"ונחזור אליכם אישית כשיהיה מתאים.{sig}")
             summary = (f"{name} שיתף/ה במצב רגיש (מחלה/אבל). התזכורות הושהו ולא יתחדשו לבד — "
-                       f"רק כשתחדש/י אותן. מוצע לבדוק שוב סביב {_he_date(ctx.today + timedelta(days=30))}.")
+                       f"רק כשתחדש/י אותן. מוצע לבדוק שוב סביב {_he_date(ctx.today + timedelta(days=30), ctx.today)}.")
             if "deceased" in tags:
                 summary = (f"🔴 נמסר על פטירה בהקשר של {name}. התזכורות הושהו; "
                            "אם בעל החשבון נפטר — לא פונים שוב, החוב מול העיזבון.")
@@ -3998,14 +4008,14 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             if days <= p.max_defer_days:
                 link = f" לתשלום: {ctx.payment_link}" if ctx.payment_link else ""
                 reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! רשמנו שהתשלום צפוי עד "
-                         f"{_he_date(dd)}, ולא נשלח תזכורות עד אז.{link}{sig}")
+                         f"{_he_date(dd, ctx.today)}, ולא נשלח תזכורות עד אז.{link}{sig}")
                 pause_until = dd + timedelta(days=1)
                 bump(s=Stop.PAUSE)
                 state = State.PROMISED
-                summary = f"{name} התחייב/ה לשלם עד {_he_date(dd)}. התזכורות הושהו עד אז."
+                summary = f"{name} התחייב/ה לשלם עד {_he_date(dd, ctx.today)}. התזכורות הושהו עד אז."
                 if Intent.PLAN_REJECT in allset:   # מנהל 278: דחה/תה את הפריסה ⇒ בעל העסק יודע שההצעה בוטלה
                     summary = (f"{name} דחה/תה את הצעת הפריסה ({plan_lines(ctx.offered_plan, ctx.currency)}) "
-                               f"והתחייב/ה לשלם הכל עד {_he_date(dd)}. ההצעה בוטלה; התזכורות הושהו עד אז.")
+                               f"והתחייב/ה לשלם הכל עד {_he_date(dd, ctx.today)}. ההצעה בוטלה; התזכורות הושהו עד אז.")
             else:
                 # הכרעת ראש צוות q21-19 (20.11): הבטחה מעבר ל-max_defer_days **מתקבלת עד max_defer_days** (לא נדחית
                 # אוטומטית מעבר לכך) + כרטיס «בדוק ואשר» לבעל העסק: מאשר ⇒ ההשהיה עד המועד המבוקש; מסרב ⇒ התזכורות
@@ -4014,18 +4024,18 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                 # סט #21b (מאותה הכרעה): ההבטחה שנרשמת = המועד שהתקבל (cap); המבוקש — requested_date, לבעל העסק
                 promise_date, requested_date = cap, dd
                 reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! רשמנו שהתשלום צפוי עד "
-                         f"{_he_date(dd)}. עד {_he_date(cap)} לא נשלח תזכורות; בעל העסק יאשר את המועד המבוקש "
+                         f"{_he_date(dd, ctx.today)}. עד {_he_date(cap, ctx.today)} לא נשלח תזכורות; בעל העסק יאשר את המועד המבוקש "
                          f"ונעדכן אתכם.{sig}")   # הכרעת ראש צוות 20.11: התשובה אומרת שבעל העסק יאשר את התאריך
                 pause_until = cap + timedelta(days=1)
                 bump(Escalation.NORMAL, Stop.PAUSE)
                 state = State.PROMISED
                 tags.append("promise_over_limit")
-                summary = (f"{name} התחייב/ה לשלם עד {_he_date(dd)} ({days} ימים) — מעל {p.max_defer_days} הימים "
-                           f"שמותר לי לאשר לבד. קיבלתי עד {_he_date(cap)}: התזכורות מושהות עד אז. "
-                           f"לאשר את {_he_date(dd)}?")
+                summary = (f"{name} התחייב/ה לשלם עד {_he_date(dd, ctx.today)} ({days} ימים) — מעל {p.max_defer_days} הימים "
+                           f"שמותר לי לאשר לבד. קיבלתי עד {_he_date(cap, ctx.today)}: התזכורות מושהות עד אז. "
+                           f"לאשר את {_he_date(dd, ctx.today)}?")
                 if Intent.PLAN_REJECT in allset:   # מנהל 278
                     summary = f"{name} דחה/תה את הצעת הפריסה. " + summary
-                actions.append(f"בדוק ואשר: לאשר את {_he_date(dd)} — או לסרב (התזכורות יחזרו אחרי {_he_date(cap)})")
+                actions.append(f"בדוק ואשר: לאשר את {_he_date(dd, ctx.today)} — או לסרב (התזכורות יחזרו אחרי {_he_date(cap, ctx.today)})")
         else:
             reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! כדי שלא נטריד סתם — "
                      f"עד איזה תאריך בערך יהיה נוח לכם?{sig}")

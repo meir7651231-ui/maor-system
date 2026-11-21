@@ -3024,13 +3024,14 @@ class CollectService:
         יורדים. (ב) התשובה כבר יצאה ⇒ טיוטת עדכון חדשה **לאישור** בעל העסק (לא נשלחת לבד). לקוח שביקש הסרה ⇒ כלום."""
         if not self._table_exists("drafts"):
             return None
-        from .conversation import _he_date  # noqa: PLC0415 — אותו פורמט תאריך כמו בתשובה המקורית
+        from .conversation import _far_year, _he_date  # noqa: PLC0415 — אותו פורמט תאריך כמו בתשובה המקורית
         cust = self.db.one("SELECT id, name, phone, email, opted_out FROM customers WHERE id=?", (cid,))
         if cust is None or cust["opted_out"]:
             return None
         requested = date.fromisoformat(info["requested"])
         cap = date.fromisoformat(info["until"]) - timedelta(days=1)
         first = (cust["name"] or "").split()[0] if (cust["name"] or "").strip() else ""
+        today = self.clock().date()
 
         def _body(hi: str, dt, tail: bool) -> str:
             if approve:
@@ -3039,9 +3040,9 @@ class CollectService:
                     f"אחרי {dt(cap)} התזכורות יחזרו." + (" אם יש קושי — השיבו להודעה זו." if tail else ""))
 
         if approve:
-            summary = f"עדכון ללקוח/ה: אישרת את {_he_date(requested)}."
+            summary = f"עדכון ללקוח/ה: אישרת את {_he_date(requested, today)}."
         else:
-            summary = f"עדכון ללקוח/ה: סירבת ל-{_he_date(requested)}; ההמתנה עד {_he_date(cap)}."
+            summary = f"עדכון ללקוח/ה: סירבת ל-{_he_date(requested, today)}; ההמתנה עד {_he_date(cap, today)}."
         # הטיוטה לא נכתבת מחדש במקום (מגן `test_drafts_and_plans_are_not_rewritten_in_place`: מה שיוצא = מה שבעל
         # העסק ראה ואישר) ⇒ הטיוטה הישנה מוחלפת (superseded) וטיוטה חדשה בנוסח הסופי ממתינה לאישור — גם אם הישנה
         # כבר אושרה וממתינה לחלון השליחה.
@@ -3065,10 +3066,14 @@ class CollectService:
         # מנהל 351 (מבקר 199): שם עסק ארוך (עד 40) + שם פרטי ארוך ⇒ הסירוב יצא 274 תווים (> 268) ⇒ בעל העסק אישר
         # והטיוטה נדחתה בשער («לא נשלחה») — הלקוח לא שמע על ההכרעה. סולם קיצור: בלי «אם יש קושי» ⇒ תאריך בלי
         # שם היום ⇒ בלי השם הפרטי. המועדים עצמם נשארים תמיד.
+        # מבקר 199ב: מועד בשנה אחרת ורחוקה ⇒ עם שנה גם בסולם הקיצור (המועדים נשארים חד-משמעיים)
         def _short(d: date) -> str:
-            return f"{d.day}.{d.month}"
+            return f"{d.day}.{d.month}" + (f".{d.year}" if _far_year(d, today) else "")
+
+        def _full(d: date) -> str:
+            return _he_date(d, today)
         hi = f" {first}" if first else ""
-        ladder = [(hi, _he_date, True), (hi, _he_date, False), (hi, _short, False), ("", _short, False)]
+        ladder = [(hi, _full, True), (hi, _full, False), (hi, _short, False), ("", _short, False)]
         for step in ladder:
             body = _body(*step)
             if ctx.fits_sms(body):
