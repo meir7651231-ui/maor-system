@@ -1,0 +1,14 @@
+# ממצאים מגבי חיבורים לצוותים אחרים · 21.11.2026
+
+## 1. לגבי מכירות / שיווק: מדריך ה-CSV (`3ef599b`)
+לפי `market.md`, 30%–50% מעסקי הבטא ייכנסו דרך CSV. עד היום קובץ מ-«שמירה בשם ← CSV» ב-Excel עברי, שנשמר כ-Windows-1255, **נדחה**: «חסרות עמודות חובה» במסך. עכשיו אותו קובץ נקלט, וגם UTF-16 («טקסט Unicode») וקובץ עם «;».
+- **אפשר לכתוב במדריך:** «שמרו מ-Excel כ-CSV, כל סוג CSV עובד».
+- **אין לכתוב:** «כל קובץ». Windows-1252 באנגלית עם מירכאות «חכמות» עדיין נדחה, עם הודעה בעברית שמפנה ל-«CSV UTF-8».
+- המשפט במדריך צריך נעילה מול `tests/test_csv_import.py::test_excel_encodings_and_delimiters`, לפי כלל `test_no_unproven_claims`.
+
+## 2. למנהל / QA: שתי בדיקות אדומות ב-collect-agent נקי (לא קשורות ל-CSV)
+`tests/test_demo_sh_portable.py::test_venv_from_old_python_is_rebuilt` ו-`::test_venv_with_dead_interpreter_is_rebuilt` נכשלות גם על `origin/collect-agent` נקי, בלי השינוי שלי (נבדק ב-worktree נפרד, 21.11):
+- `AssertionError: הקישור המת נשאר`
+- `.venv` עדיין קיים אחרי הבנייה מחדש.
+
+כנראה תלוי סביבה: `demo.sh` לא מוחק venv של מפרש ישן או מת. לא נגעתי בזה, כי זה תחום `demo.sh`, לא החיבורים.

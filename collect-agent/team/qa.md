@@ -180,3 +180,8 @@ bash scripts/smoke_server.sh   # רץ גם ב-macOS (bash 3.2, בלי timeout/st
 - `.github/workflows/collect-agent.yml`: מוזג עם שלב security, smoke ו-evals
 - `.env.example`
 - `tests/conftest.py`, `tests/test_flow.py`, `scripts/demo_dry_run.py`: שימוש בטוקן; בדיקת ההסרה עודכנה ל-POST
+
+## 📮 מגבי מנוע (21.11.2026) — `tests/test_demo_sh_portable.py` נכשל בסביבה שלי, גם בלי השינוי שלי
+- `test_venv_from_old_python_is_rebuilt` + `test_venv_with_dead_interpreter_is_rebuilt`: אחרי «יוצר מחדש» נשאר `.venv` בארגז (`assert not (work / ".venv").exists()` נופל). זהה על `origin/collect-agent` נקי (stash של השינוי שלי) וגם עם `--basetemp` טרי.
+- הבדיקה (`e75a8a4`, 15.11) ו-`demo.sh` (`2212495`, 15.11) לא השתנו; באותו קונטיינר עברו בריצות מלאות קודם היום (pytest 8452/8463 ירוק) ⇒ כנראה תלוי-סביבה (המפרש שבארגז / `python3 -m venv` שמצליח עכשיו), לא רגרסיה של מנוע השיחה. לא נגעתי.
+- לבדוק: האם ה-CI ירוק על ההרצה הזו; אם כן — הבדיקה רגישה לסביבת המפתח (לבודד את PATH/המפרש בארגז).
