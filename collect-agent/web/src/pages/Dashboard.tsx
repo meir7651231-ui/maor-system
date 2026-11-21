@@ -433,7 +433,7 @@ function NeedsYou() {
         {proposed.map(p => {
           const total = p.installments.reduce((s, x) => s + x.amount_agorot, 0) / 100;
           return (
-            <li key={`p${p.id}`} className="rounded-lg bg-brand-50 p-3 text-sm">
+            <li key={`p${p.id}`} className="rounded-lg bg-brand-50 p-3 text-sm" data-testid="plan-offer" data-pid={p.id}>
               <div className="font-bold">💳 הצעת פריסה · {nameOfCustomer(p.customer_id)} · חשבונית <span className="num">{numOf(p.invoice_id)}</span></div>
               <div className="text-xs text-ink-700 mt-0.5">{p.installments.length} תשלומים ללא ריבית · סה״כ {fmtMoney(total, p.currency)}</div>
               <ol className="text-xs text-ink-500 mt-1 space-y-0.5">

@@ -214,6 +214,8 @@ jobs:
         run: TZ=UTC node e2e/ui-plans-missed.mjs "$RUNNER_TEMP/shots"
       - name: "e2e /app/ — הסדר שהוחמץ בכרטיס «הסדרי תשלומים» (React): יום 7 של החסד «פעיל» עם איחור מהשרת · יום 8 ⇒ «תשלום לא התקבל» ראשון, מודגש, 0% + התראת plan_missed ב«דורש טיפול»; 390px (מנהל 346)"
         run: TZ=UTC node e2e/app-plans-missed.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e /app/ — הצעת פריסה מהדשבורד ⇒ «מאשר» (202🟠/356): חימוש, plan_request יוצא מהתור, plan_accept על אותו הסדר, «ההסדר בתוקף» ⇒ אשר ושלח; 390px (מנהל 363)"
+        run: TZ=UTC node e2e/app-plan-offer-accept.mjs "$RUNNER_TEMP/shots"
       - name: "e2e עצירת שליחה אחרי שחזור (critic 177) — באנר /app/ + כרטיס בלי «טופל» + שחרור מתועד ב-/ui ⇒ hold=null (מנהל 325)"
         run: TZ=UTC node e2e/ui-restore-hold.mjs "$RUNNER_TEMP/shots"
       - name: "e2e הדשבורד הפשוט (/ui) — «טעות בשם בחשבונית, תתקנו ואשלם» ⇒ פעולת תיקון-חשבונית בכרטיס, מחלוקת סכום דחופה, מלכודת בלי התראת שווא מול DEMO=1"
