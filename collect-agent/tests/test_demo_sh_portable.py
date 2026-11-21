@@ -69,6 +69,15 @@ def test_bash_parses():
     subprocess.run([BASH, "-n", str(DEMO_PATH)], check=True)  # noqa: S603
 
 
+def _needs_plain_rm() -> None:
+    """גבי בדיקות 21.11: בסשן Claude Code `rm` ב-PATH הוא מגן-מחיקה (~/.claude/rm-guard/…) — בתוך ה-sandbox של הבדיקה
+    הוא לא רץ (127) ⇒ שתי בדיקות ה-.venv נכשלו בלי באג ב-demo.sh. לא עוקפים את המגן (לא מקשרים /bin/rm): מדלגים
+    עם סיבה כשה-rm הוא מגן; ב-CI (GitHub) אין מגן ⇒ הבדיקות רצות במלואן."""
+    rm = shutil.which("rm") or ""
+    if "/.claude/" in rm:
+        pytest.skip(f"rm בסביבה הזו הוא מגן-מחיקה של הסשן ({rm}) — הבדיקה רצה ב-CI")
+
+
 def _sandbox(tmp_path, *, newer=False, old_venv=False):
     """עותק של demo.sh בתיקייה ריקה + PATH שבו python3 הוא «3.9» מזויף (כמו mac נקי)."""
     work, bin_ = tmp_path / "work", tmp_path / "bin"
@@ -104,6 +113,7 @@ def test_old_python_without_alternative_fails_with_clear_message(tmp_path):
 
 @pytest.mark.skipif(not BASH, reason="אין bash")
 def test_venv_from_old_python_is_rebuilt(tmp_path):
+    _needs_plain_rm()
     work, env = _sandbox(tmp_path, old_venv=True)
     r = _run(work, env)
     assert "יוצר מחדש" in r.stdout, r.stdout
@@ -125,6 +135,7 @@ def test_picks_newer_interpreter_for_venv(tmp_path):
 
 @pytest.mark.skipif(not BASH, reason="אין bash")
 def test_venv_with_dead_interpreter_is_rebuilt(tmp_path):
+    _needs_plain_rm()
     # הפעלה 215 (QA, מ-213): .venv/bin/python3 = קישור למפרש שנמחק ⇒ נבנה מחדש, לא נשאר שבור
     work, env = _sandbox(tmp_path)
     (work / ".venv/bin").mkdir(parents=True)
