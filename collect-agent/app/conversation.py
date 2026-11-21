@@ -163,6 +163,9 @@ class Decision:
     next_state: State
     plan: tuple[Installment, ...] = ()
     promise_date: date | None = None
+    # הכרעת ראש צוות q21-19: הבטחה מעבר ל-max_defer_days ⇒ promise_date = המועד שהתקבל (עד max_defer_days),
+    # requested_date = מה שהלקוח ביקש — ממתין ל«בדוק ואשר» של בעל העסק
+    requested_date: date | None = None
     paid_agorot: int | None = None    # סכום שהלקוח טוען ששילם
     owner_summary: str = ""
     owner_actions: tuple[str, ...] = ()
@@ -1903,6 +1906,10 @@ def _extract_date_en(t: str, today: date) -> tuple[date | None, bool] | None:
         return last, False
     if re.search(r"\bnext\s+week\b", t):
         return _next_weekday(today, 6), False
+    # מבקר 197ג: «by the end of next month» ⇒ היה 10 בחודש הבא — עקבי עם העברית: היום האחרון
+    if re.search(r"\bend\s+of\s+(?:the\s+)?next\s+month\b", t):
+        y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+        return date(y, mo, calendar.monthrange(y, mo)[1]), False
     if re.search(r"\b(?:next\s+month|beginning\s+of\s+(?:next|the\s+next)\s+month|start\s+of\s+next\s+month|early\s+next\s+month)\b", t):
         y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
         # עקבי עם העברית: «בחודש הבא» ⇒ 10 בחודש, «בתחילת החודש הבא» ⇒ 1 (ביקורת qa9 q9-28)
@@ -1940,6 +1947,10 @@ _AUTO_REPLY = (r"\bauto(?:matic)?[- ]?(?:reply|response|answer)\b|\bout\s+of\s+(
                r"|(?<![\w])בחופשה\s+עד(?![\w])|(?<![\w])מחוצ\s+למשרד|קיבלתי\s+את\s+הודעת\w*.{0,40}אחזור")
 _PAY_WORD = (r"\bpa(?:y|id|ying|yment)\b|\btransfer\w*|\bwire\b|(?<![\w])(?:א|נ|ת)?שלמ|שילמ|תשלומ|(?:א|נ)?עביר|העבר"
              r"|(?<![\w])(?:הסר|תפסיק|stop\b|unsubscribe)")
+_ABSENT_UNTIL = (r"\b(?:(?:i'?m|i\s+am|we'?re|we\s+are)\s+)?(?:currently\s+)?(?:away|out\s+of\s+(?:the\s+)?office|ooo"
+                 r"|on\s+(?:vacation|holiday|leave|annual\s+leave)|off|travell?ing|abroad)\s+(?:until|till|through|thru)\s+"
+                 r"[^.!?\n]{1,30}"
+                 r"|(?<![\w])(?:בחופש\w*|מחוצ\s+למשרד|לא\s+(?:נמצא\w*\s+)?ב(?:ה)?משרד|בחו\"?ל|במילואימ)\s+עד\s+[^.!?\n]{1,30}")
 _ABSENT_TODAY = (r"\b(?:(?:i'?m|i\s+am|we'?re|we\s+are)\s+)?(?:out\s+of\s+(?:the\s+)?office|ooo|away|off|not\s+in"
                  r"|not\s+at\s+(?:the\s+)?office|unavailable|on\s+(?:vacation|holiday|leave)|travell?ing|driving"
                  r"|in\s+meetings?|sick|at\s+a\s+conference)\s+(?:all\s+day\s+)?(?:today|tonight)\b"
@@ -1949,6 +1960,20 @@ _ABSENT_TODAY = (r"\b(?:(?:i'?m|i\s+am|we'?re|we\s+are)\s+)?(?:out\s+of\s+(?:the
 
 def extract_date(t: str, today: date) -> tuple[date | None, bool]:
     """מחזיר (תאריך, מעורפל?). מעורפל = יש כוונה לתאריך אבל אי אפשר לקבע אותו."""
+    # q21 המשך: «Auto-reply: away until Dec 1. Payment will be sent on the 20th» ⇒ ההבטחה נקבעה ל-1.12 (מועד החזרה
+    # מהיעדרות) במקום ה-20. «עד <תאריך>» של היעדרות = מתי חוזרים, לא מתי משלמים — אלא אם זה התאריך היחיד
+    # («I'll be off until the 20th, I'll pay then» ⇒ ה-20).
+    # מבקר 197ג: התבניות מנורמלות-סופיות (_c) — קריאה ישירה עם טקסט גולמי («סוף») לא התאימה. אידמפוטנטי לקוראים.
+    t = t.translate(_FINALS)
+    stripped = re.sub(_c(_ABSENT_UNTIL), " ", t)
+    if stripped != t:
+        got = _extract_date_core(stripped, today)
+        if got[0] is not None:
+            return got
+    return _extract_date_core(t, today)
+
+
+def _extract_date_core(t: str, today: date) -> tuple[date | None, bool]:
     # qa21 (q21-30 🔴): «I'm out of office today but I'll pay on November 18» / «אני לא במשרד היום אבל אשלם ב-18»
     # ⇒ ההבטחה נקבעה ל**היום** (ההשהיה נגמרת היום ⇒ תזכורת לפני המועד שהובטח). «היום» של היעדרות = למה לא עכשיו,
     # לא מועד תשלום (כמו «עכשיו» של מנהל 260). «I will pay today» לא נוגע.
@@ -1992,8 +2017,10 @@ def extract_date(t: str, today: date) -> tuple[date | None, bool]:
     m = _s(r"(?:(?:עד |ב|ל)?יום |ב|עד ה?|ל)-?(ראשון|שני|שלישי|רביעי|חמישי|שישי)(?![\w])(?:\s+(?:ה)?(הבא|הקרוב)(?![\w]))?", t)
     if m and not _s(r"(?:תשלום|חלק) (?:ה)?" + m.group(1), t):
         return _next_weekday_he(today, _WEEKDAYS[m.group(1)], m.group(2) or "")
-    m = _s(r"(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?", t)
-    if m:
+    # מנהל 351 (מבקר 199): «אשלם 1.500 ב-10.12» ⇒ היה «עד איזה תאריך?» — החיפוש הראשון תפס «1.50» מתוך הסכום
+    # (חודש 50 ⇒ ValueError) ונעצר. עכשיו: גבולות ספרה משני הצדדים (סכום באלפים עם נקודה אינו D.M), וממשיכים
+    # למופע הבא כשהמופע לא תאריך תקין.
+    for m in _c(r"(?<!\d)(\d{1,2})[./](\d{1,2})(?:[./](\d{2,4}))?(?!\d)").finditer(t):
         d, mo = int(m.group(1)), int(m.group(2))
         y = int(m.group(3)) if m.group(3) else today.year
         if y < 100:
@@ -2004,13 +2031,17 @@ def extract_date(t: str, today: date) -> tuple[date | None, bool]:
                 cand = date(y + 1, mo, d)
             return cand, False
         except ValueError:
-            pass
+            continue
     m = _s(r"(?:ב|עד ה?)-?(\d{1,2})\s*(?:ל|ב)(?:ה)?(?:חודש)(?:\s+(?:ה)?(הבא))?", t)
     if m and 1 <= int(m.group(1)) <= 31:
         if m.group(2):   # מנהל 255: «ב-23 לחודש הבא» ⇒ היה 23 בחודש *הזה* (טעות בטוחה-בעצמה, חודש מוקדם מדי)
             y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
             return date(y, mo, min(int(m.group(1)), calendar.monthrange(y, mo)[1])), False
         return _month_day(today, int(m.group(1))), False
+    # מבקר 197ג: «עד סוף החודש הבא» ⇒ היה 10 בחודש הבא («חודש הבא» נבדק לפני «סוף החודש») — שלושה שבועות מוקדם
+    if _s(r"(?:בסופ|עד סופ|סופ) (?:ה)?חודש (?:ה)?הבא", t):
+        y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+        return date(y, mo, calendar.monthrange(y, mo)[1]), False
     if _s(r"(?:בתחילת|עד תחילת|בראשית) (?:ה)?חודש (?:ה)?(?:הבא|הקרוב)?|בחודש הבא|חודש הבא", t):
         y, mo = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
         return date(y, mo, 10 if "חודש הבא" in t and "תחילת" not in t else 1), False
@@ -2383,6 +2414,48 @@ def plan_change_amount(t: str) -> int | None:
     return None
 
 
+# מבקר 200🟠: מסמך + תאריך שלו (נקודה/לוכסן חובה — «החשבונית מ-15» לבד לא נמחק).
+# מנהל 355 (מבקר 202): + מספר מסמך בין השם לתאריך («חשבונית 1234 מ-1.11»), עוד שמות («החיוב/התשלום/המכתב/השיחה/
+# הטיפול מ-1.11»), משפט זיקה («ההודעה ששלחתם ב-1.11»). התאריך נלכד בקבוצה `rd`/`re` לבדיקת «עבר מול עתיד קרוב».
+_REF_NOUNS = (r"חשבונית|חשבוניות|חשבון|הודעה|הודעות|תזכורת|מייל|סמס|הזמנה|קבלה|עסקה|חיוב|חיובימ|תשלומ|דרישה|"
+              r"דרישת תשלומ|מכתב|ווטסאפ|וואטסאפ|וטסאפ|שיחה|טיפול|פגישה|שיעור|ביקור|משלוח|הובלה|תיקונ|אירוע|הצעת מחיר")
+_REF_DATE = r"(?P<{g}>\d{{1,2}}[./]\d{{1,2}}(?:[./]\d{{2,4}})?)(?![\d./])"
+_REF_DATED = (r"(?:(?<![\w])(?:לגבי|בנוגע ל|בקשר ל|על|של|עבור|ל|את)\s*-?\s*)?(?<![\w])(?:ה)?"
+              r"(?:" + _REF_NOUNS + r")(?![\w])\s*"
+              r"(?:(?:מספר|מס'|מס׳|#)\s*)?(?:\d{2,}\s*)?"   # מספר מסמך: «חשבונית 1234 מ-1.11»
+              r"(?:(?:מ|של|מה|מיומ|מתאריכ|מתאריך)\s*-?\s*(?:ה)?"   # מילת קישור חובה: «החשבונית 15.11» = מועד
+              r"|ש\w+\s+(?:ב|מ|ביומ|בתאריכ)\s*-?\s*(?:ה)?)"     # משפט זיקה: «ההודעה ששלחתמ ב-1.11»
+              + _REF_DATE.format(g="rd") +
+              r"|\b(?:the\s+|your\s+|my\s+)?(?:invoice|bill|message|reminder|email|text|order|charge)\s+"
+              r"(?:(?:no\.?\s*|#\s*)?\d{2,}\s+)?"
+              r"(?:from|of|dated|on)\s+(?:the\s+)?" + _REF_DATE.format(g="re"))
+
+
+def _ref_is_near_future(rd: str, today: date) -> bool:
+    """מנהל 355: תאריך-«הפניה» שהוא בעתיד הקרוב (עד 45 יום) הוא בעצם מועד — «אשלם את החשבונית מה-15.11» (היום 8.11)
+    ⇒ 15.11, «אשלם את ההזמנה של 3.12» ⇒ 3.12. תאריך שכבר עבר («מ-1.11») = הפניה ⇒ נמחק."""
+    parts = re.split(r"[./]", rd)
+    try:
+        d, m = int(parts[0]), int(parts[1])
+        if len(parts) > 2:
+            y = int(parts[2])
+            y = y + 2000 if y < 100 else y
+            cand = date(y, m, d)
+        else:
+            cand = date(today.year, m, d)
+            if cand < today:
+                cand = date(today.year + 1, m, d)
+    except ValueError:
+        return False
+    return 0 < (cand - today).days <= 45
+
+
+def _strip_ref_dates(t: str, today: date) -> str:
+    def sub(m: re.Match[str]) -> str:
+        return m.group(0) if _ref_is_near_future(m.group("rd") or m.group("re"), today) else " ; "
+    return re.sub(_c(_REF_DATED), sub, t)
+
+
 def extract_date_ctx(t: str, ctx: Context | None) -> tuple[date | None, bool]:
     """extract_date + יום בחודש לבד כשההקשר הוא תשובה ל«עד מתי?» (או עדכון מועד אחרי הבטחה)."""
     if ctx is None:
@@ -2393,6 +2466,11 @@ def extract_date_ctx(t: str, ctx: Context | None) -> tuple[date | None, bool]:
     # מנהל 261 (q13-13): «אני משלמת ב-20» (הווה + יום מיד אחריו) = «אשלם ב-20». «אני משלמת כל חודש ב-10» ⇒ לא נוגע.
     t = re.sub(_c(r"(?<![\w])(?:אני|אנחנו) (?:משלמ|משלמת|משלמימ|מעביר|מעבירה|מעבירימ)"
                   r"(?: (?:לכמ|את זה|את הכל|את הכול|את החוב))?(?= (?:ב|עד)\s*-?\s*(?:ה)?\d)"), "אשלמ", t)
+    # מבקר 200🟠 (המראה של 199א): תאריך-הפניה של מסמך («לגבי החשבונית מ-1.11», «על ההודעה מ-5.11», «עבור החשבון
+    # של 3.11») הוא לא מועד תשלום ⇒ נמחק לפני החילוץ, בכל מקום בהודעה. אחרת «אשלם ב-15 לגבי החשבונית מ-1.11» ⇒ 1.11.2027.
+    # מנהל 355 (מבקר 202🟡): סביל — «החשבונית תשולם ב-15», «הכסף יועבר ב-15» ⇒ זוהה כהבטחה אבל בלי מועד ⇒ «עד מתי?» סתם
+    t = re.sub(_c(r"(?<![\w])(?:ישולמ|תשולמ|ישולמו|יועבר|תועבר|יועברו|יוסדר|תוסדר)(?=\s+(?:ב|עד)\s*-?\s*(?:ה)?-?\d)"), " ; אשלמ", t)   # «;» ⇒ הנושא במשפט נפרד
+    t = _strip_ref_dates(t, ctx.today)   # «;» = גבול משפט: «קיבלתי את ההודעה מה-3.11 אשלם ב-20» ⇒ 20
     pc = _promise_clause_date(t, ctx.today)   # מנהל 260: תאריך של משפט ההבטחה גובר
     if pc is not None:
         return pc, False
@@ -2439,7 +2517,9 @@ _CORRECTION_STRIP = (r"^\W*(?:אמ (?:זה|זאת) (?:\w+\W+){0,3}?(?=(?:אני 
 
 
 def _owner_correction_day(t: str, ctx: Context) -> date | None:
-    if ctx.state != State.AWAITING_OWNER or not re.search(_c(_CORRECTION_LEAD), t):
+    # הכרעת ראש צוות q21-19 (20.11): מועד רחוק ⇒ PROMISED (מתקבל עד max_defer_days + «בדוק ואשר»), לא AWAITING_OWNER ⇒
+    # תיקון/הקדמה («טוב אני יכולה להקדים, ב-20», «כלומר ב-15») חייב להיתפס גם במצב PROMISED
+    if ctx.state not in (State.AWAITING_OWNER, State.PROMISED) or not re.search(_c(_CORRECTION_LEAD), t):
         return None
     u = re.sub(_c(_CORRECTION_STRIP), "", t)
     u = re.sub(r"^\W*(?:(?:oh|ok|okay|no)\W+)?(?:(?:actually|sorry|correction|i\s+meant)\b\W*)+", "", u)
@@ -2463,7 +2543,9 @@ _PROMISE_VERB_HE = (r"(?:אשלם|נשלם|אעביר|נעביר|אסדר|נסד
                     r"|(?:אוכל|נוכל|אני יכול\w*|אנחנו יכולים) (?:לשלם|להעביר|לסדר|לסגור)"
                     r"|(?:אסגור|נסגור) (?:את )?(?:זה|החוב|החשבון|הכל|הכול|העניין|התשלום|היתרה))(?![\w])")
 # מנהל 260 (q12-27): «הן עוזרות לי לזכור :) אשלם ב-16» — סמיילי מפריד משפטים
-_CLAUSE_SPLIT = r"(?:[.!?;\n]|,(?!\d)|[:;]-?[()](?![\w])|[\u2600-\u27BF\U0001F300-\U0001FAFF])+"
+# מבקר 198🔴: נקודה בין ספרות («10.12», «25.11.2027», «5.1.2027») היא תאריך/סכום — לא סוף משפט; אחרת
+# «אשלם ב-10.12» נחתך ל«אשלם ב-10» + «12» ו-_promise_clause_date מחזיר 10 בחודש הקרוב.
+_CLAUSE_SPLIT = r"(?:(?<!\d)\.|\.(?!\d)|[!?;\n]|,(?!\d)|[:;]-?[()](?![\w])|[\u2600-\u27BF\U0001F300-\U0001FAFF])+"
 _PROMISE_VERB_EN = r"(?:i'?ll|i\s+will|we'?ll|we\s+will|i\s+can|can\s+i)\s+(?:pay|transfer|settle)|" + _EN_FUT_XFER.pattern
 
 
@@ -2491,13 +2573,17 @@ _AFTER_VERB_FILL = r"^\W*(?:(?:לכם|לכן|לך|את זה|את הכל|את ה�
 
 def _promise_clause_date(t: str, today: date, min_clauses: int = 2) -> date | None:
     clauses = [c.strip() for c in re.split(_CLAUSE_SPLIT, t) if c.strip()]
-    if len(clauses) < min_clauses:
-        return None
+    # מבקר 199א🔴 (רגרסיה של 68c2535c): «לגבי החשבונית מ-1.11 אשלם ב-15» — מאז שנקודה בין ספרות לא חותכת, תאריך-ההפניה
+    # ופועל ההבטחה באותו משפט ⇒ משפט יחיד ⇒ extract_date החזיר 1.11 (שעבר ⇒ 1.11.2027). משפט יחיד נבדק כאן רק כשיש
+    # ספרה *לפני* הפועל (תאריך-הפניה) — אחרת ביט-זהה.
+    few = len(clauses) < min_clauses
     for c in clauses:
         m = re.search(_c(_PROMISE_VERB_HE), c)
         if m is None and re.search(r"[a-z]", c):
             m = re.search(_PROMISE_VERB_EN, c)
         if m is None:
+            continue
+        if few and not re.search(r"\d", c[:m.start()]):
             continue
         u = re.sub(_c(_AFTER_VERB_FILL), "", c[m.end():])
         if not u.strip() or re.search(_c(r"\d\s*(?:תשלומ|payments|installments)"), u):
@@ -2817,7 +2903,8 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         if d is not None or (_vague and ctx.state == State.AWAITING_DATE and (
                 _s(_HOLIDAY_VAGUE, t) or _s(_NEXT_WD_VAGUE, t) or re.search(_NEXT_WD_VAGUE_EN, t))):
             found.add(Intent.PROMISE)
-    if ctx is not None and ctx.state == State.AWAITING_OWNER and _owner_correction_day(t, ctx) is not None:
+    if ctx is not None and ctx.state in (State.AWAITING_OWNER, State.PROMISED) and \
+            _owner_correction_day(t, ctx) is not None:
         found.add(Intent.PROMISE)   # מנהל 257: «בעצם ב-25» אחרי מועד שהועבר לבעלים = עדכון המועד
     # מנהל 253 (qa9 q9-28/משלים): «אפשר לשלם ב-18 בנובמבר?», «Can I pay next week?» = בקשת דחייה עם מועד, לא «איך משלמים»
     if ctx is not None and (_s(r"(?:אפשר|אוכל|אני יכול\w*|ניתן|מותר)\s+(?:ל)?(?:שלם|לשלם|להעביר|לסדר|לדחות)", t)
@@ -3212,9 +3299,15 @@ def propose_plan(ctx: Context, requested: int | None, start: date | None = None)
                  for i in range(n))
 
 
-def _he_date(d: date) -> str:
+def _far_year(d: date, today: date | None) -> bool:
+    """מבקר 199ב🟠: «אשלם ב-25.11.2027» ⇒ «לאשר את יום חמישי 25.11» — בעל העסק קורא «בעוד שבועיים», מאשר, והתזכורות
+    מושהות לשנה. מועד בשנה אחרת שרחוק מחצי שנה (בשני הכיוונים) ⇒ עם שנה. «5.1» מדצמבר נשאר בלי שנה (חד-משמעי)."""
+    return today is not None and d.year != today.year and abs((d - today).days) > 183
+
+
+def _he_date(d: date, today: date | None = None) -> str:
     names = {6: "ראשון", 0: "שני", 1: "שלישי", 2: "רביעי", 3: "חמישי", 4: "שישי", 5: "שבת"}
-    return f"יום {names[d.weekday()]} {d.day}.{d.month}"
+    return f"יום {names[d.weekday()]} {d.day}.{d.month}" + (f".{d.year}" if _far_year(d, today) else "")
 
 
 def plan_lines(plan: tuple[Installment, ...], currency: str = "ILS") -> str:
@@ -3309,8 +3402,11 @@ def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
                     owner_actions=d.owner_actions + (
                         "מספר/כתובת שגויים + בקשת הסרה (מתועדת) — לעדכן פרטי קשר נכונים בחשבונית ירוקה; לא נשלחה תשובה",))
     if t and d.intent in (Intent.UNKNOWN, Intent.PROMISE, Intent.CALLBACK) and not d.secondary and \
-            ctx.state in (State.AWAITING_PLAN_REPLY, State.PROMISED, State.PLAN_PENDING_OWNER) and \
+            ctx.state in (State.AWAITING_PLAN_REPLY, State.PROMISED, State.PLAN_PENDING_OWNER, State.AWAITING_DATE,
+                          State.AWAITING_OWNER) and \
             _s(_AUTO_REPLY, t) and not _s(_PAY_WORD, t):
+        # q21 המשך: אחרי «עד מתי?» (AWAITING_DATE) «Automatic reply: I'm away until 30 November» ⇒ היה **הבטחה ל-30.11**
+        # מתוך מכונה (השהיה עד אז, בלי שהלקוח הבטיח דבר). בהמתנה לבעלים — כרטיס רעש נוסף.
         # גם «I'm away until Monday» אחרי הבטחה ⇒ היה **הבטחה חדשה** ליום שני שדרסה את המועד המקורי, ו«אני נוהגת
         # כרגע ואחזור אלייך» ⇒ callback. בלי מילת תשלום — זו מכונה, לא הבטחה.
         # qa21 (q21-14/16/17): מענה אוטומטי (מחוץ-למשרד / «received your message» / Driving Focus / «אני נוהג כרגע»)
@@ -3463,6 +3559,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
     state = ctx.state
     plan: tuple[Installment, ...] = ()
     promise_date: date | None = None
+    requested_date: date | None = None
     paid: int | None = None
     summary = ""
     actions: list[str] = []
@@ -3648,7 +3745,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             # אישור ראשון של הלקוח (או אישור חוזר עם שאלה) ⇒ אישור ללקוח עם התשלום הקרוב. טיוטה לאישור, כרגיל.
             which = "הראשון" if first is plan[0] else "הבא"
             base = (f"מעולה, תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! ההסדר בתוקף. "
-                    f"התשלום {which}: {fmt_amount(first.amount_agorot, ctx.currency)} עד {_he_date(first.due)}.")
+                    f"התשלום {which}: {fmt_amount(first.amount_agorot, ctx.currency)} עד {_he_date(first.due, ctx.today)}.")
             link = f" לתשלום: {ctx.payment_link}" if ctx.payment_link else ""
             reply = f"{base}{link}{sig}"
             if link and not ctx.fits_sms(reply):
@@ -3705,8 +3802,8 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         dd, _ = extract_date_ctx(t, ctx)
         if Intent.PROMISE in allset and dd is not None and dd >= ctx.today:
             promise_date = dd
-            summary += f" מציע/ה במקום לשלם עד {_he_date(dd)} ({(dd - ctx.today).days} ימים)."
-            actions.append(f"לאשר את המועד {_he_date(dd)} או להציע אחר")
+            summary += f" מציע/ה במקום לשלם עד {_he_date(dd, ctx.today)} ({(dd - ctx.today).days} ימים)."
+            actions.append(f"לאשר את המועד {_he_date(dd, ctx.today)} או להציע אחר")
         if ctx.plan_approved:
             actions.append("לדבר עם הלקוח/ה; אם ההסדר מתבטל — לבטל אותו ב«הסדרים»")
         else:
@@ -3720,8 +3817,8 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         dd, _ = extract_date_ctx(t, ctx)   # מנהל 256 (q10-02): «לא… אשלם הכל ב-20» — גם יום בחודש לבד
         if Intent.PROMISE in allset and dd is not None and dd >= ctx.today:
             promise_date = dd
-            summary += f" מציע/ה במקום לשלם עד {_he_date(dd)} ({(dd - ctx.today).days} ימים)."
-            actions.append(f"לאשר את המועד {_he_date(dd)} או להציע אחר")
+            summary += f" מציע/ה במקום לשלם עד {_he_date(dd, ctx.today)} ({(dd - ctx.today).days} ימים)."
+            actions.append(f"לאשר את המועד {_he_date(dd, ctx.today)} או להציע אחר")
         state = State.AWAITING_OWNER
     elif primary == Intent.CANT_PAY and ctx.state == State.AWAITING_OWNER and ctx.offered_plan \
             and Intent.PLAN_REQUEST not in allset and "sensitive" not in tags and "reservist" not in tags:
@@ -3739,8 +3836,8 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         dd, _ = extract_date_ctx(t, ctx)
         if Intent.PROMISE in allset and dd is not None and dd >= ctx.today:
             promise_date = dd
-            summary += f" מציע/ה לשלם עד {_he_date(dd)} ({(dd - ctx.today).days} ימים)."
-            actions.append(f"לאשר את המועד {_he_date(dd)} או להציע אחר")
+            summary += f" מציע/ה לשלם עד {_he_date(dd, ctx.today)} ({(dd - ctx.today).days} ימים)."
+            actions.append(f"לאשר את המועד {_he_date(dd, ctx.today)} או להציע אחר")
         actions.append("לדבר עם הלקוח/ה או להציע הסדר אחר ב«הסדרים»")
         state = State.AWAITING_OWNER
     elif primary in (Intent.PLAN_REQUEST, Intent.PLAN_REJECT, Intent.CANT_PAY):
@@ -3923,7 +4020,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                      f"כשיהיה נוח. אין שום לחץ.{sig}")
             # הפעלה 246: ההשהיה לא משתחררת לבד (רק הבטחה משתחררת, inbox.py) ⇒ הנוסח לא מבטיח "30 יום".
             summary = (f"{name} במילואים. התזכורות הושהו ולא יתחדשו לבד — רק כשתחדש/י אותן. "
-                       f"מוצע לבדוק שוב סביב {_he_date(ctx.today + timedelta(days=30))}.")
+                       f"מוצע לבדוק שוב סביב {_he_date(ctx.today + timedelta(days=30), ctx.today)}.")
             actions.append("לחזור אחרי המילואים; לשקול דחייה בלי לחץ")
             actions.append("לחדש תזכורות ידנית כשמתאים (לא מתחדשות לבד)")
             pause_until = ctx.today + timedelta(days=30)
@@ -3937,7 +4034,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             reply = (f"{hi}מצטערים לשמוע, ומאחלים שיהיה רק טוב. עצרנו את התזכורות לתקופה הקרובה, "
                      f"ונחזור אליכם אישית כשיהיה מתאים.{sig}")
             summary = (f"{name} שיתף/ה במצב רגיש (מחלה/אבל). התזכורות הושהו ולא יתחדשו לבד — "
-                       f"רק כשתחדש/י אותן. מוצע לבדוק שוב סביב {_he_date(ctx.today + timedelta(days=30))}.")
+                       f"רק כשתחדש/י אותן. מוצע לבדוק שוב סביב {_he_date(ctx.today + timedelta(days=30), ctx.today)}.")
             if "deceased" in tags:
                 summary = (f"🔴 נמסר על פטירה בהקשר של {name}. התזכורות הושהו; "
                            "אם בעל החשבון נפטר — לא פונים שוב, החוב מול העיזבון.")
@@ -3958,24 +4055,34 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             if days <= p.max_defer_days:
                 link = f" לתשלום: {ctx.payment_link}" if ctx.payment_link else ""
                 reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! רשמנו שהתשלום צפוי עד "
-                         f"{_he_date(dd)}, ולא נשלח תזכורות עד אז.{link}{sig}")
+                         f"{_he_date(dd, ctx.today)}, ולא נשלח תזכורות עד אז.{link}{sig}")
                 pause_until = dd + timedelta(days=1)
                 bump(s=Stop.PAUSE)
                 state = State.PROMISED
-                summary = f"{name} התחייב/ה לשלם עד {_he_date(dd)}. התזכורות הושהו עד אז."
+                summary = f"{name} התחייב/ה לשלם עד {_he_date(dd, ctx.today)}. התזכורות הושהו עד אז."
                 if Intent.PLAN_REJECT in allset:   # מנהל 278: דחה/תה את הפריסה ⇒ בעל העסק יודע שההצעה בוטלה
                     summary = (f"{name} דחה/תה את הצעת הפריסה ({plan_lines(ctx.offered_plan, ctx.currency)}) "
-                               f"והתחייב/ה לשלם הכל עד {_he_date(dd)}. ההצעה בוטלה; התזכורות הושהו עד אז.")
+                               f"והתחייב/ה לשלם הכל עד {_he_date(dd, ctx.today)}. ההצעה בוטלה; התזכורות הושהו עד אז.")
             else:
-                reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}. נבדוק את המועד שביקשתם "
-                         f"ונחזור אליכם.{sig}")
+                # הכרעת ראש צוות q21-19 (20.11): הבטחה מעבר ל-max_defer_days **מתקבלת עד max_defer_days** (לא נדחית
+                # אוטומטית מעבר לכך) + כרטיס «בדוק ואשר» לבעל העסק: מאשר ⇒ ההשהיה עד המועד המבוקש; מסרב ⇒ התזכורות
+                # חוזרות אחרי max_defer_days. max_defer_days עצמו לא השתנה.
+                cap = ctx.today + timedelta(days=p.max_defer_days)
+                # סט #21b (מאותה הכרעה): ההבטחה שנרשמת = המועד שהתקבל (cap); המבוקש — requested_date, לבעל העסק
+                promise_date, requested_date = cap, dd
+                reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! רשמנו שהתשלום צפוי עד "
+                         f"{_he_date(dd, ctx.today)}. עד {_he_date(cap, ctx.today)} לא נשלח תזכורות; בעל העסק יאשר את המועד המבוקש "
+                         f"ונעדכן אתכם.{sig}")   # הכרעת ראש צוות 20.11: התשובה אומרת שבעל העסק יאשר את התאריך
+                pause_until = cap + timedelta(days=1)
                 bump(Escalation.NORMAL, Stop.PAUSE)
-                state = State.AWAITING_OWNER
-                summary = (f"{name} מבקש/ת לדחות עד {_he_date(dd)} ({days} ימים) — מעל {p.max_defer_days} "
-                           f"הימים שמותר לי לאשר לבד.")
+                state = State.PROMISED
+                tags.append("promise_over_limit")
+                summary = (f"{name} התחייב/ה לשלם עד {_he_date(dd, ctx.today)} ({days} ימים) — מעל {p.max_defer_days} הימים "
+                           f"שמותר לי לאשר לבד. קיבלתי עד {_he_date(cap, ctx.today)}: התזכורות מושהות עד אז. "
+                           f"לאשר את {_he_date(dd, ctx.today)}?")
                 if Intent.PLAN_REJECT in allset:   # מנהל 278
                     summary = f"{name} דחה/תה את הצעת הפריסה. " + summary
-                actions.append("לאשר או להציע מועד אחר")
+                actions.append(f"בדוק ואשר: לאשר את {_he_date(dd, ctx.today)} — או לסרב (התזכורות יחזרו אחרי {_he_date(cap, ctx.today)})")
         else:
             reply = (f"תודה{(' ' + ctx.first_name) if ctx.first_name else ''}! כדי שלא נטריד סתם — "
                      f"עד איזה תאריך בערך יהיה נוח לכם?{sig}")
@@ -4078,7 +4185,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
     return Decision(
         intent=primary, secondary=secondary, reply=reply, auto_send=auto, escalate=esc, stop=stop,
         pause_until=pause_until if stop == Stop.PAUSE else None, next_state=state, plan=plan,
-        promise_date=promise_date, paid_agorot=paid, owner_summary=summary,
+        promise_date=promise_date, requested_date=requested_date, paid_agorot=paid, owner_summary=summary,
         owner_actions=tuple(actions), tags=tuple(dict.fromkeys(tags)))
 
 

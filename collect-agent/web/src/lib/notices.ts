@@ -1,7 +1,7 @@
 // הודעות מערכת לבעל העסק מתוך /owner/inbox (תזכורת סוף ניסיון, 3 תזכורות מוצו, חשבונית ישנה, SMS שלא נמסר).
 // רק direction='system' — אלה טקסטים שהשרת עצמו כתב. תשובות לקוחות (טקסט חופשי) מוצגות ב«תשובות לקוחות», לא כאן.
 export interface OwnerMsg { id: number; customer_id: number | null; direction: string; channel: string; body: string; intent: string | null; created_at: string; payload?: string | null }
-export interface Notice { id: number; icon: string; title: string; body: string; tone: 'warn' | 'info'; intent: string; linked?: { id: number; name: string }[]; unverified?: boolean }
+export interface Notice { id: number; icon: string; title: string; body: string; tone: 'warn' | 'info'; intent: string; linked?: { id: number; name: string }[]; unverified?: boolean; customerId?: number }
 
 const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }> = {
   trial_ending: { icon: '⏳', title: 'תקופת הניסיון מסתיימת בקרוב', tone: 'warn' },
@@ -28,9 +28,13 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   // מנהל 323: תזכורת מאושרת שלא יוצאת >48 שעות כי הרענון מול מערכת החשבוניות נכשל
   refresh_stuck: { icon: '⏳', title: 'תזכורות מאושרות לא יוצאות — הבדיקה מול מערכת החשבוניות נכשלת', tone: 'warn' },
   plan_missed: { icon: '📅', title: 'תשלום בהסדר לא התקבל — התזכורות חוזרות לאישורכם', tone: 'warn' },
+  plan_outside_invoice: { icon: '🧾', title: 'חשבונית מחוץ להסדר הפעיל — אין עליה תזכורות עד סוף ההסדר', tone: 'warn' },
+  plan_amount_changed: { icon: '📈', title: 'סכום החשבונית עלה בזמן הסדר פעיל — התוספת לא כלולה בהסדר', tone: 'warn' },
   // critic 176: כשל כתיבה ליומן ההסרות — אחרי שחזור גיבוי ההסרה לא תוחזר
   optout_ledger_failed: { icon: '📒', title: 'הסרה לא נרשמה ביומן הגיבוי — לטיפול טכני', tone: 'warn' },
   sms_undelivered: { icon: '📵', title: 'SMS לא נמסר', tone: 'warn' },
+  // q22-04 + critic סבב 192: DSN שלא אומת ⇒ מיילים ללקוח מושהים עד הכרעה (POST /customers/{cid}/email-bounce)
+  email_bounce_review: { icon: '📭', title: 'ייתכן שהמייל של לקוח לא תקין — המיילים אליו מושהים, הכריעו', tone: 'warn' },
   credit_review: { icon: '🧾', title: 'זיכוי שלא שויך לחשבונית — לבדיקתך', tone: 'warn' },
   // חיוב דרך אורביט (8.11.2026): חסד / סיום / ביטול — הגוף כולל קישור לחיוב באורביט
   orbit_billing: { icon: '💳', title: 'המנוי לגבי — נדרשת פעולה באורביט', tone: 'warn' },
@@ -48,6 +52,8 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
 const INBOUND_ORPHANS = new Set(['unknown_sender', 'unknown_sender_urgent', 'shared_contact_ambiguous', 'shared_contact_urgent', 'shared_contact_paid_claim']);
 /** כרטיסי כתובת משותפת עם בחירת לקוח (POST /owner/shared-cards/{id}/assign). */
 const SHARED_CARDS = new Set(['shared_contact_urgent', 'shared_contact_paid_claim']);
+/** critic סבב 192: כרטיס «בדוק ואשר» — נסגר רק בהכרעה (חסום / החזר מיילים), לא ב«טופל». */
+export const BOUNCE_REVIEW = 'email_bounce_review';
 const URGENT_ORPHANS = new Set(['unknown_sender_urgent', 'shared_contact_urgent']);
 
 /** החלטה 5: הלקוחות המקושרים מה-payload (id+שם; בעל העסק בוחר — critic סבב 149) — בלי לזרוק על JSON פגום. */
@@ -57,6 +63,26 @@ function linkedCustomers(payload?: string | null): { id: number; name: string }[
       .filter(c => typeof c.id === 'number' && typeof c.name === 'string' && c.name)
       .map(c => ({ id: c.id as number, name: c.name as string }));
   } catch { return []; }
+}
+
+/** מנהל 361 (ביקורת 207): כמה תשובות מאושרות (ממתינות לחלון) נעצרו בגלל הפנייה הדחופה מהכתובת המשותפת. */
+export function stoppedApprovedLine(payload?: string | null): string {
+  let n = 0;
+  try { const v = JSON.parse(payload ?? '{}')?.stopped_approved; n = typeof v === 'number' && v > 0 ? Math.floor(v) : 0; } catch { n = 0; }
+  if (!n) return '';
+  return (n === 1
+    ? '⏸ עצרנו תשובה שאישרת קודם ועוד לא יצאה (ממתינה לחלון השליחה) — לא תישלח.'
+    : `⏸ עצרנו ${n} תשובות שאישרת קודם ועוד לא יצאו (ממתינות לחלון השליחה) — לא יישלחו.`
+  // מנהל 364 (מבקר 209🟡): בשיוך — מה שנעצר ללקוח שלא נבחר חוזר לתור לאישור מחדש (לא נשלח לבד)
+  ) + ' בשיוך: תשובות של מי שלא נבחר/ה יחזרו לתור לאישור מחדש.';
+}
+
+/** מנהל 364: טוסט אחרי שיוך — כמה תשובות שנעצרו חזרו לתור (POST assign ⇒ requeued_drafts). */
+export function requeuedToast(base: string, res: unknown): string {
+  const v = (res as { requeued_drafts?: unknown } | null)?.requeued_drafts;
+  const n = Array.isArray(v) ? v.length : 0;
+  if (!n) return base;
+  return `${base} · ${n === 1 ? 'תשובה שנעצרה חזרה' : `${n} תשובות שנעצרו חזרו`} לתור האישורים — לבדוק ולאשר מחדש`;
 }
 
 /** critic סבב 169: כרטיס ממייל שלא עבר אימות שולח (SPF/DKIM/DMARC) — payload.email_verified === false. */
@@ -75,9 +101,12 @@ export function systemNotices(rows: OwnerMsg[]): Notice[] {
       const linked = SHARED_CARDS.has(r.intent ?? '') ? linkedCustomers(r.payload) : [];
       const unverified = r.direction === 'in' && unverifiedEmail(r.payload);
       let body = linked.length ? `${r.body}\n\nלקוחות מקושרים: ${linked.map(c => c.name).join(' · ')}` : r.body;
+      const stopped = linked.length ? stoppedApprovedLine(r.payload) : '';
+      if (stopped) body = `${body}\n\n${stopped}`;
       if (unverified) body = `${UNVERIFIED_EMAIL_LINE}\n\n${body}`;
       return { id: r.id, icon: k.icon, title: k.title, body, tone: k.tone, intent: r.intent ?? '',
-        ...(linked.length ? { linked } : {}), ...(unverified ? { unverified: true } : {}) };
+        ...(linked.length ? { linked } : {}), ...(unverified ? { unverified: true } : {}),
+        ...(r.intent === BOUNCE_REVIEW && r.customer_id != null ? { customerId: r.customer_id } : {}) };
     })
     .sort((a, b) => Number(URGENT_ORPHANS.has(b.intent)) - Number(URGENT_ORPHANS.has(a.intent))
       || Number(b.intent === 'trial_ending') - Number(a.intent === 'trial_ending') || b.id - a.id);

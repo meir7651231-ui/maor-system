@@ -25,7 +25,7 @@ from .db import DB
 from .greeninvoice import GreenInvoiceClient
 from .integrations.base import jstr
 from .ratelimit import RateLimiter, group_for
-from .service import CollectService, RealDataBlocked
+from .service import CollectService, OwnerOnly, RealDataBlocked
 from .templates import SLOGAN, TAGLINE
 from .users import Users
 
@@ -86,6 +86,10 @@ class EmailIn(BaseModel):
 class DraftEdit(BaseModel):
     body: str | None = None
     confirm_amount: bool = False   # critic סבב 48: סכום חריג ⇒ אישור מפורש
+
+
+class EmailBounceIn(BaseModel):
+    confirm: bool                     # True = הכתובת לא תקינה (חסימת מייל) · False = המיילים חוזרים
 
 
 class HoldIn(BaseModel):
@@ -531,13 +535,19 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             body = await request.json()
         except ValueError:
             raise HTTPException(400, "JSON לא תקין") from None
-        if not isinstance(body, dict) or set(body) - {"still_open", "paid"}:
-            raise HTTPException(422, "גוף: {still_open: [id], paid: [id]}")
+        if not isinstance(body, dict) or set(body) - {"still_open", "paid", "due"}:
+            raise HTTPException(422, "גוף: {still_open: [id], paid: [id], due?: {id: YYYY-MM-DD}}")
         ids = {k: body.get(k, []) for k in ("still_open", "paid")}
         if not all(isinstance(v, list) and all(isinstance(i, int) and not isinstance(i, bool)
                                                for i in v) for v in ids.values()):
             raise HTTPException(422, "still_open/paid: רשימות של מזהי חשבונית (מספרים)")
-        return guard(lambda: svc.confirm_open_list(ids["still_open"], ids["paid"]))
+        # הכרעת רכז: תיקון מועד (בעיקר «מועד מוערך») לפני האישור. JSON ⇒ מפתחות מחרוזת
+        raw_due = body.get("due", {})
+        if not isinstance(raw_due, dict) or not all(
+                isinstance(k, str) and k.isdigit() and isinstance(v, str) for k, v in raw_due.items()):
+            raise HTTPException(422, "due: {מזהה חשבונית: YYYY-MM-DD}")
+        due = {int(k): v for k, v in raw_due.items()}
+        return guard(lambda: svc.confirm_open_list(ids["still_open"], ids["paid"], due=due))
 
     @app.get("/dashboard", dependencies=auth)
     def dashboard(request: Request, view: str | None = None):
@@ -557,22 +567,43 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return dsr.listing(svc)
 
     @app.post("/customers/{cid}/dsr", dependencies=auth)
-    def dsr_open(cid: int, b: DsrOpenIn):          # בקשה שהגיעה בטלפון / בכתב לעסק
+    def dsr_open(cid: int, b: DsrOpenIn, request: Request):   # בקשה שהגיעה בטלפון / בכתב לעסק
         from . import dsr
         if not svc.db.one("SELECT 1 FROM customers WHERE id=?", (cid,)):
             raise HTTPException(404, "לא נמצא")
-        rid = guard(dsr.open_request, svc, cid, b.kind, "owner", b.note)
+        if b.kind == "deletion":
+            # הכרעת ראש צוות (ממצא QA, סט #22b): מחיקת לקוח = בעל העסק בלבד — גם פתיחת בקשת המחיקה ידנית. בקשה שהגיעה
+            # בהודעה מהלקוח עדיין נרשמת אוטומטית (dsr.detect), כך שהבקשה לא אובדת והמועד נספר
+            owner_only(request, "dsr_deletion_open", {"customer": cid}, "רק בעל העסק פותח בקשת מחיקה")
+        # מבקר 192: היומן רשם «owner» קבוע גם כשעובד/ת פתח/ה או סגר/ה בקשת פרטיות — השחקן האמיתי (שער 6)
+        rid = guard(lambda: dsr.open_request(svc, cid, b.kind, "owner", b.note, actor=request.state.actor))
         if rid is None:
             raise HTTPException(409, "כבר קיימת בקשה פתוחה מסוג זה ללקוח")
         return {"id": rid}
 
+    def owner_only(request: Request, action: str, detail: dict, msg: str) -> None:
+        """הכרעת ראש צוות (ממצא QA, 20.11 — דפוס 190ב/191): מחיקת לקוח, ייצוא נתונים ותחזוקה = בעל העסק בלבד.
+        עובד/ת ⇒ 403 + audit של הניסיון עם השחקן האמיתי."""
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, action + "_refused", detail)
+            raise HTTPException(403, msg)
+
     @app.post("/dsr/{rid}/done", dependencies=auth)
-    def dsr_done(rid: int, b: DsrDoneIn):
+    def dsr_done(rid: int, b: DsrDoneIn, request: Request):
         from . import dsr
-        return guard(dsr.close_request, svc, rid, b.note)
+        row = svc.db.one("SELECT kind FROM dsr WHERE id=?", (rid,)) if svc._table_exists("dsr") else None
+        if row and row["kind"] == "deletion":
+            # סגירת בקשת מחיקה = אישור שהמחיקה בוצעה ⇒ בעל העסק בלבד. פתיחת בקשה (רישום מה שהלקוח ביקש) — פתוחה
+            owner_only(request, "dsr_deletion_close", {"dsr": rid}, "רק בעל העסק סוגר בקשת מחיקה (מאשר שהמחיקה בוצעה)")
+        return guard(dsr.close_request, svc, rid, b.note, request.state.actor)
 
     @app.get("/customers/{cid}/data", dependencies=auth)
     def customer_data(cid: int, request: Request):                     # מנהל 309: זכות עיון
+        # הכרעת ראש צוות (20.11): ייצוא כל המידע על לקוח = בעל העסק בלבד (בעל השליטה; מזעור גישה לפי תקנות
+        # האבטחה). עובד/ת ⇒ 403 + audit. בקשת העיון עצמה נרשמת במרשם (dsr) והמועד נספר — בעל העסק מייצא ומשיב.
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, "data_export_refused", {"customer": cid})
+            raise HTTPException(403, "רק בעל העסק מייצא את המידע על לקוח (בקשת עיון)")
         return guard(svc.customer_data_export, cid, request.state.actor)
 
     @app.post("/invoices/{iid}/mark-paid", dependencies=auth)
@@ -581,7 +612,35 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/customers/{cid}/resume", dependencies=auth)
     def resume(cid: int, request: Request):
+        # critic סבב 191א: השהיה שבעל העסק סימן (OWNER_HOLDS — קטין/פטירה/חדלות פירעון, ר-6 «השהיה קשה») בוטלה ע״י
+        # עובד/ת בשקט ⇒ תזכורות למשפחת נפטר/ת. ביטול השהיית-בעלים = בעל העסק בלבד; השהיות אחרות — כמו קודם
+        from .policy import OWNER_HOLDS
+        c = svc.db.one("SELECT paused_reason FROM customers WHERE id=?", (cid,))
+        if c and (c["paused_reason"] or "").split(":", 1)[0] in OWNER_HOLDS and not request.state.is_owner:
+            svc.audit(request.state.actor, "owner_hold_resume_refused", {"customer": cid})
+            raise HTTPException(403, "רק בעל העסק יכול לבטל השהיה שהוא סימן (קטין / פטירה / חדלות פירעון)")
         return guard(svc.resume_customer, cid, request.state.actor)
+
+    @app.post("/customers/{cid}/email-bounce", dependencies=auth)
+    def customer_email_bounce(cid: int, b: EmailBounceIn, request: Request):   # q22-04: הכרעת בעל העסק
+        return guard(svc.confirm_email_bounce, cid, b.confirm, request.state.actor)
+
+    # הכרעת ראש צוות q21-19: «בדוק ואשר» על מועד הבטחה שמעבר ל-max_defer_days ⇒ {"approve": true|false}
+    @app.post("/customers/{cid}/promise-request", dependencies=auth)
+    async def promise_request_decide(cid: int, request: Request):
+        try:
+            body = await request.json()
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        approve = body.get("approve") if isinstance(body, dict) else None
+        if not isinstance(approve, bool):
+            raise HTTPException(422, "approve: true (לאשר את המועד המבוקש) או false (לסרב)")
+        # מבקר 201🟠: עובד/ת אישר/ה מועד מעבר ל-max_defer_days (בלי תקרה) והלקוח קיבל «בעל העסק אישר».
+        # q21-19 = הכרעת **בעל העסק** ⇒ עובד/ת ⇒ 403 + audit (שם נפרד — לא «promise_request_refused», שמשמעו הכרעה)
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, "promise_request_refused_staff", {"customer": cid, "approve": approve})
+            raise HTTPException(403, "רק בעל העסק מאשר או מסרב למועד שמעבר ל-14 יום")
+        return guard(svc.decide_promise_request, cid, approve, request.state.actor)
 
     @app.post("/customers/{cid}/opt-out", dependencies=auth)
     def customer_opt_out(cid: int, request: Request):                  # critic סבב 97
@@ -593,10 +652,16 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/customers/{cid}/legal-hold", dependencies=auth)
     def customer_legal_hold(cid: int, b: LegalHoldIn, request: Request):   # ר-10
+        # critic סבב 190ב (🔴): עובד/ת ביטל/ה legal hold בשקט ⇒ ה-purge האוטומטי (בכל plan) מתמם תיק משפטי.
+        # **ביטול** = בעל העסק בלבד; **הצבת** hold (מגן בלבד) מותרת לכל מי שמחובר.
+        if not (b.note or "").strip() and not request.state.is_owner:
+            svc.audit(request.state.actor, "legal_hold_lift_refused", {"customer": cid})
+            raise HTTPException(403, "רק בעל העסק יכול לבטל עצירת מחיקה משפטית")
         return guard(svc.set_legal_hold, cid, b.note, request.state.actor)
 
     @app.post("/maintenance/purge", dependencies=auth)
     def purge(request: Request):                     # ר-10 (רץ גם בכל plan)
+        owner_only(request, "maintenance_purge", {}, "רק בעל העסק מריץ פעולות תחזוקה")
         return svc.purge_closed(request.state.actor)   # critic סבב 73: מי הפעיל
 
     @app.get("/outbox", dependencies=auth)
@@ -696,7 +761,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         raw = await request.body()
         if len(raw) > MAX_WEBHOOK_BODY:
             raise HTTPException(413, "too large")
-        return svc.sms_webhook_019(raw)
+        # 019 מגדירים URL לכל סוג push (dlr/incoming_sms/blacklist) ובגוף אין type ⇒ ?type= ב-URL שמוגדר אצלם
+        hint = request.query_params.get("type", "")
+        return svc.sms_webhook_019(raw, type_hint=hint if hint in ("dlr", "incoming_sms", "blacklist") else "")
 
     @app.post("/webhooks/sms/inforu")
     async def inforu_webhook(request: Request):
@@ -819,7 +886,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         except ValueError:
             raise HTTPException(400, "JSON לא תקין") from None
         try:
-            return svc.update_settings(raw, request.state.actor)
+            return svc.update_settings(raw, request.state.actor, request.state.is_owner)
+        except OwnerOnly as e:
+            raise HTTPException(403, str(e)) from e
         except PermissionError as e:
             raise HTTPException(422, str(e)) from e
         except (ValueError, TypeError) as e:
@@ -837,7 +906,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         except ValueError:
             raise HTTPException(400, "JSON לא תקין") from None
         try:
-            return svc.update_design_settings(raw, request.state.actor)
+            return svc.update_design_settings(raw, request.state.actor, request.state.is_owner)
+        except OwnerOnly as e:
+            raise HTTPException(403, str(e)) from e
         except (PermissionError, ValueError, TypeError) as e:
             raise HTTPException(422, str(e)) from e
 
@@ -881,7 +952,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/owner/inbox/{mid}/done", dependencies=auth)
     def owner_inbox_done(mid: int, request: Request):   # critic סבב 34: «טופל» ⇒ יורד מ«דורש טיפול שלך»
-        return guard(svc.owner_message_done, mid, request.state.actor)
+        try:
+            return guard(svc.owner_message_done, mid, request.state.actor)
+        except OwnerOnly as e:   # מבקר 195א: התראת-ביטחון של בעל העסק — עובד/ת ⇒ 403
+            raise HTTPException(403, str(e)) from e
 
     @app.get("/plans", dependencies=auth)
     def list_plans():
@@ -998,6 +1072,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def orbit_link_secret(b: OrbitSecretIn, request: Request):
         """הנפקה/רוטציה של סוד-המסירה (מוחזר **פעם אחת**; המנהל מדביק אותו באורביט).
         רוטציה מבטלת את הסוד הקודם מיד."""
+        # critic סבב 191ב: עובד/ת הנפיק/ה סוד-מסירה לכל org (רוטציה מבטלת את הסוד של בעל העסק) ⇒ בעלים בלבד
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, "orbit_secret_refused", {})
+            raise HTTPException(403, "רק בעל העסק מקשר את גבי לאורביט")
         rotating = bool(orbit.link())
         try:
             secret = orbit.issue_secret(b.org, at=svc.clock().isoformat())
@@ -1012,6 +1090,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/orbit/link/unlink", dependencies=auth)
     def orbit_unlink(request: Request):
+        if not request.state.is_owner:   # critic סבב 191ב
+            svc.audit(request.state.actor, "orbit_unlink_refused", {})
+            raise HTTPException(403, "רק בעל העסק מבטל את הקישור לאורביט")
         link = orbit.link()
         try:
             done = orbit.unlink()

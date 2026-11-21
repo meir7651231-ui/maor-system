@@ -109,7 +109,9 @@ def _to_agorot(v: Any) -> int:
     return parse_amount_agorot(v, max_agorot=MAX_AMOUNT_AGOROT)
 
 
-DEFAULT_TERMS_DAYS = 30   # ממצא מבקר 2.9: בלי dueDate, תאריך ההנפקה ≠ מועד תשלום (שוטף+30 שמרני)
+# ממצא מבקר 2.9: בלי dueDate, תאריך ההנפקה ≠ מועד תשלום ⇒ **הנפקה+30** (לא «שוטף+30»: לא מסוף החודש).
+# מסומן due_estimated, גלוי לבעל העסק (/dashboard, /open-list, preview) וניתן לתיקון ברשימת הפתוחות.
+DEFAULT_TERMS_DAYS = 30
 MAX_TERMS_DAYS = 2 * 365  # הפעלה 120: מועד מעל שנתיים אחרי ההנפקה = טעות בשנה (2062 במקום 2026), לא תנאי תשלום
 
 

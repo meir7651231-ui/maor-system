@@ -192,6 +192,10 @@ jobs:
         run: TZ=UTC node e2e/dsr.mjs "$RUNNER_TEMP/shots"
       - name: "e2e צוות ותפקידים בהגדרות (מנהל 328+330) — הבעלים האחרון מוגן; מינוי⇒הורדה⇒השבתה⇒הפעלה מחדש בלחיצה כפולה ובשרת; 390px, AA, מול DEMO=1"
         run: TZ=UTC node e2e/team.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e הגדרות כעובדת (מבקר 194) — שדות בעל העסק נעולים ומסומנים, «שמירה» כבויה, CSV פתוח; בעלים רואה פתוח; 390px, מול DEMO=1"
+        run: TZ=UTC node e2e/app-staff-settings.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e בעל העסק בלבד (מבקר 195 + הכרעות 20.11) — חידוש השהיית-בעלים וייצוא נעולים לעובדת (+תג); «בדוק ואשר» על הבטחה מעל 14 יום; 390px, מול DEMO=1"
+        run: TZ=UTC node e2e/app-staff-owner-only.mjs "$RUNNER_TEMP/shots"
       - name: e2e ערכת בטא — יום ראשון לכל ענף (מספרה/מוסך/קליניקה/רו״ח) מול gi_mock
         run: TZ=UTC node e2e/beta.mjs
       - name: e2e תסריט ההדגמה של מכירות (sales/demo-script.md, 6 שלבים) מול DEMO=1
@@ -208,6 +212,10 @@ jobs:
         run: TZ=UTC node e2e/ui-plans.mjs "$RUNNER_TEMP/shots"
       - name: "e2e הדשבורד הפשוט (/ui) — הסדר שהוחמץ: שעון הדמו זז (DEMO_CLOCK) ⇒ יום 7 של החסד עדיין «פעיל» · יום 8 ⇒ «תשלום לא התקבל» ראשון + באיחור + התראה לבעלים (מנהל 337)"
         run: TZ=UTC node e2e/ui-plans-missed.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e /app/ — הסדר שהוחמץ בכרטיס «הסדרי תשלומים» (React): יום 7 של החסד «פעיל» עם איחור מהשרת · יום 8 ⇒ «תשלום לא התקבל» ראשון, מודגש, 0% + התראת plan_missed ב«דורש טיפול»; 390px (מנהל 346)"
+        run: TZ=UTC node e2e/app-plans-missed.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e /app/ — הצעת פריסה מהדשבורד ⇒ «מאשר» (202🟠/356): חימוש, plan_request יוצא מהתור, plan_accept על אותו הסדר, «ההסדר בתוקף» ⇒ אשר ושלח; 390px (מנהל 363)"
+        run: TZ=UTC node e2e/app-plan-offer-accept.mjs "$RUNNER_TEMP/shots"
       - name: "e2e עצירת שליחה אחרי שחזור (critic 177) — באנר /app/ + כרטיס בלי «טופל» + שחרור מתועד ב-/ui ⇒ hold=null (מנהל 325)"
         run: TZ=UTC node e2e/ui-restore-hold.mjs "$RUNNER_TEMP/shots"
       - name: "e2e הדשבורד הפשוט (/ui) — «טעות בשם בחשבונית, תתקנו ואשלם» ⇒ פעולת תיקון-חשבונית בכרטיס, מחלוקת סכום דחופה, מלכודת בלי התראת שווא מול DEMO=1"
@@ -220,6 +228,10 @@ jobs:
         run: TZ=UTC node e2e/app-holidays.mjs "$RUNNER_TEMP/shots"
       - name: "e2e — ניגודיות AA בדפדפן: כל מסכי /app/, /ui, /p/, /u/ (בהיר+כהה, 390px) ודפי-הנחיתה"
         run: TZ=UTC node e2e/app-contrast.mjs && node e2e/landing-contrast.mjs
+      - name: e2e — מצב המייל בשורת הלקוח («חזר»/«ספאם», bounce+ARF אמיתיים) ב-/app/ וב-/ui, AA, 390px, כהה
+        run: TZ=UTC node e2e/app-email-state.mjs "$RUNNER_TEMP/shots"
+      - name: e2e — «מועד מוערך» (תג+הסבר, תיקון מועד ברשימת הפתוחות, 409 בעברית), 390px, AA
+        run: TZ=UTC node e2e/app-due-estimated.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
         run: TZ=UTC node e2e/rebuild.mjs "$RUNNER_TEMP/shots"
       - name: e2e CSP — 7 עמודי HTML (/p, /p-404, /ui, /app, /pay, /connect/orbit) בלי הפרות, וסקריפט מוזרק נחסם

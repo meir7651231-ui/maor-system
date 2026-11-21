@@ -66,7 +66,8 @@ def test_failed_alerts_owner_once_and_final_is_sticky(api, svc):
 def test_unknown_code_does_nothing(api, svc):
     m = _sent_sms(api, svc)
     before = len(api.get("/owner/inbox").json())
-    assert _dlr(api, f"type=dlr&shipment_id={m['provider_id']}&status=17")["status"] == "unknown"
+    # 17 מתועד אצל 019 («חסום להודעות פירסומיות», docs.019sms.co.il) ⇒ קוד שלא בטבלה: 555
+    assert _dlr(api, f"type=dlr&shipment_id={m['provider_id']}&status=555")["status"] == "unknown"
     assert len(api.get("/owner/inbox").json()) == before
 
 

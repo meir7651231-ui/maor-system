@@ -10,12 +10,15 @@ import { MessagePreview } from '../components/MessagePreview.tsx';
 import { OpenListCard } from '../components/OpenListCard.tsx';
 import type { Invoice } from '../lib/domain.ts';
 import { HolidayBanner } from '../components/HolidayBanner.tsx';
+import { DueEstimatedBadge } from '../components/DueEstimatedBadge.tsx';
 import { nextLine, paidPct, planBadge, plansVisible, type PlanTone } from '../lib/plans.ts';
 import { RestoreHoldBanner } from '../components/RestoreHoldBanner.tsx';
 import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, REAPPROVE_LABEL } from '../api.ts';
 import { ALREADY_PLAN, alreadyDone, failPrefix, type Already } from '../lib/failure.ts';
 import { mockAmountCheck } from '../lib/policy.ts';
 import { areaPath, cumulative, otherInSeries, toBars, type Bar } from '../lib/series.ts';
+import { BOUNCE_REVIEW, requeuedToast } from '../lib/notices.ts';
+import { OWNER_ONLY_TAG, noticeDoneLocked, resumeOwnerOnly } from '../lib/roles.ts';
 
 const AGING_COLOR: Record<Aging, string> = { notDue: 'bg-ink-400', d0_30: 'bg-due', d31_60: 'bg-late', d61_90: 'bg-red-500', d90p: 'bg-red-700' };
 
@@ -119,7 +122,7 @@ export function Dashboard() {
                     <div className="font-bold truncate">{customerOf(i.customerId).name}</div>
                     <div className="text-sm text-ink-500">{live && pendingOf(i.id)?.count
                       ? <span data-testid="queue-merged"><span className="num">{pendingOf(i.id)!.count}</span> חשבוניות · <b className="text-ink-900">{pendingOf(i.id)!.totalText}</b></span>
-                      : <b className="text-ink-900">{fmtMoney(i.amount, i.currency)}</b>} · <LateBadge days={daysOverdue(i.dueAt, today)} /> · {STEP_LABEL[nextStep(i)]}
+                      : <b className="text-ink-900">{fmtMoney(i.amount, i.currency)}</b>} · <LateBadge days={daysOverdue(i.dueAt, today)} />{i.dueEstimated && <DueEstimatedBadge />} · {STEP_LABEL[nextStep(i)]}
                       {live && blockKind(pendingOf(i.id)?.block) === 'hard' && <span className="text-critical-ink font-bold"> · ⛔ {BLOCK_LABEL[pendingOf(i.id)!.block!] ?? pendingOf(i.id)!.block}</span>}
                       {live && blockKind(pendingOf(i.id)?.block) === 'reapprove' && <span className="text-amber-700 font-bold"> · ⏳ {REAPPROVE_LABEL[pendingOf(i.id)!.block!]}</span>}
                       {!live && mockAmountCheck(i, invoices).length > 0 && <span className="text-amber-700 font-bold" data-testid="mock-amount-check"> · ⏳ {REAPPROVE_LABEL.amount_check}</span>}</div>
@@ -335,7 +338,7 @@ export function pauseLabel(reason: string): string {
 }
 /** "דורש טיפול": לקוחות מושהים (חידוש בלחיצה כפולה) + הצעות פריסה שממתינות לאישורך. */
 function NeedsYou() {
-  const { customers, invoices, plans, notices, reload, showToast, showFail } = useApp();
+  const { customers, invoices, plans, notices, reload, showToast, showFail, me } = useApp();
   const [armed, setArmed] = useState<string | null>(null);
   const [planConfirm, setPlanConfirm] = useState<Record<number, boolean>>({});   // critic סבב 49: סכום חריג
   const seen = new Set<number>();
@@ -343,17 +346,19 @@ function NeedsYou() {
   const proposed = plans.filter(p => p.status === 'proposed');
   const nameOfCustomer = (bid: number) => customers.find(c => c.backendId === bid)?.name ?? `לקוח ${bid}`;
   const numOf = (iid: number) => invoices.find(i => i.id === String(iid))?.number ?? String(iid);
-  const act = async (key: string, fn: () => Promise<unknown>, done: string, already?: Already) => {
+  const act = async (key: string, fn: () => Promise<unknown>, done: string | ((res: unknown) => string),
+    already?: Already) => {
     if (armed !== key) { setArmed(key); window.setTimeout(() => setArmed(a => a === key ? null : a), 4000); return; }
     setArmed(null);
     // הפעלה 143: כשל ברענון אחרי פעולה שהצליחה אינו «לא בוצע» (הפס «הנתונים לא עודכנו» מטפל בו)
     // הפעלה 147: 409 «כבר אושרה» (ניסיון חוזר אחרי תשובה שאבדה) אינו כשל: מרעננים ומציגים «כבר אושרה קודם»
     let was = false;
-    try { await fn(); } catch (e) {
+    let res: unknown;
+    try { res = await fn(); } catch (e) {
       if (!already || !alreadyDone(e, already.want)) { showFail(failPrefix('לא בוצע', (e as Error).message)); return; }
       was = true;
     }
-    await reload().catch(() => { /* stale / 401 מטופלים ב-store */ }); showToast(was && already ? already.msg : done);
+    await reload().catch(() => { /* stale / 401 מטופלים ב-store */ }); showToast(was && already ? already.msg : typeof done === 'function' ? done(res) : done);
   };
   if (!paused.length && !proposed.length && !notices.length) return null;
   return (
@@ -372,17 +377,35 @@ function NeedsYou() {
             {n.intent === 'restore_hold' ? (
               <a href="#/dashboard" data-testid="notice-restore-link" onClick={e => { e.preventDefault(); document.getElementById('restore-hold')?.scrollIntoView({ block: 'center' }); }}
                 className="mt-1 inline-block text-xs font-bold text-ink-700 underline">לחידוש השליחה עם תיעוד — בבאנר האדום למעלה ↑</a>
+            ) : n.intent === BOUNCE_REVIEW && n.customerId != null ? (
+              // critic סבב 192: «טופל» השאיר את ההשהיה בשקט — כאן רק הכרעה (השרת מסרב ל«טופל» כל עוד ההשהיה פעילה)
+              <div className="flex flex-wrap gap-2 mt-2">
+                <Button size="sm" variant={armed === `bk${n.id}` ? 'dark' : 'outline'} data-testid="notice-bounce-keep"
+                  onClick={() => act(`bk${n.id}`, () => api.emailBounce(n.customerId!, false), 'הכתובת סומנה תקינה — המיילים חוזרים')}>
+                  {armed === `bk${n.id}` ? 'לחצו שוב לאישור' : 'הכתובת תקינה — החזר מיילים'}</Button>
+                <Button size="sm" variant={armed === `bb${n.id}` ? 'dark' : 'outline'} data-testid="notice-bounce-block"
+                  onClick={() => act(`bb${n.id}`, () => api.emailBounce(n.customerId!, true), 'הכתובת נחסמה למייל — SMS ממשיך')}>
+                  {armed === `bb${n.id}` ? 'לחצו שוב לאישור' : 'המייל באמת חזר — חסום'}</Button>
+              </div>
             ) : n.linked?.length ? (
               // critic סבב 149: החלטה 5 — בעל העסק בוחר למי הפנייה שייכת (רק אז המנוע מטפל בה); «אף אחד» משחרר את ההשהיה
               <div className="flex flex-wrap gap-2 mt-2">
                 {n.linked.map(c => (
                   <Button key={c.id} size="sm" variant={armed === `a${n.id}-${c.id}` ? 'dark' : 'primary'} data-testid="notice-assign"
-                    onClick={() => act(`a${n.id}-${c.id}`, () => api.assignShared(n.id, c.id), `הפנייה שויכה ל${c.name}`)}>
+                    onClick={() => act(`a${n.id}-${c.id}`, () => api.assignShared(n.id, c.id),
+                      r => requeuedToast(`הפנייה שויכה ל${c.name}`, r))}>
                     {armed === `a${n.id}-${c.id}` ? 'לחצו שוב לאישור' : `שייך ל${c.name}`}</Button>
                 ))}
                 <Button size="sm" variant={armed === `a${n.id}-none` ? 'dark' : 'outline'} data-testid="notice-assign-none"
-                  onClick={() => act(`a${n.id}-none`, () => api.assignShared(n.id, null), 'סומן: אף אחד מהם — התזכורות חודשו')}>
+                  onClick={() => act(`a${n.id}-none`, () => api.assignShared(n.id, null),
+                    r => requeuedToast('סומן: אף אחד מהם — התזכורות חודשו', r))}>
                   {armed === `a${n.id}-none` ? 'לחצו שוב לאישור' : 'אף אחד מהם'}</Button>
+              </div>
+            ) : noticeDoneLocked(me, n.intent) ? (
+              // מבקר 195א: התראת-הביטחון מיועדת לבעל העסק — עובד/ת רואה אותה, לא סוגר/ת (השרת: 403)
+              <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="notice-done-locked">
+                <Button size="sm" variant="outline" disabled title="רק בעל העסק סוגר את ההתראה הזו">✓ טופל</Button>
+                <span data-testid="owner-only-badge" className="whitespace-nowrap rounded-full bg-ink-100 px-2 py-0.5 text-xs font-bold text-ink-700">{OWNER_ONLY_TAG}</span>
               </div>
             ) : (
             <Button size="sm" variant={armed === `n${n.id}` ? 'dark' : 'outline'} className="mt-2" data-testid="notice-done"
@@ -395,17 +418,26 @@ function NeedsYou() {
           <li key={`c${c.backendId}`} className="rounded-lg bg-amber-50 p-3 text-sm">
             <div className="font-bold"><span aria-hidden>⏸️</span> {c.name}</div>
             <div className="text-ink-700 text-xs mt-0.5">{pauseLabel(c.paused!)}</div>
-            {resumeWarning(c.paused!) && <div className="text-amber-800 text-xs mt-0.5 font-bold" data-testid="resume-warning">{resumeWarning(c.paused!)}</div>}
+            {/* גבי עיצוב: לעובד/ת שלא יכול/ה לחדש — בלי «חדשו רק אחרי שבדקתם» (סותר את הנעילה) */}
+            {resumeWarning(c.paused!) && !resumeOwnerOnly(me, c.paused) && <div className="text-amber-800 text-xs mt-0.5 font-bold" data-testid="resume-warning">{resumeWarning(c.paused!)}</div>}
+            {resumeOwnerOnly(me, c.paused) ? (
+              // מבקר 195: השהיה שבעל העסק סימן — עובד/ת לא מחדש/ת (השרת: 403, critic 191א) ⇒ כפתור נעול + תג
+              <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="resume-locked">
+                <Button size="sm" variant="outline" disabled aria-disabled="true" title="רק בעל העסק מחדש השהיה שהוא סימן">↻ חידוש תזכורות</Button>
+                <span data-testid="owner-only-badge" className="whitespace-nowrap rounded-full bg-ink-100 px-2 py-0.5 text-xs font-bold text-ink-700">{OWNER_ONLY_TAG}</span>
+              </div>
+            ) : (
             <Button size="sm" variant={armed === `r${c.backendId}` ? 'dark' : 'outline'} className="mt-2"
               onClick={() => act(`r${c.backendId}`, () => api.resume(c.backendId!), `התזכורות ל${c.name} חודשו`)}>
               {armed === `r${c.backendId}` ? 'לחצו שוב לאישור' : '↻ חידוש תזכורות'}
             </Button>
+            )}
           </li>
         ))}
         {proposed.map(p => {
           const total = p.installments.reduce((s, x) => s + x.amount_agorot, 0) / 100;
           return (
-            <li key={`p${p.id}`} className="rounded-lg bg-brand-50 p-3 text-sm">
+            <li key={`p${p.id}`} className="rounded-lg bg-brand-50 p-3 text-sm" data-testid="plan-offer" data-pid={p.id}>
               <div className="font-bold">💳 הצעת פריסה · {nameOfCustomer(p.customer_id)} · חשבונית <span className="num">{numOf(p.invoice_id)}</span></div>
               <div className="text-xs text-ink-700 mt-0.5">{p.installments.length} תשלומים ללא ריבית · סה״כ {fmtMoney(total, p.currency)}</div>
               <ol className="text-xs text-ink-500 mt-1 space-y-0.5">

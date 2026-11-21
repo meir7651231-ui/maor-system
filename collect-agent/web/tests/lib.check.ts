@@ -1316,7 +1316,14 @@ test('גבייה סוכן 18.11: shared_contact_paid_claim מוצג עם linked 
 });
 
 // מנהל 310: ייצוא בקשת עיון — שם קובץ בטוח ותוכן כפי שהשרת החזיר
-import { dataExportFileName, dataExportText } from '../src/lib/dataExport.ts';
+import { dataExportFileName, dataExportText, exportOwnerOnly } from '../src/lib/dataExport.ts';
+test('ראש צוות 20.11: ייצוא בקשת עיון = בעל העסק בלבד (עובד/ת ⇒ הסבר במקום כפתור)', () => {
+  assert.equal(exportOwnerOnly({ actor: 'user:2', kind: 'user', name: 'עובד', owner: false }), true);
+  assert.equal(exportOwnerOnly({ actor: 'user:1', kind: 'user', name: 'בעלים', owner: true }), false);
+  assert.equal(exportOwnerOnly({ actor: 'owner', kind: 'owner', name: 'טוקן' }), false);
+  assert.equal(exportOwnerOnly(null), false);
+  assert.match(readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8'), /exportOwnerOnly\(me\) && <div[\s\S]{0,120}בעל העסק בלבד/);
+});
 test('dataExport: שם קובץ ASCII בלי שם הלקוח', () => {
   assert.equal(dataExportFileName(7, '2026-11-19'), 'gabi-data-request-customer-7-2026-11-19.json');
   assert.equal(dataExportFileName(NaN, 'bad'), 'gabi-data-request-customer-0-export.json');
@@ -1513,4 +1520,160 @@ test('הסדרים: מטבע ההסדר (מבקר 185 🔴) — הסדר בדו�
     assert.ok(!/fmtIls\(/.test(chunk), `${name}: fmtIls בכרטיס הסדר`);
     assert.ok(/fmtMoney\([^)]*p\.currency\)/.test(chunk), `${name}: בלי מטבע ההסדר`);
   }
+});
+
+test('גבי עיצוב: מצב המייל בשורת הלקוח — חזר / ספאם, פעולת תיקון לפי המקור, אחרת כלום', async () => {
+  const { emailStateView } = await import('../src/lib/emailState.ts');
+  for (const s of [null, undefined, '', 'opted_out', 'x']) assert.equal(emailStateView(s as never, 'api'), null);
+  const b = emailStateView('bounced', 'api')!;
+  assert.match(b.title, /לא פעילה/); assert.match(b.body, /SMS ממשיך/); assert.match(b.body, /מערכת החשבוניות/);
+  assert.equal(b.action.href, '#/settings');
+  const bc = emailStateView('bounced', 'csv')!;
+  assert.match(bc.body, /CSV/); assert.match(bc.action.text, /ייבוא/);
+  const sp = emailStateView('spam', 'api')!;
+  assert.match(sp.title, /ספאם/);
+  // ספאם = סירוב: לא מציעים «לשלוח שוב», רק תיקון כתובת אם היא של אדם אחר
+  assert.match(sp.body, /לא שולחים עוד מייל/); assert.match(sp.body, /אדם אחר/);
+  assert.doesNotMatch(sp.body + sp.action.text, /שלח(ו)? שוב|לחדש מייל/);
+});
+
+test('critic 192: כרטיס email_bounce_review — כותרת ייעודית + customerId להכרעה', async () => {
+  const { systemNotices, BOUNCE_REVIEW } = await import('../src/lib/notices.ts');
+  const [n] = systemNotices([{ id: 7, customer_id: 3, direction: 'system', channel: 'email', body: 'x', intent: BOUNCE_REVIEW, created_at: '2026-11-20T10:00:00+02:00' }]);
+  assert.equal(n.customerId, 3);
+  assert.match(n.title, /מושהים/);
+  const [m] = systemNotices([{ id: 8, customer_id: 3, direction: 'system', channel: 'owner', body: 'x', intent: 'amount_check', created_at: '2026-11-20T10:00:00+02:00' }]);
+  assert.equal(m.customerId, undefined);
+});
+
+test('מבקר 194: שדות בעל העסק בהגדרות נעולים לעובד/ת בלבד', async () => {
+  const { settingsOwnerOnly, fieldLocked, OWNER_ONLY_FIELDS } = await import('../src/lib/settings.ts');
+  const staff = { actor: 'user:2', kind: 'user' as const, name: 'עובד' };
+  const ownerUser = { actor: 'user:1', kind: 'user' as const, name: 'בעל העסק', owner: true };
+  const ownerTok = { actor: 'owner', kind: 'owner' as const, name: '' };
+  assert.ok(settingsOwnerOnly(staff)); assert.ok(settingsOwnerOnly({ ...staff, owner: false }));
+  assert.ok(!settingsOwnerOnly(ownerUser)); assert.ok(!settingsOwnerOnly(ownerTok)); assert.ok(!settingsOwnerOnly(null));
+  for (const k of OWNER_ONLY_FIELDS) { assert.ok(fieldLocked(staff, k), k); assert.ok(!fieldLocked(ownerUser, k), k); assert.ok(!fieldLocked(null, k), k); }
+  assert.equal(OWNER_ONLY_FIELDS.length, 8);
+});
+
+test('q21-19: «בדוק ואשר» על מועד מעבר ל-14 — מזוהה רק בהבטחה עם הפעולה של השרת', async () => {
+  const { isPromiseOverLimit } = await import('../src/lib/promiseRequest.ts');
+  const act = ['בדוק ואשר: לאשר את 25.11.2026 — או לסרב (התזכורות יחזרו אחרי 22.11.2026)'];
+  assert.equal(isPromiseOverLimit({ intent: 'promise', owner_actions: act }), true);
+  assert.equal(isPromiseOverLimit({ intent: 'promise', owner_actions: ['לאשר או להציע מועד אחר'] }), false);
+  assert.equal(isPromiseOverLimit({ intent: 'dispute', owner_actions: act }), false);
+});
+
+test('מבקר 195: חידוש השהיית-בעלים נעול לעובד/ת בלבד', async () => {
+  const { resumeOwnerOnly } = await import('../src/lib/roles.ts');
+  const staff = { actor: 'user:2', kind: 'user' as const, name: 'עובד' };
+  const ownerUser = { ...staff, owner: true };
+  const token = { actor: 'owner', kind: 'owner' as const, name: 'בעלים' };
+  for (const h of ['deceased', 'minor', 'insolvency']) assert.equal(resumeOwnerOnly(staff, h), true, h);
+  assert.equal(resumeOwnerOnly(staff, 'paid_claim'), false);
+  assert.equal(resumeOwnerOnly(staff, 'promise:until=2026-11-23'), false);
+  assert.equal(resumeOwnerOnly(ownerUser, 'deceased'), false);
+  assert.equal(resumeOwnerOnly(token, 'deceased'), false);
+  assert.equal(resumeOwnerOnly(null, 'deceased'), false);
+});
+
+test('מבקר 195א: «✓ טופל» על התראת-ביטחון — נעול לעובד/ת בלבד, שאר ההתראות פתוחות', async () => {
+  const { noticeDoneLocked } = await import('../src/lib/roles.ts');
+  const staff = { actor: 'user:2', kind: 'user' as const, name: 'עובד' };
+  const ownerUser = { ...staff, owner: true };
+  const token = { actor: 'owner', kind: 'owner' as const, name: 'בעלים' };
+  assert.equal(noticeDoneLocked(staff, 'settings_changed'), true);
+  assert.equal(noticeDoneLocked(staff, 'max_reminders'), false);
+  assert.equal(noticeDoneLocked(ownerUser, 'settings_changed'), false);
+  assert.equal(noticeDoneLocked(token, 'settings_changed'), false);
+  assert.equal(noticeDoneLocked(null, 'settings_changed'), false);
+  const dash = await (await import('node:fs/promises')).readFile(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  assert.match(dash, /noticeDoneLocked\(me, n\.intent\) \?/);
+});
+
+test('מבקר 195ג (+194): פעולות בעל העסק בלבד — עובד/ת רואה נעול, בעלים/קוד-בעלים/לא-נטען רואים פתוח', async () => {
+  const { isStaff, isOwnerHold, resumeLocked, exportLocked, dsrCloseLocked, OWNER_HOLDS } = await import('../src/lib/roles.ts');
+  const staff = { actor: 'user:2', kind: 'user' as const, name: 'עובדת' };
+  const ownerUser = { actor: 'user:1', kind: 'user' as const, name: 'בעלים', owner: true };
+  const ownerTok = { actor: 'owner', kind: 'owner' as const, name: 'בעל העסק' };
+  assert.equal(isStaff(staff), true);
+  for (const m of [ownerUser, ownerTok, null, undefined]) assert.equal(isStaff(m), false);
+  // אותה רשימה כמו app/policy.py OWNER_HOLDS
+  const py = readFileSync(new URL('../../app/policy.py', import.meta.url), 'utf8').match(/^OWNER_HOLDS = \(([^)]*)\)/m)![1];
+  assert.deepEqual([...OWNER_HOLDS], [...py.matchAll(/"(\w+)"/g)].map(m => m[1]));
+  for (const p of ['minor', 'deceased', 'insolvency', 'minor:until=2026-12-01']) assert.equal(isOwnerHold(p), true, p);
+  for (const p of ['paid_claim', 'distress', 'legal', '', null]) assert.equal(isOwnerHold(p), false, String(p));
+  assert.equal(resumeLocked(staff, 'deceased'), true);
+  assert.equal(resumeLocked(staff, 'paid_claim'), false, 'השהיה רגילה — עובד/ת ממשיך/ה לחדש');
+  assert.equal(resumeLocked(ownerUser, 'deceased'), false);
+  assert.equal(exportLocked(staff), true); assert.equal(exportLocked(ownerTok), false);
+  assert.equal(dsrCloseLocked(staff, 'deletion'), true);
+  for (const k of ['access', 'correction']) assert.equal(dsrCloseLocked(staff, k), false, k);
+  assert.equal(dsrCloseLocked(ownerUser, 'deletion'), false);
+  // מבקר 201: «בדוק ואשר» על מועד מעבר ל-14 יום — עובד/ת נעול/ה, בעלים/קוד-בעלים/לא-נטען פתוח
+  const { promiseDecisionLocked } = await import('../src/lib/roles.ts');
+  assert.equal(promiseDecisionLocked(staff), true);
+  for (const m of [ownerUser, ownerTok, null]) assert.equal(promiseDecisionLocked(m), false);
+  const inbox = readFileSync(new URL('../src/pages/Inbox.tsx', import.meta.url), 'utf8');
+  assert.match(inbox, /disabled=\{busy \|\| promiseLocked\} data-testid="promise-approve"/);
+  assert.match(inbox, /disabled=\{busy \|\| promiseLocked\} data-testid="promise-refuse"/);
+});
+
+test('d018a41 · מועד מוערך: תאריך תקין בלוח, ותיקונים נשלחים רק לפתוחות שהשתנו ותקינות', async () => {
+  const { validDue, dueCorrections, DUE_ESTIMATED_HELP } = await import('../src/lib/dueEstimate.ts');
+  assert.match(DUE_ESTIMATED_HELP, /הנפקה \+ 30 יום/);
+  for (const v of ['2026-11-30', '2028-02-29']) assert.equal(validDue(v), true, v);
+  for (const v of ['', '2026-02-30', '2027-02-29', '31/11/2026', '2026-1-5', '2026-13-01']) assert.equal(validDue(v), false, v);
+  const orig = { 1: '2026-10-31', 2: '2026-10-31', 3: '2026-10-31', 4: null };
+  const edits = { 1: '2026-11-15', 2: '2026-10-31', 3: '2026-11-20', 4: 'xx' };
+  // 1 פתוחה ושונתה ⇒ נשלחת · 2 לא שונתה · 3 שונתה אבל לא סומנה פתוחה · 4 לא תקינה
+  assert.deepEqual(dueCorrections([1, 2, 4], edits, orig), { '1': '2026-11-15' });
+  assert.deepEqual(dueCorrections([], edits, orig), {});
+  const { humanizeOpenListError } = await import('../src/lib/dueEstimate.ts');
+  assert.equal(humanizeOpenListError('חשבונית 13 לא קיימת או לא פתוחה', [{ id: 13, number: '9303' }]), 'חשבונית 9303 לא קיימת או לא פתוחה');
+  assert.equal(humanizeOpenListError('מועד לא תקין לחשבונית 99 (YYYY-MM-DD)', []), 'מועד לא תקין לחשבונית 99 (YYYY-MM-DD)');
+});
+
+test('מנהל 360: הטוסט אחרי «בדוק ואשר» אומר מה קרה ללקוח (עדכון בתור / הוחלף / אין) + עוגן הקפיצה', async () => {
+  const { promiseDecisionText, promiseUpdateAnchor } = await import('../src/lib/promiseRequest.ts');
+  const a = promiseDecisionText({ approved: true, customer_update: { draft: 9, replaced: [] } });
+  assert.match(a, /^✓ המועד המבוקש אושר/); assert.match(a, /ממתין לאישורך בתור/); assert.doesNotMatch(a, /הוחלפה/);
+  const r = promiseDecisionText({ approved: false, customer_update: { draft: 9, replaced: [4] } });
+  assert.match(r, /^המועד לא אושר/); assert.match(r, /התשובה הקודמת הוחלפה/); assert.match(r, /ממתין לאישורך/);
+  for (const u of [null, undefined]) {
+    const n = promiseDecisionText({ approved: true, customer_update: u });
+    assert.match(n, /לא נוסח עדכון/); assert.doesNotMatch(n, /בתור/);
+    assert.equal(promiseUpdateAnchor({ customer_update: u }), null);
+  }
+  assert.equal(promiseUpdateAnchor({ customer_update: { draft: 12, replaced: [] } }), 'draft-12');
+  // e2e הקיים (app-staff-owner-only) מחכה ל«המועד המבוקש אושר» — לא לשבור
+  assert.ok(a.includes('המועד המבוקש אושר'));
+});
+
+test('מנהל 361 (ביקורת 207): כרטיס כתובת משותפת אומר שתשובות מאושרות נעצרו', async () => {
+  const { systemNotices, stoppedApprovedLine } = await import('../src/lib/notices.ts');
+  assert.equal(stoppedApprovedLine(null), '');
+  assert.equal(stoppedApprovedLine('{bad'), '');
+  assert.equal(stoppedApprovedLine('{"stopped_approved":0}'), '');
+  assert.equal(stoppedApprovedLine('{"stopped_approved":"2"}'), '');
+  assert.match(stoppedApprovedLine('{"stopped_approved":1}'), /עצרנו תשובה שאישרת.*לא תישלח/);
+  assert.match(stoppedApprovedLine('{"stopped_approved":3}'), /עצרנו 3 תשובות.*לא יישלחו/);
+  const linked = [{ id: 1, name: 'דנה' }, { id: 2, name: 'יוסי' }];
+  const row = (payload: object) => ({ id: 5, direction: 'in', customer_id: null, intent: 'shared_contact_urgent',
+    body: 'אני בן 15', payload: JSON.stringify(payload), created_at: '' }) as any;
+  const [withStop] = systemNotices([row({ linked_customers: linked, stopped_approved: 1 })]);
+  assert.match(withStop.body, /לקוחות מקושרים: דנה · יוסי\n\n⏸ עצרנו תשובה/);
+  const [noStop] = systemNotices([row({ linked_customers: linked })]);
+  assert.doesNotMatch(noStop.body, /עצרנו/);
+});
+
+test('מנהל 364 (מבקר 209🟡): שיוך כרטיס כתובת משותפת ⇒ תשובות שנעצרו חוזרות לתור — הכרטיס והטוסט אומרים זאת', async () => {
+  const { stoppedApprovedLine, requeuedToast } = await import('../src/lib/notices.ts');
+  assert.match(stoppedApprovedLine('{"stopped_approved":2}'), /יחזרו לתור לאישור מחדש/);
+  assert.equal(requeuedToast('שויכה', null), 'שויכה');
+  assert.equal(requeuedToast('שויכה', { requeued_drafts: [] }), 'שויכה');
+  assert.equal(requeuedToast('שויכה', { requeued_drafts: 'x' }), 'שויכה');
+  assert.match(requeuedToast('שויכה', { requeued_drafts: [7] }), /^שויכה · תשובה שנעצרה חזרה לתור האישורים/);
+  assert.match(requeuedToast('שויכה', { requeued_drafts: [7, 8] }), /2 תשובות שנעצרו חזרו לתור/);
 });

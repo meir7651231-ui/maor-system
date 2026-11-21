@@ -10,6 +10,7 @@ import type { WeekPoint } from './lib/series.ts';
 import type { OwnerMsg } from './lib/notices.ts';
 import type { DsrRow } from './lib/dsr.ts';
 import type { Role, Team } from './lib/team.ts';
+import type { PromiseDecision } from './lib/promiseRequest.ts';
 
 /** השרת ענה 401 — צריך קוד גישה של בעל העסק. */
 export class AuthError extends Error {}
@@ -91,6 +92,8 @@ export async function detectBackend(): Promise<Health | null> {
 export interface DashRow {
   invoice_id: number; number: string; customer: string; phone: string; email: string;
   customer_id?: number; paused_reason?: string | null;
+  /** גבי עיצוב: מצב המייל — 'bounced' (חזר) / 'spam' (סומן ספאם) / null. חסר בשרת ישן. */ email_state?: 'bounced' | 'spam' | null;
+  /** d018a41: מועד מוערך (הנפקה+30) */ due_estimated?: boolean;
   source?: 'api' | 'csv';
   amount_agorot: number; currency: string; due: string | null; status: 'open' | 'closed' | string;
   days_overdue: number; reminders_sent: number;
@@ -129,7 +132,8 @@ export interface Preview { reminder_id: number; status: string; /** critic סב�
   /** הפעלה 135: תזכורת מאוחדת — כל המספרים, כמה חשבוניות, הסה״כ לפי מטבע, והאם יש בה חשבונית מ-CSV */
   needs_confirm_open?: boolean; numbers?: string[]; invoice_count?: number; total_text?: string;
   /** הפעלה 154: תזכורת מאושרת שהסכום שלה השתנה במקור (הנוסח עדיין על הסכום הקודם, ולא יישלח כך) */
-  amount_drift?: { was_text: string | null; now_text: string } | null }
+  amount_drift?: { was_text: string | null; now_text: string } | null;
+  /** d018a41: מספרי החשבוניות בתזכורת שהמועד שלהן מוערך */ due_estimated?: string[] }
 /** תזכורת שממתינה לאישור, לפי חשבונית העוגן. count/totalText רק כשהתזכורת כוללת יותר מחשבונית אחת. */
 export interface PendingRef { reminderId: number; block: string | null; count?: number; totalText?: string;
   /** הפעלה 171: תזכורת מאוחדת — מזהי כל החשבוניות שבה (כולל העוגן), לחיפוש בתור לפי כל מספר */
@@ -146,14 +150,15 @@ export interface InboundResult { intent: string; escalate?: boolean; escalation?
 export interface OutMsg { id: string; channel: 'sms' | 'email'; to: string; body: string }
 
 /** critic סבב 79: שער «אישור רשימת הפתוחות» — בלי אישור אין תזכורת. */
-export interface OpenItem { id: number; number: string; customer: string; amount_agorot: number; currency: string; due: string | null; source: string }
+export interface OpenItem { id: number; number: string; customer: string; amount_agorot: number; currency: string; due: string | null; source: string;
+  /** d018a41: אין מועד במקור ⇒ הנפקה+30; ניתן לתיקון באישור */ due_estimated?: boolean }
 export interface OpenList { enabled: boolean; pending: OpenItem[]; confirmed: OpenItem[] }
 
 export const api = {
   openList: () => j<OpenList>('/open-list'),
   /** stillOpen ⇒ מותר לתזכר · paid ⇒ שולם מחוץ למערכת: נסגר כאן ולא יתוזכר */
-  confirmOpenList: (stillOpen: number[], paid: number[]) =>
-    j<OpenList>('/open-list/confirm', { method: 'POST', body: JSON.stringify({ still_open: stillOpen, paid }) }),
+  confirmOpenList: (stillOpen: number[], paid: number[], due: Record<string, string> = {}) =>
+    j<OpenList>('/open-list/confirm', { method: 'POST', body: JSON.stringify({ still_open: stillOpen, paid, ...(Object.keys(due).length ? { due } : {}) }) }),
   me: () => j<Me>('/auth/me'),
   dashboard: () => j<Dashboard>('/dashboard'),
   // invoice_id = העוגן של תזכורת מאוחדת; invoice_ids = כל החשבוניות שבהודעה
@@ -185,6 +190,12 @@ export const api = {
   deactivate: (uid: number) => j<Team>(`/team/${uid}/deactivate`, { method: 'POST' }),
   reactivate: (uid: number) => j<Team>(`/team/${uid}/reactivate`, { method: 'POST' }),
   ownerDone: (id: number) => j<unknown>(`/owner/inbox/${id}/done`, { method: 'POST' }),
+  /** critic סבב 192 (q22-04): הכרעה על DSN שלא אומת — confirm=true ⇒ הכתובת נחסמת למייל · false ⇒ המיילים חוזרים */
+  /** הכרעת ראש צוות q21-19: approve=true ⇒ ההשהיה עד המועד המבוקש · false ⇒ נשאר 14 יום, ואז התזכורות חוזרות */
+  promiseRequest: (cid: number, approve: boolean) => j<PromiseDecision>(
+    `/customers/${cid}/promise-request`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ approve }) }),
+  emailBounce: (cid: number, confirm: boolean) => j<{ customer: number; email: 'blocked' | 'resumed' }>(`/customers/${cid}/email-bounce`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm }) }),
   // critic סבב 149: שיוך כרטיס כתובת משותפת (החלטה 5) — לקוח נבחר, או null = «אף אחד מהם»
   assignShared: (cardId: number, customerId: number | null) => j<unknown>(`/owner/shared-cards/${cardId}/assign`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customer_id: customerId }) }),
@@ -281,7 +292,7 @@ export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
   for (const r of d.invoices) {
     const cid = `c${r.invoice_id}`;
     customers.push({ id: cid, name: r.customer, phone: r.phone || undefined, email: r.email || undefined, optedOut: r.customer_block === 'opted_out',
-      backendId: r.customer_id, paused: r.paused_reason ?? null });
+      backendId: r.customer_id, paused: r.paused_reason ?? null, emailState: r.email_state ?? null });
     const status: InvoiceStatus = r.status !== 'open' ? 'paid'
       : r.customer_block === 'disputed' ? 'disputed'
       : r.customer_block === 'paid_claim' || r.customer_block === 'plan_active' ? 'promised'
@@ -302,7 +313,7 @@ export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
     const blockNote = r.customer_block ? BLOCK_LABEL[r.customer_block] ?? r.customer_block : refreshNote;
     invoices.push({
       id: String(r.invoice_id), source: r.source === 'csv' ? 'csv' : 'api', number: r.number, customerId: cid, amount: r.amount_agorot / 100,
-      issuedAt: r.due ?? d.today, dueAt: r.due ?? d.today, status, payUrl: '', reminders, note: blockNote,
+      issuedAt: r.due ?? d.today, dueAt: r.due ?? d.today, dueEstimated: !!r.due_estimated, status, payUrl: '', reminders, note: blockNote,
       ...(r.currency && r.currency !== 'ILS' ? { currency: r.currency } : {}),
       ...(lastSent ? { lastSent } : {}),
       ...(drift ? { amountDrift: { was: drift.was_text, now: drift.now_text, ...(r.last_reminder?.id ? { reminderId: r.last_reminder.id } : {}) } } : {}),

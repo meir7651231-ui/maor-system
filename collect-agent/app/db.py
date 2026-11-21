@@ -83,6 +83,16 @@ CREATE TABLE IF NOT EXISTS suppressions (
 CREATE TABLE IF NOT EXISTS email_bounces (
   hash TEXT PRIMARY KEY, created_at TEXT NOT NULL
 );
+-- הכרעת מקשר (q22-04): DSN שלא אומת (בלי Message-ID שלנו) אבל Final-Recipient תואם לקוח ⇒ השהיית מייל בלבד
+-- עד שבעל העסק מאשר (⇒ email_bounces) או דוחה. גיבוב כמו email_bounces; שום שינוי קבוע בלי אישור
+-- הכרעת מקשר (q22-10): 5.7.x = דחיית מדיניות/אבטחה, לא כתובת מתה ⇒ לא חוסמים. אבל 3 ברצף לאותה כתובת ⇒ כרטיס
+-- לבעל העסק (לרוב בעיה אצלנו: מוניטין/SPF/DMARC או תוכן). מתאפס בכל תוצאה אחרת לכתובת. גיבוב, בלי כתובת
+CREATE TABLE IF NOT EXISTS email_policy_streak (
+  hash TEXT PRIMARY KEY, count INTEGER NOT NULL, carded INTEGER NOT NULL DEFAULT 0, updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS email_bounce_review (
+  hash TEXT PRIMARY KEY, customer_id INTEGER, code TEXT, created_at TEXT NOT NULL
+);
 -- הגדרות עסק (API מאומת). סודות לא נשמרים כאן — רק בסביבה/בכספת
 CREATE TABLE IF NOT EXISTS business_settings (
   key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
@@ -175,12 +185,23 @@ class DB:
         if "credit_agorot" not in icols:  # ממצא 2.16: זיכוי שקוזז (amount_agorot = נטו) — לרענון
             self.conn.execute("ALTER TABLE invoices ADD COLUMN credit_agorot INTEGER NOT NULL DEFAULT 0")
             self.conn.commit()
+        # הכרעת רכז (due_estimated): מועד מוערך (אין dueDate במקור ⇒ הנפקה+30) גלוי לבעל העסק, וניתן לתיקון
+        # ברשימת הפתוחות. due_owner_at = בעל העסק קבע את המועד ⇒ סנכרון לא דורס אותו. SQL קבוע (שער האבטחה)
+        for col, ddl in (
+                ("due_estimated", "ALTER TABLE invoices ADD COLUMN due_estimated INTEGER NOT NULL DEFAULT 0"),
+                ("due_owner_at", "ALTER TABLE invoices ADD COLUMN due_owner_at TEXT")):
+            if col not in icols:
+                self.conn.execute(ddl)
+        self.conn.commit()
         pcols = {r[1] for r in self.conn.execute("PRAGMA table_info(plans)")}
         if "invoice_ids" not in pcols:  # מבקר §4.6: ההסדר על **כל** החוב — אילו חשבוניות נכללו
             self.conn.execute("ALTER TABLE plans ADD COLUMN invoice_ids TEXT")
             self.conn.commit()
         if "claimed_at" not in pcols:   # critic סבב 76: מתי נתפס לאישור (התאוששות מקריסה באמצע)
             self.conn.execute("ALTER TABLE plans ADD COLUMN claimed_at TEXT")
+            self.conn.commit()
+        if "raised_agorot" not in pcols:   # מבקר 203: עלייה בסכום חשבוניות ההסדר מאז האישור
+            self.conn.execute("ALTER TABLE plans ADD COLUMN raised_agorot INTEGER NOT NULL DEFAULT 0")
             self.conn.commit()
         # ר-10: legal hold מתועד + חותמות מחיקה/התממה. SQL קבוע (שער האבטחה)
         for have, col, ddl in (

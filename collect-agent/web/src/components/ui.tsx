@@ -46,7 +46,7 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
     </label>
   );
 }
-export const inputCls = 'w-full h-11 rounded-xl border border-ink-200 bg-white px-3.5 text-ink-900 placeholder:text-ink-400 focus:border-brand focus:ring-2 focus:ring-brand/30 outline-none';
+export const inputCls = 'w-full h-11 rounded-xl border border-ink-200 bg-white px-3.5 text-ink-900 placeholder:text-ink-400 focus:border-brand focus:ring-2 focus:ring-brand/30 outline-none disabled:bg-ink-50 disabled:text-ink-500 disabled:cursor-not-allowed';
 
 export function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
@@ -55,4 +55,9 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
       <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${checked ? 'right-6' : 'right-1'}`} />
     </button>
   );
+}
+
+/** תג «🔒 בעל העסק בלבד» — אותו דפוס בכל המסכים (הגדרות, חידוש השהיית-בעלים, ייצוא, סגירת בקשת מחיקה). */
+export function OwnerBadge({ testId = 'owner-only-badge' }: { testId?: string }) {
+  return <span data-testid={testId} className="ms-2 align-middle whitespace-nowrap rounded-full bg-ink-100 px-2 py-0.5 text-xs font-bold text-ink-700">🔒 בעל העסק בלבד</span>;
 }

@@ -76,6 +76,8 @@
 | "רק בעל העסק מנהל את הצוות" | `tests/test_mgr328_team_screen.py::test_staff_cannot_change_roles_or_deactivate` |
 | "לקוח שמשלם לפי הלוח של ההסדר לא מקבל תזכורות" | `tests/test_mgr332_plan_lifecycle.py::test_on_track_stays_blocked_and_no_card` |
 | "תשלום בהסדר הוחמץ? תקבל הודעה אחת, והתזכורות חוזרות" | `tests/test_mgr332_plan_lifecycle.py::test_missed_card_once_and_block_released` |
+| "לקוח כתב משהו רגיש (קטין, פטירה, מצוקה)? גבי עוצר הכול, גם הודעות שכבר אישרת" | `tests/test_mgr360_protective_stops_approved.py::test_dispatch_sends_nothing_after_stop` |
+| "סימנת לקוח כקטין, כנפטר או בחדלות פירעון? שום דבר לא יוצא אליו" | `tests/test_legal_requirements.py::test_r6_owner_hold_stops_everything` |
 
 ### מה **אסור** לטעון (אין גיבוי, או שמדובר בהבטחה)
 - **SMS או «לא בשבת/חג» כבידול מול מתחרים.** ה«נודניק» של iCount שולח SMS ב-₪29 לחודש, ו-morning דוחה תזכורת שיוצאת בשבת (`team/market.md` §1.6). אלה כללי עבודה, לא יתרון. **הבידול:** אישור פרטני לכל הודעה, תשובות הלקוח מגיעות לבעל העסק ומסווגות, ועצירה אחרי 3 תזכורות (נאכף ב-`tests/test_sales_differentiation.py`).
