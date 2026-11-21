@@ -25,7 +25,6 @@ GAPS = ["he's no longer with us", "she is no longer with us", "she passed", "the
         "I'm in debt relief proceedings"]
 
 
-@pytest.mark.xfail(strict=True, reason="213🟠: ניסוח מגין באנגלית ⇒ unknown/normal")
 @pytest.mark.parametrize("text", GAPS)
 def test_protective_english_variant_is_urgent(text):
     d = _d(text)
@@ -41,3 +40,56 @@ def test_control_close_english_variants_urgent(text):
 @pytest.mark.parametrize("text", ["I want to end this subscription", "he no longer works here", "my husband will pay"])
 def test_control_no_overmatch(text):
     assert _d(text).intent.value not in ("distress", "minor")
+
+
+# ── תוקן (גבייה סוכן 21.11): בקרות נוספות נגד התראת-שווא לרגקסים החדשים ─────────────────────────────────
+@pytest.mark.parametrize("text", ["she passed the invoice to accounting", "he passed the exam, will pay friday",
+                                  "my 16 year old son will pay tomorrow", "this is the 16 year old invoice?",
+                                  "I'm under budget this month", "RIP my wallet lol",
+                                  "I'm in a bad place financially, can I pay in installments?"])
+def test_new_patterns_do_not_overmatch(text):
+    d = _d(text)
+    assert d.intent.value not in ("distress", "minor") and "sensitive" not in d.tags, (text, d.intent, d.tags)
+
+
+@pytest.mark.parametrize("text,tag", [("he's no longer with us", "sensitive"), ("RIP dad", "sensitive"),
+                                      ("I'm in debt relief proceedings", "insolvency"), ("I'm under 18", "minor")])
+def test_english_variants_get_the_same_tags_as_hebrew(text, tag):
+    """כמו המקבילות בעברית: תגית ההשהיה הנכונה (רגיש / חדלות פירעון / קטין) — לא רק «דחוף»."""
+    d = _d(text)
+    assert tag in d.tags and d.stop != cv.Stop.NONE, (d.intent, d.tags, d.stop)
+
+
+# ── סט #23 (גבי מנוע ⇒ צורף לתיקון 213): עוד 8 ניסוחים מגינים באנגלית + 4 בקרות שאסור לתפוס ─────────────────
+EN23 = [("I'm only fourteen", "minor"), ("My daughter (15) answered this, please don't message her", "minor"),
+        ("Mom died on Tuesday, I'm handling her things", "cant_pay"),
+        ("my husband was killed in an accident", "cant_pay"),
+        ("The person you're texting has died", "cant_pay"), ("nobody would care if I was gone", "distress"),
+        ("I'm forwarding this to my legal counsel", "legal"), ("Talk to my solicitor from now on", "legal")]
+
+
+@pytest.mark.parametrize("text,intent", EN23)
+def test_en23_protective_urgent_with_pause(text, intent):
+    d = _d(text)
+    assert d.intent.value == intent and d.escalate == cv.Escalation.URGENT and d.stop != cv.Stop.NONE, \
+        (text, d.intent, d.escalate, d.stop)
+
+
+@pytest.mark.parametrize("text", ["my son is 16 now, time flies. I'll pay on the 18th",
+                                  "I'm dying to get this sorted, can I pay by card?",
+                                  "the old manager passed the account to me, I'll pay on the 18th",
+                                  "my lawyer friend says it's fine, I'll pay on the 18th",
+                                  "I'm only fifteen minutes away, will pay at the shop"])
+def test_en23_controls_not_protective(text):
+    d = _d(text)
+    assert d.intent.value not in ("minor", "distress", "legal"), (text, d.intent)
+
+
+# סבב 214 (בקשת ראש הצוות: «ניסוחים מגינים באנגלית אחרי התיקון»): שומרי הכללת-יתר לתיקון של 213 — ירוקים היום,
+# חייבים להישאר ירוקים אחריו (אף אחד מהם אינו פטירה/קטין/מצוקה).
+@pytest.mark.parametrize("text", ["I passed the payment to my accountant", "he's no longer with the company",
+                                  "I'm under budget this month", "she passed the exam, I'll pay tomorrow",
+                                  "RIP the old invoice, send a new one", "I'm in a dark mode theme lol",
+                                  "under 18 days I'll pay", "no longer with us as a supplier"])
+def test_control_no_overmatch_after_fix(text):
+    assert _d(text).escalate != cv.Escalation.URGENT

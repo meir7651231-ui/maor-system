@@ -25,12 +25,18 @@ COLUMNS: dict[str, tuple[str, ...]] = {
     "client": ("שם לקוח", "לקוח", "client", "customer", "name"),
     "phone": ("טלפון", "נייד", "phone", "mobile"),
     "email": ("מייל", "אימייל", "דוא\"ל", "email", "e-mail"),
-    "amount": ("יתרה לתשלום", "יתרה", "סכום", "סה\"כ", "amount", "balance", "total"),
+    "amount": ("יתרה לתשלום", "יתרה", "amount due", "balance", "סכום", "סה\"כ", "amount", "total"),
     "issued": ("תאריך", "תאריך מסמך", "date", "issued"),
     "due": ("תאריך לתשלום", "מועד תשלום", "due", "due date"),
     "currency": ("מטבע", "currency"),
     "status": ("סטטוס", "status"),
+    # מנהל 370: סכום ששולם לצד סכום ברוטו (בלי עמודת יתרה) ⇒ לא דורשים את מה ששולם (ראו `_paid_conflict`)
+    "paid": ("סכום ששולם", "שולם", "תקבולים", "זכות", "paid", "amount paid", "paid amount"),
 }
+# שמות עמודת סכום שהם כבר נטו (אחרי תשלומים) — עמודת «שולם» לצידם לא משנה דבר
+BALANCE_NAMES = ("יתרה לתשלום", "יתרה", "amount due", "balance")
+DEBIT_CREDIT_HINT = (" — בקובץ יש עמודות חובה/זכות: צריך עמודת «יתרה לתשלום» לכל חשבונית"
+                     " (ייצוא «חשבוניות פתוחות», לא כרטסת)")
 CLOSED_STATUSES = {"סגור", "שולם", "נסגר", "מבוטל", "closed", "paid", "cancelled", "canceled"}
 
 
@@ -115,7 +121,12 @@ def _agorot(v: str) -> int:
 # מרשימת הבדיקה, וקובץ שכולו בפורמט הזה נדחה כולו. וגם: «₪500» בשורה שעמודת המטבע שלה USD נקלט בשקט
 # כ-500 דולר. עכשיו: סוגריים / מינוס בסוף = שלילי ⇒ זיכוי (לבדיקה, אף פעם לא חוב); סימן כפול
 # («(-500)», «-500-») ⇒ שגיאה; סימן מטבע בתא נבדק מול עמודת המטבע — סתירה ⇒ שגיאה גלויה, בלי ניחוש.
-_CELL_INVISIBLE = ("\u200f", "\u200e", "\u202a", "\u202b", "\u202c", "\ufeff")
+_CELL_INVISIBLE = ("\u200f", "\u200e", "\u202a", "\u202b", "\u202c", "\ufeff", "\u2066", "\u2067", "\u2068",
+                   "\u2069", "\u061c")
+# מנהל 370: Excel ב-Mac / Numbers / העתקה מ-Word כותבים מינוס כ-U+2212 או מקף לא-ASCII («−500», «500–»).
+# קודם ⇒ «סכום לא תקין» ⇒ הזיכוי נעלם מרשימת הבדיקה (כמו 369). מקף ארוך «—» לא כלול: משמש כ«אין ערך».
+_MINUS_LIKE = str.maketrans({"\u2212": "-", "\u2010": "-", "\u2011": "-", "\u2012": "-", "\u2013": "-",
+                             "\ufe63": "-", "\uff0d": "-"})
 _CUR_MARK = re.compile(r'^([+-]?)\s*(?:US\$|₪|\$|€|£|ש["״\'׳]?ח|NIS|ILS|USD|EUR|GBP)', re.I)
 _CUR_MARK_END = re.compile(r'(?:US\$|₪|\$|€|£|ש["״\'׳]?ח|NIS|ILS|USD|EUR|GBP)$', re.I)
 
@@ -130,7 +141,7 @@ def _amount_cell(v: str) -> tuple[int, str | None]:
     t = v or ""
     for ch in _CELL_INVISIBLE:
         t = t.replace(ch, "")
-    t = t.replace("\u00a0", " ").replace("\u202f", " ").strip()
+    t = t.translate(_MINUS_LIKE).replace("\u00a0", " ").replace("\u202f", " ").strip()
     if not t:
         raise ValueError(f"סכום לא תקין: {v}")   # תא ריק = שגיאה, לא 0
     marks: set[str] = set()
@@ -253,6 +264,28 @@ SUMMARY_MSG = "שורת סיכום (סה״כ) — לא חשבונית, לא נק
 MERGED_HINT = " (אם התא ממוזג עם השורה שמעל ב-Excel — בטלו את המיזוג ומלאו את הערך בכל שורה)"
 
 
+_PAID_NO = {"לא", "no", "n", "false", "0", "-", "—"}
+_PAID_YES = {"כן", "yes", "y", "true", "v", "✓", "✔", "שולם", "paid", "x"}
+
+
+def _paid_conflict(v: str) -> None:
+    """מנהל 370: עמודת «סכום/סה״כ» (ברוטו) + עמודת «שולם», בלי עמודת יתרה. קודם: «סכום 1,200 · שולם 800»
+    נקלט כחוב של 1,200 ⇒ תזכורת דורשת 800 ₪ ששולמו. לא מחסרים (ניחוש — אולי «שולם» כבר בניכוי זיכוי,
+    אולי במטבע אחר): שורה עם תשלום שאינו אפס ⇒ שגיאה גלויה; תשלום ריק/0 ⇒ הסכום הוא היתרה ⇒ נקלט."""
+    t = v.strip().lower()
+    if not t or t in _PAID_NO:
+        return
+    if t in _PAID_YES:
+        raise ValueError("החשבונית מסומנת «שולם» — לא נקלטה (אם נשארה יתרה, ייצאו עם עמודת «יתרה לתשלום»)")
+    try:
+        paid, _ = _amount_cell(v)
+    except ValueError:
+        raise ValueError(f"עמודת «שולם» לא קריאה ({v[:20]!r}) — לא נקלט, כי לא ברור כמה נשאר לתשלום") from None
+    if paid != 0:
+        raise ValueError(f"בשורה רשום תשלום ({v.strip()}) ועמודת הסכום היא סכום המסמך, לא היתרה"
+                         " — לא נקלט, כדי לא לדרוש סכום ששולם. ייצאו עם עמודת «יתרה לתשלום»")
+
+
 def _is_summary(label: str) -> bool:
     return bool(_SUMMARY.match(label.strip().rstrip(":").strip()))
 
@@ -272,8 +305,12 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
     idx = _columns(rows[0])
     missing = [k for k in REQUIRED if k not in idx]
     if missing:
+        head = {h.strip().lower() for h in rows[0]}
+        dc = "amount" in missing and ({"חובה", "debit"} & head)
         raise ValueError(f"חסרות עמודות חובה: {', '.join(missing)} — "
-                         f"שורת שמות העמודות צריכה להיות באחת מ-{HEADER_SCAN} השורות הראשונות בקובץ")
+                         f"שורת שמות העמודות צריכה להיות באחת מ-{HEADER_SCAN} השורות הראשונות בקובץ"
+                         + (DEBIT_CREDIT_HINT if dc else ""))
+    gross = "paid" in idx and rows[0][idx["amount"]].strip().lower() not in BALANCE_NAMES
     if len(rows) - 1 > MAX_ROWS:
         raise ValueError(f"יותר מדי שורות (מקס׳ {MAX_ROWS})")
     out = CsvResult()
@@ -314,6 +351,8 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
             if cell_cur and cell_cur != currency:
                 raise ValueError(f"המטבע בתא הסכום ({cell_cur}) שונה מעמודת המטבע ({currency})"
                                  " — לא נקלט, כדי לא לשלוח תזכורת בסכום שגוי")
+            if gross and amount > 0:
+                _paid_conflict(cell("paid"))
             if amount == 0:
                 continue                                   # שולמה / אפס ⇒ לא חוב
             issued = _parse_date(cell("issued"), order)
