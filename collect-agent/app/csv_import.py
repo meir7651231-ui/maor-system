@@ -40,7 +40,12 @@ COLUMNS: dict[str, tuple[str, ...]] = {
 BALANCE_NAMES = ("יתרה לתשלום", "יתרה", "amount due", "balance")
 DEBIT_CREDIT_HINT = (" — בקובץ יש עמודות חובה/זכות: צריך עמודת «יתרה לתשלום» לכל חשבונית"
                      " (ייצוא «חשבוניות פתוחות», לא כרטסת)")
-CLOSED_STATUSES = {"סגור", "שולם", "נסגר", "מבוטל", "closed", "paid", "cancelled", "canceled"}
+CLOSED_STATUSES = {"סגור", "שולם", "נסגר", "מבוטל", "closed", "paid", "cancelled", "canceled",
+                   # מנהל 372: נקבה/מלא/void — היו נקלטים כחוב פתוח ⇒ תזכורת על חשבונית ששולמה
+                   "סגורה", "נסגרה", "שולמה", "מבוטלת", "בוטל", "בוטלה", "שולם במלואו", "שולמה במלואה",
+                   "שולם במלואה", "paid in full", "fully paid", "paid-in-full", "void", "voided", "settled"}
+PARTIAL_MSG = ("החשבונית מסומנת «{}» ועמודת הסכום היא סכום המסמך, לא היתרה — לא נקלטה, כדי לא לדרוש"
+               " סכום ששולם. ייצאו עם עמודת «יתרה לתשלום»")
 
 
 @dataclass
@@ -322,6 +327,21 @@ def _paid_conflict(v: str) -> None:
                          " — לא נקלט, כדי לא לדרוש סכום ששולם. ייצאו עם עמודת «יתרה לתשלום»")
 
 
+def _status_norm(v: str) -> str:
+    return re.sub(r"\s+", " ", v.strip().strip(_DECOR).strip().lower())
+
+
+# מנהל 372 (BACKLOG חיבורים): סטטוס «שולם חלקית» / «Partially Paid» ליד עמודת סכום ברוטו (בלי יתרה) ⇒
+# נקלט חוב מלא ⇒ תזכורת דורשת סכום ששולם 🟠. לא מחסרים (אין לנו את היתרה) ⇒ שגיאה גלויה; לצד עמודת יתרה ⇒ תקין.
+_PARTIAL = re.compile(r"חלקי|(?<![a-z])(?:partial(?:ly)?|part[\s-]?paid|partly)(?![a-z])")
+_PARTIAL_NOT = re.compile(r"לא שולם|טרם|unpaid|not paid")
+
+
+def _status_partial(v: str) -> bool:
+    t = _status_norm(v)
+    return bool(t) and bool(_PARTIAL.search(t)) and not _PARTIAL_NOT.search(t)
+
+
 def _is_summary(label: str) -> bool:
     return bool(_SUMMARY.match(label.strip().rstrip(":").strip()))
 
@@ -351,7 +371,8 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
         raise ValueError(f"חסרות עמודות חובה: {', '.join(missing)} — "
                          f"שורת שמות העמודות צריכה להיות באחת מ-{HEADER_SCAN} השורות הראשונות בקובץ"
                          + (DEBIT_CREDIT_HINT if dc else ""))
-    gross = "paid" in idx and rows[0][idx["amount"]].strip().lower() not in BALANCE_NAMES
+    amount_is_balance = rows[0][idx["amount"]].strip().lower() in BALANCE_NAMES
+    gross = "paid" in idx and not amount_is_balance
     if len(rows) - 1 > MAX_ROWS:
         raise ValueError(f"יותר מדי שורות (מקס׳ {MAX_ROWS})")
     out = CsvResult()
@@ -387,7 +408,7 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
                 raise ValueError(f"מספר מסמך ארוך מדי (מעל {DOC_NUMBER_MAX} תווים)")
             if num in seen:
                 raise ValueError(f"מספר מסמך כפול: {num}")
-            if cell("status").strip().lower() in CLOSED_STATUSES:
+            if _status_norm(cell("status")) in CLOSED_STATUSES:
                 continue                                   # מסמך סגור/מבוטל ⇒ לא חוב
             amount, cell_cur = _amount_cell(cell("amount"))
             currency = parse_currency(cell("currency")) if cell("currency").strip() else (cell_cur or "ILS")
@@ -396,6 +417,8 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
                                  " — לא נקלט, כדי לא לשלוח תזכורת בסכום שגוי")
             if gross and amount > 0:
                 _paid_conflict(cell("paid"))
+            if not amount_is_balance and amount > 0 and _status_partial(cell("status")):
+                raise ValueError(PARTIAL_MSG.format(cell("status").strip()[:30]))
             if amount == 0:
                 continue                                   # שולמה / אפס ⇒ לא חוב
             issued = _parse_date(cell("issued"), order)
