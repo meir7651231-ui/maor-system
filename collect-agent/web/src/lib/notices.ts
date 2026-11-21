@@ -28,6 +28,7 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   // מנהל 323: תזכורת מאושרת שלא יוצאת >48 שעות כי הרענון מול מערכת החשבוניות נכשל
   refresh_stuck: { icon: '⏳', title: 'תזכורות מאושרות לא יוצאות — הבדיקה מול מערכת החשבוניות נכשלת', tone: 'warn' },
   plan_missed: { icon: '📅', title: 'תשלום בהסדר לא התקבל — התזכורות חוזרות לאישורכם', tone: 'warn' },
+  plan_amount_changed: { icon: '📈', title: 'סכום החשבונית עלה בזמן הסדר פעיל — התוספת לא כלולה בהסדר', tone: 'warn' },
   // critic 176: כשל כתיבה ליומן ההסרות — אחרי שחזור גיבוי ההסרה לא תוחזר
   optout_ledger_failed: { icon: '📒', title: 'הסרה לא נרשמה ביומן הגיבוי — לטיפול טכני', tone: 'warn' },
   sms_undelivered: { icon: '📵', title: 'SMS לא נמסר', tone: 'warn' },

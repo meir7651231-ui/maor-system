@@ -200,6 +200,9 @@ class DB:
         if "claimed_at" not in pcols:   # critic סבב 76: מתי נתפס לאישור (התאוששות מקריסה באמצע)
             self.conn.execute("ALTER TABLE plans ADD COLUMN claimed_at TEXT")
             self.conn.commit()
+        if "raised_agorot" not in pcols:   # מבקר 203: עלייה בסכום חשבוניות ההסדר מאז האישור
+            self.conn.execute("ALTER TABLE plans ADD COLUMN raised_agorot INTEGER NOT NULL DEFAULT 0")
+            self.conn.commit()
         # ר-10: legal hold מתועד + חותמות מחיקה/התממה. SQL קבוע (שער האבטחה)
         for have, col, ddl in (
                 (cols, "legal_hold", "ALTER TABLE customers ADD COLUMN legal_hold TEXT"),

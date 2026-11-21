@@ -9,8 +9,6 @@ status=`missed`, כרטיס לבעל העסק «תשלום 1 מתוך 3 (400 ₪
 ו«שולם» נמדד מול הסכום שהיה כשההסדר אושר. xfail(strict=True); בקרה ירוקה."""
 from datetime import timedelta
 
-import pytest
-
 
 def _plan_then_raise_and_pay(svc, fake_gi):
     svc.sync()
@@ -23,7 +21,7 @@ def _plan_then_raise_and_pay(svc, fake_gi):
     return pid
 
 
-@pytest.mark.xfail(strict=True, reason="203🟠: תשלום 1 בזמן ⇒ «לא התקבל» + missed, כי החשבונית עלתה בזמן ההסדר")
+
 def test_on_time_installment_not_reported_missed(svc, clock, fake_gi):
     pid = _plan_then_raise_and_pay(svc, fake_gi)
     clock.now += timedelta(days=20)
@@ -46,7 +44,7 @@ def test_control_unchanged_invoice_on_time_payment(svc, clock, fake_gi):
     assert svc.db.one("SELECT status FROM plans WHERE id=?", (pid,))["status"] == "approved"
 
 
-@pytest.mark.xfail(strict=True, reason="203ב🟡: תשלום חלקי (200 מתוך 400) ⇒ הכרטיס אומר «לא התקבל» בלי להזכיר את ה-200")
+
 def test_partial_first_installment_card_mentions_partial(svc, clock, fake_gi):
     """203ב: הלקוח שילם 200 ₪ מתוך תשלום 1 (400 ₪). אחרי החסד — «missed» (סביר), אבל הכרטיס: «תשלום 1 מתוך 3 (400 ₪)
     לא התקבל» — בעל העסק שמתקשר ללקוח לא יודע שהגיעו 200 ₪. `_sweep_plans` → נוסח הכרטיס."""

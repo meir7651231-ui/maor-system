@@ -75,15 +75,27 @@ OPTOUT_LEDGER_FAILED_TEXT = ("בקשת הסרה נקלטה וחסומה במער
 
 
 def plan_missed_text(name: str | None, n: int, of: int, amount_agorot: int, due: str, open_agorot: int,
-                     still_paused: bool = False, currency: str = "ILS") -> str:
+                     still_paused: bool = False, currency: str = "ILS", partial_agorot: int = 0) -> str:
     """מנהל 332: כרטיס לבעל העסק כשתשלום בהסדר לא התקבל. בלי פרטי קשר — רק שם, כמו שאר הכרטיסים.
     fuzz ב׳ (20.11): still_paused ⇒ ללקוח השהיה אחרת («שילמתי»/מחלוקת/רגיש…) — לא מבטיחים שהתזכורות חוזרות."""
     who = name or "לקוח"
     tail = ("ההסדר סומן «הוחמץ». ללקוח יש השהיה נוספת (למשל «שילמתי» או מחלוקת), ולכן התזכורות לא חוזרות עד "
             "שתבדקו ותחדשו אותן — אפשר גם להציע הסדר חדש." if still_paused else
             "ההסדר סומן «הוחמץ» והתזכורות הרגילות חוזרות לאישורכם — אפשר גם להציע הסדר חדש.")
+    # מבקר 203ב: הגיע חלק מהתשלום ⇒ אומרים כמה (בעל העסק שמתקשר צריך לדעת שהגיעו 200 ₪ מתוך 400)
+    got = (f"התקבלו רק {templates.fmt_amount(partial_agorot, currency)} מתוכו" if 0 < partial_agorot < amount_agorot
+           else "לא התקבל")
     return (f"הסדר התשלומים של {who} לא נשמר: תשלום {n} מתוך {of} ({templates.fmt_amount(amount_agorot, currency)}, "
-            f"מועד {due}) לא התקבל. היתרה הפתוחה: {templates.fmt_amount(open_agorot, currency)}. " + tail)
+            f"מועד {due}) {got}. היתרה הפתוחה: {templates.fmt_amount(open_agorot, currency)}. " + tail)
+
+
+def plan_raised_text(name: str | None, number: str, old_agorot: int, new_agorot: int, currency: str = "ILS") -> str:
+    """מבקר 203: סכום חשבונית עלה בזמן הסדר פעיל. ההסדר ממשיך על מה שאושר; התוספת לא כלולה בו."""
+    who = name or "לקוח"
+    return (f"הסכום של חשבונית {number} ({who}) עלה מ-{templates.fmt_amount(old_agorot, currency)} ל-"
+            f"{templates.fmt_amount(new_agorot, currency)} בזמן שהסדר התשלומים שלו פעיל. ההסדר ממשיך על הסכום שאושר, "
+            f"והתוספת ({templates.fmt_amount(new_agorot - old_agorot, currency)}) לא כלולה בו — כדאי לתאם עם הלקוח. "
+            "כשכל תשלומי ההסדר יתקבלו, התזכורות על היתרה יחזרו לאישורכם.")
 
 
 def refresh_stuck_text(items: list[tuple[str, str, str]]) -> str:
@@ -637,8 +649,10 @@ class CollectService:
         # critic סבב 38: טרנזקציה אחת — commit לכל שורה עלה 7 שנ׳ ל-5,000 בדיסק, וסנכרון שנפל באמצע
         # השאיר חלק מהחשבוניות מעודכנות. עכשיו: הכול או כלום (והרבה יותר מהר).
         with self.db.batch():
+            plan_before = self._plan_amounts_snapshot()
             out = self._ingest_rows(invoices, source=source, full=full, review=review,
                                     provider=provider)
+            self._note_plan_raises(plan_before)
             self._rebuild_pending_on_amount_drift()
             return out
 
@@ -2174,7 +2188,7 @@ class CollectService:
         open_now = self.db.one("SELECT COALESCE(SUM(amount_agorot),0) n FROM invoices WHERE status='open' "
                                "AND id IN (SELECT value FROM json_each(?))",
                                (json.dumps(self._plan_invoice_ids(p)),))["n"]
-        paid = max(0, min(total, total - open_now))
+        paid = max(0, min(total, total + self._plan_raised(p) - open_now))   # מבקר 203: תוספת ≠ «לא שולם»
         acc, nxt, done = 0, None, 0
         for i in items:
             acc += i["amount_agorot"]
@@ -2203,6 +2217,47 @@ class CollectService:
                            "(direction='in' AND intent IN (SELECT value FROM json_each(?))) OR intent=?)",
                            (cid, last, json.dumps(self._PROTECTIVE_INTENTS), self.CREDIT_REVIEW)) is not None
 
+    def _plan_raised(self, p) -> int:
+        """מבקר 203: כמה עלו חשבוניות ההסדר מאז שאושר (מצטבר, נרשם בזמן הסנכרון/הרענון)."""
+        try:
+            return int(p["raised_agorot"] or 0)
+        except (IndexError, KeyError):
+            return 0
+
+    def _plan_amounts_snapshot(self) -> dict[int, int]:
+        """סכומי החשבוניות הפתוחות שבהסדרים פעילים (approved) — לפני סנכרון/רענון, כדי לזהות עלייה."""
+        out: dict[int, int] = {}
+        for p in self.db.q("SELECT invoice_id, invoice_ids FROM plans WHERE status='approved'"):
+            for iid in self._plan_invoice_ids(p):
+                r = self.db.one("SELECT amount_agorot FROM invoices WHERE id=? AND status='open'", (iid,))
+                if r:
+                    out[iid] = r["amount_agorot"]
+        return out
+
+    def _note_plan_raises(self, before: dict[int, int]) -> None:
+        """מבקר 203🟠: חשבונית בהסדר פעיל שהסכום שלה **עלה** ⇒ התוספת נרשמת על ההסדר (`raised_agorot`), כך
+        ש«שולם» נמדד מול הסכום שאושר — תשלום בזמן לא נספר «לא התקבל» וההסדר לא «מוחמץ»; ובעל העסק מקבל כרטיס.
+        ירידה = תשלום (כמו קודם). ירידה שהיא בעצם ביטול התוספת — לא ניתנת להבחנה; נספרת כתשלום."""
+        if not before:
+            return
+        for p in self.db.q("SELECT * FROM plans WHERE status='approved'"):
+            for iid in self._plan_invoice_ids(p):
+                old = before.get(iid)
+                inv = self.db.one("SELECT * FROM invoices WHERE id=?", (iid,))
+                if old is None or not inv or inv["status"] != "open" or inv["amount_agorot"] <= old:
+                    continue
+                delta = inv["amount_agorot"] - old
+                self.db.x("UPDATE plans SET raised_agorot=COALESCE(raised_agorot,0)+? WHERE id=?", (delta, p["id"]))
+                cust = self.db.one("SELECT name FROM customers WHERE id=?", (p["customer_id"],))
+                body = plan_raised_text(cust["name"] if cust else None, inv["number"], old, inv["amount_agorot"],
+                                        self.plan_currency(p))
+                now = _iso(self.clock())
+                self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
+                          "created_at) VALUES(?,'system','owner',?,'plan_amount_changed',1,?,?)",
+                          (p["customer_id"], body, f"plan_raised:{p['id']}:{iid}:{inv['amount_agorot']}", now))
+                self.audit("system", "plan_amount_changed_active",
+                           {"plan": p["id"], "invoice": iid, "was": old, "now": inv["amount_agorot"]})
+
     def _sweep_plans(self) -> dict[str, list[int]]:
         """מנהל 332 (מבקר סבב 183 🟠): להסדר לא היה מחזור-חיים — `approved` (= ההצעה נשלחה) חסם כל תזכורת **לתמיד**,
         גם כשכל המועדים עברו והחשבונית פתוחה, ובלי כרטיס לבעל העסק; וגם ללקוח שהתעלם מההצעה. עכשיו בכל סבב תכנון:
@@ -2229,22 +2284,25 @@ class CollectService:
             ids = self._plan_invoice_ids(p)
             open_now = self.db.one("SELECT COALESCE(SUM(amount_agorot),0) n FROM invoices WHERE status='open' "
                                    "AND id IN (SELECT value FROM json_each(?))", (json.dumps(ids),))["n"]
-            if open_now <= 0:
+            raised = self._plan_raised(p)
+            # מבקר 203: חשבונית שעלתה בזמן ההסדר — כל תשלומי ההסדר התקבלו ⇒ הושלם (התוספת חוזרת לתזכורות הרגילות)
+            if open_now <= raised:
                 if self.db.update("UPDATE plans SET status='completed' WHERE id=? AND status='approved'",
                                   (p["id"],)) == 1:
                     self.audit("system", "plan_completed", {"plan": p["id"]})
                     out["completed"].append(p["id"])
                 continue
             total = sum(i["amount_agorot"] for i in items)
-            paid = max(0, total - open_now)
+            paid = max(0, total + raised - open_now)
             cutoff = today - timedelta(days=self.PLAN_GRACE_DAYS)
             owed, late = 0, None
+            before_late = 0
             for i in items:
                 if date.fromisoformat(i["due"]) >= cutoff:
                     break
+                if late is None and paid < owed + i["amount_agorot"]:
+                    late, before_late = i, owed
                 owed += i["amount_agorot"]
-                if late is None and paid < owed:
-                    late = i
             if late is None:
                 continue
             if self.db.update("UPDATE plans SET status='missed' WHERE id=? AND status='approved'", (p["id"],)) != 1:
@@ -2262,7 +2320,7 @@ class CollectService:
                 reason = ""
             body = plan_missed_text(cust["name"] if cust else None, late["n"], len(items), late["amount_agorot"],
                                     late["due"], open_now, still_paused=bool(reason),
-                                    currency=self.plan_currency(p))
+                                    currency=self.plan_currency(p), partial_agorot=max(0, paid - before_late))
             now = _iso(self.clock())
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
                       "created_at) VALUES(?,'system','owner',?,'plan_missed',1,?,?)",
@@ -2365,6 +2423,7 @@ class CollectService:
         if doc.amount_agorot != inv["amount_agorot"]:
             self.db.x("UPDATE invoices SET amount_agorot=?, payment_url=NULL WHERE id=?",
                       (doc.amount_agorot, inv["id"]))
+            self._note_plan_raises({inv["id"]: inv["amount_agorot"]})   # מבקר 203
         return "open"
 
     def _rebuild_for_amount(self, r, invs: list, why: str = "amount_changed") -> str:
@@ -2444,6 +2503,7 @@ class CollectService:
             elif doc.amount_agorot != inv["amount_agorot"]:
                 self.db.x("UPDATE invoices SET amount_agorot=?, synced_at=? WHERE id=?",
                           (doc.amount_agorot, _iso(self.clock()), inv["id"]))
+                self._note_plan_raises({inv["id"]: inv["amount_agorot"]})   # מבקר 203
         return ok
 
     def _mark_refresh_failed(self, r, why: str, err: str = "") -> None:
