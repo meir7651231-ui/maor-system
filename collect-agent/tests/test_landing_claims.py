@@ -4,6 +4,7 @@
 בדק שהמוצר עדיין עושה את מה שהם אומרים. נועל: (1) כל תשובה בשני הדפים ממופה לבדיקה — תשובה חדשה בלי מיפוי
 ⇒ נכשל · (2) כל בדיקה רצה מול הקוד: מנוע השיחה (respond), המסנן, המדיניות, ההגדרות, התבניות.
 """
+import inspect
 import re
 from datetime import date
 from pathlib import Path
@@ -136,6 +137,13 @@ def _opt_out():
     return _respond("הסר").stop == c.Stop.PERMANENT
 
 
+def _csv_stale_flag():
+    from datetime import timedelta
+
+    from app import morning
+    return morning.CSV_FRESH == timedelta(hours=24) and "csv_upload_needed" in inspect.getsource(morning)
+
+
 # ביטוי מתוך התשובה ⇒ הבדיקה שמוכיחה אותו. כל תשובה חייבת להכיל לפחות ביטוי אחד מכאן.
 CLAIMS = {
     "חשבונית ירוקה (morning), iCount ורווחית": _sources,
@@ -155,6 +163,8 @@ CLAIMS = {
     "מכין הצעה בלי תוספת, ומחכה לאישורכם": _plan,
     "עוצר הכול ומסמן אצלכם «דחוף»": _dispute,
     "מפסיק לפנות ללקוח הזה": _opt_out,
+    "מזכיר לך להעלות חדש כשהוא בן יותר מיום": _csv_stale_flag,
+    "מזכיר לכם להעלות חדש כשהוא בן יותר מיום": _csv_stale_flag,
 }
 
 
