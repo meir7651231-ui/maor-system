@@ -1709,9 +1709,12 @@ class CollectService:
         self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (reason, customer_id))
         for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (customer_id,)):
             self._cancel_invoice(inv["id"], reason)
+        # מנהל 359 (מבקר 205🔴): גם תשובות שכבר נוסחו וממתינות (לאישור או לחלון) לא יוצאות אחרי הסימון —
+        # אחרת «אפשר לשלם בקישור…» / «הצעה לפריסה…» נשלחו למשפחת נפטר/ת, לקטין/ה, למי שבהליך.
+        stopped = self._hold_pending_drafts(customer_id)
         note_id = self._owner_note(customer_id, "hold_note", note)
         self.audit(actor, "customer_hold", {"customer": customer_id, "reason": reason,
-                                            "note_id": note_id})
+                                            "note_id": note_id, "drafts_stopped": stopped})
         return dict(self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)))
 
     # ---------- ר-10: legal hold + מחיקה/התממה אחרי 90 יום ----------
@@ -3223,6 +3226,19 @@ class CollectService:
             self._stop_drafts(self.db.q(
                 "SELECT id, customer_id, status FROM drafts WHERE customer_id=? AND status IN "
                 "('pending_approval','approved') AND intent NOT IN ('opt_out','wrong_person')", (cid,)))
+
+    def _hold_pending_drafts(self, cid: int) -> int:
+        """מנהל 359: סימון קטין/פטירה/חדלות פירעון (ר-6) עוצר טיוטות ממתינות. בלי כרטיס לבעל העסק — הוא סימן
+        עכשיו; `approve_draft` מסביר למה הטיוטה לא תישלח (decided_by='system:owner_hold'). אישור הסרה /
+        «מספר שגוי» לא נעצרים (כמו בהסרה)."""
+        if not self._table_exists("drafts"):
+            return 0
+        rows = self.db.q("SELECT id FROM drafts WHERE customer_id=? AND status IN ('pending_approval','approved') "
+                         "AND intent NOT IN ('opt_out','wrong_person')", (cid,))
+        for d in rows:
+            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:owner_hold' WHERE id=?",
+                      (d["id"],))
+        return len(rows)
 
     def _stop_drafts(self, rows) -> None:
         """critic סבב 60: עוצר את הטיוטות **ומודיע לבעל העסק**. בסבבים 58–59 הטיוטה נעלמה בשקט מהתור, גם כשבעל

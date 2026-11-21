@@ -624,6 +624,9 @@ class ConversationInbox:
         if dr["status"] not in ("pending_approval", "needs_owner"):
             if dr["decided_by"] == "system:opted_out":   # critic סבב 58: נעצרה בהסרה ⇒ הסבר מדויק
                 raise ValueError("הלקוח ביקש הסרה אחרי שהטיוטה נוסחה, ולכן היא לא תישלח")
+            if dr["decided_by"] == "system:owner_hold":   # מנהל 359: נעצרה בסימון קטין/פטירה/חדלות פירעון
+                raise ValueError("הלקוח סומן (קטין/ה, נפטר/ה או הליך חדלות פירעון) אחרי שהטיוטה נוסחה, "
+                                 "ולכן היא לא תישלח. לשחרור — «חידוש» בכרטיס הלקוח, ואז תשובה חדשה")
             raise _draft_decided(dr["status"], "approve")
         if self._amount_check(dr) and not confirm_amount:
             raise ValueError("סכום חריג מאוד מהרגיל ללקוח (אולי נקודה עשרונית במקום הלא נכון?) — "

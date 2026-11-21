@@ -26,7 +26,7 @@ def _sent_after(svc, n0):
     return svc.db.q("SELECT body FROM messages WHERE customer_id=1 AND direction='out' AND id>?", (n0,))
 
 
-@pytest.mark.xfail(strict=True, reason="205🔴: טיוטה ממתינה יוצאת אחרי סימון קטין/פטירה/חדלות פירעון")
+
 @pytest.mark.parametrize("hold", ["deceased", "minor", "insolvency"])
 @pytest.mark.parametrize("msg", ["איך משלמים?", "קשה לי לשלם הכל, אפשר בתשלומים?"])
 def test_owner_hold_stops_pending_reply(svc, hold, msg):
@@ -38,7 +38,7 @@ def test_owner_hold_stops_pending_reply(svc, hold, msg):
     assert not sent, sent[0]["body"][:80]
 
 
-@pytest.mark.xfail(strict=True, reason="205🔴: טיוטה שאושרה וממתינה לחלון יוצאת אחרי סימון פטירה")
+
 def test_owner_hold_stops_approved_waiting_for_window(svc):
     _api, did = _pending_then_hold(svc, "איך משלמים?", "deceased")
     svc.db.x("UPDATE drafts SET status='approved' WHERE id=?", (did,))      # אושרה, ממתינה לחלון השליחה
