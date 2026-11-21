@@ -151,24 +151,19 @@ def decode(raw: bytes) -> tuple[str, str]:
     raise ValueError("קידוד הקובץ לא מזוהה. ב-Excel: «שמירה בשם» ← «CSV UTF-8 (מופרד בפסיקים)»")
 
 
-def _rows(text: str) -> list[list[str]]:
-    """מפריד: פסיק (ברירת המחדל), נקודה-פסיק (Excel באזור שבו הפסיק עשרוני) או טאב (טקסט Unicode).
-    נבחר לפי שורת הכותרת בלבד — המפריד שמופיע בה הכי הרבה פעמים (מחוץ למירכאות)."""
-    head = text.split("\n", 1)[0]
-    counts = {d: len(next(csv.reader([head], delimiter=d))) - 1 for d in (",", ";", "\t")}
-    delim = max(counts, key=lambda d: (counts[d], d == ","))
-    return list(csv.reader(io.StringIO(text), delimiter=delim))
+HEADER_SCAN = 5   # מבקר 211: ייצוא «דוח חשבוניות פתוחות» מתחיל לעיתים בשורת כותרת-דוח / שורה ריקה
+REQUIRED = ("number", "client", "amount")
 
 
-def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
-    if isinstance(raw, bytes):
-        if len(raw) > MAX_BYTES:
-            raise ValueError("הקובץ גדול מדי (מקס׳ 2MB)")
-        raw, _ = decode(raw)
-    rows = _rows(raw.lstrip("\ufeff"))
-    if not rows:
-        raise ValueError("קובץ ריק")
-    head = [h.strip().lower() for h in rows[0]]
+def _delim(line: str) -> str:
+    """המפריד שמופיע בשורה הכי הרבה פעמים (מחוץ למירכאות); תיקו ⇒ פסיק."""
+    line = line.rstrip("\r")
+    counts = {d: len(next(csv.reader([line], delimiter=d), [])) - 1 for d in (",", ";", "\t")}
+    return max(counts, key=lambda d: (counts[d], d == ","))
+
+
+def _columns(cells: list[str]) -> dict[str, int]:
+    head = [h.strip().lower() for h in cells]
     idx: dict[str, int] = {}
     for key, names in COLUMNS.items():
         # מבקר סבב 3: עדיפות לפי סדר השמות ב-COLUMNS (יתרה לפני סה"כ), לא לפי סדר העמודות בקובץ
@@ -176,9 +171,38 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
             if name.lower() in head:
                 idx[key] = head.index(name.lower())
                 break
-    missing = [k for k in ("number", "client", "amount") if k not in idx]
+    return idx
+
+
+def _find_header(text: str) -> tuple[int, str]:
+    """(מספר השורה של שורת העמודות, המפריד). מחפש ב-HEADER_SCAN השורות הראשונות את השורה הראשונה
+    שיש בה כל עמודות החובה; לא נמצאה ⇒ השורה הראשונה (וההודעה «חסרות עמודות חובה» כמו קודם)."""
+    lines = text.split("\n", HEADER_SCAN)[:HEADER_SCAN]
+    for i, line in enumerate(lines):
+        d = _delim(line)
+        cells = next(csv.reader([line.rstrip("\r")], delimiter=d), [])
+        if all(k in _columns(cells) for k in REQUIRED):
+            return i, d
+    return 0, _delim(lines[0] if lines else "")
+
+
+def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
+    if isinstance(raw, bytes):
+        if len(raw) > MAX_BYTES:
+            raise ValueError("הקובץ גדול מדי (מקס׳ 2MB)")
+        raw, _ = decode(raw)
+    text = raw.lstrip("\ufeff")
+    skip, delim = _find_header(text)
+    if skip:   # שורות כותרת-דוח / ריקות מעל שורת העמודות — מדלגים; מספרי השורות בשגיאות נשארים של הקובץ
+        text = text.split("\n", skip)[skip]
+    rows = list(csv.reader(io.StringIO(text), delimiter=delim))
+    if not rows:
+        raise ValueError("קובץ ריק")
+    idx = _columns(rows[0])
+    missing = [k for k in REQUIRED if k not in idx]
     if missing:
-        raise ValueError(f"חסרות עמודות חובה: {', '.join(missing)}")
+        raise ValueError(f"חסרות עמודות חובה: {', '.join(missing)} — "
+                         f"שורת שמות העמודות צריכה להיות באחת מ-{HEADER_SCAN} השורות הראשונות בקובץ")
     if len(rows) - 1 > MAX_ROWS:
         raise ValueError(f"יותר מדי שורות (מקס׳ {MAX_ROWS})")
     out = CsvResult()
@@ -187,7 +211,7 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
                   if k in idx and idx[k] < len(r)]
     order = detect_date_order(date_cells)
     out.date_order = order
-    for n, row in enumerate(rows[1:], start=2):
+    for n, row in enumerate(rows[1:], start=skip + 2):
         def cell(k: str, row=row) -> str:
             i = idx.get(k)
             return row[i].strip() if i is not None and i < len(row) else ""
