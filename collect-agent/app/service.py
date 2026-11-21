@@ -2348,12 +2348,19 @@ class CollectService:
             # (plan_request / cant_pay / plan_accept) — וההשהיה נשארה לנצח אחרי שההסדר הוחמץ, בזמן שהכרטיס הבטיח
             # «התזכורות חוזרות». משחררים רק השהיה **של ההסדר**; «שילמתי», מחלוקת, הסרה וכל השאר — נשארים.
             reason = (cust["paused_reason"] or "") if cust else ""
+            # fuzz ב׳ זרעים 40605/40950: הבטחה בזמן ההסדר לא נרשמה כהשהיה (_keeps_old_pause שומר את השהיית ההסדר), אבל
+            # ללקוח נאמר «עד X לא נשלח תזכורות» ⇒ בשחרור, אם השיחה ב-PROMISED עם מועד עתידי — ההשהיה הופכת להבטחה עד אז
+            conv = self.db.one("SELECT state, pause_until FROM conversations WHERE customer_id=?",
+                               (p["customer_id"],)) if self._table_exists("conversations") else None
+            keep = (f"promise:until={conv['pause_until']}" if conv and conv["state"] == "promised"
+                    and conv["pause_until"] and conv["pause_until"] > today.isoformat() else None)
             if reason.split(":", 1)[0] in self.PLAN_PAUSES and not self._protective_since_resume(p["customer_id"]) \
                     and self.db.update(
-                    "UPDATE customers SET paused_reason=NULL WHERE id=? AND paused_reason=?",
-                    (p["customer_id"], reason)) == 1:
-                self.audit("system", "plan_missed_pause_released", {"plan": p["id"], "was": reason.split(":", 1)[0]})
-                reason = ""
+                    "UPDATE customers SET paused_reason=? WHERE id=? AND paused_reason=?",
+                    (keep, p["customer_id"], reason)) == 1:
+                self.audit("system", "plan_missed_pause_released", {"plan": p["id"], "was": reason.split(":", 1)[0],
+                                                                     **({"promise_until": keep[14:]} if keep else {})})
+                reason = keep or ""
             body = plan_missed_text(cust["name"] if cust else None, late["n"], len(items), late["amount_agorot"],
                                     late["due"], open_now, still_paused=bool(reason),
                                     currency=self.plan_currency(p), partial_agorot=max(0, paid - before_late))

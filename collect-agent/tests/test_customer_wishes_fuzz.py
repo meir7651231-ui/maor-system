@@ -7,6 +7,7 @@
   (2) אף **תזכורת** לא יוצאת על חשבונית ששולמה, או ללקוח שכתב «שילמתי» / שבמחלוקת (בעל העסק לא מחדש כאן).
 זרע קבוע ⇒ דטרמיניסטי; כשל מציג זרע + רצף לשחזור.
 """
+import json
 import random
 from datetime import timedelta
 
@@ -49,7 +50,13 @@ def _run(seed, svc, fake_gi, clock, steps=45):
     blocked: set[str] = set()        # כתובות שביקשו הסרה (מנורמלות)
     log: list[str] = []
     seen = 0
+    quiet: dict[str, object] = {}    # q21-19: לקוח ⇒ עד איזה יום (לא כולל) אסורה תזכורת אחרי הבטחה רחוקה
+    dead: set[str] = set()           # בעל העסק סימן «נפטר/ה» ⇒ אין תזכורת לעולם
+    minor_phone: set[str] = set()    # «אני בן 15» מהטלפון המשותף ⇒ אין תזכורת לטלפון הזה לעולם
     svc.sync()
+
+    def cid_of(cl):
+        return svc.db.one("SELECT id FROM customers WHERE external_id=?", (cl,))["id"]
 
     def check(act):
         nonlocal seen
@@ -66,7 +73,8 @@ def _run(seed, svc, fake_gi, clock, steps=45):
         act = rnd.choice(["sync", "plan", "plan", "dispatch", "dispatch", "dispatch", "clock", "clock", "clock",
                           "pay_gi", "receipt", "claim", "opt_out", "dispute", "plan_req", "plan_flow", "plan_flow",
                           "accept",
-                          "owner_drafts", "owner_drafts", "partial"])
+                          "owner_drafts", "owner_drafts", "partial",
+                          "promise_far", "promise_far", "owner_hold", "shared_minor"])
         open_docs = [d for d in fake_gi.docs if d.get("type") != 400 and d["status"] == 0 and d["id"] not in paid]
         if act == "sync":
             svc.sync()
@@ -79,11 +87,18 @@ def _run(seed, svc, fake_gi, clock, steps=45):
         elif act == "clock":
             clock.now += timedelta(hours=rnd.choice([5, 20, 26, 75, 24 * 9, 24 * 33]))
         elif act == "dispatch":
+            today = clock.now.date()
             for out in svc.dispatch():
                 docs, clients = _rem_targets(svc, out["reminder_id"])
                 assert not (docs & paid) and not (clients & claimed), (
                     f"seed={seed}: תזכורת {out['reminder_id']} — שולם {docs & paid}, טען/מחלוקת {clients & claimed}\n"
                     + "\n".join(log))
+                early = {c for c in clients if c in quiet and today < quiet[c]}
+                assert not early, f"seed={seed}: תזכורת לפני המועד שהתקבל/אושר ({early})\n" + "\n".join(log)
+                assert not (clients & dead), f"seed={seed}: תזכורת ללקוח שסומן «נפטר/ה»\n" + "\n".join(log)
+                tos = {_norm(m["to"]) for m in json.loads(svc.db.one(
+                    "SELECT payload FROM reminders WHERE id=?", (out["reminder_id"],))["payload"])}
+                assert not (tos & minor_phone), f"seed={seed}: תזכורת לטלפון שקטין ענה ממנו\n" + "\n".join(log)
         elif act == "pay_gi" and open_docs:
             d = rnd.choice(open_docs)
             d["status"] = 1
@@ -104,6 +119,7 @@ def _run(seed, svc, fake_gi, clock, steps=45):
             text = rnd.choice({"claim": CLAIMS, "opt_out": OPT_OUT, "dispute": DISPUTE, "plan_req": PLAN,
                                "accept": ["מאשר", "מתאים לי"]}[act])
             svc.inbound(ch, addr, text)
+            quiet.pop(cl, None)          # הלקוח כתב שוב ⇒ חלון ההבטחה הקודם כבר לא האחרון
             if act in ("claim", "dispute"):
                 claimed.add(cl)
             if act == "opt_out":
@@ -123,7 +139,46 @@ def _run(seed, svc, fake_gi, clock, steps=45):
                         svc.inbox.approve_draft(r["draft_id"])
                     except (ValueError, PermissionError, KeyError):
                         pass
+            quiet.pop(cl, None)
             act += f" {cl}"
+        elif act == "promise_far":
+            # הכרעת q21-19: הבטחה ל-20 יום ⇒ מתקבלת עד 14 + «בדוק ואשר»; בעל העסק מכריע (או לא) באקראי
+            cl = rnd.choice(sorted(UNIQUE_FROM))
+            ch, addr = rnd.choice(UNIQUE_FROM[cl])
+            want = clock.now.date() + timedelta(days=20)
+            r = svc.inbound(ch, addr, f"אשלם ב-{want.day}.{want.month}")
+            if "promise_over_limit" in (r.get("tags") or []):
+                quiet[cl] = clock.now.date() + timedelta(days=15)
+                choice = rnd.choice(["approve", "refuse", "none"])
+                if choice != "none":
+                    try:
+                        out = svc.decide_promise_request(cid_of(cl), choice == "approve")
+                        if out["approved"]:
+                            quiet[cl] = want + timedelta(days=1)
+                    except (ValueError, KeyError):
+                        pass
+                act += f" {cl} {choice}"
+            else:
+                quiet.pop(cl, None)
+                act += f" {cl} (לא מעל המגבלה: {r.get('intent')})"
+        elif act == "owner_hold":
+            cl = rnd.choice(sorted(UNIQUE_FROM))
+            svc.set_hold(cid_of(cl), "deceased", "המשפחה הודיעה", "owner")
+            dead.add(cl)
+            act += f" {cl}"
+        elif act == "shared_minor":
+            r = svc.inbound("sms", "050-1234567", "אני בן 15")    # הטלפון המשותף לדנה (cl1) ולרונית (cl5)
+            if r.get("card_id"):
+                pick = rnd.choice(["cl1", "cl5", None])
+                # «אף אחד מהם» ⇒ הטלפון משתחרר — שאלת מדיניות פתוחה ל«גבי מנוע» (team/findings-gvia-sochen.md),
+                # נעולה ב-tests/test_shared_minor_assign_none.py (xfail strict). כאן האינווריאנט רק כשנבחר לקוח.
+                if pick:
+                    minor_phone.add(normalize_il_phone("050-1234567"))
+                try:
+                    svc.inbox.assign_shared_card(r["card_id"], cid_of(pick) if pick else None)
+                except (ValueError, KeyError):
+                    pass
+                act += f" ⇒ {pick}"
         elif act == "owner_drafts":
             pending = svc.db.q("SELECT id FROM drafts WHERE status='pending_approval'") \
                 if svc.db.one("SELECT 1 FROM sqlite_master WHERE name='drafts'") else []
