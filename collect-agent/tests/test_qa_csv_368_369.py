@@ -46,16 +46,17 @@ def test_real_client_named_summary_is_imported():
 @pytest.mark.parametrize("amount,agorot", [
     ("(500)", 50000), ("500-", 50000), ("-500", 50000), ("\u200f(500)", 50000), ('"(1,200.50)"', 120050),
     ("500 -", 50000), ("- 500", 50000),
+    ("\u2212500", 50000), ("\u2013500", 50000),   # מנהל 370 (f44ffbac): מינוס-יוניקוד / מקף מ-Excel ב-Mac ⇒ זיכוי
 ], ids=["parens", "trailing-minus", "leading-minus", "rlm-parens", "parens-thousands", "space-trailing",
-        "space-leading"])
+        "space-leading", "unicode-minus", "en-dash"])
 def test_negative_forms_become_credit_for_review(amount, agorot):
     r = _one(amount)
     assert not r.invoices and not r.errors
     assert [c.amount_agorot for c in r.credits] == [agorot]
 
 
-@pytest.mark.parametrize("amount", ["(-500)", "-500-", "−500", "–500", '"1.200,50"'],
-                         ids=["double-neg-parens", "double-neg", "unicode-minus", "en-dash", "euro-format"])
+@pytest.mark.parametrize("amount", ["(-500)", "-500-", '"1.200,50"'],
+                         ids=["double-neg-parens", "double-neg", "euro-format"])
 def test_ambiguous_amount_is_visible_error(amount):
     r = _one(amount)
     assert not r.invoices and not r.credits and len(r.errors) == 1
