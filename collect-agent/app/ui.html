@@ -47,7 +47,7 @@ white-space:pre-wrap;word-break:break-word}
 margin-bottom:8px;word-break:break-all}
 iframe{width:100%;min-height:360px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .empty{color:var(--muted);padding:24px;text-align:center}.err{color:var(--bad);margin-top:8px}
-.note{color:var(--warn);background:var(--warn-bg);padding:8px 12px;border-radius:8px;margin-top:8px}
+.note{color:var(--warn);background:var(--warn-bg);padding:8px 12px;border-radius:8px;margin-top:8px}.note a{color:inherit;font-weight:700;text-decoration:underline}
 #oiLink{display:inline-flex;align-items:center;min-height:40px;font-weight:700;color:inherit}
 .confirm{display:flex;gap:8px;align-items:flex-start;margin-top:12px;padding:10px 12px;border:1px solid var(--bad);border-radius:8px;cursor:pointer}
 .decide{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
@@ -106,6 +106,8 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 <div id="dash">
   <!-- critic סבב 150: פקיעת לוח החגים (גם ב-/app/). אחרי התאריך גבי עוצרת את כל השליחות -->
   <div class="note" id="holWarn" role="status" hidden></div>
+  <!-- גבי עיצוב (b050cc8): עסק CSV — ייבוא אחרון מעל 24 שעות ⇒ תזכורות מהקובץ לא יוצאות (ר-4) -->
+  <div class="note" id="csvWarn" role="status" hidden><span id="csvMsg"></span> <a href="/app/#/settings?s=csv" id="csvLink">ייבוא קובץ ←</a></div>
   <!-- critic סבב 151: «דורש טיפול שלך» היה רק מספר ב-/ui — הרשימה והפעולות נמצאות ב-/app/ (אותה התחברות) -->
   <div class="note" id="oiNote" role="status" hidden><span id="oiMsg"></span> <a href="/app/#/dashboard" id="oiLink">במסך הניהול ←</a></div>
   <!-- critic סבב 177: עצירת שליחה אחרי שחזור מגיבוי — עד היום רק API (POST /owner/restore-hold/release); ב-/ui לא נראתה
@@ -276,6 +278,11 @@ async function loadDash(ask){
      w.textContent=gone?`⛔ לוח החגים פג ב-${h.until} — גבי לא שולחת תזכורות עד שהלוח יתעדכן (בעדכון גרסה).`
        :`📅 לוח החגים בתוקף עד ${h.until} (עוד ${left} ימים). אחרי התאריך גבי תעצור את כל השליחות עד העדכון.`;
      w.hidden=false}else w.hidden=true}
+  {const f=d.csv_freshness,w=$("#csvWarn");
+   if(f&&f.upload_needed){$("#csvMsg").textContent=f.last_import&&/^\d{4}-\d{2}-\d{2}$/.test(f.last_import)
+       ?`📄 העלו קובץ CSV עדכני — הרשימה של היום מבוססת על ייבוא מ-${f.last_import.split("-").reverse().join(".")}. עד אז תזכורות מהקובץ לא יוצאות.`
+       :"📄 עוד לא הועלה קובץ CSV — העלו קובץ חשבוניות פתוחות כדי שגבי תכין את הרשימה של היום.";w.hidden=false}
+   else w.hidden=true}
   $("#today").textContent="נכון ל-"+d.today+(tr.on_trial?(tr.active
     ?` · ניסיון חינם: נותרו ${tr.days_left} ימים, אחר כך ₪${tr.price_ils_month} לחודש, כולל מע״מ ככל שחל`
     :` · תקופת הניסיון הסתיימה: התזכורות נעצרו (הנתונים נשמרו). ₪${tr.price_ils_month} לחודש להמשך, כולל מע״מ ככל שחל`):"");

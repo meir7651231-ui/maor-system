@@ -44,3 +44,9 @@ def test_ui_text_tokens_pass_aa(mode, t, fg, bg):
 def test_ratio_matches_known_values():
     assert round(ratio("#000000", "#ffffff"), 1) == 21.0
     assert round(ratio("#64748B", "#FBF8F1"), 2) == 4.49   # הגוון הישן — נכשל, ולכן הוחלף
+
+
+def test_note_links_inherit_note_color():
+    """גבי עיצוב (b050cc8): קישור בתוך .note (באנר CSV, «במסך הניהול ←») קיבל את הכחול של הדפדפן ⇒ 1.48:1 במצב כהה.
+    קישורי .note יורשים את צבע ההערה (--warn על --warn-bg, שנבדק למעלה ≥4.5 בבהיר ובכהה)."""
+    assert ".note a{color:inherit" in UI

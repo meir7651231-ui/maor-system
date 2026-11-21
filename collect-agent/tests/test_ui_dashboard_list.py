@@ -45,8 +45,9 @@ def test_list_has_only_ui_fields_with_same_values_as_full(api, fake_gi):
     full = api.get("/dashboard").json()
     lst = api.get("/dashboard?view=list").json()
     # critic סבב 150: holidays ל-/ui · מנהל 325 (critic 177): restore_hold לכרטיס #rh
-    assert set(lst) == {"today", "trial", "totals", "invoices", "holidays", "restore_hold"}
-    keep = ("today", "trial", "totals", "restore_hold")
+    # גבי עיצוב (b050cc8): csv_freshness לבאנר «העלו קובץ CSV עדכני» ב-/ui (null למקור שאינו CSV)
+    assert set(lst) == {"today", "trial", "totals", "invoices", "holidays", "restore_hold", "csv_freshness"}
+    keep = ("today", "trial", "totals", "restore_hold", "csv_freshness")
     assert {k: full[k] for k in keep} == {k: lst[k] for k in keep}
     assert [x["invoice_id"] for x in lst["invoices"]] == [x["invoice_id"] for x in full["invoices"]]
     assert {x["status"] for x in lst["invoices"]} == {"open", "closed"}

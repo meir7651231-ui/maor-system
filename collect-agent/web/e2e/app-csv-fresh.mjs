@@ -67,6 +67,19 @@ try {
   await aa(mp, 'בית 390px');
   if (out) await mp.getByTestId('csv-fresh-banner').screenshot({ path: `${out}/csv-fresh-mobile.png` });
   await m.close();
+  // 5ב) /ui (בהיר+כהה, 390px): אותו באנר + קישור לייבוא
+  for (const scheme of ['light', 'dark']) {
+    const uc = await b.newContext({ viewport: { width: 390, height: 844 }, colorScheme: scheme });
+    await uc.addInitScript(t => { try { sessionStorage.setItem('gabi_owner_token', t); } catch { /* */ } }, TOKEN);
+    const up = await uc.newPage(); watch(up);
+    await up.goto(`${base}/ui`); await up.locator('#csvWarn:not([hidden])').waitFor();
+    ok((await up.locator('#csvWarn').textContent()).includes('מבוססת על ייבוא מ-08.11.2026'), '/ui: ' + await up.locator('#csvWarn').textContent());
+    ok(await up.locator('#csvLink').getAttribute('href') === '/app/#/settings?s=csv', '/ui: קישור הייבוא');
+    ok(await up.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `/ui ${scheme}: גלילה רוחבית`);
+    await aa(up, `/ui ${scheme}`);
+    if (out) await up.locator('#csvWarn').screenshot({ path: `${out}/csv-fresh-ui-${scheme}.png` });
+    await uc.close();
+  }
   // 6) ייבוא טרי ⇒ הבאנר נעלם
   await importCsv();
   ok((await api('/dashboard')).csv_freshness?.upload_needed === false, 'השרת: עדיין מבקש קובץ אחרי ייבוא טרי');
@@ -74,5 +87,5 @@ try {
   ok(await banner.count() === 0, 'הבאנר נשאר אחרי ייבוא טרי');
   await ctx.close();
   ok(!errors.length, 'שגיאות: ' + errors.join(' | '));
-  console.log('✓ CSV: «עוד לא הועלה» · ייבוא ⇒ אין באנר · +48ש ⇒ «מבוססת על ייבוא מ-08.11.2026» · «ייבוא קובץ» ⇒ הגדרות · ייבוא טרי ⇒ נעלם · 390px · AA · 0 שגיאות');
+  console.log('✓ CSV: «עוד לא הועלה» · ייבוא ⇒ אין באנר · +48ש ⇒ «מבוססת על ייבוא מ-08.11.2026» · «ייבוא קובץ» ⇒ הגדרות · /ui בהיר+כהה · ייבוא טרי ⇒ נעלם · 390px · AA · 0 שגיאות');
 } finally { await b.close(); srv.kill(); }
