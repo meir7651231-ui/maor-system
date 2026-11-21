@@ -26,7 +26,6 @@ GAPS = ["בא לי לסיים עם הכל", "אני כבר לא יכולה יו�
         "אבא שלי נפתר", "הוא כבר לא בין החיים", "בעלי ז\"ל"]
 
 
-@pytest.mark.xfail(strict=True, reason="212🟠: ניסוח מגין ⇒ unknown/normal (בלי דחוף/השהיה מגינה)")
 @pytest.mark.parametrize("text", GAPS)
 def test_protective_variant_is_urgent(text):
     d = _d(text)
@@ -37,3 +36,10 @@ def test_protective_variant_is_urgent(text):
                                   "אני קטינה", "אמא נפטרה לפני שבוע"])
 def test_control_close_variants_already_urgent(text):
     assert _d(text).escalate == cv.Escalation.URGENT
+
+
+# מנהל 368: תוקן (conversation.py — _HE_BEREAVE + _extend DISTRESS/MINOR). בקרות נגד התראת-שווא:
+@pytest.mark.parametrize("text", ["אני רוצה לסיים עם הכל, תשלחו קישור לתשלום", "הבעיה נפתרה, שילמתי", "זה נפתר",
+                                  "הבן שלי עוד לא בן 18, אני אשלם ביום ראשון"])
+def test_payment_or_solved_context_not_urgent(text):
+    assert _d(text).escalate != cv.Escalation.URGENT
