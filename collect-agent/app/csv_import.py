@@ -107,9 +107,66 @@ def _agorot(v: str) -> int:
     # מבקר סבב 3: "Infinity"/"NaN" הפילו את הייבוא; סכום לא סביר (מעל 100 מיליון ₪) נדחה.
     # הפעלה 111: אותו מפענח כמו במקורות ה-API. קודם כל פסיק נמחק ⇒ "1200,50" יובא כ-120,050 ₪
     # ו-"1.200,50" כ-1.20 ₪. עכשיו פסיק מותר רק כמפריד אלפים, אחרת השורה נדחית עם הודעה.
-    if not (v or "").replace("\u200f", "").strip():
+    return _amount_cell(v)[0]
+
+
+# הפעלה 369 (חיבורים): ייצוא חשבונאי (Excel «חשבונאות», חשבשבת, פריוריטי) כותב שלילי כ-«(500)» או «500-»,
+# ולפעמים מטבע בתוך התא («1,200 ש"ח», «$500»). קודם: «(500)»/«500-»/«ש"ח» ⇒ «סכום לא תקין» ⇒ זיכוי נעלם
+# מרשימת הבדיקה, וקובץ שכולו בפורמט הזה נדחה כולו. וגם: «₪500» בשורה שעמודת המטבע שלה USD נקלט בשקט
+# כ-500 דולר. עכשיו: סוגריים / מינוס בסוף = שלילי ⇒ זיכוי (לבדיקה, אף פעם לא חוב); סימן כפול
+# («(-500)», «-500-») ⇒ שגיאה; סימן מטבע בתא נבדק מול עמודת המטבע — סתירה ⇒ שגיאה גלויה, בלי ניחוש.
+_CELL_INVISIBLE = ("\u200f", "\u200e", "\u202a", "\u202b", "\u202c", "\ufeff")
+_CUR_MARK = re.compile(r'^([+-]?)\s*(?:US\$|₪|\$|€|£|ש["״\'׳]?ח|NIS|ILS|USD|EUR|GBP)', re.I)
+_CUR_MARK_END = re.compile(r'(?:US\$|₪|\$|€|£|ש["״\'׳]?ח|NIS|ILS|USD|EUR|GBP)$', re.I)
+
+
+def _mark_currency(m: str) -> str:
+    m = m.upper() if m.isascii() else m
+    return parse_currency(m.replace("׳", "'"))
+
+
+def _amount_cell(v: str) -> tuple[int, str | None]:
+    """תא סכום ⇒ (אגורות, מטבע שהופיע בתא או None)."""
+    t = v or ""
+    for ch in _CELL_INVISIBLE:
+        t = t.replace(ch, "")
+    t = t.replace("\u00a0", " ").replace("\u202f", " ").strip()
+    if not t:
         raise ValueError(f"סכום לא תקין: {v}")   # תא ריק = שגיאה, לא 0
-    return parse_amount_agorot(v, max_agorot=10_000_000_000)
+    marks: set[str] = set()
+    neg = False
+
+    def strip_marks(t: str) -> str:
+        while True:
+            m = _CUR_MARK.match(t) or _CUR_MARK_END.search(t)
+            if not m:
+                return t
+            if m.re is _CUR_MARK:
+                marks.add(_mark_currency(m.group(0)[len(m.group(1)):].strip()))
+                t = m.group(1) + t[m.end():].strip()
+            else:
+                marks.add(_mark_currency(m.group(0)))
+                t = t[:m.start()].strip()
+
+    t = strip_marks(t)
+    if t.startswith("(") and t.endswith(")"):
+        neg = True
+        t = strip_marks(t[1:-1].strip())
+    if t.endswith("-") and len(t) > 1:
+        if neg:
+            raise ValueError(f"סכום לא תקין (סימן שלילי כפול): {v}")
+        neg = True
+        t = strip_marks(t[:-1].strip())
+    if not t or not any(c.isdigit() for c in t):
+        raise ValueError(f"סכום לא תקין: {v}")   # «()», «₪», «-» לבד ⇒ שגיאה, לא 0
+    if neg and t[0] in "+-":
+        raise ValueError(f"סכום לא תקין (סימן שלילי כפול): {v}")
+    if "(" in t or ")" in t or t.endswith("-"):
+        raise ValueError(f"סכום לא תקין: {v}")
+    if len(marks) > 1:
+        raise ValueError(f"שני מטבעות שונים בתא הסכום: {v}")
+    out = parse_amount_agorot(t, max_agorot=10_000_000_000)
+    return (-out if neg else out), (next(iter(marks)) if marks else None)
 
 
 # הפעלה 114: Excel שומר טלפון כמספר ⇒ האפס המוביל נמחק ('0501234567' ⇒ 501234567, לפעמים '501234567.0').
@@ -252,7 +309,11 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
                 raise ValueError(f"מספר מסמך כפול: {num}")
             if cell("status").strip().lower() in CLOSED_STATUSES:
                 continue                                   # מסמך סגור/מבוטל ⇒ לא חוב
-            amount = _agorot(cell("amount"))
+            amount, cell_cur = _amount_cell(cell("amount"))
+            currency = parse_currency(cell("currency")) if cell("currency").strip() else (cell_cur or "ILS")
+            if cell_cur and cell_cur != currency:
+                raise ValueError(f"המטבע בתא הסכום ({cell_cur}) שונה מעמודת המטבע ({currency})"
+                                 " — לא נקלט, כדי לא לשלוח תזכורת בסכום שגוי")
             if amount == 0:
                 continue                                   # שולמה / אפס ⇒ לא חוב
             issued = _parse_date(cell("issued"), order)
@@ -288,7 +349,7 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
             (out.credits if amount < 0 else out.invoices).append(Invoice(
                 external_id=f"csv:{num}", number=num, doc_type=330 if amount < 0 else 305,
                 amount_agorot=abs(amount),
-                currency=parse_currency(cell("currency")), issued=issued, due=due,
+                currency=currency, issued=issued, due=due,
                 client_external_id="", client_name=cell("client"), client_phone=phone,
                 client_email=cell("email"), due_estimated=est))
         except ValueError as e:
