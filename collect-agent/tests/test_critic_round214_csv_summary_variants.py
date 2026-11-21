@@ -24,7 +24,6 @@ def _numbers(label):
     return [i.number for i in r.invoices]
 
 
-@pytest.mark.xfail(strict=True, reason="214🟠: נוסח סיכום שלא ברשימה ⇒ חשבונית של 2,000 ₪ בלי שגיאה")
 @pytest.mark.parametrize("label", ['סה"כ לגבייה', 'סה"כ חוב', 'סה"כ חשבוניות', 'סה"כ (2 חשבוניות)', 'סה"כ ₪',
                                    'סה"כ פתוח', 'סה"כ 2 מסמכים', '*** סה"כ ***', 'סכום כולל', 'סיכום ביניים',
                                    'Sub-total', 'Total (ILS)'])
