@@ -21,7 +21,6 @@ def _first_status(svc, second, approved):
     return svc.db.one("SELECT status FROM drafts WHERE id=?", (r["draft_id"],))["status"]
 
 
-@pytest.mark.xfail(strict=True, reason="207🟡: approved יוצאת אחרי «רק מייל» / «שילמתי» (pending נעצרת)")
 @pytest.mark.parametrize("second", LATER)
 def test_approved_waiting_draft_superseded_like_pending(svc, second):
     assert _first_status(svc, second, approved=True) != "sent_dry_run"

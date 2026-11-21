@@ -546,9 +546,13 @@ class ConversationInbox:
         ותשובות דחופות קודמות (אמפתיה/הפניה — לא גבייה). כמו 205 לסימון של בעל העסק."""
         row = self.db.one("SELECT paused_reason FROM customers WHERE id=?", (cid,))
         base = ((row["paused_reason"] if row else "") or "").split(":", 1)[0]
-        if d.escalate != Escalation.URGENT and base not in _HARD_PAUSES:
+        # מבקר 207🟡: גם «שילמתי» (קישור תשלום אחרי «עצרנו את התזכורות ונבדוק») ו«רק מייל» (התשובה יצאה ב-SMS
+        # שהלקוח ביקש להפסיק) — כשהטיוטה pending היא מוחלפת ב-`_draft`; approved צריכה להיעצר באותו אופן.
+        later = "paid_claim" if Intent.PAID_CLAIM in d.all_intents else (
+            "channel_pref" if "channel_pref" in d.tags else None)
+        if d.escalate != Escalation.URGENT and base not in _HARD_PAUSES and not later:
             return 0
-        return self._stop_approved(cid, d.intent.value, pause=base or None)
+        return self._stop_approved(cid, d.intent.value, pause=(base or later) or None)
 
     def _stop_approved(self, cid: int, intent: str, *, pause: str | None = None,
                        shared_card: int | None = None) -> int:
