@@ -186,6 +186,20 @@ def _find_header(text: str) -> tuple[int, str]:
     return 0, _delim(lines[0] if lines else "")
 
 
+# הפעלה 368 (BACKLOG חיבורים): ייצוא Excel מסתיים לעיתים בשורת «סה״כ» / «סיכום». קודם נדחתה בהודעה מטעה
+# («אין טלפון ואין מייל» / «חסר מספר מסמך») ⇒ בעל העסק חיפש חייב חסר. עכשיו: שגיאה גלויה וברורה.
+# תווית בעמודת המספר ⇒ תמיד סיכום; בעמודת הלקוח ⇒ רק בלי מספר, טלפון ומייל (לקוח «סיכום בע״מ» לא נפגע).
+_SUMMARY = re.compile(r'^(?:סה["\u05f4\'\u2019]?כ|סך\s*הכ[ו]?ל|סיכום|total|totals|grand\s+total|subtotal|sum)'
+                      r'(?:\s+(?:לתשלום|כללי|כולל|חובות|יתרות|יתרה|פתוחות|amount|due|balance|open))?$',
+                      re.IGNORECASE)
+SUMMARY_MSG = "שורת סיכום (סה״כ) — לא חשבונית, לא נקלטה"
+MERGED_HINT = " (אם התא ממוזג עם השורה שמעל ב-Excel — בטלו את המיזוג ומלאו את הערך בכל שורה)"
+
+
+def _is_summary(label: str) -> bool:
+    return bool(_SUMMARY.match(label.strip().rstrip(":").strip()))
+
+
 def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
     if isinstance(raw, bytes):
         if len(raw) > MAX_BYTES:
@@ -211,16 +225,22 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
                   if k in idx and idx[k] < len(r)]
     order = detect_date_order(date_cells)
     out.date_order = order
+    prev: dict[str, str] = {}
     for n, row in enumerate(rows[1:], start=skip + 2):
         def cell(k: str, row=row) -> str:
             i = idx.get(k)
             return row[i].strip() if i is not None and i < len(row) else ""
         if not any(c.strip() for c in row):
             continue
+        last, prev = prev, {k: cell(k) for k in ("number", "client", "phone", "email")}
         try:
             raw_num = cell("number")
+            # «סה״כ» בעמודת המספר הוא אף פעם לא מספר מסמך (גם אם יש בשורה טלפון של העסק) ⇒ תמיד סיכום
+            if _is_summary(raw_num) or (not raw_num and _is_summary(cell("client"))
+                                        and not cell("phone") and not cell("email")):
+                raise ValueError(SUMMARY_MSG)
             if not raw_num:
-                raise ValueError("חסר מספר מסמך")
+                raise ValueError("חסר מספר מסמך" + (MERGED_HINT if last.get("number") else ""))
             # הפעלה 116: אותו ניקוי כמו ב-Invoice (מפתח `csv:{מספר}` ואיחוד מול ה-API). "None"/קישור ⇒
             # שגיאה גלויה; "1234.0" מ-Excel ⇒ "1234"; RLM/רווחים כפולים לא מפצלים מסמך.
             num = clean_doc_number(raw_num)
@@ -254,7 +274,9 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
             if due is None and issued is not None:
                 due = issued + timedelta(days=DEFAULT_TERMS_DAYS)
             if not cell("phone") and not cell("email"):
-                raise ValueError("אין טלפון ואין מייל")
+                raise ValueError("אין טלפון ואין מייל"
+                                 + (MERGED_HINT if (last.get("phone") or last.get("email"))
+                                    and cell("client") in ("", last.get("client")) else ""))
             phone = _csv_phone(cell("phone"))
             # הפעלה 114: טלפון שלא מזוהה ובלי מייל תקין = חייב שאי אפשר להגיע אליו ⇒ שגיאה גלויה בייבוא
             # (קודם נקלט בשקט ואף תזכורת לא יצאה).
