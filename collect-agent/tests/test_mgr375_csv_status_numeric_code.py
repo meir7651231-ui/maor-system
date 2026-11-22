@@ -34,7 +34,7 @@ def test_credit_with_code_goes_to_review():
     assert len(r.credits) == 1 and r.errors == []
 
 
-@pytest.mark.parametrize("status", ["", "פתוח", "open", "טיוטה", "שולם חלקית", "Open 2", "A1", "1-א"])
+@pytest.mark.parametrize("status", ["", "פתוח", "open", "שולם חלקית", "Open 2", "A1", "1-א"])
 def test_word_statuses_unchanged(status):
     r = parse(HB + f"1001,דנה,0501234567,1200,{status}\n")
     assert len(r.invoices) == 1 and r.errors == []

@@ -346,6 +346,18 @@ STATUS_CODE_MSG = ("הסטטוס «{}» הוא קוד מספרי שגבי לא �
                    " שאולי שולמה או בוטלה. ייצאו עם סטטוס במילים (פתוח / שולם) או בלי עמודת סטטוס")
 
 
+# מנהל 377 (חיבורים «הבא» מ-375/376): סטטוס «טיוטה» / «הצעת מחיר» / «Draft» / «Quote» / «Estimate» — מסמך שלא
+# הופק כדרישת תשלום. קודם: נקלט כחוב פתוח ⇒ תזכורת «טרם שולמה» על הצעה שהלקוח מעולם לא אישר 🟠. ⇒ שגיאה גלויה,
+# בכל סכום (גם 0 — טיוטה לא «סוגרת» חשבונית קיימת באותו מספר). «חשבון עסקה» / «Proforma» = דרישת תשלום ⇒ ללא שינוי.
+_DRAFT = re.compile(r"טיוט[הא]|הצעת[\s-]*מחיר|הצ[\"״']מ|(?<![a-z])(?:draft(?:ed)?|quot(?:e|ation)|estimate)(?![a-z])")
+DRAFT_MSG = ("המסמך מסומן «{}» — טיוטה או הצעת מחיר אינה חשבונית לתשלום, ולכן לא נקלט ולא תצא עליו תזכורת."
+             " אם כבר הופקה עליו חשבונית — ייצאו אותה")
+
+
+def _status_draft(v: str) -> bool:
+    return bool(_DRAFT.search(_status_norm(v)))
+
+
 def _status_code(v: str) -> bool:
     return bool(_STATUS_CODE.match(_status_norm(v)))
 
@@ -431,6 +443,8 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
                 raise ValueError(f"מספר מסמך ארוך מדי (מעל {DOC_NUMBER_MAX} תווים)")
             if num in seen:
                 raise ValueError(f"מספר מסמך כפול: {num}")
+            if _status_draft(cell("status")):              # מנהל 377: טיוטה/הצעה ⇒ לא חוב, לא סוגר
+                raise ValueError(DRAFT_MSG.format(cell("status").strip()[:30]))
             if _status_norm(cell("status")) in CLOSED_STATUSES:
                 out.closed.append(num)                     # מסמך סגור/מבוטל ⇒ לא חוב (וסוגר קיימת)
                 continue
