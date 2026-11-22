@@ -711,6 +711,11 @@ class CollectService:
                 "ELSE excluded.email END",
                 (cust_ext, clean_client_name(inv.client_name), inv.client_phone, inv.client_email))
             cid = self.db.one("SELECT id FROM customers WHERE external_id=?", (cust_ext,))["id"]
+            reopened = None
+            if source == "csv":
+                self._csv_contact_moved(inv, cid)
+                reopened = self.db.one("SELECT id FROM invoices WHERE external_id=? AND status='closed' "
+                                       "AND owner_paid_at IS NULL", (inv.external_id,))
             self.db.x(
                 "INSERT INTO invoices(external_id,number,doc_type,amount_agorot,currency,issued,"
                 "due,customer_id,status,payment_url,synced_at,source,credit_agorot,due_estimated) "
@@ -733,6 +738,8 @@ class CollectService:
                  inv.issued.isoformat() if inv.issued else None,
                  inv.due.isoformat() if inv.due else None, cid, inv.payment_url, now, source,
                  inv.credit_agorot, int(bool(getattr(inv, "due_estimated", False)))))
+            if reopened:
+                self._notify_csv_reopened(inv, reopened["id"])
         held = self._hold_for_credit_review(review)
         if no_id:
             self._notify_docs_without_id(no_id)
@@ -776,6 +783,65 @@ class CollectService:
                    "(אי אפשר לאמת מולם סכום לפני שליחה). בדקו אותם במערכת החשבוניות.", key,
                    _iso(self.clock())))
         self.audit("system", "doc_without_id", {"count": n})
+
+    def _csv_contact_moved(self, inv: Invoice, cid: int) -> None:
+        """מבקר 219א🟠: ב-CSV אין מזהה לקוח — המפתח נגזר מהטלפון/מייל. קובץ עם טלפון/מייל חדשים לאותה
+        חשבונית ⇒ לקוח חדש, אבל ה-upsert לא העביר אליו את החשבונית ⇒ התזכורת יצאה לפרטים **הישנים** (מספר
+        שעבר לאדם אחר ⇒ פרטי חוב לזר). עכשיו: הקובץ הוא מקור האמת לפרטי הקשר — החשבונית עוברת ללקוח
+        הנוכחי (חשבונית בהסדר פעיל לא זזה: הלקוח הישן מושהה + כרטיס), תזכורת פעילה שנבנתה לפרטים הישנים
+        מבוטלת (התכנון הבא בונה חדשה, לאישור),
+        ומצבי עצירה של הלקוח הישן (מחלוקת/השהיה/הסרה/עיכוב משפטי) עוברים איתה — שינוי טלפון לא משחרר עצירה."""
+        old = self.db.one("SELECT id, customer_id FROM invoices WHERE external_id=?", (inv.external_id,))
+        if old is None or old["customer_id"] == cid:
+            return
+        if self._in_live_plan(old["id"]):
+            # הסדר שבעל העסק אישר קשור ללקוח — לא משכתבים אותו במקום (מגן-מקור). הלקוח הישן מושהה (שום
+            # תזכורת/תשלום-בהסדר לא יוצאים לפרטים הישנים) ובעל העסק מעדכן ידנית ומחדש.
+            self.db.x("UPDATE customers SET paused_reason=COALESCE(paused_reason, 'csv_contact_changed') WHERE id=?",
+                      (old["customer_id"],))
+            self._cancel_invoice(old["id"], "contact_changed")
+            self._csv_contact_card(inv, old["customer_id"])
+            self.audit("system", "csv_contact_changed_in_plan", {"invoice": old["id"]})
+            return
+        prev = self.db.one("SELECT opted_out, disputed, paused_reason, legal_hold FROM customers WHERE id=?",
+                           (old["customer_id"],))
+        if prev is not None:
+            self.db.x("UPDATE customers SET opted_out=MAX(opted_out, ?), disputed=MAX(disputed, ?), "
+                      "paused_reason=COALESCE(paused_reason, ?), legal_hold=COALESCE(legal_hold, ?) WHERE id=?",
+                      (prev["opted_out"], prev["disputed"], prev["paused_reason"], prev["legal_hold"], cid))
+        self.db.x("UPDATE invoices SET customer_id=? WHERE id=?", (cid, old["id"]))
+        self._cancel_invoice(old["id"], "contact_changed")
+        self.audit("system", "csv_contact_changed", {"invoice": old["id"], "from": old["customer_id"], "to": cid})
+
+    def _in_live_plan(self, iid: int) -> bool:
+        return any(iid in self._plan_invoice_ids(p) for p in self.db.q(
+            "SELECT invoice_id, invoice_ids FROM plans WHERE status IN ('proposed','approving','approved')"))
+
+    def _csv_contact_card(self, inv: Invoice, old_cid: int) -> None:
+        key = f"csv_contact_plan:{inv.external_id}"
+        if self.db.one("SELECT 1 FROM messages WHERE intent='csv_contact_plan' AND message_id=?", (key,)):
+            return
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(?,'system','owner',?,'csv_contact_plan',1,?,?)",
+                  (old_cid, f"חשבונית {inv.number} בהסדר תשלומים, ובקובץ החדש פרטי הקשר של הלקוח השתנו. "
+                   "הלקוח הושהה — שום הודעה לא תצא לפרטים הישנים. עדכנו את הטלפון/המייל בכרטיס הלקוח וחדשו.",
+                   key, _iso(self.clock())))
+
+    def _notify_csv_reopened(self, inv: Invoice, iid: int) -> None:
+        """מבקר 219ב🟡: חשבונית CSV שנסגרה לפי קובץ («שולם» / יתרה 0) ומופיעה שוב כפתוחה (קובץ ישן שהועלה
+        בטעות / ייצוא לא מעודכן) נפתחה מחדש בשקט. עכשיו: כרטיס לבעל העסק — התזכורות עליה ממילא דורשות
+        אישור פרטני, והכרטיס אומר לו לבדוק לפני שמאשר. כרטיס אחד לחשבונית ליום."""
+        key = f"csv_reopen:{iid}:{self.clock().date().isoformat()}"
+        if self.db.one("SELECT 1 FROM messages WHERE intent='csv_reopened' AND message_id=?", (key,)):
+            return
+        cust = self.db.one("SELECT customer_id FROM invoices WHERE id=?", (iid,))
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(?,'system','owner',?,'csv_reopened',1,?,?)",
+                  (cust["customer_id"] if cust else None,
+                   f"חשבונית {inv.number} נסגרה לפי קובץ קודם (שולם / יתרה 0), ובקובץ הזה היא שוב פתוחה. "
+                   "אם הועלה בטעות קובץ ישן — העלו את הקובץ העדכני; אם החוב באמת פתוח — אפשר להמשיך. "
+                   "תזכורת עליה לא תצא בלי אישורכם.", key, _iso(self.clock())))
+        self.audit("system", "csv_invoice_reopened", {"invoice": iid})
 
     def _merge_csv_twin(self, inv: Invoice, source: str) -> bool:
         """critic 3.6.4: אותה חשבונית מ-CSV (`csv:{מספר}`) ומה-API היו שני שרשורים. סנכרון API מלא

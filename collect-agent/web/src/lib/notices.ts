@@ -19,6 +19,9 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   settings_changed: { icon: '🔐', title: 'הגדרות רגישות שונו — ודאו שזה אתם', tone: 'warn' },
   draft_not_sent: { icon: '🚫', title: 'תשובה שאישרתם לא נשלחה — לבדיקתכם', tone: 'warn' },
   draft_stopped_opt_out: { icon: '🚫', title: 'תשובה ללקוח לא נשלחה — הלקוח ביקש הסרה', tone: 'warn' },
+  // מבקר 219ב: חשבונית CSV שנסגרה לפי קובץ חזרה כפתוחה בקובץ חדש (קובץ ישן שהועלה בטעות?)
+  csv_contact_plan: { icon: '📇', title: 'פרטי קשר השתנו בקובץ לחשבונית בהסדר — הלקוח הושהה, לעדכן', tone: 'warn' },
+  csv_reopened: { icon: '📂', title: 'חשבונית שנסגרה לפי קובץ חזרה כפתוחה — לבדוק', tone: 'warn' },
   doc_without_id: { icon: '🧾', title: 'מסמכים בלי מזהה ממערכת החשבוניות — לא נשלחות עליהם תזכורות', tone: 'warn' },
   // critic סבב 49: התראת הסכום החריג (הפעלה 123) הופיעה ככותרת כללית «הודעה מגבי» בטון מידע
   amount_check: { icon: '🔢', title: 'סכום חריג מאוד מהרגיל ללקוח — לבדוק לפני אישור', tone: 'warn' },

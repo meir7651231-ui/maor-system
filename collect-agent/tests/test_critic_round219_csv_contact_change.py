@@ -13,7 +13,6 @@ xfail(strict=True); בקרות ירוקות."""
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
@@ -31,7 +30,7 @@ def _csv(svc):
     svc.db.x("DELETE FROM invoices")
 
 
-@pytest.mark.xfail(strict=True, reason="219א🟠: טלפון/מייל חדשים בקובץ ⇒ התזכורת יוצאת לישנים")
+
 def test_reminder_goes_to_current_contact(svc, clock):
     _csv(svc)
     svc.import_csv((H + _row()).encode())
@@ -48,7 +47,7 @@ def test_reminder_goes_to_current_contact(svc, clock):
     assert not old, "תזכורת יצאה לטלפון/מייל הישנים"
 
 
-@pytest.mark.xfail(strict=True, reason="219ב🟡: חשבונית שנסגרה לפי קובץ נפתחת מחדש בשקט")
+
 def test_reopen_after_file_close_is_visible(svc, clock):
     _csv(svc)
     svc.import_csv((H + _row()).encode())
