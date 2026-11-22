@@ -21,7 +21,8 @@ DANA_PHONE = "050-1234567"
 
 @pytest.fixture
 def env(gi_client, clock):
-    s = load_settings({"SMS_SENDER_ID": "StudioMeir", "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/s"})
+    s = load_settings({"REAL_DATA_ALLOWED": "1",  # מנהל 380: שער 4 חל גם על sync; לוגיקה, לא השער
+                       "SMS_SENDER_ID": "StudioMeir", "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/s"})
     svc = CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
     users = Users(svc.db, svc.clock)
     reg = users.create("dana@example.co.il", "דנה לוי", PW)

@@ -38,7 +38,8 @@ def build(docs, now, holidays=""):
     gi = GreenInvoiceClient(SANDBOX, "test-id", "test-secret",
                             transport=httpx.MockTransport(fake.handler))
     clock = Clock(now)
-    s = load_settings({"BUSINESS_NAME": "סטודיו מאיר", "SMS_SENDER_ID": "StudioMeir",
+    s = load_settings({"REAL_DATA_ALLOWED": "1",  # מנהל 380: שער 4 חל גם על sync; לוגיקה, לא השער
+                       "BUSINESS_NAME": "סטודיו מאיר", "SMS_SENDER_ID": "StudioMeir",
                        "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/studio",
                        "EMAIL_REPLY_TO": "owner@studio.example",
                        "PUBLIC_BASE_URL": "https://gabi.example", "HOLIDAYS": holidays})

@@ -227,7 +227,8 @@ def test_mock_payment_page_per_provider(provider, host):
 def test_no_safe_payment_link_blocks(svc, gi_client, clock, fake_gi):
     from app.config import load_settings
     from app.db import DB
-    s = load_settings({"PAYMENT_LINK": "https://evil.example/pay"})   # לא ברשימה המותרת
+    s = load_settings({"REAL_DATA_ALLOWED": "1",  # מנהל 380: שער 4 חל גם על sync; לוגיקה, לא השער
+                       "PAYMENT_LINK": "https://evil.example/pay"})   # לא ברשימה המותרת
     api = TestClient(create_app(CollectService(s, DB(":memory:"), gi=gi_client, clock=clock),
                                 owner_token=OWNER_TOKEN), headers=AUTH)
     ids = first_cycle(api)
@@ -538,7 +539,8 @@ def test_compliance_filter_blocks_in_service(svc, gi_client, clock):
     """ר-1: מילה אסורה (למשל בשם העסק שהוזן) ⇒ התזכורת נחסמת ולא ניתנת לאישור."""
     from app.config import load_settings
     from app.db import DB
-    s = load_settings({"BUSINESS_NAME": "גבייה דחוף בע\"מ",
+    s = load_settings({"REAL_DATA_ALLOWED": "1",  # מנהל 380: שער 4 חל גם על sync; לוגיקה, לא השער
+                       "BUSINESS_NAME": "גבייה דחוף בע\"מ",
                        "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/s"})
     api = TestClient(create_app(CollectService(s, DB(":memory:"), gi=gi_client, clock=clock),
                                 owner_token=OWNER_TOKEN), headers=AUTH)
@@ -550,7 +552,8 @@ def test_compliance_filter_blocks_in_service(svc, gi_client, clock):
 def test_trial_14_days_stops_sending_after(gi_client, clock):
     from app.config import load_settings
     from app.db import DB
-    s = load_settings({"TRIAL_START": "2026-10-26", "SMS_SENDER_ID": "StudioMeir",
+    s = load_settings({"REAL_DATA_ALLOWED": "1",  # מנהל 380: שער 4 חל גם על sync; לוגיקה, לא השער
+                       "TRIAL_START": "2026-10-26", "SMS_SENDER_ID": "StudioMeir",
                        "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/s"})
     svc = CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
     api = TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
@@ -698,7 +701,8 @@ def test_trial_ending_notice_to_owner_once(gi_client, clock):
     """הכרעת מאיר: תזכורת לבעל העסק 3 ימים לפני סוף הניסיון — פעם אחת, לא לפני, לא אחרי."""
     from app.config import load_settings
     from app.db import DB
-    s = load_settings({"TRIAL_START": "2026-10-25", "SMS_SENDER_ID": "StudioMeir",
+    s = load_settings({"REAL_DATA_ALLOWED": "1",  # מנהל 380: שער 4 חל גם על sync; לוגיקה, לא השער
+                       "TRIAL_START": "2026-10-25", "SMS_SENDER_ID": "StudioMeir",
                        "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/s"})
     svc = CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
     api = TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
@@ -730,7 +734,8 @@ def test_email_blocked_without_reply_to(svc, gi_client, clock, fake_gi):
     """review חור 6: בלי Reply-To ל«השיבו למייל הזה» התשובה הולכת לכתובת מתה ⇒ ערוץ המייל חסום."""
     from app.config import load_settings
     from app.db import DB
-    s = load_settings({"PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/s"})   # בלי EMAIL_REPLY_TO
+    s = load_settings({"REAL_DATA_ALLOWED": "1",  # מנהל 380: שער 4 חל גם על sync; לוגיקה, לא השער
+                       "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/s"})   # בלי EMAIL_REPLY_TO
     fake_gi.docs[1]["client"]["phone"] = ""                                      # יוסי: מייל בלבד
     api = TestClient(create_app(CollectService(s, DB(":memory:"), gi=gi_client, clock=clock),
                                 owner_token=OWNER_TOKEN), headers=AUTH)

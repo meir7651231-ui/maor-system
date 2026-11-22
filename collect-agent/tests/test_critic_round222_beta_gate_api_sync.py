@@ -11,12 +11,10 @@
 from dataclasses import replace
 from pathlib import Path
 
-import pytest
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
-@pytest.mark.xfail(strict=True, reason="222🟡: sync שומר טלפון לא-סינתטי כשהשער כבוי; המסמך טוען שחל גם על API")
+# מנהל 380: תוקן — השער נאכף ב-sync (RealDataBlocked לפני ingest); xfail הוסר
 def test_api_sync_respects_beta_gate_or_doc_does_not_claim_it(svc):
     svc.s = replace(svc.s, real_data_allowed=False)
     try:

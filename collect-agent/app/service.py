@@ -333,6 +333,16 @@ def is_synthetic_contact(phone: str, email: str) -> bool:
     return ok_p and ok_e
 
 
+def _api_gate_ok(phone: str, email: str) -> bool:
+    """מנהל 380 (שער בטא 4 בסנכרון API): כמו `is_synthetic_contact`, ובנוסף קווי בטווח הדמו 0X-0000XXX
+    (קליניקת הדמו) נחשב מסומן, ו«טלפון» עם פחות מ-7 ספרות («123») אינו פרט קשר שמזהה אדם ⇒ מתעלמים ממנו.
+    המייל נבדק תמיד. ייבוא CSV ממשיך עם `is_synthetic_contact` הקפדני (ללא שינוי)."""
+    digits = re.sub(r"\D", "", phone or "")
+    if len(digits) < 7 or re.fullmatch(r"0[2-9]0000\d{3}", digits):
+        phone = ""
+    return is_synthetic_contact(phone, email)
+
+
 def _missing_doc_id(ext: str) -> bool:
     """מזהה מסמך ריק/חסר: "" · "None" · קידומת מקור בלבד ("ezcount:") · "ezcount:None"."""
     tail = (ext or "").split(":", 1)[-1].strip()
@@ -885,6 +895,16 @@ class CollectService:
             AS_OF.reset(as_of_token)
         # critic סבב 44: מסמך פגום (סכום/תאריך לא תקין) דולג. ייתכן שזה מסמך פתוח שכבר אצלנו ⇒
         # בסנכרון הזה לא סוגרים כלום (אחרת הוא ייראה «שולם»), ובעל העסק מקבל התראה.
+        if not self.s.real_data_allowed:
+            # מבקר 222🟡 (שער בטא 4, legal/BETA-GATE.md): «ייבוא CSV **וחיבור API** מקבלים רק נתוני דמו מסומנים».
+            # הסביבה מוגבלת ל-sandbox/mock, אבל חשבון sandbox של עסק בבטא יכול להכיל לקוחות אמיתיים שהוקלדו
+            # לבדיקה ⇒ אותו שער כמו ב-CSV: כל מסמך (גם זיכוי לבדיקה) נבדק לפני ingest; fail-closed, אין שמירה
+            # חלקית, הניסיון ב-audit בלי תוכן. הקוראים (POST /sync ⇒ 403, webhooks, עבודת הבוקר) כבר תופסים.
+            blocked = sum(1 for i in (*invs, *(d for d, _ in review))
+                          if not _api_gate_ok(i.client_phone, i.client_email))
+            if blocked:
+                self.audit("system", "api_sync_blocked", {"docs": blocked, "provider": provider})
+                raise RealDataBlocked(REAL_DATA_MSG)
         bad = self.gi.__dict__.get("malformed", 0)
         if bad:
             self._notify_malformed(bad)

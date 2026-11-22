@@ -57,7 +57,8 @@ def test_wipe_leaves_no_employee_identity_in_append_only_logs(clock, gi_client):
     from app.users import Users
     from app.wipe import wipe_all
     from tests.conftest import OWNER_TOKEN
-    s = load_settings({"PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/x"})
+    s = load_settings({"REAL_DATA_ALLOWED": "1",  # מנהל 380: שער 4 חל גם על sync; לוגיקה, לא השער
+                       "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/x"})
     svc = CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
     api = TestClient(create_app(svc, owner_token=OWNER_TOKEN))
     reg = Users(svc.db, svc.clock).create("yael.worker@studio.example", "יעל", "correct-horse-1")

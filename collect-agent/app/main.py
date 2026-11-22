@@ -378,6 +378,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def guard(fn, *a):
         try:
             return fn(*a)
+        except RealDataBlocked as e:   # מבקר 222: שער בטא 4 גם ב-POST /sync ⇒ 403 כמו ב-CSV (לא 500)
+            raise HTTPException(403, str(e)) from e
         except KeyError:
             raise HTTPException(404, "לא נמצא") from None
         except ValueError as e:
