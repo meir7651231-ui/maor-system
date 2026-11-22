@@ -211,11 +211,12 @@ def test_demo_interactive_sigterm_stops_servers(tmp_path):
 
 
 @pytest.mark.skipif(BASH is None, reason="אין bash")
-def test_sigint_test_survives_runner_with_ignored_sigint():
+def test_sigint_test_survives_runner_with_ignored_sigint(tmp_path):
     """הפעלה 378: הבדיקה למעלה נפלה ב-375/376/377 בהרצת 4 שארדים ועברה לבד. השורש: מריץ שהופעל כ-job ברקע
     יורש SIGINT=SIG_IGN. מריצים אותה כאן כשה-SIGINT מוזנח בתהליך-האב — חייבת לעבור."""
     rc = subprocess.run(  # noqa: S603  # nosec B603
-        [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider",
+        # basetemp בתוך tmp_path של הבדיקה — שומר TMPDIR ב-CI (fs-check) תפס את pytest-of-runner/ שהשארנו (1270)
+        [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", f"--basetemp={tmp_path / 'inner'}",
          f"{Path(__file__)}::test_demo_sigint_stops_and_cleans_once"],
         cwd=ROOT, capture_output=True, text=True, timeout=60,
         preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_IGN),  # noqa: PLW1509
