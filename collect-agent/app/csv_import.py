@@ -339,6 +339,17 @@ _PARTIAL = re.compile(r"חלקי|(?<![a-z])(?:partial(?:ly)?|part[\s-]?paid|part
 _PARTIAL_NOT = re.compile(r"לא שולם|טרם|unpaid|not paid")
 
 
+# מנהל 375: סטטוס שהוא קוד מספרי («1», «4», «1.0») — כל מערכת ממספרת אחרת (ב-morning 1=סגור, 4=מבוטל) ⇒
+# לא מנחשים. שורה עם סכום חיובי ⇒ שגיאה גלויה (קודם: נקלט כחוב פתוח ⇒ תזכורת על חשבונית שאולי שולמה/בוטלה).
+_STATUS_CODE = re.compile(r"^\d{1,3}(?:\.0+)?$")
+STATUS_CODE_MSG = ("הסטטוס «{}» הוא קוד מספרי שגבי לא יודע לפרש — לא נקלט, כדי לא לשלוח תזכורת על חשבונית"
+                   " שאולי שולמה או בוטלה. ייצאו עם סטטוס במילים (פתוח / שולם) או בלי עמודת סטטוס")
+
+
+def _status_code(v: str) -> bool:
+    return bool(_STATUS_CODE.match(_status_norm(v)))
+
+
 def _status_partial(v: str) -> bool:
     t = _status_norm(v)
     return bool(t) and bool(_PARTIAL.search(t)) and not _PARTIAL_NOT.search(t)
@@ -435,6 +446,8 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
             if amount == 0:
                 out.closed.append(num)                     # שולמה / אפס ⇒ לא חוב (וסוגר קיימת)
                 continue
+            if amount > 0 and _status_code(cell("status")):    # מנהל 375: קוד מספרי ⇒ לא מנחשים
+                raise ValueError(STATUS_CODE_MSG.format(_status_norm(cell("status"))[:10]))
             issued = _parse_date(cell("issued"), order)
             due = _parse_date(cell("due"), order)
             # הפעלה 121: תאריך מסמך מעל שנה בעתיד = טעות בשנה ⇒ שגיאה גלויה (קודם: «אולי העמודות הפוכות?» מטעה,
