@@ -12,6 +12,7 @@ import re
 import shutil
 import signal
 import subprocess  # nosec B404
+import sys
 import time
 from pathlib import Path
 
@@ -54,6 +55,10 @@ def test_no_trap_on_int_that_continues(path):
             assert "exit" in ln, f"{path.name}: {ln.strip()} — לא יוצא אחרי האות"
 
 
+def _sigint_default() -> None:
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+
+
 @pytest.mark.skipif(BASH is None, reason="אין bash")
 def test_demo_sigint_stops_and_cleans_once(tmp_path):
     """ה-traps האמיתיים של demo.sh: SIGINT באמצע ⇒ יציאה 130, cleanup פעם אחת, לא ממשיך."""
@@ -70,10 +75,15 @@ def test_demo_sigint_stops_and_cleans_once(tmp_path):
     out = tmp_path / "out.txt"
     proc = subprocess.Popen(  # noqa: S603  # nosec B603
         [BASH, "-c", script], env={"PATH": "/usr/bin:/bin", "OUT": str(out)},
+        # הפעלה 378 (QA #1, «נופל תחת עומס» 375–377): השארדים רצים כ-job ברקע (`pytest … &`) ⇒ SIGINT יורש
+        # SIG_IGN, ו-bash לא-אינטראקטיבי לא יכול ללכוד אות שהיה מוזנח בכניסה ⇒ ה-trap מת, sleep 20 ⇒ Timeout.
+        # שוחזר דטרמיניסטית (`bash -c 'pytest … & wait'`). הבדיקה בודקת את demo.sh, לא את סביבת המריץ ⇒ מאפסים.
+        preexec_fn=_sigint_default,  # noqa: PLW1509
     )
-    for _ in range(100):
-        if out.exists() and "READY" in out.read_text():
-            break
+    deadline = time.monotonic() + 30
+    while not (out.exists() and "READY" in out.read_text()):
+        assert proc.poll() is None, f"bash יצא לפני READY (rc={proc.returncode})"
+        assert time.monotonic() < deadline, "bash לא הגיע ל-READY תוך 30 שניות"
         time.sleep(0.05)
     proc.send_signal(signal.SIGINT)
     rc = proc.wait(timeout=10)
@@ -198,3 +208,16 @@ def test_demo_interactive_sigterm_stops_servers(tmp_path):
             proc.kill()
         subprocess.run(["pkill", "-f", f"--port {port}"], check=False)  # noqa: S603,S607  # nosec
         subprocess.run(["pkill", "-f", f"--port {gi_port}"], check=False)  # noqa: S603,S607  # nosec
+
+
+@pytest.mark.skipif(BASH is None, reason="אין bash")
+def test_sigint_test_survives_runner_with_ignored_sigint():
+    """הפעלה 378: הבדיקה למעלה נפלה ב-375/376/377 בהרצת 4 שארדים ועברה לבד. השורש: מריץ שהופעל כ-job ברקע
+    יורש SIGINT=SIG_IGN. מריצים אותה כאן כשה-SIGINT מוזנח בתהליך-האב — חייבת לעבור."""
+    rc = subprocess.run(  # noqa: S603  # nosec B603
+        [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider",
+         f"{Path(__file__)}::test_demo_sigint_stops_and_cleans_once"],
+        cwd=ROOT, capture_output=True, text=True, timeout=60,
+        preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_IGN),  # noqa: PLW1509
+    )
+    assert rc.returncode == 0, rc.stdout[-2000:] + rc.stderr[-2000:]
