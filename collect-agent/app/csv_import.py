@@ -30,6 +30,8 @@ COLUMNS: dict[str, tuple[str, ...]] = {
     "due": ("תאריך לתשלום", "מועד תשלום", "due", "due date"),
     "currency": ("מטבע", "currency"),
     "status": ("סטטוס", "status"),
+    # מנהל 379: סוג המסמך — קבלה / זיכוי / הצעת מחיר / תעודת משלוח אינם חוב (ראו `_doctype_block`)
+    "doctype": ("סוג מסמך", "סוג המסמך", "סוג", "document type", "doc type", "doctype", "type"),
     # מנהל 370: סכום ששולם לצד סכום ברוטו (בלי עמודת יתרה) ⇒ לא דורשים את מה ששולם (ראו `_paid_conflict`)
     # מבקר 215: גם «שולם עד כה» / «התקבל» / «Amount Received» / «Payments» וכו׳; שמות אחרים ⇒ `_paid_like`
     "paid": ("סכום ששולם", "שולם", "תקבולים", "זכות", "paid", "amount paid", "paid amount",
@@ -354,6 +356,35 @@ DRAFT_MSG = ("המסמך מסומן «{}» — טיוטה או הצעת מחיר
              " אם כבר הופקה עליו חשבונית — ייצאו אותה")
 
 
+# מנהל 379 (חיבורים «הבא» מ-376/377/378): עמודת «סוג מסמך» לא נקראה בכלל ⇒ ייצוא «כל המסמכים» הכניס קבלות,
+# חשבוניות מס-קבלה (= כבר שולמו), חשבוניות זיכוי בסכום חיובי, הצעות מחיר ותעודות משלוח **כחוב פתוח** ⇒ תזכורת
+# «טרם שולמה» על כסף שכבר התקבל 🔴. עכשיו: שגיאה גלויה בכל סכום — גם 0, כי לכל סוג מסמך מספור נפרד (קבלה 1001
+# ≠ חשבונית 1001) ⇒ אסור לה לסגור חשבונית קיימת באותו מספר. זיכוי בסכום **שלילי** ⇒ זרימת הזיכוי הקיימת (לבדיקה).
+# חשבונית / חשבונית מס / חשבון עסקה / proforma / ערך לא מוכר (למשל «type» = סוג לקוח) ⇒ ללא שינוי.
+_DOC_RECEIPT = re.compile(r"קבלה|(?<![a-z])(?:receipt|invoice[\s/-]*receipt)(?![a-z])")
+_DOC_CREDIT = re.compile(r"זיכוי|(?<![a-z])(?:credit(?:[\s-]*note)?(?![\s-]*card)|refund)(?![a-z])")
+_DOC_OTHER = re.compile(r"תעודת[\s-]*משלוח|ת[\.\s]*משלוח|(?<![a-z])(?:delivery[\s-]*note|packing[\s-]*slip)(?![a-z])"
+                        r"|^הזמנה$|^הזמנת|(?<![a-z])(?:purchase\s+)?order(?![a-z])")
+DOCTYPE_MSG = ("סוג המסמך «{}» — {} ולכן לא נקלט ולא תצא עליו תזכורת. ייצאו רק חשבוניות פתוחות"
+               " (או סננו את העמודה לחשבוניות)")
+
+
+def _doctype_block(v: str, amount_negative: bool) -> str | None:
+    """הסבר לשגיאה אם סוג המסמך אינו דרישת תשלום; None ⇒ ממשיכים כרגיל."""
+    t = _status_norm(v)
+    if not t:
+        return None
+    if _DOC_RECEIPT.search(t):                # לפני «חשבונית» — «חשבונית מס קבלה» = כבר שולם
+        return "קבלה מתעדת תשלום שכבר התקבל, היא לא חוב"
+    if _DOC_CREDIT.search(t):
+        return None if amount_negative else "חשבונית זיכוי מחזירה כסף ללקוח, היא לא חוב"
+    if _DRAFT.search(t):
+        return "טיוטה או הצעת מחיר אינה חשבונית לתשלום"
+    if _DOC_OTHER.search(t):
+        return "תעודת משלוח או הזמנה אינה חשבונית לתשלום"
+    return None
+
+
 def _status_draft(v: str) -> bool:
     return bool(_DRAFT.search(_status_norm(v)))
 
@@ -445,6 +476,14 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
                 raise ValueError(f"מספר מסמך כפול: {num}")
             if _status_draft(cell("status")):              # מנהל 377: טיוטה/הצעה ⇒ לא חוב, לא סוגר
                 raise ValueError(DRAFT_MSG.format(cell("status").strip()[:30]))
+            if cell("doctype"):                            # מנהל 379: קבלה/זיכוי/הצעה ⇒ לא חוב, לא סוגר
+                try:
+                    neg = _amount_cell(cell("amount"))[0] < 0
+                except ValueError:
+                    neg = False
+                why = _doctype_block(cell("doctype"), neg)
+                if why:
+                    raise ValueError(DOCTYPE_MSG.format(cell("doctype").strip()[:30], why))
             if _status_norm(cell("status")) in CLOSED_STATUSES:
                 out.closed.append(num)                     # מסמך סגור/מבוטל ⇒ לא חוב (וסוגר קיימת)
                 continue
