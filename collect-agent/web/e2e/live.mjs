@@ -462,7 +462,7 @@ try {
     j.totals.csv_unverified = 1;
     await route.fulfill({ response: res, json: j });
   });
-  await p.goto(base + '/app/#/invoices'); await p.goto(base + '/app/#/dashboard');
+  await p.goto(base + '/app/#/dashboard'); await p.reload();   // הפעלה 378: שני שינויי hash ברצף לא מבטיחים רענון (ראו app-holidays)
   await p.getByTestId('csv-unverified').waitFor();
   ok((await p.getByTestId('csv-unverified').textContent()).includes('1 חשבונית'), 'נוסח האזהרה');
   await noHScroll(p, 'דשבורד עם אזהרת CSV');
@@ -475,7 +475,7 @@ try {
     if (j[0]) j[0].block_reason = 'csv_stale';
     await route.fulfill({ response: res, json: j });
   });
-  await p.goto(base + '/app/#/invoices'); await p.goto(base + '/app/#/dashboard');
+  await p.goto(base + '/app/#/dashboard'); await p.reload();   // הפעלה 378: שני שינויי hash ברצף לא מבטיחים רענון (ראו app-holidays)
   await p.getByText(/עברו יותר מ-24 שעות/).first().waitFor();
   ok(!(await p.getByText('csv_stale').count()), 'קוד גולמי csv_stale בממשק');
   ok(!(await p.getByText(/⛔.*csv_stale/).count()), 'csv_stale מסווג כחסימה קשה');

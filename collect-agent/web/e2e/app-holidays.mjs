@@ -58,6 +58,14 @@ try {
     });
   });
   const aa = async (loc, where) => { const c = await contrast(loc); ok(c.length >= 2 && c.every(x => x.r >= 4.5), `ניגודיות < 4.5 ב-${where}: ` + JSON.stringify(c)); return Math.min(...c.map(x => x.r)); };
+  // הפעלה 378 (CI אדום 1267/1268): היה `goto(#/settings)` ואז `goto(#/dashboard)` — שני שינויי hash באותו מסמך
+  // שחוזרים מיד; ברץ מהיר React ראה dashboard⇒dashboard, אפקט הרענון לא רץ, /dashboard לא נטען מחדש עם היירוט
+  // ⇒ הבאנר לא הופיע (Timeout 30s). טעינה מלאה = בקשת /dashboard חדשה ודאית (הטוקן ב-sessionStorage נשמר).
+  const refetch = async () => {
+    await p.goto(base + '/app/#/dashboard');
+    const got = p.waitForResponse(r => new URL(r.url()).pathname === '/dashboard' && r.request().method() === 'GET');
+    await p.reload(); await got;
+  };
   const ddmm = iso => `${iso.slice(8, 10)}.${iso.slice(5, 7)}`;
 
   // 1) הלוח האמיתי בתוקף (2029) ⇒ אין באנר
@@ -67,7 +75,7 @@ try {
 
   // 2) עוד 45 יום ⇒ באנר אזהרה בבית, עם התאריך והימים
   mode = 'expiring';
-  await p.goto(base + '/app/#/settings'); await p.goto(base + '/app/#/dashboard');
+  await refetch();
   await banner('dashboard').waitFor();
   const until = addDays(today, 45);
   const t1 = await banner('dashboard').textContent();
@@ -86,7 +94,7 @@ try {
 
   // 4) פג ⇒ role=alert, «פג», אדום, AA
   mode = 'expired';
-  await p.goto(base + '/app/#/inbox'); await p.goto(base + '/app/#/dashboard');
+  await refetch();
   await p.locator('[data-testid="holiday-banner-dashboard"][data-level="expired"]').waitFor();
   const t2 = await banner('dashboard').textContent();
   ok(await banner('dashboard').getAttribute('role') === 'alert' && /פג/.test(t2) && t2.includes(ddmm(addDays(today, -3))), 'באנר «פג»: ' + t2);
