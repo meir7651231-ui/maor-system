@@ -15,7 +15,7 @@ BLOCKED = ["קבלה", "חשבונית מס קבלה", "חשבונית מס / ק
            "Estimate", "טיוטה", "תעודת משלוח", "ת. משלוח", "Delivery Note", "הזמנה", "הזמנת עבודה",
            "Purchase Order", "Order"]
 ALLOWED = ["חשבונית", "חשבונית מס", "חשבון עסקה", "Proforma", "Invoice", "Tax Invoice", "עסקי", "פרטי",
-           "Ordered", "Credit Card", "305", ""]
+           "Ordered", "Credit Card", ""]   # «305» בכותרת מפורשת ⇒ קוד (מנהל 381, test_mgr381)
 
 
 @pytest.mark.parametrize("amount", ["100", "0"])

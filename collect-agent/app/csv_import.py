@@ -385,6 +385,21 @@ def _doctype_block(v: str, amount_negative: bool) -> str | None:
     return None
 
 
+# מנהל 381 (חיבורים «הבא» מ-379/380): סוג מסמך כ**קוד מספרי** («400», «320», «305», «330.0») — morning ממספר
+# 305=חשבונית מס, 320=חשבונית מס-קבלה, 330=זיכוי, 400=קבלה; מערכות אחרות ממספרות אחרת. קודם: «לא מוכר» ⇒ נקלט
+# ⇒ קבלה 400 בסכום חיובי = תזכורת «טרם שולמה» על כסף שכבר התקבל 🔴, וקבלה 400 בסכום 0 סגרה חשבונית **אחרת**
+# באותו מספר. כמו סטטוס-קוד (375): לא מנחשים ⇒ שגיאה גלויה בכל סכום. רק כשהכותרת **מפורשת** «סוג מסמך» /
+# «Document Type» — בכותרת סתמית «סוג»/«Type» מספר הוא לרוב סוג לקוח (1/2) ⇒ ללא שינוי (אין הכללת-יתר, 379).
+_DOCTYPE_CODE = re.compile(r"^\d{1,4}(?:\.0+)?$")
+DOCTYPE_GENERIC_HEADERS = ("סוג", "type")
+DOCTYPE_CODE_MSG = ("סוג המסמך «{}» הוא קוד מספרי שגבי לא יודע לפרש (בחלק מהמערכות זו קבלה או זיכוי) — לא נקלט"
+                    " ולא תצא עליו תזכורת. ייצאו עם סוג המסמך במילים (חשבונית / קבלה) או רק חשבוניות פתוחות")
+
+
+def _doctype_code(v: str) -> bool:
+    return bool(_DOCTYPE_CODE.match(_status_norm(v)))
+
+
 def _status_draft(v: str) -> bool:
     return bool(_DRAFT.search(_status_norm(v)))
 
@@ -439,6 +454,8 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
                          + (DEBIT_CREDIT_HINT if dc else ""))
     amount_is_balance = rows[0][idx["amount"]].strip().lower() in BALANCE_NAMES
     gross = "paid" in idx and not amount_is_balance
+    doctype_explicit = ("doctype" in idx
+                        and rows[0][idx["doctype"]].strip().lower() not in DOCTYPE_GENERIC_HEADERS)
     if len(rows) - 1 > MAX_ROWS:
         raise ValueError(f"יותר מדי שורות (מקס׳ {MAX_ROWS})")
     out = CsvResult()
@@ -484,6 +501,8 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
                 why = _doctype_block(cell("doctype"), neg)
                 if why:
                     raise ValueError(DOCTYPE_MSG.format(cell("doctype").strip()[:30], why))
+                if doctype_explicit and _doctype_code(cell("doctype")):   # מנהל 381: קוד ⇒ לא מנחשים
+                    raise ValueError(DOCTYPE_CODE_MSG.format(_status_norm(cell("doctype"))[:10]))
             if _status_norm(cell("status")) in CLOSED_STATUSES:
                 out.closed.append(num)                     # מסמך סגור/מבוטל ⇒ לא חוב (וסוגר קיימת)
                 continue
