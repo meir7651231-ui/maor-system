@@ -392,12 +392,45 @@ def _doctype_block(v: str, amount_negative: bool) -> str | None:
 # «Document Type» — בכותרת סתמית «סוג»/«Type» מספר הוא לרוב סוג לקוח (1/2) ⇒ ללא שינוי (אין הכללת-יתר, 379).
 _DOCTYPE_CODE = re.compile(r"^\d{1,4}(?:\.0+)?$")
 DOCTYPE_GENERIC_HEADERS = ("סוג", "type")
-DOCTYPE_CODE_MSG = ("סוג המסמך «{}» הוא קוד מספרי שגבי לא יודע לפרש (בחלק מהמערכות זו קבלה או זיכוי) — לא נקלט"
-                    " ולא תצא עליו תזכורת. ייצאו עם סוג המסמך במילים (חשבונית / קבלה) או רק חשבוניות פתוחות")
+DOCTYPE_CODE_MSG = ("סוג המסמך «{}» הוא קוד מספרי שגבי לא מכיר (מוכרים: 300/305 חשבונית · 320 מס-קבלה · 330 זיכוי"
+                    " · 400 קבלה) — לא נקלט ולא תצא עליו תזכורת. ייצאו עם סוג המסמך במילים או רק חשבוניות פתוחות")
 
 
 def _doctype_code(v: str) -> bool:
     return bool(_DOCTYPE_CODE.match(_status_norm(v)))
+
+
+# גבי חיבורים (סט עיוור #24, גבי בדיקות): 381 דחה **כל** קוד בכותרת מפורשת ⇒ ייצוא morning עם «סוג מסמך» 305
+# נקלט כאפס חשבוניות 🔴; ובכותרת סתמית «סוג» קבלה 400 עדיין נקלטה כחוב 🟠. עכשיו: הקודים של חשבונית ירוקה
+# (morning; אותם קודים כמו ב-API — app/greeninvoice.py, gi_mock) ממופים. דרישת תשלום (300/305) ⇒ חוב.
+# כבר שולם / לא דרישת תשלום ⇒ שגיאה גלויה עם ההסבר. 330 זיכוי בסכום שלילי ⇒ זרימת הזיכוי (כמו «זיכוי» במילים).
+# קוד לא מוכר בכותרת מפורשת ⇒ שגיאה (DOCTYPE_CODE_MSG); בכותרת סתמית רק קודי הקבלה/זיכוי חוסמים (1/2 = סוג לקוח).
+GI_DEBT_CODES = {300: "חשבון עסקה", 305: "חשבונית מס"}
+GI_NOT_DEBT_CODES = {
+    10: "הצעת מחיר אינה חשבונית לתשלום", 100: "הזמנה אינה חשבונית לתשלום",
+    200: "תעודת משלוח אינה חשבונית לתשלום", 210: "תעודת החזרה אינה חשבונית לתשלום",
+    320: "חשבונית מס-קבלה (320) מתעדת תשלום שכבר התקבל, היא לא חוב",
+    330: "חשבונית זיכוי (330) מחזירה כסף ללקוח, היא לא חוב",
+    400: "קבלה (400) מתעדת תשלום שכבר התקבל, היא לא חוב",
+    405: "קבלה על תרומה (405) מתעדת תשלום שכבר התקבל, היא לא חוב",
+}
+GI_PAID_OR_CREDIT = (320, 330, 400, 405)   # בכותרת סתמית «סוג»: רק אלה חוסמים (אף פעם לא סוג-לקוח סביר)
+
+
+def _doctype_code_block(v: str, explicit: bool, amount_negative: bool) -> str | None:
+    """קוד מספרי בעמודת סוג המסמך ⇒ הסבר לשגיאה, או None (חוב / לא קוד / סתמי שאינו קבלה-זיכוי)."""
+    if not _doctype_code(v):
+        return None
+    code = int(float(_status_norm(v)))
+    if code == 330 and amount_negative:
+        return None                                  # זיכוי בסכום שלילי ⇒ זרימת הזיכוי הקיימת (לבדיקה)
+    if not explicit:
+        return GI_NOT_DEBT_CODES[code] if code in GI_PAID_OR_CREDIT else None
+    if code in GI_DEBT_CODES:
+        return None
+    if code in GI_NOT_DEBT_CODES:
+        return GI_NOT_DEBT_CODES[code]
+    return ""                                        # מפורש + לא מוכר ⇒ DOCTYPE_CODE_MSG
 
 
 def _status_draft(v: str) -> bool:
@@ -501,7 +534,10 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
                 why = _doctype_block(cell("doctype"), neg)
                 if why:
                     raise ValueError(DOCTYPE_MSG.format(cell("doctype").strip()[:30], why))
-                if doctype_explicit and _doctype_code(cell("doctype")):   # מנהל 381: קוד ⇒ לא מנחשים
+                why = _doctype_code_block(cell("doctype"), doctype_explicit, neg)   # 381 + סט #24: קודי morning
+                if why:
+                    raise ValueError(DOCTYPE_MSG.format(_status_norm(cell("doctype"))[:10], why))
+                if why == "":                              # קוד לא מוכר בכותרת מפורשת ⇒ לא מנחשים
                     raise ValueError(DOCTYPE_CODE_MSG.format(_status_norm(cell("doctype"))[:10]))
             if _status_norm(cell("status")) in CLOSED_STATUSES:
                 out.closed.append(num)                     # מסמך סגור/מבוטל ⇒ לא חוב (וסוגר קיימת)
