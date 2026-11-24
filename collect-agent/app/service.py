@@ -207,6 +207,19 @@ def _plan_not_proposed(status: str) -> ValueError:
 _B62 = "abcdefghijkmnpqrstuvwxyz23456789"  # אותיות קטנות+ספרות, בלי 0/o/1/l (קריא, ~31 ביט)
 
 
+def shared_split_rename_text(number: str, *, csv: bool = True) -> str:
+    """מנהל 388: נוסח הכרטיס כשחשבונית קיימת הגיעה בשם אחר ושאר חשבוניות הלקוח לא (ייבוא חלקי). בלי שמות/טלפון —
+    כמו כרטיס 26; מספר החשבונית מספיק כדי למצוא אותה. שתי האפשרויות + מה לעשות בכל אחת, בלי לנחש בשקט."""
+    where = "בקובץ" if csv else "מהמערכת"
+    fix = ("והעלו קובץ עם כולן; גבי תאחד אותן ללקוח אחד" if csv
+           else "; בסנכרון הבא גבי תאחד אותן ללקוח אחד")
+    return (f"חשבונית {number} הגיעה {where} בשם אחר מזה שרשום אצלנו, עם אותו טלפון/מייל. "
+            "לאותו לקוח יש עוד חשבוניות פתוחות שלא הגיעו בשם החדש, ולכן שמרנו אותה כלקוח נפרד "
+            "(לא מאחדים חובות של אנשים שונים). אולי שינוי שם? אם זה אותו אדם — עדכנו את השם בכל "
+            f"החשבוניות שלו במערכת החשבוניות {fix}. "
+            "אם החשבונית עברה לאדם אחר — אין צורך לעשות דבר.").replace("החשבוניות ;", "החשבוניות;")
+
+
 # מנהל 307: כרטיסי «כתובת משותפת» (inbox.SHARED_CARDS — כאן כמחרוזות כדי לא לייבא את inbox)
 _SHARED_URGENT_INTENT = "shared_contact_urgent"
 _SHARED_CARD_INTENTS = (_SHARED_URGENT_INTENT, "shared_contact_paid_claim")
@@ -672,14 +685,25 @@ class CollectService:
         if renamed is not None:
             return renamed
         if not self.db.one("SELECT 1 FROM customers WHERE external_id=?", (alt,)):
+            maybe_rename = self._owned_by_same_contact(inv, key)
+            body = (shared_split_rename_text(inv.number, csv=inv.external_id.startswith("csv:")) if maybe_rename
+                    else f"חשבונית {inv.number}: שני לקוחות בשמות שונים עם אותו טלפון/מייל ובלי מזהה לקוח נשמרו "
+                         "כלקוחות נפרדים (לא מאחדים חובות של אנשים שונים). אם זה אותו אדם — אחדו את השם "
+                         "במערכת החשבוניות.")
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                       "message_id,created_at) VALUES(NULL,'system','owner',?,'shared_contact',1,?,?)",
-                      (f"חשבונית {inv.number}: שני לקוחות בשמות שונים עם אותו טלפון/מייל ובלי מזהה לקוח נשמרו כלקוחות "
-                       "נפרדים (לא מאחדים חובות של אנשים שונים). אם זה אותו אדם — אחדו את השם "
-                       "במערכת החשבוניות.", "shared:" + hashlib.sha256(alt.encode()).hexdigest()[:24],
-                       _iso(self.clock())))
-            self.audit("system", "shared_contact_split", {})
+                      (body, "shared:" + hashlib.sha256(alt.encode()).hexdigest()[:24], _iso(self.clock())))
+            self.audit("system", "shared_contact_split", {"maybe_rename": True} if maybe_rename else {})
         return alt
+
+    def _owned_by_same_contact(self, inv: Invoice, key: str) -> bool:
+        """מנהל 388: החשבונית **כבר רשומה** אצל לקוח באותו טלפון/מייל (בשם אחר) — כלומר הפיצול נבע מייבוא
+        חלקי/שיוך שבו רק חלק מהחשבוניות הגיעו בשם החדש (383). זה יכול להיות שינוי שם אמיתי שלא הגיע לכל
+        החשבוניות, ולכן הכרטיס שואל «אולי שינוי שם?» ואומר מה לעשות בכל מקרה. חשבונית חדשה ⇒ False (נוסח 26)."""
+        cur = self.db.one("SELECT c.external_id FROM invoices i JOIN customers c ON c.id=i.customer_id "
+                          "WHERE i.external_id=?", (inv.external_id,))
+        ext = (cur["external_id"] or "") if cur else ""
+        return bool(ext) and (ext == key or ext.startswith(key + "|name:"))
 
     def _same_contact_customers(self, key: str) -> list:
         return self.db.q("SELECT id, name, external_id FROM customers WHERE external_id=? "
