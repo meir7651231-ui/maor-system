@@ -688,11 +688,25 @@ class CollectService:
         if cur is None:
             return None
         ext = cur["external_id"] or ""
-        if ext == key or ext.startswith(key + "|name:"):
+        if (ext == key or ext.startswith(key + "|name:")) and self._only_debts_renamed(inv, ext):
             self.audit("system", "csv_customer_renamed" if inv.external_id.startswith("csv:")
                        else "customer_renamed", {})
             return ext
         return None
+
+    def _only_debts_renamed(self, inv: Invoice, ext: str) -> bool:
+        """מנהל 383 (ביקורת 223): «שינוי שם» רק כשאין ללקוח חשבונית פתוחה **אחרת** שנשארת תחת השם הישן.
+        לקוח עם 7001+7002 שרק 7002 הגיעה בשם חדש («שרה לוי») = שיוך מחדש לאדם אחר באותו טלפון, לא שינוי שם —
+        אחרת כל הלקוח הופך ל«שרה» והתזכורת שלה מפרטת גם את החוב של דויד (חשיפה). חשבונית אחרת נחשבת «מאושרת»
+        רק אם הגיעה באותו ייבוא (`_batch_names`) באותו שם חדש. ספק ⇒ פיצול + כרטיס (הכיוון הבטוח)."""
+        name = self._norm_name(inv.client_name)
+        batch = getattr(self, "_batch_names", None) or {}
+        for r in self.db.q("SELECT i.external_id FROM invoices i JOIN customers c ON c.id=i.customer_id "
+                           "WHERE c.external_id=? AND i.status='open' AND i.external_id<>?",
+                           (ext, inv.external_id)):
+            if batch.get(r["external_id"]) != name:
+                return False
+        return True
 
     def ingest(self, invoices: list[Invoice], *, source: str = "api",
                full: bool = True, review: list[tuple[Invoice, str]] = (),
@@ -730,6 +744,9 @@ class CollectService:
         now = _iso(self.clock())
         seen: set[str] = set()
         no_id = 0
+        # מנהל 383: שמות החשבוניות בייבוא הזה — להבחין בין שינוי שם (כל חשבוניות הלקוח בשם החדש) לשיוך מחדש
+        self._batch_names = {i.external_id: self._norm_name(i.client_name) for i in invoices
+                             if i.status == 0 and i.amount_agorot > 0}
         for inv in invoices:
             if _missing_doc_id(inv.external_id):
                 # critic סבב 43: מסמך בלי מזהה (id=null ב-GI, doc_uuid חסר ב-EZcount) ⇒ "" / "ezcount:" /
