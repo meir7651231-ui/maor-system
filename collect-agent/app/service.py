@@ -999,7 +999,9 @@ class CollectService:
         bad = self.gi.__dict__.get("malformed", 0)
         if bad:
             self._notify_malformed(bad)
-        return self.ingest(invs, review=review, provider=provider, full=not bad)
+        out = self.ingest(invs, review=review, provider=provider, full=not bad)
+        self._resolve_paid_claims_closed_at_source()   # מבקר 224
+        return out
 
     CREDIT_REVIEW = "credit_review"
 
@@ -1094,6 +1096,7 @@ class CollectService:
             counts = self.ingest(res.invoices, source="csv", full=False,
                                  review=[(c, "csv_negative_balance") for c in res.credits])
             closed = self._csv_close_paid(res)
+            self._resolve_paid_claims_closed_at_source()   # מבקר 224
             # מנהל 374 (מבקר 217): טריות = מועד הייבוא האחרון שזוהו בו שורות (או קובץ נקי בלי חוב פתוח בכלל),
             # לא MAX(synced_at) של חשבוניות פתוחות — אחרת קובץ שבו הכול שולם לא מוריד את הבאנר לעולם.
             # קובץ שכל שורותיו נדחו לא נחשב טרי (הרשימה לא התעדכנה).
@@ -1106,6 +1109,24 @@ class CollectService:
         return {"imported": counts["open"], "errors": res.errors, "credits": len(res.credits),
                 "closed": closed, "date_order": res.date_order,
                 "amount_check": self._csv_amount_check(res.invoices)}
+
+    def _resolve_paid_claims_closed_at_source(self) -> int:
+        """מבקר סבב 224: «שילמתי» ⇒ כרטיס «לבדוק מול הרישומים». כשהמקור (סנכרון API / קובץ CSV) כבר סגר את כל
+        החשבוניות הפתוחות של הלקוח — וחשבונית נסגרה **אחרי** הכרטיס — הבדיקה נעשתה: הכרטיס יורד מ«דורש טיפול»
+        (audit `paid_claim_confirmed_by_source`). לקוח שעוד יש לו חשבונית פתוחה / שום דבר לא נסגר מאז ⇒ נשאר."""
+        n = 0
+        for m in self.db.q("SELECT id, customer_id, created_at FROM messages WHERE needs_owner=1 "
+                           "AND intent='paid_claim' AND customer_id IS NOT NULL"):
+            cid = m["customer_id"]
+            if self.db.one("SELECT 1 FROM invoices WHERE customer_id=? AND status='open'", (cid,)):
+                continue
+            if not self.db.one("SELECT 1 FROM invoices WHERE customer_id=? AND status='closed' "
+                               "AND closed_at >= ?", (cid, m["created_at"])):
+                continue
+            self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (m["id"],))
+            self.audit("system", "paid_claim_confirmed_by_source", {"message": m["id"], "customer": cid})
+            n += 1
+        return n
 
     def _csv_close_paid(self, res) -> int:
         """מנהל 374 (מבקר 217🟠): ייבוא CSV חלקי לא סוגר חשבונית **שלא** בקובץ — אבל שורה שהקובץ מסמן במפורש

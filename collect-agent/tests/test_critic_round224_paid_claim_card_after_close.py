@@ -10,8 +10,6 @@
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
-
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,סטטוס,תאריך,תאריך לתשלום\n"
 ROW = "9001,דנה כהן,050-1234567,d@x.example,1200,{},01/10/26,15/10/26\n"
 
@@ -20,7 +18,6 @@ def _open_paid_claim(svc):
     return svc.db.one("SELECT 1 FROM messages WHERE needs_owner=1 AND intent='paid_claim'")
 
 
-@pytest.mark.xfail(strict=True, reason="224🟡: כרטיס «שילמתי» נשאר אחרי שקובץ ה-CSV סגר את החשבונית")
 def test_csv_close_resolves_paid_claim_card(svc, clock):
     svc.s = replace(svc.s, source_system="csv")
     svc.db.x("DELETE FROM invoices")
@@ -33,7 +30,6 @@ def test_csv_close_resolves_paid_claim_card(svc, clock):
     assert not _open_paid_claim(svc)
 
 
-@pytest.mark.xfail(strict=True, reason="224🟡: כרטיס «שילמתי» נשאר אחרי שסנכרון API סגר את החשבונית")
 def test_api_close_resolves_paid_claim_card(svc, fake_gi):
     svc.sync()
     svc.inbound("sms", "050-1234567", "שילמתי אתמול בהעברה")
@@ -41,3 +37,32 @@ def test_api_close_resolves_paid_claim_card(svc, fake_gi):
     fake_gi.docs[0]["amount"], fake_gi.docs[0]["status"] = "0.00", 2
     svc.sync()
     assert not _open_paid_claim(svc)
+
+
+# בקרות (גבי מנוע, התיקון): הכרטיס יורד רק כשכל החשבוניות הפתוחות של הלקוח נסגרו במקור אחרי הכרטיס
+ROW2 = "9002,דנה כהן,050-1234567,d@x.example,300,{},02/10/26,16/10/26\n"
+
+
+def test_control_card_stays_while_another_invoice_open(svc, clock):
+    svc.s = replace(svc.s, source_system="csv")
+    svc.db.x("DELETE FROM invoices")
+    svc.import_csv((H + ROW.format("פתוח") + ROW2.format("פתוח")).encode())
+    svc.inbound("sms", "050-1234567", "שילמתי אתמול בהעברה")
+    clock.now += timedelta(days=1)
+    svc.import_csv((H + ROW.format("שולם") + ROW2.format("פתוח")).encode())
+    assert _open_paid_claim(svc)                                  # עוד חוב פתוח ⇒ בעל העסק בודק
+
+
+def test_control_card_stays_when_nothing_closed(svc, clock):
+    svc.s = replace(svc.s, source_system="csv")
+    svc.db.x("DELETE FROM invoices")
+    svc.import_csv((H + ROW.format("פתוח")).encode())
+    svc.inbound("sms", "050-1234567", "שילמתי אתמול בהעברה")
+    clock.now += timedelta(days=1)
+    svc.import_csv((H + ROW.format("פתוח")).encode())
+    assert _open_paid_claim(svc)
+
+
+def test_resolution_is_audited(svc, clock):
+    test_csv_close_resolves_paid_claim_card(svc, clock)
+    assert svc.db.one("SELECT 1 FROM audit WHERE action='paid_claim_confirmed_by_source'")
