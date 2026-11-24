@@ -104,3 +104,18 @@ def test_dot_dash_boundaries(amount, kind, agorot):
     got = ("inv", r.invoices[0].amount_agorot) if r.invoices else \
         ("credit", r.credits[0].amount_agorot) if r.credits else ("err", 0)
     assert got == (kind, agorot), (amount, got, r.errors)
+
+
+# ── גבייה סוכן 24.11 (משימת ראש צוות «500.-»): התיקון קיים (636f73b); נעילת וריאציות נוספות של אותו כתיב ──────────
+@pytest.mark.parametrize("amount,agorot", [('"500.- ₪"', 50000), ("500.-₪", 50000), ('"₪ 500.-"', 50000),
+                                           ('"500.- NIS"', 50000), ('"1,200.- ש""ח"', 120000), ('" 500.- "', 50000)])
+def test_dot_dash_whole_amount_with_currency_anywhere_is_invoice(amount, agorot):
+    r = _one(amount)
+    assert [i.amount_agorot for i in r.invoices] == [agorot] and not r.credits and not r.errors, (amount, r.errors)
+
+
+@pytest.mark.parametrize("amount", ["500.—", '"500,-"', '"1.200,-"'])
+def test_ambiguous_dash_forms_are_visible_errors_not_silent(amount):
+    """מקף ארוך («אין ערך», מנהל 370) ופסיק-מקף אירופי — לא מנחשים: שגיאה גלויה בשורה, לא חשבונית ולא זיכוי."""
+    r = _one(amount)
+    assert not r.invoices and not r.credits and r.errors, (amount, r.errors)
