@@ -218,6 +218,8 @@ jobs:
         run: TZ=UTC node e2e/app-plan-offer-accept.mjs "$RUNNER_TEMP/shots"
       - name: "e2e עצירת שליחה אחרי שחזור (critic 177) — באנר /app/ + כרטיס בלי «טופל» + שחרור מתועד ב-/ui ⇒ hold=null (מנהל 325)"
         run: TZ=UTC node e2e/ui-restore-hold.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e /ui — «סנכרון» כששער בטא 4 חוסם (טלפון אמיתי במקור): הודעה בעברית, לא נשמר דבר, audit בלי תוכן, 390px (מנהל 384)"
+        run: TZ=UTC node e2e/ui-sync-blocked.mjs "$RUNNER_TEMP/shots"
       - name: "e2e הדשבורד הפשוט (/ui) — «טעות בשם בחשבונית, תתקנו ואשלם» ⇒ פעולת תיקון-חשבונית בכרטיס, מחלוקת סכום דחופה, מלכודת בלי התראת שווא מול DEMO=1"
         run: TZ=UTC node e2e/ui-invoice-fix.mjs "$RUNNER_TEMP/shots"
       - name: "e2e המסך המעוצב (/app/#/inbox) — פעולת תיקון-חשבונית (SMS+מייל), «השם שלי בחשבונית שגוי» = דחוף+תיקון, מחלוקת סכום בלי תיקון, מלכודת, אישור, מובייל מול DEMO=1"
