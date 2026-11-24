@@ -89,13 +89,27 @@ def plan_missed_text(name: str | None, n: int, of: int, amount_agorot: int, due:
             f"מועד {due}) {got}. היתרה הפתוחה: {templates.fmt_amount(open_agorot, currency)}. " + tail)
 
 
-def plan_raised_text(name: str | None, number: str, old_agorot: int, new_agorot: int, currency: str = "ILS") -> str:
-    """מבקר 203: סכום חשבונית עלה בזמן הסדר פעיל. ההסדר ממשיך על מה שאושר; התוספת לא כלולה בו."""
+def plan_raised_text(name: str | None, number: str, old_agorot: int, new_agorot: int, currency: str = "ILS",
+                     csv: bool = False) -> str:
+    """מבקר 203: סכום חשבונית עלה בזמן הסדר פעיל. ההסדר ממשיך על מה שאושר; התוספת לא כלולה בו.
+    מבקר 225א: ב-CSV עלייה כזו היא לרוב קובץ ישן — ה«תוספת» היא תשלום שכבר שולם; לא ממליצים «לתאם» בעיוור."""
     who = name or "לקוח"
-    return (f"הסכום של חשבונית {number} ({who}) עלה מ-{templates.fmt_amount(old_agorot, currency)} ל-"
+    head = (f"הסכום של חשבונית {number} ({who}) עלה מ-{templates.fmt_amount(old_agorot, currency)} ל-"
             f"{templates.fmt_amount(new_agorot, currency)} בזמן שהסדר התשלומים שלו פעיל. ההסדר ממשיך על הסכום שאושר, "
-            f"והתוספת ({templates.fmt_amount(new_agorot - old_agorot, currency)}) לא כלולה בו — כדאי לתאם עם הלקוח. "
-            "כשכל תשלומי ההסדר יתקבלו, התזכורות על היתרה יחזרו לאישורכם.")
+            f"והתוספת ({templates.fmt_amount(new_agorot - old_agorot, currency)}) לא כלולה בו")
+    tail = "כשכל תשלומי ההסדר יתקבלו, התזכורות על היתרה יחזרו לאישורכם."
+    if csv:
+        return (head + ". ייתכן שהועלה בטעות קובץ ישן, והתוספת היא תשלום שהלקוח כבר שילם — אם כן, העלו את הקובץ "
+                "העדכני ואל תדרשו אותה שוב. אם החוב באמת גדל — כדאי לתאם עם הלקוח. " + tail)
+    return head + " — כדאי לתאם עם הלקוח. " + tail
+
+
+def csv_balance_rose_text(number: str, old_agorot: int, new_agorot: int, currency: str = "ILS") -> str:
+    """מבקר 225ב: יתרה של חשבונית CSV פתוחה עלתה בין קבצים — לרוב קובץ ישן שהועלה בטעות."""
+    return (f"היתרה של חשבונית {number} עלתה מ-{templates.fmt_amount(old_agorot, currency)} ל-"
+            f"{templates.fmt_amount(new_agorot, currency)} לפי הקובץ שהועלה עכשיו. אם הועלה בטעות קובץ ישן — "
+            "העלו את הקובץ העדכני, כדי לא לדרוש מהלקוח תשלום שכבר שילם. אם החוב באמת גדל — אפשר להמשיך. "
+            "בדקו לפני שאתם מאשרים תזכורת עליה.")
 
 
 def plan_outside_text(name: str | None, number: str, amount_agorot: int, due: str | None,
@@ -720,7 +734,7 @@ class CollectService:
             plan_before = self._plan_amounts_snapshot()
             out = self._ingest_rows(invoices, source=source, full=full, review=review,
                                     provider=provider)
-            self._note_plan_raises(plan_before)
+            self._note_plan_raises(plan_before, csv=source == "csv")
             self._rebuild_pending_on_amount_drift()
             return out
 
@@ -772,10 +786,13 @@ class CollectService:
                 (cust_ext, clean_client_name(inv.client_name), inv.client_phone, inv.client_email))
             cid = self.db.one("SELECT id FROM customers WHERE external_id=?", (cust_ext,))["id"]
             reopened = None
+            was_open = None
             if source == "csv":
                 self._csv_contact_moved(inv, cid)
                 reopened = self.db.one("SELECT id FROM invoices WHERE external_id=? AND status='closed' "
                                        "AND owner_paid_at IS NULL", (inv.external_id,))
+                was_open = self.db.one("SELECT id, amount_agorot, currency FROM invoices WHERE external_id=? "
+                                       "AND status='open' AND owner_paid_at IS NULL", (inv.external_id,))
             self.db.x(
                 "INSERT INTO invoices(external_id,number,doc_type,amount_agorot,currency,issued,"
                 "due,customer_id,status,payment_url,synced_at,source,credit_agorot,due_estimated) "
@@ -800,6 +817,11 @@ class CollectService:
                  inv.credit_agorot, int(bool(getattr(inv, "due_estimated", False)))))
             if reopened:
                 self._notify_csv_reopened(inv, reopened["id"])
+            elif was_open is not None and inv.amount_agorot > was_open["amount_agorot"] \
+                    and not self._in_approved_plan(was_open["id"]):
+                # בהסדר מאושר — הכרטיס של _note_plan_raises (בנוסח CSV) מכסה; לא שני כרטיסים
+                self._notify_csv_balance_rose(inv, was_open["id"], was_open["amount_agorot"],
+                                              was_open["currency"] or inv.currency)
         held = self._hold_for_credit_review(review)
         if no_id:
             self._notify_docs_without_id(no_id)
@@ -902,6 +924,25 @@ class CollectService:
                    "אם הועלה בטעות קובץ ישן — העלו את הקובץ העדכני; אם החוב באמת פתוח — אפשר להמשיך. "
                    "תזכורת עליה לא תצא בלי אישורכם.", key, _iso(self.clock())))
         self.audit("system", "csv_invoice_reopened", {"invoice": iid})
+
+    def _in_approved_plan(self, iid: int) -> bool:
+        return any(iid in self._plan_invoice_ids(p) for p in self.db.q(
+            "SELECT invoice_id, invoice_ids FROM plans WHERE status='approved'"))
+
+    def _notify_csv_balance_rose(self, inv: Invoice, iid: int, old_agorot: int, currency: str) -> None:
+        """מבקר 225ב🟡: יתרה של חשבונית CSV פתוחה שעלתה בין קבצים (1,200 ⇒ 800 ⇒ 1,200 — קובץ ישן) עברה בשקט,
+        והתזכורת חזרה לאישור על הסכום הישן-הגבוה. עכשיו: כרטיס לבעל העסק, כמו csv_reopened. אחד לחשבונית
+        ולסכום ליום."""
+        key = f"csv_rose:{iid}:{inv.amount_agorot}:{self.clock().date().isoformat()}"
+        if self.db.one("SELECT 1 FROM messages WHERE intent='csv_balance_rose' AND message_id=?", (key,)):
+            return
+        cust = self.db.one("SELECT customer_id FROM invoices WHERE id=?", (iid,))
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(?,'system','owner',?,'csv_balance_rose',1,?,?)",
+                  (cust["customer_id"] if cust else None,
+                   csv_balance_rose_text(inv.number, old_agorot, inv.amount_agorot, currency),
+                   key, _iso(self.clock())))
+        self.audit("system", "csv_balance_rose", {"invoice": iid, "was": old_agorot, "now": inv.amount_agorot})
 
     def _merge_csv_twin(self, inv: Invoice, source: str) -> bool:
         """critic 3.6.4: אותה חשבונית מ-CSV (`csv:{מספר}`) ומה-API היו שני שרשורים. סנכרון API מלא
@@ -2429,7 +2470,7 @@ class CollectService:
                     out[iid] = r["amount_agorot"]
         return out
 
-    def _note_plan_raises(self, before: dict[int, int]) -> None:
+    def _note_plan_raises(self, before: dict[int, int], *, csv: bool = False) -> None:
         """מבקר 203🟠: חשבונית בהסדר פעיל שהסכום שלה **עלה** ⇒ התוספת נרשמת על ההסדר (`raised_agorot`), כך
         ש«שולם» נמדד מול הסכום שאושר — תשלום בזמן לא נספר «לא התקבל» וההסדר לא «מוחמץ»; ובעל העסק מקבל כרטיס.
         ירידה = תשלום (כמו קודם). ירידה שהיא בעצם ביטול התוספת — לא ניתנת להבחנה; נספרת כתשלום."""
@@ -2445,7 +2486,7 @@ class CollectService:
                 self.db.x("UPDATE plans SET raised_agorot=COALESCE(raised_agorot,0)+? WHERE id=?", (delta, p["id"]))
                 cust = self.db.one("SELECT name FROM customers WHERE id=?", (p["customer_id"],))
                 body = plan_raised_text(cust["name"] if cust else None, inv["number"], old, inv["amount_agorot"],
-                                        self.plan_currency(p))
+                                        self.plan_currency(p), csv=csv)
                 now = _iso(self.clock())
                 self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
                           "created_at) VALUES(?,'system','owner',?,'plan_amount_changed',1,?,?)",

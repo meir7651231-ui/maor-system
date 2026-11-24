@@ -22,6 +22,7 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   // מבקר 219ב: חשבונית CSV שנסגרה לפי קובץ חזרה כפתוחה בקובץ חדש (קובץ ישן שהועלה בטעות?)
   csv_contact_plan: { icon: '📇', title: 'פרטי קשר השתנו בקובץ לחשבונית בהסדר — הלקוח הושהה, לעדכן', tone: 'warn' },
   csv_reopened: { icon: '📂', title: 'חשבונית שנסגרה לפי קובץ חזרה כפתוחה — לבדוק', tone: 'warn' },
+  csv_balance_rose: { icon: '📂', title: 'יתרה של חשבונית עלתה בקובץ — אולי קובץ ישן, לבדוק', tone: 'warn' },
   doc_without_id: { icon: '🧾', title: 'מסמכים בלי מזהה ממערכת החשבוניות — לא נשלחות עליהם תזכורות', tone: 'warn' },
   // critic סבב 49: התראת הסכום החריג (הפעלה 123) הופיעה ככותרת כללית «הודעה מגבי» בטון מידע
   amount_check: { icon: '🔢', title: 'סכום חריג מאוד מהרגיל ללקוח — לבדוק לפני אישור', tone: 'warn' },

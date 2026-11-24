@@ -7,11 +7,9 @@
      בעל העסק עלול לדרוש אותו שוב. ב-CSV הסיבה הסבירה היא קובץ ישן — הכרטיס לא מזכיר אותה.
   ב. **בלי הסדר:** 1,200 ⇒ 800 ⇒ 1,200 ⇒ אין שום כרטיס; התזכורת חוזרת לאישור על 1,200 (amount_changed).
 הצעה: ב-CSV, יתרה שעולה על מסמך קיים ⇒ כרטיס כמו csv_reopened («ייתכן שהועלה קובץ ישן…»), וגם בכרטיס ההסדר.
-xfail(strict=True) ×2."""
+תוקן במנהל 386 — הבדיקות עברו מ-xfail לירוקות."""
 from dataclasses import replace
 from datetime import timedelta
-
-import pytest
 
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,סטטוס,תאריך,תאריך לתשלום\n"
 
@@ -37,13 +35,11 @@ def _cards(svc):
     return [m["body"] or "" for m in svc.db.q("SELECT body FROM messages WHERE needs_owner=1")]
 
 
-@pytest.mark.xfail(strict=True, reason="225א🟡: בהסדר — «כדאי לתאם» על תוספת שכבר שולמה, בלי אזכור קובץ ישן")
 def test_plan_card_mentions_old_file(svc, clock):
     _up_down_up(svc, clock, with_plan=True)
     assert any("9001" in c and "קובץ" in c for c in _cards(svc)), _cards(svc)
 
 
-@pytest.mark.xfail(strict=True, reason="225ב🟡: בלי הסדר — יתרה שעולה בחזרה בקובץ CSV בלי כרטיס")
 def test_no_plan_balance_rise_is_carded(svc, clock):
     _up_down_up(svc, clock, with_plan=False)
     assert any("9001" in c for c in _cards(svc)), _cards(svc)
