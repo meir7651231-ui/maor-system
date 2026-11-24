@@ -651,6 +651,12 @@ class CollectService:
                 or self._norm_name(row["name"]) == name:
             return key
         alt = f"{key}|name:{name}"
+        same = self._same_contact_by_name(key, name)
+        if same is not None:
+            return same
+        renamed = self._renamed_owner(inv, key)
+        if renamed is not None:
+            return renamed
         if not self.db.one("SELECT 1 FROM customers WHERE external_id=?", (alt,)):
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                       "message_id,created_at) VALUES(NULL,'system','owner',?,'shared_contact',1,?,?)",
@@ -660,6 +666,33 @@ class CollectService:
                        _iso(self.clock())))
             self.audit("system", "shared_contact_split", {})
         return alt
+
+    def _same_contact_customers(self, key: str) -> list:
+        return self.db.q("SELECT id, name, external_id FROM customers WHERE external_id=? "
+                         "OR substr(external_id, 1, ?)=?", (key, len(key) + 6, key + "|name:"))
+
+    def _same_contact_by_name(self, key: str, name: str) -> str | None:
+        """לקוח קיים באותו טלפון/מייל שזה שמו **הנוכחי** (גם אם המפתח שלו נגזר משם קודם — מנהל 382)."""
+        for c in self._same_contact_customers(key):
+            if self._norm_name(c["name"]) == name:
+                return c["external_id"]
+        return None
+
+    def _renamed_owner(self, inv: Invoice, key: str) -> str | None:
+        """מנהל 382: שם בלבד השתנה בקובץ (תיקון כתיב / «בע״מ» / שם מלא) — אותה חשבונית, אותו טלפון/מייל.
+        אותו מסמך = אותו חייב ⇒ אותו לקוח (השם מתעדכן ב-upsert), לא «שני אנשים באותו טלפון» (critic 26):
+        בלי לקוח-רפאים, בלי ביטול התזכורת הממתינה (contact_changed) ובלי כרטיס shared_contact שגוי.
+        רק כשהבעלים הנוכחי של החשבונית הוא באותו מפתח קשר; חשבונית חדשה בשם אחר ⇒ ללא שינוי (פיצול)."""
+        cur = self.db.one("SELECT c.external_id FROM invoices i JOIN customers c ON c.id=i.customer_id "
+                          "WHERE i.external_id=?", (inv.external_id,))
+        if cur is None:
+            return None
+        ext = cur["external_id"] or ""
+        if ext == key or ext.startswith(key + "|name:"):
+            self.audit("system", "csv_customer_renamed" if inv.external_id.startswith("csv:")
+                       else "customer_renamed", {})
+            return ext
+        return None
 
     def ingest(self, invoices: list[Invoice], *, source: str = "api",
                full: bool = True, review: list[tuple[Invoice, str]] = (),
