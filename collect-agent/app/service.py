@@ -922,7 +922,10 @@ class CollectService:
         מבוטלת (התכנון הבא בונה חדשה, לאישור),
         ומצבי עצירה של הלקוח הישן (מחלוקת/השהיה/הסרה/עיכוב משפטי) עוברים איתה — שינוי טלפון לא משחרר עצירה."""
         old = self.db.one("SELECT id, customer_id FROM invoices WHERE external_id=?", (inv.external_id,))
-        if old is None or old["customer_id"] == cid:
+        if old is None:
+            return
+        if old["customer_id"] == cid:
+            self._contact_plan_card_back(inv.external_id, cid)   # מנהל 409
             return
         if self._in_live_plan(old["id"]):
             # הסדר שבעל העסק אישר קשור ללקוח — לא משכתבים אותו במקום (מגן-מקור). הלקוח הישן מושהה (שום
@@ -931,7 +934,8 @@ class CollectService:
                       (old["customer_id"],))
             self._cancel_invoice(old["id"], "contact_changed")
             self._csv_contact_card(inv, old["customer_id"])
-            self.audit("system", "csv_contact_changed_in_plan", {"invoice": old["id"]})
+            # מנהל 409: `to` — לאן החשבונית תעבור כשההסדר יסתיים (`_apply_deferred_contact_moves`)
+            self.audit("system", "csv_contact_changed_in_plan", {"invoice": old["id"], "to": cid})
             return
         prev = self.db.one("SELECT opted_out, disputed, paused_reason, legal_hold FROM customers WHERE id=?",
                            (old["customer_id"],))
@@ -1024,6 +1028,73 @@ class CollectService:
     def _in_live_plan(self, iid: int) -> bool:
         return any(iid in self._plan_invoice_ids(p) for p in self.db.q(
             "SELECT invoice_id, invoice_ids FROM plans WHERE status IN ('proposed','approving','approved')"))
+
+    def _contact_plan_card_back(self, external_id: str, cid: int) -> None:
+        """מנהל 409: קובץ מחזיר לחשבונית בהסדר את פרטי הקשר המקוריים (הלקוח שאצלו היא רשומה) ⇒ כרטיס «פרטי הקשר
+        השתנו … עדכנו וחדשו» כבר לא נכון: יורד, וההשהיה `csv_contact_changed` שהוא הטיל משתחררת (אם אין כרטיס
+        כזה פתוח על חשבונית אחרת שלו). audit בלי PII."""
+        m = self.db.one("SELECT id FROM messages WHERE intent='csv_contact_plan' AND needs_owner=1 AND message_id=?",
+                        (f"csv_contact_plan:{external_id}",))
+        if m is None:
+            return
+        self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (m["id"],))
+        self.audit("system", "plan_card_resolved", {"message": m["id"], "card": "csv_contact_plan", "why": "back"})
+        self._release_contact_pause(cid)
+
+    def _release_contact_pause(self, cid: int) -> None:
+        """מנהל 409: ההשהיה `csv_contact_changed` (219א — «שום הודעה לא תצא לפרטים הישנים» של חשבונית בהסדר) קיימת
+        רק בגלל כרטיס csv_contact_plan פתוח. כשאין יותר כרטיס כזה על הלקוח ⇒ משתחררת. השהיה אחרת — לא נוגעים."""
+        if self.db.one("SELECT 1 FROM messages WHERE intent='csv_contact_plan' AND needs_owner=1 AND customer_id=?",
+                       (cid,)):
+            return
+        if self.db.update("UPDATE customers SET paused_reason=NULL WHERE id=? AND paused_reason='csv_contact_changed'",
+                          (cid,)) == 1:
+            self.audit("system", "csv_contact_pause_released", {"customer": cid})
+
+    def _apply_deferred_contact_moves(self) -> int:
+        """מנהל 409 (גבי מנוע, «הבא» מאז 397): קובץ שינה את פרטי הקשר של חשבונית **בהסדר פעיל** ⇒ היא לא זזה
+        (219א: הסדר לא משוכתב במקום) והלקוח הקודם הושהה + כרטיס csv_contact_plan. כשההסדר הסתיים בלי שהחשבונית
+        נסגרה (הוחמץ / נדחה / הוחלף) — היא נשארה על הקודם עד הקובץ הבא, וההחמצה שחררה את השהיית ההסדר ⇒ תזכורת
+        רגילה נבנתה ל**פרטים הישנים** (בדיוק מה ש-219א חוסם), והכרטיס «עדכנו וחדשו» נשאר על לקוח שכבר לא שלו.
+        עכשיו, בכל סבב (לפני בניית התזכורות): ההסדר כבר לא חי ⇒ המעבר שנדחה מתבצע ללקוח שהקובץ האחרון הראה
+        (`to` מ-audit `csv_contact_changed_in_plan`), כמו 219א (מחלוקת/הסרה/עיכוב משפטי עוברים; ההשהיה
+        `csv_contact_changed` עצמה **לא** — היא הגנה על הפרטים הישנים), תזכורת פעילה מבוטלת, הכרטיס יורד
+        (why=moved) וההשהיה של הקודם משתחררת. אם החשבונית כבר עברה (קובץ מאוחר יותר / audit ישן בלי `to`) ⇒ רק
+        הכרטיס יורד. audit בלי PII."""
+        n = 0
+        for m in self.db.q("SELECT id, customer_id, message_id FROM messages WHERE intent='csv_contact_plan' "
+                           "AND needs_owner=1 AND message_id IS NOT NULL"):
+            ext = m["message_id"].split(":", 1)[1] if ":" in m["message_id"] else ""
+            row = self.db.one("SELECT id, customer_id FROM invoices WHERE external_id=? AND status='open'", (ext,))
+            if row is None or self._in_live_plan(row["id"]):
+                continue
+            from_cid = m["customer_id"]
+            if row["customer_id"] == from_cid:
+                a = self.db.one("SELECT detail FROM audit WHERE action='csv_contact_changed_in_plan' "
+                                "AND json_extract(detail,'$.invoice')=? ORDER BY id DESC LIMIT 1", (row["id"],))
+                to = json.loads(a["detail"]).get("to") if a else None
+                if not to or to == from_cid or not self.db.one("SELECT 1 FROM customers WHERE id=?", (to,)):
+                    continue   # audit ישן בלי יעד ⇒ הכרטיס נשאר, בעל העסק מעדכן ידנית
+                prev = self.db.one("SELECT opted_out, disputed, paused_reason, legal_hold FROM customers WHERE id=?",
+                                   (from_cid,))
+                if prev is not None:
+                    inherit = 0 if self._optout_lift_covers(to, from_cid) else prev["opted_out"]
+                    pause = None if prev["paused_reason"] == "csv_contact_changed" else prev["paused_reason"]
+                    self.db.x("UPDATE customers SET opted_out=MAX(opted_out, ?), disputed=MAX(disputed, ?), "
+                              "paused_reason=COALESCE(paused_reason, ?), legal_hold=COALESCE(legal_hold, ?) "
+                              "WHERE id=?", (inherit, prev["disputed"], pause, prev["legal_hold"], to))
+                self.db.x("UPDATE invoices SET customer_id=? WHERE id=?", (to, row["id"]))
+                self._cancel_invoice(row["id"], "contact_changed")
+                self.audit("system", "csv_contact_changed", {"invoice": row["id"], "from": from_cid, "to": to,
+                                                             "deferred": True,
+                                                             "upto_reminder": self._last_reminder_id(row["id"])})
+            self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (m["id"],))
+            self.audit("system", "plan_card_resolved", {"message": m["id"], "card": "csv_contact_plan",
+                                                        "why": "moved"})
+            if from_cid is not None:
+                self._release_contact_pause(from_cid)
+            n += 1
+        return n
 
     def _csv_contact_card(self, inv: Invoice, old_cid: int) -> None:
         key = f"csv_contact_plan:{inv.external_id}"
@@ -1304,7 +1375,7 @@ class CollectService:
         התבקש לעדכן טלפון ולחדש לקוח על חשבונית ששולמה. עכשיו (כמו 227/224): החשבונית נסגרה **אחרי** הכרטיס, או
         ההסדר completed ⇒ הכרטיס יורד. audit `plan_card_resolved` (בלי PII). עוד פתוחה ⇒ נשאר."""
         self._complete_missed_plans()   # מנהל 402
-        n = 0
+        n = self._apply_deferred_contact_moves()   # מנהל 409
         for m in self.db.q("SELECT id, intent, message_id, created_at FROM messages WHERE needs_owner=1 "
                            "AND intent IN ('csv_contact_plan','plan_amount_changed','plan_missed') "
                            "AND message_id IS NOT NULL"):
