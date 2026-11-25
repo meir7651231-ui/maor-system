@@ -2924,12 +2924,25 @@ class CollectService:
         """כל הלקוחות עם הכתובת הזו (טלפון משותף / מייל משותף ⇒ יותר מאחד — סבב 26)."""
         if channel == "email":
             e = (sender or "").strip().lower()
-            return self.db.q("SELECT * FROM customers WHERE lower(email)=? ORDER BY id", (e,)) if e else []
-        norm = normalize_il_phone(sender)
-        if not norm:
-            return []
-        return [c for c in self.db.q("SELECT * FROM customers ORDER BY id")
-                if normalize_il_phone(c["phone"]) == norm]
+            found = self.db.q("SELECT * FROM customers WHERE lower(email)=? ORDER BY id", (e,)) if e else []
+        else:
+            norm = normalize_il_phone(sender)
+            if not norm:
+                return []
+            found = [c for c in self.db.q("SELECT * FROM customers ORDER BY id")
+                     if normalize_il_phone(c["phone"]) == norm]
+        return self._drop_ghosts(found)
+
+    def _drop_ghosts(self, custs: list) -> list:
+        """ביקורת 230 (מנהל 392): לקוח-רפאים — לקוח שכל החשבוניות שלו עברו ללקוח אחר (איחוד אחרי ייבוא
+        חלקי, 388) ונשאר **בלי אף שורת חשבונית**. הוא עדיין מחזיק את הטלפון/המייל, ולכן כל תשובה של האדם
+        נחשבה «כמה לקוחות על אותה כתובת» ⇒ הסלמה דו-משמעית לנצח, ואם ההודעה האחרונה יצאה לפני האיחוד —
+        התשובה שויכה לרפאים בלי חוב. לקוחות נוצרים רק מחשבוניות ⇒ בלי חשבוניות = רפאים. מסננים רק כשנשאר
+        לפחות לקוח אחד עם חשבוניות (אחרת — כמו קודם)."""
+        if len(custs) <= 1:
+            return custs
+        real = [c for c in custs if self.db.one("SELECT 1 FROM invoices WHERE customer_id=? LIMIT 1", (c["id"],))]
+        return real or custs
 
     def _resolve_sender(self, channel: str, sender: str) -> tuple[Any, bool]:
         """critic סבב 27: ⇒ (לקוח, דו-משמעי). כמה לקוחות על אותה כתובת ⇒ מי שקיבל את ההודעה
