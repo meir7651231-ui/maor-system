@@ -2378,6 +2378,22 @@ class CollectService:
             self.db.scrub()   # critic סבב 24: גם דפים פנויים מלפני secure_delete (DB קיים)
         return {"invoices": inv_n, "customers": cust_n}
 
+    def _moved_away_settled(self, cid: int, cutoff: str) -> bool:
+        """מבקר 242🟠 (ר-10): לקוח בלי אף חשבונית — כי כל החשבוניות שלו עברו בקובץ/בסנכרון ללקוח אחר (219א / 396) —
+        דולג ב-purge לתמיד: שם, טלפון, ההודעות אליו (שם + מספר חשבונית + סכום) נשמרו לנצח. עכשיו מותמם כמו כל לקוח,
+        כשכל החשבוניות **שעברו ממנו** כבר נמחקו (90 יום מהסגירה, אצל הלקוח החדש) ואין לו פעילות ב-90 הימים האחרונים.
+        לקוח בלי חשבוניות שלא עברו ממנו חשבוניות (אין רישום מעבר) ⇒ כמו קודם, לא נוגעים. legal_hold וכרטיס פתוח —
+        נבדקים אחר כך כמו לכל לקוח."""
+        moved = {int(r["inv"]) for r in self.db.q(
+            "SELECT json_extract(detail,'$.invoice') inv FROM audit WHERE action='csv_contact_changed' "
+            "AND json_extract(detail,'$.from')=?", (cid,)) if r["inv"] is not None}
+        if not moved:
+            return False
+        if self.db.one("SELECT 1 FROM invoices WHERE id IN (SELECT value FROM json_each(?)) AND purged_at IS NULL",
+                       (json.dumps(sorted(moved)),)):
+            return False   # חשבונית שעברה ממנו עדיין לא נמחקה ⇒ המידע עליו עדיין בתוך תקופת השמירה
+        return not self.db.one("SELECT 1 FROM messages WHERE customer_id=? AND created_at>?", (cid, cutoff))
+
     def _purge_rows(self) -> tuple[int, int, int]:
         cutoff = _iso(self.clock() - timedelta(days=RETENTION_DAYS))
         now = _iso(self.clock())
@@ -2403,7 +2419,10 @@ class CollectService:
                            "legal_hold IS NULL"):
             left = self.db.one("SELECT COUNT(*) n FROM invoices WHERE customer_id=? AND "
                                "purged_at IS NULL", (c["id"],))["n"]
-            if left or not self.db.one("SELECT 1 FROM invoices WHERE customer_id=?", (c["id"],)):
+            if left:
+                continue
+            if not self.db.one("SELECT 1 FROM invoices WHERE customer_id=?", (c["id"],)) and \
+                    not self._moved_away_settled(c["id"], cutoff):
                 continue
             # critic 158א: כרטיס דחוף פתוח ב«דורש טיפול שלך» ⇒ לא מתממים עכשיו (תקרה: 180 יום מהכרטיס),
             # אחרת בעל העסק רואה כרטיס דחוף ריק (בלי שם, טלפון ותוכן). ה-purge ממשיך אחרי «טופל».
