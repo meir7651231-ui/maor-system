@@ -5,7 +5,7 @@
 //     **כרטיס אחד** `shared_contact` שאומר «אולי שינוי שם?» + 9822 + מה לעשות («העלו קובץ עם כולן» / «עברה לאדם אחר —
 //     אין צורך»), **בלי שם ובלי טלפון** · 390px בלי גלילה רוחבית.
 //  3) קובץ **מלא** מהמסך (9821+9822 בשם החדש) ⇒ /app/#/invoices לפי הטלפון: שתי השורות תחת «דוד כהן-לוי», השם הישן
-//     לא מוצג בשום מקום.
+//     לא מוצג בשום מקום · הכרטיס **יורד** מהדשבורד ומ-/owner/inbox (מנהל 394).
 //  4) «איך משלמים?» מהטלפון (/inbound) ⇒ **לא** `shared_contact_ambiguous` (לקוח-הרפאים «דויד כהן» לא מתחרה — 392),
 //     משויכת למי שמחזיק את החוב, ויש טיוטה ⇒ הטיוטה מופיעה ב-/app/#/inbox, ואין בדשבורד כרטיס «הודעה ממספר של כמה
 //     לקוחות».  · 0 שגיאות קונסולה/רשת.
@@ -115,6 +115,11 @@ try {
   const holder = merged.filter(c => c.name === NEW);
   ok(holder.length === 1, 'השרת: לא לקוח אחד בשם החדש אחרי הקובץ המלא: ' + JSON.stringify(merged));
   const owner = holder[0].id;
+  // 3ב) מנהל 394: הכרטיס יורד אחרי האיחוד — בשרת ובדשבורד (הכותרת «נשמרו כלקוחות נפרדים» כבר לא נכונה)
+  ok((await renameCards()).length === 0, 'הכרטיס «אולי שינוי שם?» לא ירד אחרי הקובץ המלא (מנהל 394): ' + (await renameCards()).length);
+  await dashboard(p);
+  ok(await p.locator('[data-testid=notice][data-intent=shared_contact]').filter({ hasText: '9822' }).count() === 0,
+    'הכרטיס «אולי שינוי שם?» עדיין בדשבורד אחרי האיחוד (מנהל 394)');
 
   // 4) תשובה מהטלפון ⇒ טיוטה, לא «דו-משמעית»
   const r = await api('/inbound', { method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -134,5 +139,5 @@ try {
   ok(await mp.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'mobile: גלילה רוחבית ב-/app/#/inbox');
   await m.close(); await ctx.close();
   ok(!errors.length, 'שגיאות: ' + errors.join(' | '));
-  console.log(`✓ «אולי שינוי שם?»: קובץ חלקי מהמסך ⇒ כרטיס אחד (9822, שני המסלולים, בלי שם/טלפון), 390px · קובץ מלא ⇒ 9821+9822 תחת «${NEW}», «${OLD}» לא מוצג · «איך משלמים?» מהטלפון ⇒ טיוטה (${r.intent}) ב-/app/#/inbox, לא דו-משמעית · 0 שגיאות`);
+  console.log(`✓ «אולי שינוי שם?»: קובץ חלקי מהמסך ⇒ כרטיס אחד (9822, שני המסלולים, בלי שם/טלפון), 390px · קובץ מלא ⇒ 9821+9822 תחת «${NEW}», «${OLD}» לא מוצג, הכרטיס יורד · «איך משלמים?» מהטלפון ⇒ טיוטה (${r.intent}) ב-/app/#/inbox, לא דו-משמעית · 0 שגיאות`);
 } finally { await b.close(); srv.kill(); }

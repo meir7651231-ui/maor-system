@@ -690,9 +690,13 @@ class CollectService:
                     else f"חשבונית {inv.number}: שני לקוחות בשמות שונים עם אותו טלפון/מייל ובלי מזהה לקוח נשמרו "
                          "כלקוחות נפרדים (לא מאחדים חובות של אנשים שונים). אם זה אותו אדם — אחדו את השם "
                          "במערכת החשבוניות.")
+            # מנהל 394: לכרטיס «אולי שינוי שם?» — מזהה החשבונית (פנימי, בלי PII) ב-payload, כדי שירד אחרי האיחוד
+            ref = self.db.one("SELECT id, customer_id FROM invoices WHERE external_id=?",
+                              (inv.external_id,)) if maybe_rename else None
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
-                      "message_id,created_at) VALUES(NULL,'system','owner',?,'shared_contact',1,?,?)",
-                      (body, "shared:" + hashlib.sha256(alt.encode()).hexdigest()[:24], _iso(self.clock())))
+                      "message_id,created_at,payload) VALUES(NULL,'system','owner',?,'shared_contact',1,?,?,?)",
+                      (body, "shared:" + hashlib.sha256(alt.encode()).hexdigest()[:24], _iso(self.clock()),
+                       json.dumps({"rename_invoice": ref["id"], "from_customer": ref["customer_id"]}) if ref else None))
             self.audit("system", "shared_contact_split", {"maybe_rename": True} if maybe_rename else {})
         return alt
 
@@ -760,6 +764,7 @@ class CollectService:
                                     provider=provider)
             self._note_plan_raises(plan_before, csv=source == "csv")
             self._rebuild_pending_on_amount_drift()
+            self._resolve_rename_cards()   # מנהל 394
             return out
 
     def _rebuild_pending_on_amount_drift(self) -> None:
@@ -1193,6 +1198,53 @@ class CollectService:
                                                         "card": m["intent"], "why": why})
             n += 1
         return n
+
+    def _resolve_rename_cards(self) -> int:
+        """מנהל 394 (ממצא QA 393🟡): כרטיס «אולי שינוי שם?» (388) ביקש «העלו קובץ עם כולן; גבי תאחד» — ואחרי שבעל
+        העסק עשה בדיוק את זה והאיחוד הצליח, הכרטיס נשאר ב«דורש טיפול» עם כותרת «נשמרו כלקוחות נפרדים» שכבר לא נכונה.
+        עכשיו, בסוף כל ייבוא/סנכרון, לפי `payload` של הכרטיס (מזהים פנימיים בלי PII: החשבונית + הלקוח שהחזיק בה):
+          · החשבונית עברה לשם החדש, ולשם הקודם לא נשארה אף חשבונית פתוחה (קובץ עם כולן ⇒ איחוד) ⇒ יורד;
+          · החשבונית חזרה ללקוח שהחזיק בה (קובץ בשם הקודם) ⇒ אין עוד פיצול שלה ⇒ יורד.
+        עוד חשבונית פתוחה בשם הקודם (המצב שהכרטיס מתאר) / החשבונית נסגרה ⇒ נשאר. אדם שלישי באותו טלפון לא משנה
+        את ההכרעה. audit `shared_contact_resolved` (בלי PII). כרטיסי נוסח 26 (בלי payload) — ללא שינוי."""
+        n = 0
+        for m in self.db.q("SELECT id, payload, created_at FROM messages WHERE needs_owner=1 "
+                           "AND intent='shared_contact' AND payload IS NOT NULL"):
+            try:
+                info = json.loads(m["payload"] or "{}")
+                iid, frm = info.get("rename_invoice"), info.get("from_customer")
+            except (ValueError, AttributeError):
+                continue
+            if not isinstance(iid, int) or not isinstance(frm, int):
+                continue
+            own = self.db.one("SELECT customer_id FROM invoices WHERE id=? AND status='open'", (iid,))
+            if own is None:
+                continue
+            if own["customer_id"] == frm:
+                # «חזרה» רק אם החשבונית באמת עברה ממנו וחזרה (CSV: audit csv_contact_changed אחרי הכרטיס). בסנכרון API
+                # החשבונית לא עוברת לקוח בכלל — שם הכרטיס נשאר (ממצא פתוח, STATUS 394).
+                if not self._moved_back_since(iid, frm, m["created_at"]):
+                    continue
+                why = "back"
+            elif self.db.one("SELECT 1 FROM invoices WHERE customer_id=? AND status='open'", (frm,)):
+                continue
+            else:
+                why = "united"
+            self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (m["id"],))
+            self.audit("system", "shared_contact_resolved", {"message": m["id"], "invoice": iid, "why": why})
+            n += 1
+        return n
+
+    def _moved_back_since(self, iid: int, cid: int, at: str) -> bool:
+        for a in self.db.q("SELECT detail FROM audit WHERE action='csv_contact_changed' AND at>=? ORDER BY id DESC",
+                           (at,)):
+            try:
+                d = json.loads(a["detail"] or "{}")
+            except ValueError:
+                continue
+            if d.get("invoice") == iid:
+                return d.get("to") == cid
+        return False
 
     def _csv_rose_was(self, iid: int, risen: int, at: str) -> int | None:
         """הסכום שלפני העלייה — מה-audit `csv_balance_rose` שנכתב יחד עם הכרטיס."""
