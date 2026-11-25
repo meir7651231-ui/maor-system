@@ -2781,6 +2781,12 @@ class CollectService:
             if late is None:
                 self._note_outside_invoices(p, ids, today)
                 continue
+            # מבקר 236🟡: במקור CSV «שולם» נמדד מהקובץ האחרון. קובץ שלא הועלה אחרי מועד התשלום שהוחמץ לא יודע אם
+            # שולם ⇒ לא מסמנים «הוחמץ — לא התקבל» לפי מידע ישן (תזכורות CSV ממילא לא יוצאות בלי קובץ טרי, ר-4,
+            # וסיכום הבוקר מבקש קובץ). קובץ חדש שמראה את התשלום ⇒ ההסדר ממשיך; שלא מראה ⇒ «הוחמץ» כרגיל.
+            fresh = self._csv_freshness()
+            if fresh is not None and (fresh["last_import"] or "") <= late["due"][:10]:
+                continue
             if self.db.update("UPDATE plans SET status='missed' WHERE id=? AND status='approved'", (p["id"],)) != 1:
                 continue
             self._clear_plan_offer(p)

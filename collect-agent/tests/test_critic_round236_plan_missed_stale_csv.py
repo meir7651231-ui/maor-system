@@ -13,8 +13,6 @@
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
-
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,סטטוס,תאריך,תאריך לתשלום\n"
 DANA = "050-1234567"
 
@@ -57,7 +55,6 @@ def test_partial_within_grace_is_not_missed(svc, clock):
     assert svc.db.one("SELECT status FROM plans")["status"] == "approved"
 
 
-@pytest.mark.xfail(strict=True, reason="236🟡: CSV ישן ⇒ «הוחמץ — לא התקבל»; קובץ חדש עם התשלום לא מחזיר את ההסדר")
 def test_stale_csv_missed_is_restored_by_fresh_file(svc, clock):
     _plan_accepted(svc, clock)
     _until(svc, clock, "2026-11-30", upload=("2026-11-30", 800))
