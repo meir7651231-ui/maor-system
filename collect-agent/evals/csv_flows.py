@@ -3,11 +3,15 @@
 ואילו תזכורות חיות. שירות במקור CSV (בלי חשבונית ירוקה), dry-run, socket חסום, שעון קבוע (ראשון 8.11.2026 10:00).
 
 פורמט שורה: {id, critical, observe?, steps:[{csv:[שורות], header?} | {plan:true} | {inbound:{from,text,channel?}} |
-{decide_promise:{customer,approve}} | {advance_days:n}] — לכל צעד expect? אופציונלי}.
+{decide_promise:{customer,approve}} | {assign_shared:{intent,customer|null}} | {approve_plan:שם} |
+{advance_days:n}] — לכל צעד expect? אופציונלי}.
 ציפיות: imported · errors (מספר מדויק) · errors_min · open {מספר: bool} · absent [מספרים] · amount {מספר: אגורות} ·
 customers · name_of {מספר: שם} · same_customer [[א,ב]] · diff_customer [[א,ב]] · cards {intent: n פתוחים} ·
 cards_min {intent: n} · open_cards (כל הכרטיסים הפתוחים) · draft · new_card_intent_not_prefix ·
-new_card_body_has / new_card_body_not · paused_until {מספר: תאריך} · not_promise_paused · ok · new_cards /
+new_card_body_has / new_card_body_not · new_draft_body_has / new_draft_body_not · plan_status {מספר: סטטוס} ·
+plans_of {מספר: n} · paused / not_paused [מספרים] · no_live_reminder [מספרים] ·
+cards_opened_since {step, open|open_min} · paused_until {מספר: תאריך}
+· not_promise_paused · ok · new_cards /
 new_cards_min (כרטיסים לבעל העסק שנפתחו בצעד הזה) · reminder_alive [מספרים] ·
 not_same_reminder [[א,ב]].
 `observe: true` = שאלת מדיניות — מודפס, לא נספר. ציפייה שהמריץ לא בודק ⇒ כישלון (לא עוברת בשקט).
@@ -28,7 +32,8 @@ LIVE = ("pending_approval", "approved", "sent_dry_run")
 _CHECKED = {"imported", "errors", "errors_min", "open", "absent", "amount", "customers", "name_of", "same_customer",
             "diff_customer", "cards", "cards_min", "reminder_alive", "not_same_reminder", "new_cards", "new_cards_min",
             "draft", "new_card_intent_not_prefix", "new_card_body_has", "new_card_body_not", "open_cards",
-            "paused_until", "not_promise_paused", "ok"}
+            "paused_until", "not_promise_paused", "ok", "no_live_reminder", "plan_status", "plans_of",
+            "new_draft_body_has", "new_draft_body_not", "paused", "not_paused", "cards_opened_since"}
 
 
 @contextmanager
@@ -74,6 +79,7 @@ def _live_reminders(svc) -> list[set[str]]:
 def run_flow(flow: dict) -> tuple[list[str], list[str]]:
     fails, notes = [], []
     with _service() as svc:
+        step_before: dict[int, int] = {}
         for i, st in enumerate(flow["steps"], 1):
             tag, e = f"#{i}", st.get("expect", {})
             unknown = set(e) - _CHECKED
@@ -81,6 +87,7 @@ def run_flow(flow: dict) -> tuple[list[str], list[str]]:
                 fails.append(f"{tag} ציפייה שהמריץ לא בודק: {sorted(unknown)}")
             out: dict = {}
             before = svc.db.one("SELECT COALESCE(MAX(id), 0) m FROM messages")["m"]
+            step_before[i] = before
             before_draft = (svc.db.one("SELECT COALESCE(MAX(id), 0) m FROM drafts")["m"]
                             if svc._table_exists("drafts") else 0)
             if "csv" in st:
@@ -107,6 +114,27 @@ def run_flow(flow: dict) -> tuple[list[str], list[str]]:
                 except (KeyError, ValueError) as ex:
                     out = {"ok": False, "why": str(ex)}
                 notes.append(f"{tag} decide ⇒ {out}")
+            elif "assign_shared" in st:   # שיוך כרטיס טלפון-משותף ללקוח (שם) או «אף אחד מהם» (customer=null)
+                a = st["assign_shared"]
+                card = svc.db.one("SELECT id FROM messages WHERE intent=? AND needs_owner=1 ORDER BY id DESC LIMIT 1",
+                                  (a["intent"],))
+                c = (svc.db.one("SELECT id FROM customers WHERE name=? ORDER BY id LIMIT 1", (a["customer"],))
+                     if a.get("customer") else None)
+                try:
+                    out = {"ok": True, **svc.inbox.assign_shared_card(card["id"] if card else -1,
+                                                                       c["id"] if c else None, actor="owner")}
+                except (KeyError, ValueError, TypeError) as ex:
+                    out = {"ok": False, "why": f"{type(ex).__name__}: {ex}"}
+                notes.append(f"{tag} assign ⇒ {str(out)[:160]}")
+            elif "approve_plan" in st:   # בעל העסק מאשר את ההסדר האחרון של הלקוח (שם)
+                c = svc.db.one("SELECT id FROM customers WHERE name=? ORDER BY id LIMIT 1", (st["approve_plan"],))
+                p_ = svc.db.one("SELECT id FROM plans WHERE customer_id=? ORDER BY id DESC LIMIT 1",
+                                (c["id"] if c else -1,))
+                try:
+                    out = {"ok": True, **svc.approve_plan(p_["id"] if p_ else -1, "owner")}
+                except (KeyError, ValueError, PermissionError) as ex:
+                    out = {"ok": False, "why": f"{type(ex).__name__}: {ex}"}
+                notes.append(f"{tag} approve_plan ⇒ {str(out)[:160]}")
             elif st.get("advance_days") and set(st) <= {"advance_days", "expect"}:
                 from datetime import timedelta
                 svc.clock.now += timedelta(days=st["advance_days"])
@@ -198,10 +226,52 @@ def run_flow(flow: dict) -> tuple[list[str], list[str]]:
                 c = svc.db.one("SELECT paused_reason FROM customers WHERE id=?", (inv["customer_id"],)) if inv else None
                 if c and (c["paused_reason"] or "").startswith("promise:until="):
                     fails.append(f"{tag} בעל {num} בהשהיית-הבטחה (אסור): {c['paused_reason']}")
-            live = _live_reminders(svc) if ("reminder_alive" in e or "not_same_reminder" in e) else []
+            if svc._table_exists("drafts"):
+                newd = [r["body"] or "" for r in svc.db.q("SELECT body FROM drafts WHERE id>?", (before_draft,))]
+            else:
+                newd = []
+            for txt in e.get("new_draft_body_has", []):
+                if not any(txt in b for b in newd):
+                    fails.append(f"{tag} אין טיוטה חדשה שמכילה «{txt}»")
+            for txt in e.get("new_draft_body_not", []):
+                if any(txt in b for b in newd):
+                    fails.append(f"{tag} טיוטה חדשה מכילה «{txt}» (אסור)")
+            for num, want in e.get("plan_status", {}).items():
+                inv = _inv(svc, num)
+                p_ = svc.db.one("SELECT status FROM plans WHERE invoice_id=? ORDER BY id DESC LIMIT 1",
+                                (inv["id"] if inv else -1,))
+                got = p_["status"] if p_ else None
+                if got != want:
+                    fails.append(f"{tag} plan_status[{num}] {got}≠{want}")
+            for num, want in e.get("plans_of", {}).items():   # מספר ההסדרים של בעל החשבונית
+                inv = _inv(svc, num)
+                got = svc.db.one("SELECT COUNT(*) n FROM plans WHERE customer_id=?",
+                                 (inv["customer_id"] if inv else -1,))["n"]
+                if got != want:
+                    fails.append(f"{tag} plans_of[{num}] {got}≠{want}")
+            for key, want in (("paused", True), ("not_paused", False)):
+                for num in e.get(key, []):
+                    inv = _inv(svc, num)
+                    c = svc.db.one("SELECT paused_reason FROM customers WHERE id=?",
+                                   (inv["customer_id"],)) if inv else None
+                    got = bool(c and c["paused_reason"])
+                    if got != want:
+                        fails.append(f"{tag} {key}[{num}]: paused_reason={c['paused_reason'] if c else None}")
+            live = _live_reminders(svc) if {"reminder_alive", "not_same_reminder", "no_live_reminder"} & set(e) else []
             for num in e.get("reminder_alive", []):
                 if not any(num in grp for grp in live):
                     fails.append(f"{tag} אין תזכורת חיה ל-{num}")
+            if "cards_opened_since" in e:   # כרטיסים שנפתחו מצעד k ועדיין פתוחים (בלי לדעת את שם ה-intent)
+                k = e["cards_opened_since"]
+                got = svc.db.one("SELECT COUNT(*) n FROM messages WHERE id>? AND needs_owner=1",
+                                 (step_before.get(k["step"], 0),))["n"]
+                if "open" in k and got != k["open"]:
+                    fails.append(f"{tag} כרטיסים פתוחים מאז צעד {k['step']}: {got}≠{k['open']}")
+                if "open_min" in k and got < k["open_min"]:
+                    fails.append(f"{tag} כרטיסים פתוחים מאז צעד {k['step']}: {got}<{k['open_min']}")
+            for num in e.get("no_live_reminder", []):
+                if any(num in grp for grp in live):
+                    fails.append(f"{tag} יש תזכורת חיה ל-{num} (אסור)")
             for a, b in e.get("not_same_reminder", []):
                 if any(a in grp and b in grp for grp in live):
                     fails.append(f"{tag} {a} ו-{b} באותה תזכורת (חוב של אחד נחשף לשני)")
