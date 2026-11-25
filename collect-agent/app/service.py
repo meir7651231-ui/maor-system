@@ -2403,7 +2403,12 @@ class CollectService:
                            "legal_hold IS NULL"):
             left = self.db.one("SELECT COUNT(*) n FROM invoices WHERE customer_id=? AND "
                                "purged_at IS NULL", (c["id"],))["n"]
-            if left or not self.db.one("SELECT 1 FROM invoices WHERE customer_id=?", (c["id"],)):
+            if left:
+                continue
+            # מנהל 408 (מבקר 242🟠): לקוח בלי חשבוניות שכל חשבוניותיו עברו בקובץ ללקוח אחר (219א) — מותמם כשכל
+            # מה שעבר ממנו כבר נמחק (90 יום מסגירת החוב, אצל מי שזה לא יהיה). אחרת דנה נשארת לתמיד.
+            if not self.db.one("SELECT 1 FROM invoices WHERE customer_id=?", (c["id"],)) and \
+                    not self._moved_away_all_purged(c["id"]):
                 continue
             # critic 158א: כרטיס דחוף פתוח ב«דורש טיפול שלך» ⇒ לא מתממים עכשיו (תקרה: 180 יום מהכרטיס),
             # אחרת בעל העסק רואה כרטיס דחוף ריק (בלי שם, טלפון ותוכן). ה-purge ממשיך אחרי «טופל».
@@ -2448,6 +2453,15 @@ class CollectService:
         # ומזהה הודעת מייל יכול לשאת דומיין/שם שולח ⇒ אותו חלון שמירה.
         self.db.x("DELETE FROM webhook_dedupe WHERE at<=?", (cutoff,))
         return inv_n, cust_n, purged_unk
+
+    def _moved_away_all_purged(self, cid: int) -> bool:
+        """מנהל 408 (מבקר 242🟠, ר-10): True רק כשמ-cid עברה לפחות חשבונית אחת (audit `csv_contact_changed` from=cid,
+        CSV וגם API) וכל החשבוניות שעברו ממנו כבר נמחקו (purged_at) או אינן קיימות. לקוח שמעולם לא היו לו
+        חשבוניות — False (ההתנהגות הקודמת נשמרת)."""
+        r = self.db.one("SELECT COUNT(*) n, SUM(CASE WHEN i.id IS NULL OR i.purged_at IS NOT NULL THEN 1 ELSE 0 END) "
+                        "done FROM audit a LEFT JOIN invoices i ON i.id=json_extract(a.detail,'$.invoice') "
+                        "WHERE a.action='csv_contact_changed' AND json_extract(a.detail,'$.from')=?", (cid,))
+        return bool(r["n"]) and r["done"] == r["n"]
 
     def _open_urgent_shared_cards(self, floor: str):
         return self.db.q("SELECT id, payload FROM messages WHERE customer_id IS NULL AND intent=? AND "
