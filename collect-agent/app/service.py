@@ -2407,8 +2407,10 @@ class CollectService:
                 continue
             # מנהל 408 (מבקר 242🟠): לקוח בלי חשבוניות שכל חשבוניותיו עברו בקובץ ללקוח אחר (219א) — מותמם כשכל
             # מה שעבר ממנו כבר נמחק (90 יום מסגירת החוב, אצל מי שזה לא יהיה). אחרת דנה נשארת לתמיד.
-            if not self.db.one("SELECT 1 FROM invoices WHERE customer_id=?", (c["id"],)) and \
-                    not self._moved_away_all_purged(c["id"]):
+            # גבייה סוכן (במקביל ל-408): ובלי פעילות ב-90 הימים האחרונים — לקוח שעוד כותב לא מותמם באמצע שיחה
+            if not self.db.one("SELECT 1 FROM invoices WHERE customer_id=?", (c["id"],)) and (
+                    not self._moved_away_all_purged(c["id"]) or
+                    self.db.one("SELECT 1 FROM messages WHERE customer_id=? AND created_at>?", (c["id"], cutoff))):
                 continue
             # critic 158א: כרטיס דחוף פתוח ב«דורש טיפול שלך» ⇒ לא מתממים עכשיו (תקרה: 180 יום מהכרטיס),
             # אחרת בעל העסק רואה כרטיס דחוף ריק (בלי שם, טלפון ותוכן). ה-purge ממשיך אחרי «טופל».
