@@ -462,6 +462,8 @@ class ConversationInbox:
             d = self._paid_claim_moved_note(cust["id"], d)
         elif {Intent.PLAN_REQUEST, Intent.PROMISE, Intent.DISPUTE} & set(d.all_intents):
             d = self._moved_invoice_note(cust["id"], d)   # מבקר 234ב
+        if d.intent == Intent.PLAN_ACCEPT and "plan_confirmed" in d.tags:
+            d = self._plan_accept_file_check(cust, d)   # מבקר 235א/ב
         draft_id = None
         if d.reply or d.escalate != Escalation.NONE:
             # בלי טיוטה (למשל עו"ד) ⇒ כרטיס "דרוש טיפול" בתור, שבעל העסק יכול לענות ממנו בעצמו
@@ -643,6 +645,46 @@ class ConversationInbox:
         return replace(d, owner_summary=(d.owner_summary or "") + note,
                        owner_actions=d.owner_actions + (
                            "לבדוק אם התשלום שייך לחשבונית שעברה ללקוח אחר לפני אישור תזכורת עליה",))
+
+    def _plan_accept_file_check(self, cust, d: Decision) -> Decision:
+        """מבקר 235א/ב🟡: «מאשר» על הסדר שאושר ונשלח ⇒ טיוטת «ההסדר בתוקף. התשלום הראשון: 400 ₪» + כרטיס «נותר רק
+        לשלוח» — גם כש(א) הקובץ כבר סימן את כל חשבוניות ההסדר כשולמות (plan_progress רץ רק בתכנון הבא), או
+        (ב) הקובץ שינה את פרטי הקשר של חשבונית בהסדר (כרטיס csv_contact_plan פתוח: «שום הודעה לא תצא לפרטים
+        הישנים») ⇒ האישור היה יוצא לטלפון הישן. עכשיו: בלי טיוטה, וכרטיס שאומר את האמת."""
+        plan = self.db.one("SELECT * FROM plans WHERE customer_id=? AND status='approved' ORDER BY id DESC LIMIT 1",
+                           (cust["id"],))
+        if not plan:
+            return d
+        ids = self.svc._plan_invoice_ids(plan)
+        rows = [r for r in (self.db.one("SELECT id, number, external_id, status FROM invoices WHERE id=?", (i,))
+                            for i in ids) if r]
+        if not rows:
+            return d
+        name = cust["name"] or "הלקוח/ה"
+        nums = ", ".join(str(r["number"]) for r in rows)
+        one = len(rows) == 1
+        if all(r["status"] != "open" for r in rows):
+            self.svc.audit("system", "plan_accept_held_closed", {"plan": plan["id"]})
+            return replace(d, reply=None, auto_send=False,
+                           escalate=d.escalate if d.escalate != Escalation.NONE else Escalation.NORMAL,
+                           tags=d.tags + ("plan_accept_closed",),
+                           owner_summary=(f"{name} אישר/ה את ההסדר, אבל לפי הקובץ האחרון "
+                                          f"{'חשבונית ' + nums + ' סומנה' if one else 'החשבוניות ' + nums + ' סומנו'}"
+                                          " כשולמ" + ("ה" if one else "ות") + ". לא נוסחה הודעה על תשלום ראשון."),
+                           owner_actions=("לבדוק בבנק/בסליקה ולסגור את ההסדר ב«הסדרים» אם הכול שולם",))
+        cards = [r for r in rows if r["external_id"] and self.db.one(
+            "SELECT 1 FROM messages WHERE intent='csv_contact_plan' AND needs_owner=1 AND message_id=?",
+            (f"csv_contact_plan:{r['external_id']}",))]
+        if cards:
+            cn = ", ".join(str(r["number"]) for r in cards)
+            self.svc.audit("system", "plan_accept_held_contact_changed", {"plan": plan["id"]})
+            return replace(d, reply=None, auto_send=False,
+                           escalate=d.escalate if d.escalate != Escalation.NONE else Escalation.NORMAL,
+                           tags=d.tags + ("plan_accept_contact_changed",),
+                           owner_summary=(f"{name} אישר/ה את ההסדר, אבל בקובץ האחרון פרטי הקשר של חשבונית {cn} "
+                                          "השתנו. לא נוסחה הודעה — שום הודעה לא תצא לפרטים הישנים עד שתבדקו."),
+                           owner_actions=("לעדכן את הטלפון/המייל בכרטיס הלקוח ולפנות אישית לגבי ההסדר",))
+        return d
 
     def _moved_invoice_note(self, cid: int, d: Decision) -> Decision:
         """מבקר 234ב🟡: כמו `_paid_claim_moved_note` (395) לבקשת פריסה / הבטחה / מחלוקת — «אפשר לשלם את 9001 בשלושה

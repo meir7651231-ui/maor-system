@@ -13,11 +13,9 @@
     נשלחת לפרטים הישנים.
 הצעה: (א) PLAN_ACCEPT על הסדר שכל חשבונותיו סגורים ⇒ «ההסדר הסתיים — החשבונית סומנה כשולמה» (או הרצת plan_progress
 בסוף import_csv); (ב) PLAN_ACCEPT/טיוטה ללקוח עם כרטיס csv_contact_plan פתוח ⇒ הכרטיס אומר זאת והאישור דורש
-אישור-מפורש (כמו confirm_amount). xfail(strict=True)."""
+אישור-מפורש (כמו confirm_amount). תוקן במנהל 399 (`inbox._plan_accept_file_check`)."""
 from dataclasses import replace
 from datetime import timedelta
-
-import pytest
 
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,סטטוס,תאריך,תאריך לתשלום\n"
 DANA = "050-1234567"
@@ -43,7 +41,6 @@ def _accept(svc):
     return r, svc.db.one("SELECT body FROM drafts WHERE id=?", (r["draft_id"],))["body"] if r["draft_id"] else ""
 
 
-@pytest.mark.xfail(strict=True, reason="235א🟡: «מאשר» אחרי «שולם» בקובץ — «התשלום הראשון 400 ₪» על חשבונית סגורה")
 def test_accept_after_invoice_closed_in_file(svc, clock):
     _plan_sent(svc, clock)
     svc.import_csv((H + f"9001,דנה כהן,{DANA},d@x.example,1200,שולם,01/10/26,15/10/26\n").encode())
@@ -51,7 +48,6 @@ def test_accept_after_invoice_closed_in_file(svc, clock):
     assert "400" not in body and "בתוקף" not in r["owner_summary"], (body, r["owner_summary"])
 
 
-@pytest.mark.xfail(strict=True, reason="235ב🟡: «מאשר» אחרי שינוי פרטים בקובץ — כרטיס «נותר רק לשלוח» בלי אזהרה")
 def test_accept_after_contact_changed_in_plan(svc, clock):
     _plan_sent(svc, clock)
     svc.import_csv((H + "9001,מיכל לוי,050-0000999,m@x.example,1200,פתוח,01/10/26,15/10/26\n").encode())
