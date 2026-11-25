@@ -246,6 +246,8 @@ jobs:
         run: TZ=UTC node e2e/app-csv-reopened.mjs "$RUNNER_TEMP/shots"
       - name: "e2e — «אולי שינוי שם?» (388/392): קובץ חלקי מהמסך ⇒ כרטיס אחד בלי PII, 390px; קובץ מלא ⇒ לקוח אחד ברשימה; «איך משלמים?» מהטלפון ⇒ טיוטה, לא דו-משמעית"
         run: TZ=UTC node e2e/app-csv-maybe-rename.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e — «אולי שינוי שם?» why=back (מנהל 401): קובץ חלקי ⇒ כרטיס; קובץ בשם הישן מהמסך ⇒ הכרטיס יורד (שרת+דשבורד, 390px), audit בלי PII, קובץ חוזר בלי כפילות"
+        run: TZ=UTC node e2e/app-csv-rename-back.mjs "$RUNNER_TEMP/shots"
       - name: "e2e — ייבוא CSV מהמסך בקבצי Excel עברי (Windows-1255, UTF-16+טאבים, «;»), קידוד לא מזוהה ⇒ עברית, 390px"
         run: TZ=UTC node e2e/app-csv-excel.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
