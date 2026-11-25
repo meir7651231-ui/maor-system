@@ -462,8 +462,9 @@ class ConversationInbox:
             d = self._paid_claim_moved_note(cust["id"], d)
         elif {Intent.PLAN_REQUEST, Intent.PROMISE, Intent.DISPUTE} & set(d.all_intents):
             d = self._moved_invoice_note(cust["id"], d)   # מבקר 234ב
-        if d.intent == Intent.PLAN_ACCEPT and "plan_confirmed" in d.tags:
-            d = self._plan_accept_file_check(cust, d)   # מבקר 235א/ב
+        if d.intent == Intent.PLAN_ACCEPT:
+            # מבקר 235א/ב (מנהל 399) — הסדר שאושר; סט #26 (q26-17/18, גבי מנוע): גם «מאשר» על הצעה שעוד proposed
+            d = self._plan_accept_file_check(cust, d)
         draft_id = None
         if d.reply or d.escalate != Escalation.NONE:
             # בלי טיוטה (למשל עו"ד) ⇒ כרטיס "דרוש טיפול" בתור, שבעל העסק יכול לענות ממנו בעצמו
@@ -651,8 +652,8 @@ class ConversationInbox:
         לשלוח» — גם כש(א) הקובץ כבר סימן את כל חשבוניות ההסדר כשולמות (plan_progress רץ רק בתכנון הבא), או
         (ב) הקובץ שינה את פרטי הקשר של חשבונית בהסדר (כרטיס csv_contact_plan פתוח: «שום הודעה לא תצא לפרטים
         הישנים») ⇒ האישור היה יוצא לטלפון הישן. עכשיו: בלי טיוטה, וכרטיס שאומר את האמת."""
-        plan = self.db.one("SELECT * FROM plans WHERE customer_id=? AND status='approved' ORDER BY id DESC LIMIT 1",
-                           (cust["id"],))
+        plan = self.db.one("SELECT * FROM plans WHERE customer_id=? AND status IN ('approved','proposed') "
+                           "ORDER BY id DESC LIMIT 1", (cust["id"],))
         if not plan:
             return d
         ids = self.svc._plan_invoice_ids(plan)
