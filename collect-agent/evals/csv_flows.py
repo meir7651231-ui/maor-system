@@ -10,7 +10,10 @@ customers · name_of {מספר: שם} · same_customer [[א,ב]] · diff_custome
 cards_min {intent: n} · open_cards (כל הכרטיסים הפתוחים) · draft · new_card_intent_not_prefix ·
 new_card_body_has / new_card_body_not · new_draft_body_has / new_draft_body_not · plan_status {מספר: סטטוס} ·
 plans_of {מספר: n} · paused / not_paused [מספרים] · no_live_reminder [מספרים] ·
-cards_opened_since {step, open|open_min} · dash {מספר: {שדה: ערך}} · paused_until {מספר: תאריך}
+cards_opened_since {step, open|open_min} · dash {מספר: {שדה: ערך}} · status/body_has/body_not (http) ·
+opted_out {שם: bool} · suppressed_phone {טלפון: bool} · anonymized/not_anonymized [שמות] · audit_has [פעולות]
+audit_new_min ·
+plan_status_cust {שם: סטטוס} · paused_until {מספר: תאריך}
 · not_promise_paused · ok · new_cards /
 new_cards_min (כרטיסים לבעל העסק שנפתחו בצעד הזה) · reminder_alive [מספרים] ·
 not_same_reminder [[א,ב]].
@@ -33,7 +36,9 @@ _CHECKED = {"imported", "errors", "errors_min", "open", "absent", "amount", "cus
             "diff_customer", "cards", "cards_min", "reminder_alive", "not_same_reminder", "new_cards", "new_cards_min",
             "draft", "new_card_intent_not_prefix", "new_card_body_has", "new_card_body_not", "open_cards",
             "paused_until", "not_promise_paused", "ok", "no_live_reminder", "plan_status", "plans_of",
-            "new_draft_body_has", "new_draft_body_not", "paused", "not_paused", "cards_opened_since", "dash"}
+            "new_draft_body_has", "new_draft_body_not", "paused", "not_paused", "cards_opened_since", "dash",
+            "status", "body_has", "body_not", "opted_out", "suppressed_phone", "anonymized", "not_anonymized",
+            "audit_has", "plan_status_cust", "audit_new_min"}
 
 
 @contextmanager
@@ -62,6 +67,50 @@ def _service():
         cfg.OPEN_REVIEW_DEFAULT = old_review
 
 
+class _Http:
+    """בקשות HTTP בתפקיד (owner/staff) מול create_app האמיתי, עם כניסה סיסמה+TOTP (REQUIRE_USER_LOGIN=1).
+    נבנה בעצלות בצעד ה-http הראשון; כניסה מחדש בכל צעד (סשן פג כשהשעון מתקדם)."""
+
+    PW = "correct-horse-battery-9"
+    USERS = {"owner": "owner@biz.example", "staff": "staff@biz.example"}
+
+    def __init__(self, svc):
+        import os
+
+        from fastapi.testclient import TestClient
+
+        from app.main import create_app
+        from app.users import Users
+        self.svc, self.os = svc, os
+        u = Users(svc.db, svc.clock)
+        self.regs = {k: u.create(e, k, self.PW) for k, e in self.USERS.items()}   # הראשון = בעלים
+        self.old_env = os.environ.get("REQUIRE_USER_LOGIN")
+        os.environ["REQUIRE_USER_LOGIN"] = "1"
+        self.api = TestClient(create_app(svc, owner_token="csvflows-token-0123456789abcdefXYZ"))  # noqa: S106
+
+    def call(self, who: str, method: str, path: str, body=None):
+        from app import totp
+        code = totp.code_at(self.regs[who]["totp_secret"], self.svc.clock().timestamp())
+        r = self.api.post("/auth/login", json={"email": self.USERS[who], "password": self.PW, "code": code})
+        hdr = {"Authorization": "Bearer " + r.json()["token"]} if r.status_code == 200 else {}
+        return self.api.request(method, path, headers=hdr, json=body)
+
+    def close(self):
+        if self.old_env is None:
+            self.os.environ.pop("REQUIRE_USER_LOGIN", None)
+        else:
+            self.os.environ["REQUIRE_USER_LOGIN"] = self.old_env
+
+
+def _path(svc, p: str) -> str:
+    while "{cust:" in p:
+        a = p.index("{cust:")
+        b = p.index("}", a)
+        row = svc.db.one("SELECT id FROM customers WHERE name=? ORDER BY id LIMIT 1", (p[a + 6:b],))
+        p = p[:a] + (str(row["id"]) if row else "0") + p[b + 1:]
+    return p
+
+
 def _inv(svc, number: str):
     return svc.db.one("SELECT * FROM invoices WHERE number=? ORDER BY id DESC LIMIT 1", (number,))
 
@@ -77,6 +126,15 @@ def _live_reminders(svc) -> list[set[str]]:
 
 
 def run_flow(flow: dict) -> tuple[list[str], list[str]]:
+    holder: dict = {}
+    try:
+        return _run_flow(flow, holder)
+    finally:
+        if holder.get("http"):
+            holder["http"].close()
+
+
+def _run_flow(flow: dict, holder: dict) -> tuple[list[str], list[str]]:
     fails, notes = [], []
     with _service() as svc:
         step_before: dict[int, int] = {}
@@ -88,6 +146,7 @@ def run_flow(flow: dict) -> tuple[list[str], list[str]]:
             out: dict = {}
             before = svc.db.one("SELECT COALESCE(MAX(id), 0) m FROM messages")["m"]
             step_before[i] = before
+            audit_before = svc.db.one("SELECT COALESCE(MAX(id), 0) m FROM audit")["m"]
             before_draft = (svc.db.one("SELECT COALESCE(MAX(id), 0) m FROM drafts")["m"]
                             if svc._table_exists("drafts") else 0)
             if "csv" in st:
@@ -144,6 +203,25 @@ def run_flow(flow: dict) -> tuple[list[str], list[str]]:
                 except (KeyError, ValueError, PermissionError) as ex:
                     out = {"ok": False, "why": f"{type(ex).__name__}: {ex}"}
                 notes.append(f"{tag} approve_plan ⇒ {str(out)[:160]}")
+            elif "http" in st:   # בקשה בתפקיד owner/staff מול ה-API האמיתי ({cust:שם} ⇒ מזהה הלקוח)
+                h = st["http"]
+                if "http" not in holder:
+                    holder["http"] = _Http(svc)
+                resp = holder["http"].call(h.get("as", "owner"), h.get("method", "GET"), _path(svc, h["path"]),
+                                           h.get("json"))
+                out = {"status": resp.status_code, "text": resp.text}
+                notes.append(f"{tag} {h.get('as', 'owner')} {h.get('method', 'GET')} {h['path']} ⇒ {resp.status_code}")
+            elif st.get("cycle"):   # plan + אישור כל התזכורות + שליחה (dry-run)
+                for rid in svc.plan():
+                    try:
+                        svc.approve(rid, confirm_open=True)
+                    except (ValueError, PermissionError):
+                        pass
+                svc.dispatch()
+                notes.append(f"{tag} cycle ⇒ נשלחו {len(svc.sender.sent)} (מצטבר)")
+            elif st.get("purge"):   # ר-10: מחיקה/התממה של מה שעבר את תקופת השמירה
+                out = {"purge": svc.purge_closed("owner")}
+                notes.append(f"{tag} purge ⇒ {str(out['purge'])[:120]}")
             elif st.get("advance_days") and set(st) <= {"advance_days", "expect"}:
                 from datetime import timedelta
                 svc.clock.now += timedelta(days=st["advance_days"])
@@ -278,6 +356,43 @@ def run_flow(flow: dict) -> tuple[list[str], list[str]]:
                     fails.append(f"{tag} כרטיסים פתוחים מאז צעד {k['step']}: {got}≠{k['open']}")
                 if "open_min" in k and got < k["open_min"]:
                     fails.append(f"{tag} כרטיסים פתוחים מאז צעד {k['step']}: {got}<{k['open_min']}")
+            if "status" in e and out.get("status") != e["status"]:
+                fails.append(f"{tag} status {out.get('status')}≠{e['status']} {str(out.get('text', ''))[:100]}")
+            for txt in e.get("body_has", []):
+                if txt not in str(out.get("text", "")):
+                    fails.append(f"{tag} התשובה לא מכילה «{txt}»")
+            for txt in e.get("body_not", []):
+                if txt in str(out.get("text", "")):
+                    fails.append(f"{tag} התשובה מכילה «{txt}» (אסור)")
+            for name, want in e.get("opted_out", {}).items():
+                c = svc.db.one("SELECT opted_out FROM customers WHERE name=? ORDER BY id LIMIT 1", (name,))
+                got = bool(c and c["opted_out"])
+                if got != want:
+                    fails.append(f"{tag} opted_out[{name}] {got}≠{want}")
+            for phone, want in e.get("suppressed_phone", {}).items():
+                got = bool(svc.suppressed("sms", phone))
+                if got != want:
+                    fails.append(f"{tag} suppressed[{phone}] {got}≠{want}")
+            for name in e.get("anonymized", []):
+                if svc.db.one("SELECT 1 FROM customers WHERE name=?", (name,)):
+                    fails.append(f"{tag} «{name}» לא הותמם/ה (השם עדיין ב-DB)")
+            for name in e.get("not_anonymized", []):
+                if not svc.db.one("SELECT 1 FROM customers WHERE name=?", (name,)):
+                    fails.append(f"{tag} «{name}» הותמם/ה מוקדם מדי")
+            for action in e.get("audit_has", []):
+                if not svc.db.one("SELECT 1 FROM audit WHERE action=? AND id>?", (action, audit_before)):
+                    fails.append(f"{tag} אין audit «{action}» בצעד הזה")
+            if "audit_new_min" in e:   # לפחות N רשומות audit חדשות בצעד (כשה-spec לא נוקב בשם הפעולה)
+                got = svc.db.one("SELECT COUNT(*) n FROM audit WHERE id>?", (audit_before,))["n"]
+                if got < e["audit_new_min"]:
+                    fails.append(f"{tag} audit חדשים {got}<{e['audit_new_min']}")
+            for name, want in e.get("plan_status_cust", {}).items():
+                c = svc.db.one("SELECT id FROM customers WHERE name=? ORDER BY id LIMIT 1", (name,))
+                p_ = svc.db.one("SELECT status FROM plans WHERE customer_id=? ORDER BY id DESC LIMIT 1",
+                                (c["id"] if c else -1,))
+                got = p_["status"] if p_ else None
+                if got != want:
+                    fails.append(f"{tag} plan_status_cust[{name}] {got}≠{want}")
             if "dash" in e:   # שדות שורת החשבונית בדשבורד (customer_block / hold_with / paused_reason …)
                 rows = {x["number"]: x for x in svc.dashboard()["invoices"]}
                 for num, fields in e["dash"].items():
