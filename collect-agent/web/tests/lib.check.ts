@@ -768,7 +768,7 @@ test('הפעלה 141: טעינה שנכשלה ⇒ מצב error עם «נסו ש�
 test('הפעלה 142: רענון שנכשל במצב חי ⇒ stale ופס «הנתונים לא עודכנו»; קוד גישה מבחין בין 401 לכשל שרת', () => {
   const store = readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
   // רענון מוצלח מנקה את הסימון; כשל שאינו 401 במצב חי מדליק אותו
-  assert.match(store, /if \(await load\(\)\) \{ setStale\(false\); setDataSeq\(n => n \+ 1\); \}/);
+  assert.match(store, /if \(await load\(\)\) \{ (?:lastOk\.current = Date\.now\(\); )?setStale\(false\); setDataSeq\(n => n \+ 1\); \}/);
   assert.match(store, /else if \(modeRef\.current === 'live' && seq === loadSeq\.current\) setStale\(true\);/);
   // הפעלה 143: תשובה של רענון ישן לא דורסת רענון חדש יותר
   assert.match(store, /if \(my !== loadSeq\.current\) return false;/);
@@ -1715,4 +1715,18 @@ test('מבקר 234א: כרטיס בקשת הסדר מכתובת משותפת —
     payload: JSON.stringify({ linked_customers: [{ id: 1, name: 'דויד' }, { id: 2, name: 'שרה' }] }) }]);
   assert.equal(n.length, 1);
   assert.deepEqual((n[0] as { linked?: unknown }).linked, [{ id: 1, name: 'דויד' }, { id: 2, name: 'שרה' }]);
+});
+
+test('מנהל 403: רענון בחזרה ללשונית רק אחרי ≥60 ש׳ מהרענון המוצלח האחרון', async () => {
+  const { refreshOnReturn, RETURN_REFRESH_MS } = await import('../src/lib/failure.ts');
+  assert.equal(RETURN_REFRESH_MS, 60_000);
+  assert.equal(refreshOnReturn(0, 10 ** 12), false, 'אין רענון מוצלח עדיין');
+  assert.equal(refreshOnReturn(1_000_000, 1_059_999), false);
+  assert.equal(refreshOnReturn(1_000_000, 1_060_000), true);
+  assert.equal(refreshOnReturn(1_000_000, 900_000), false, 'שעון שזז אחורה');
+  const store = readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
+  // הגנת-מקור: המאזין רק במצב חי ולא-stale, ובודק נראות לפני רענון
+  assert.match(store, /if \(mode !== 'live' \|\| stale\) return;\s*const onVis/);
+  assert.match(store, /visibilityState !== 'visible' \|\| !refreshOnReturn\(lastOk\.current, Date\.now\(\)\)/);
+  assert.match(store, /lastOk\.current = Date\.now\(\); setStale\(false\)/);
 });

@@ -27,6 +27,13 @@ export function retryDelayMs(n: number): number {
   return RETRY_MS[Math.max(0, Math.min(Math.floor(n) || 0, RETRY_MS.length - 1))];
 }
 
+/** מנהל 403 (ממצא QA 401): מכשיר שני שמציג את הדשבורד לא התרענן אחרי שינוי ממכשיר אחר (ייבוא קובץ) עד פתיחה
+ *  מחדש. חזרה ללשונית אחרי ≥60 ש׳ מהרענון המוצלח האחרון ⇒ רענון שקט. lastOkMs=0 ⇒ אין רענון מוצלח עדיין ⇒ לא. טהור. */
+export const RETURN_REFRESH_MS = 60_000;
+export function refreshOnReturn(lastOkMs: number, nowMs: number): boolean {
+  return lastOkMs > 0 && nowMs - lastOkMs >= RETURN_REFRESH_MS;
+}
+
 /** status 0 = הבקשה לא הגיעה לשרת (רשת). detail = השדה detail מתשובת השרת, אם היה.
  *  write = פעולת כתיבה (לא GET): כשל בלי הסבר מהשרת ⇒ מוסיפים «לא ידוע אם הפעולה נרשמה».
  *  הסבר בעברית מהשרת נשמר כמו שהוא (גם ב-5xx: «אין מפתח הצפנה…»); קוד או טקסט טכני לא מוצגים למשתמש ב-5xx. */

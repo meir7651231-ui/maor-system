@@ -9,7 +9,7 @@ import { TOKEN_KEY, readToken } from './lib/auth.ts';
 const sessionStore = () => { try { return sessionStorage; } catch { return undefined; } };
 import type { WeekPoint } from './lib/series.ts';
 import { systemNotices, type Notice } from './lib/notices.ts';
-import { ALREADY_APPROVED, alreadyDone, retryDelayMs } from './lib/failure.ts';
+import { ALREADY_APPROVED, alreadyDone, refreshOnReturn, retryDelayMs } from './lib/failure.ts';
 import { settingsDraft } from './lib/settings.ts';
 import { toastMs } from './lib/toast.ts';
 
@@ -148,9 +148,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
   // 401 באמצע עבודה (הסשן פג אחרי 12 ש׳, העובד הושבת, יציאה מלשונית אחרת) ⇒ חזרה למסך הכניסה עם הסבר,
   // בלי להשאיר נתוני חייבים על המסך. לפני הכניסה (מצב locked) 401 הוא פשוט «קוד שגוי».
+  const lastOk = useRef(0);   // מנהל 403: זמן הרענון המוצלח האחרון (לרענון בחזרה ללשונית)
   const reload = useCallback(async () => {
     const seq = loadSeq.current + 1;   // המספר שהרענון הזה יקבל ב-load
-    try { if (await load()) { setStale(false); setDataSeq(n => n + 1); } } catch (e) {
+    try { if (await load()) { lastOk.current = Date.now(); setStale(false); setDataSeq(n => n + 1); } } catch (e) {
       if (e instanceof AuthError) { if (modeRef.current === 'live') dropSession('תוקף הכניסה פג. היכנסו שוב כדי להמשיך'); }
       // הפעלה 142: רענון שנכשל (5xx/רשת) במצב חי נבלע בשקט והמסך המשיך להציג נתונים ישנים בלי סימן.
       else if (modeRef.current === 'live' && seq === loadSeq.current) setStale(true);
@@ -184,6 +185,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     window.addEventListener('online', now);
     document.addEventListener('visibilitychange', now);
     return () => { off = true; window.clearTimeout(timer); window.removeEventListener('online', now); document.removeEventListener('visibilitychange', now); };
+  }, [mode, stale, reload]);
+
+  // מנהל 403 (ממצא QA 401): הנתונים עדכניים (לא stale) אבל ייתכן שהשתנו ממכשיר אחר — ייבוא קובץ בטלפון השאיר את
+  // המחשב עם כרטיס שכבר ירד. חזרה ללשונית אחרי ≥60 ש׳ מהרענון המוצלח האחרון ⇒ רענון שקט. כשל ⇒ הפס של 142
+  // (stale) והלולאה שלמעלה; 401 ⇒ מסך הכניסה. stale ⇒ הלולאה שלמעלה כבר מטפלת, לא כפול.
+  useEffect(() => {
+    if (mode !== 'live' || stale) return;
+    const onVis = () => {
+      if (document.visibilityState !== 'visible' || !refreshOnReturn(lastOk.current, Date.now())) return;
+      lastOk.current = Date.now();   // לא שני רענונים מחזרות מהירות; הצלחה תעדכן שוב
+      void reload().catch(() => { /* reload כבר סימן stale / העביר לכניסה */ });
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
   }, [mode, stale, reload]);
 
   // הפעלה 141: טעינה שנכשלת אחרי שהשרת ענה ל-/health (או כשיש כניסה שמורה והשרת לא עונה) נפלה למוק בשקט,
