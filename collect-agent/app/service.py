@@ -1106,6 +1106,7 @@ class CollectService:
             self._notify_malformed(bad)
         out = self.ingest(invs, review=review, provider=provider, full=not bad)
         self._resolve_paid_claims_closed_at_source()   # מבקר 224
+        self._resolve_plan_cards()   # מבקר 237 (plan_amount_changed גם בסנכרון API)
         return out
 
     CREDIT_REVIEW = "credit_review"
@@ -1203,6 +1204,7 @@ class CollectService:
             closed = self._csv_close_paid(res)
             self._resolve_paid_claims_closed_at_source()   # מבקר 224
             self._resolve_csv_cards()   # מבקר 227
+            self._resolve_plan_cards()   # מבקר 237
             # מנהל 374 (מבקר 217): טריות = מועד הייבוא האחרון שזוהו בו שורות (או קובץ נקי בלי חוב פתוח בכלל),
             # לא MAX(synced_at) של חשבוניות פתוחות — אחרת קובץ שבו הכול שולם לא מוריד את הבאנר לעולם.
             # קובץ שכל שורותיו נדחו לא נחשב טרי (הרשימה לא התעדכנה).
@@ -1265,6 +1267,38 @@ class CollectService:
             self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (m["id"],))
             self.audit("system", "csv_card_resolved", {"message": m["id"], "invoice": iid,
                                                         "card": m["intent"], "why": why})
+            n += 1
+        return n
+
+    def _resolve_plan_cards(self) -> int:
+        """מבקר סבב 237🟡: כרטיסי הסדר — `csv_contact_plan` («פרטי הקשר השתנו … עדכנו וחדשו») ו-`plan_amount_changed`
+        («הסכום עלה בזמן ההסדר») — נשארו ב«דורש טיפול» אחרי שהמקור סימן את החשבונית «שולם» וההסדר הושלם: בעל העסק
+        התבקש לעדכן טלפון ולחדש לקוח על חשבונית ששולמה. עכשיו (כמו 227/224): החשבונית נסגרה **אחרי** הכרטיס, או
+        ההסדר completed ⇒ הכרטיס יורד. audit `plan_card_resolved` (בלי PII). עוד פתוחה ⇒ נשאר."""
+        n = 0
+        for m in self.db.q("SELECT id, intent, message_id, created_at FROM messages WHERE needs_owner=1 "
+                           "AND intent IN ('csv_contact_plan','plan_amount_changed') AND message_id IS NOT NULL"):
+            parts = m["message_id"].split(":")
+            inv, plan = None, None
+            if m["intent"] == "csv_contact_plan" and len(parts) >= 2:
+                inv = self.db.one("SELECT id, status, closed_at FROM invoices WHERE external_id=?",
+                                  (":".join(parts[1:]),))
+            elif m["intent"] == "plan_amount_changed" and len(parts) >= 3:
+                try:
+                    pid, iid = int(parts[1]), int(parts[2])
+                except ValueError:
+                    continue
+                inv = self.db.one("SELECT id, status, closed_at FROM invoices WHERE id=?", (iid,))
+                plan = self.db.one("SELECT status FROM plans WHERE id=?", (pid,))
+            why = None
+            if inv and inv["status"] == "closed" and (inv["closed_at"] or "") >= m["created_at"]:
+                why = "closed"
+            elif plan and plan["status"] == "completed":
+                why = "plan_completed"
+            if why is None:
+                continue
+            self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (m["id"],))
+            self.audit("system", "plan_card_resolved", {"message": m["id"], "card": m["intent"], "why": why})
             n += 1
         return n
 

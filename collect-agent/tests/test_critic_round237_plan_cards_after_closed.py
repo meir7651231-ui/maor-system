@@ -14,8 +14,6 @@ xfail(strict=True)."""
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
-
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,סטטוס,תאריך,תאריך לתשלום\n"
 DANA = "050-1234567"
 
@@ -28,7 +26,6 @@ def _open_cards(svc):
     return {m["intent"] for m in svc.db.q("SELECT intent FROM messages WHERE needs_owner=1")}
 
 
-@pytest.mark.xfail(strict=True, reason="237🟡: כרטיסי csv_contact_plan/plan_amount_changed נשארים אחרי «שולם»")
 def test_plan_cards_resolve_when_invoice_paid(svc, clock):
     svc.s = replace(svc.s, source_system="csv")
     svc.db.x("DELETE FROM invoices")
@@ -52,3 +49,26 @@ def test_plan_cards_resolve_when_invoice_paid(svc, clock):
     assert svc.db.one("SELECT status FROM plans")["status"] == "completed"
     left = _open_cards(svc) & {"csv_contact_plan", "plan_amount_changed"}
     assert not left, left
+
+
+def test_control_plan_cards_stay_while_invoice_open(svc, clock):
+    """בקרה (גבי מנוע, 237): החשבונית עוד פתוחה ⇒ שני הכרטיסים נשארים (בעל העסק צריך לעדכן/לבדוק)."""
+    svc.s = replace(svc.s, source_system="csv")
+    svc.db.x("DELETE FROM invoices")
+    svc.import_csv(_row("דנה כהן", DANA, 1200))
+    clock.now += timedelta(days=1)
+    rids = svc.plan()
+    svc.approve(rids[0], confirm_open=True)
+    svc.dispatch()
+    r = svc.inbound("sms", DANA, "אפשר בשלושה תשלומים?")
+    svc.inbox.approve_draft(r["draft_id"], confirm_amount=True)
+    r = svc.inbound("sms", DANA, "מאשר")
+    svc.inbox.approve_draft(r["draft_id"], confirm_amount=True)
+    clock.now += timedelta(days=1)
+    svc.import_csv(_row("מיכל לוי", "050-0000999", 1200))
+    clock.now += timedelta(days=1)
+    svc.import_csv(_row("מיכל לוי", "050-0000999", 1500))
+    clock.now += timedelta(days=1)
+    svc.import_csv(_row("מיכל לוי", "050-0000999", 1500))
+    svc.plan()
+    assert {"csv_contact_plan", "plan_amount_changed"} <= _open_cards(svc)
