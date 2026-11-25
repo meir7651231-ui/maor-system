@@ -244,6 +244,8 @@ jobs:
         run: TZ=UTC node e2e/app-csv-balance-rose.mjs "$RUNNER_TEMP/shots"
       - name: "e2e — כרטיס «נסגרה ושוב פתוחה בקובץ» (csv_reopened): קובץ ישן מהמסך ⇒ כרטיס אחד ב«דורש טיפול», בלי PII, 390px; קובץ «שולם» ⇒ הכרטיס יורד"
         run: TZ=UTC node e2e/app-csv-reopened.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e — «אולי שינוי שם?» (388/392): קובץ חלקי מהמסך ⇒ כרטיס אחד בלי PII, 390px; קובץ מלא ⇒ לקוח אחד ברשימה; «איך משלמים?» מהטלפון ⇒ טיוטה, לא דו-משמעית"
+        run: TZ=UTC node e2e/app-csv-maybe-rename.mjs "$RUNNER_TEMP/shots"
       - name: "e2e — ייבוא CSV מהמסך בקבצי Excel עברי (Windows-1255, UTF-16+טאבים, «;»), קידוד לא מזוהה ⇒ עברית, 390px"
         run: TZ=UTC node e2e/app-csv-excel.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
