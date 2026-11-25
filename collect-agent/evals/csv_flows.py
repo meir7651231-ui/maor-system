@@ -3,14 +3,14 @@
 ואילו תזכורות חיות. שירות במקור CSV (בלי חשבונית ירוקה), dry-run, socket חסום, שעון קבוע (ראשון 8.11.2026 10:00).
 
 פורמט שורה: {id, critical, observe?, steps:[{csv:[שורות], header?} | {plan:true} | {inbound:{from,text,channel?}} |
-{decide_promise:{customer,approve}} | {assign_shared:{intent,customer|null}} | {approve_plan:שם} |
+{decide_promise:{customer,approve}} | {assign_shared:{intent,customer|null}} | {approve_plan:שם} | {approve_draft:שם} |
 {advance_days:n}] — לכל צעד expect? אופציונלי}.
 ציפיות: imported · errors (מספר מדויק) · errors_min · open {מספר: bool} · absent [מספרים] · amount {מספר: אגורות} ·
 customers · name_of {מספר: שם} · same_customer [[א,ב]] · diff_customer [[א,ב]] · cards {intent: n פתוחים} ·
 cards_min {intent: n} · open_cards (כל הכרטיסים הפתוחים) · draft · new_card_intent_not_prefix ·
 new_card_body_has / new_card_body_not · new_draft_body_has / new_draft_body_not · plan_status {מספר: סטטוס} ·
 plans_of {מספר: n} · paused / not_paused [מספרים] · no_live_reminder [מספרים] ·
-cards_opened_since {step, open|open_min} · paused_until {מספר: תאריך}
+cards_opened_since {step, open|open_min} · dash {מספר: {שדה: ערך}} · paused_until {מספר: תאריך}
 · not_promise_paused · ok · new_cards /
 new_cards_min (כרטיסים לבעל העסק שנפתחו בצעד הזה) · reminder_alive [מספרים] ·
 not_same_reminder [[א,ב]].
@@ -33,7 +33,7 @@ _CHECKED = {"imported", "errors", "errors_min", "open", "absent", "amount", "cus
             "diff_customer", "cards", "cards_min", "reminder_alive", "not_same_reminder", "new_cards", "new_cards_min",
             "draft", "new_card_intent_not_prefix", "new_card_body_has", "new_card_body_not", "open_cards",
             "paused_until", "not_promise_paused", "ok", "no_live_reminder", "plan_status", "plans_of",
-            "new_draft_body_has", "new_draft_body_not", "paused", "not_paused", "cards_opened_since"}
+            "new_draft_body_has", "new_draft_body_not", "paused", "not_paused", "cards_opened_since", "dash"}
 
 
 @contextmanager
@@ -126,6 +126,15 @@ def run_flow(flow: dict) -> tuple[list[str], list[str]]:
                 except (KeyError, ValueError, TypeError) as ex:
                     out = {"ok": False, "why": f"{type(ex).__name__}: {ex}"}
                 notes.append(f"{tag} assign ⇒ {str(out)[:160]}")
+            elif "approve_draft" in st:   # בעל העסק מאשר את הטיוטה הממתינה האחרונה של הלקוח (שם)
+                c = svc.db.one("SELECT id FROM customers WHERE name=? ORDER BY id LIMIT 1", (st["approve_draft"],))
+                dr = svc.db.one("SELECT id FROM drafts WHERE customer_id=? AND status IN "
+                                "('pending_approval','needs_owner') ORDER BY id DESC LIMIT 1", (c["id"] if c else -1,))
+                try:
+                    out = {"ok": True, **svc.inbox.approve_draft(dr["id"])} if dr else {"ok": False}
+                except (KeyError, ValueError) as ex:
+                    out = {"ok": False, "why": f"{type(ex).__name__}: {ex}"}
+                notes.append(f"{tag} approve_draft ⇒ ok={out.get('ok')}")
             elif "approve_plan" in st:   # בעל העסק מאשר את ההסדר האחרון של הלקוח (שם)
                 c = svc.db.one("SELECT id FROM customers WHERE name=? ORDER BY id LIMIT 1", (st["approve_plan"],))
                 p_ = svc.db.one("SELECT id FROM plans WHERE customer_id=? ORDER BY id DESC LIMIT 1",
@@ -269,6 +278,13 @@ def run_flow(flow: dict) -> tuple[list[str], list[str]]:
                     fails.append(f"{tag} כרטיסים פתוחים מאז צעד {k['step']}: {got}≠{k['open']}")
                 if "open_min" in k and got < k["open_min"]:
                     fails.append(f"{tag} כרטיסים פתוחים מאז צעד {k['step']}: {got}<{k['open_min']}")
+            if "dash" in e:   # שדות שורת החשבונית בדשבורד (customer_block / hold_with / paused_reason …)
+                rows = {x["number"]: x for x in svc.dashboard()["invoices"]}
+                for num, fields in e["dash"].items():
+                    for k, want in fields.items():
+                        got = rows.get(num, {}).get(k, "<חסר>")
+                        if got != want:
+                            fails.append(f"{tag} dash[{num}].{k} {got!r}≠{want!r}")
             for num in e.get("no_live_reminder", []):
                 if any(num in grp for grp in live):
                     fails.append(f"{tag} יש תזכורת חיה ל-{num} (אסור)")

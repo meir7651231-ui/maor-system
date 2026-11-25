@@ -22,7 +22,9 @@ HELDOUT = Path(__file__).resolve().parents[1] / "evals" / "heldout"
 # qa6 ⇒ acdca3a4 (תוויות intent ל-5 מלכודות כשה-harness התחיל לחייב intent), qa10 ⇒ 87ae5325 (advance_days
 # הועבר לרמת התור — המריץ התעלם), qa24 ⇒ q24-25 בלבד (25.11, ראש צוות): «אפס כרטיסים» אחרי שינוי שם + עלייה
 # 1200⇒1500 נכתב לפני הכרעת מנהל 389 (יתרה עלתה ⇒ csv_balance_rose); עכשיו: אין shared_contact (הכוונה של 382) +
-# כרטיס csv_balance_rose אחד בדיוק. כל השאר = המסירה עצמה (תואם ל-sha בהודעת ה-commit, חוץ מ-self4 של המנוע).
+# כרטיס csv_balance_rose אחד בדיוק; qa26 ⇒ q26-10 בלבד (25.11, הכרעת המקשר, aee44b2): «תזכורת חיה ליוסי» אחרי שיוך
+# כרטיס פריסה משותף ⇒ יוסי מוחזק (shared_contact_hold, hold_with, בלי paused_reason) עד שבעל העסק מטפל, ואז משתחרר.
+# כל השאר = המסירה עצמה (תואם ל-sha בהודעת ה-commit, חוץ מ-self4 של המנוע).
 SEALED = {
     "external-2026-11-15-critic.jsonl": ("גבי מבקר", "5cd26e8",
                                         "cbed0c0fc37462025120e0aaa9d3a6c47dff971567e626acd69260837238c6dd"),
@@ -85,7 +87,7 @@ SEALED = {
     "external-2026-11-25-qa25-csvflows.jsonl": ("גבי בדיקות", "(this)",
                                                "6dbc85b4c79ef7e698081203fc8ac8f6c111663d46df4f6efcb3ae84ac933c6f"),
     "external-2026-11-25-qa26-csvflows.jsonl": ("גבי בדיקות", "(this)",
-                                               "ecef2d32e8b4fbb2afd4e4b86376c4fa4f5f516b2f8e5dc99977419844b2c025"),
+                                               "12e15bb4d0a75377559962f7066a93ad3426de7b63e4e591fa13f5b5aa2edfae"),
 }
 
 
