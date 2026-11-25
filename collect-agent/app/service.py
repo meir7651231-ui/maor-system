@@ -936,13 +936,31 @@ class CollectService:
         prev = self.db.one("SELECT opted_out, disputed, paused_reason, legal_hold FROM customers WHERE id=?",
                            (old["customer_id"],))
         if prev is not None:
+            inherit = 0 if self._optout_lift_covers(cid, old["customer_id"]) else prev["opted_out"]
             self.db.x("UPDATE customers SET opted_out=MAX(opted_out, ?), disputed=MAX(disputed, ?), "
                       "paused_reason=COALESCE(paused_reason, ?), legal_hold=COALESCE(legal_hold, ?) WHERE id=?",
-                      (prev["opted_out"], prev["disputed"], prev["paused_reason"], prev["legal_hold"], cid))
+                      (inherit, prev["disputed"], prev["paused_reason"], prev["legal_hold"], cid))
         self.db.x("UPDATE invoices SET customer_id=? WHERE id=?", (cid, old["id"]))
         self._cancel_invoice(old["id"], "contact_changed")
         self.audit("system", "csv_contact_changed", {"invoice": old["id"], "from": old["customer_id"], "to": cid,
                                                      "upto_reminder": self._last_reminder_id(old["id"])})
+
+    def _optout_lift_covers(self, cid: int, prev_cid: int) -> bool:
+        """מנהל 407 (מבקר 241🟡): בעל העסק כבר הכריע «זה אדם אחר שלא ביקש הסרה» (`inherited_optout_lifted`) על
+        הסרה שעברה ל-cid מ-prev_cid ⇒ מעבר חשבונית נוספת מאותו לקוח קודם לא מוריש שוב את **אותה** הסרה בשקט.
+        מכסה רק: (1) היה ביטול ל-cid, (2) לפניו כבר עברה חשבונית מ-prev_cid ל-cid, (3) prev_cid לא ביקש הסרה
+        מחדש אחרי הביטול. בקשת הסרה חדשה של הקודם ⇒ עוברת (שמרני) + כרטיס חדש (`_inherited_optout_card`)."""
+        lift = self.db.one("SELECT MAX(id) m FROM audit WHERE action='inherited_optout_lifted' "
+                           "AND json_extract(detail,'$.customer')=?", (cid,))
+        lid = lift["m"] if lift else None
+        if not lid:
+            return False
+        if not self.db.one("SELECT 1 FROM audit WHERE action='csv_contact_changed' AND id<? "
+                           "AND json_extract(detail,'$.from')=? AND json_extract(detail,'$.to')=?",
+                           (lid, prev_cid, cid)):
+            return False
+        return not self.db.one("SELECT 1 FROM audit WHERE action='opt_out' AND id>? "
+                               "AND json_extract(detail,'$.customer')=?", (lid, prev_cid))
 
     def _last_reminder_id(self, invoice_id: int) -> int:
         """מנהל 405 (מבקר 240ב): התזכורת האחרונה שנבנתה לחשבונית לפני מעבר — כל תזכורת עד אליה שייכת ללקוח הקודם."""
@@ -973,9 +991,10 @@ class CollectService:
         prev = self.db.one("SELECT opted_out, disputed, paused_reason, legal_hold FROM customers WHERE id=?",
                            (old["customer_id"],))
         if prev is not None:
+            inherit = 0 if self._optout_lift_covers(cid, old["customer_id"]) else prev["opted_out"]
             self.db.x("UPDATE customers SET opted_out=MAX(opted_out, ?), disputed=MAX(disputed, ?), "
                       "paused_reason=COALESCE(paused_reason, ?), legal_hold=COALESCE(legal_hold, ?) WHERE id=?",
-                      (prev["opted_out"], prev["disputed"], prev["paused_reason"], prev["legal_hold"], cid))
+                      (inherit, prev["disputed"], prev["paused_reason"], prev["legal_hold"], cid))
         self.db.x("UPDATE invoices SET customer_id=? WHERE id=?", (cid, old["id"]))
         self._cancel_invoice(old["id"], "contact_changed")
         self.audit("system", "csv_contact_changed", {"invoice": old["id"], "from": old["customer_id"], "to": cid,
@@ -3825,6 +3844,11 @@ class CollectService:
         """מבקר 239🟡: הודעה מלקוח שההסרה שלו ירושה, והיא אינה בקשת הסרה ⇒ לא נרשמת כבקשה שלו (בלי suppression,
         בלי audit `opt_out` על שמו — §30א). העצירה נשארת (שמרני: אין תזכורות), ובעל העסק מכריע. כרטיס אחד ללקוח."""
         key = f"inherited_optout:{cid}"
+        lift = self.db.one("SELECT MAX(id) m FROM audit WHERE action='inherited_optout_lifted' "
+                           "AND json_extract(detail,'$.customer')=?", (cid,))
+        if lift and lift["m"]:
+            # מנהל 407 (מבקר 241): הסרה שעברה שוב **אחרי** ביטול (בקשת הסרה חדשה של הקודם) ⇒ כרטיס חדש
+            key = f"{key}:{lift['m']}"
         if self.db.one("SELECT 1 FROM messages WHERE intent='inherited_optout' AND message_id=?", (key,)):
             return
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
@@ -3846,6 +3870,10 @@ class CollectService:
         if not self._inherited_optout(customer_id):
             raise ValueError("ההסרה של הלקוח לא הגיעה בירושה מפרטי קשר קודמים — אי אפשר לבטל אותה כאן")
         self.db.x("UPDATE customers SET opted_out=0 WHERE id=?", (customer_id,))
+        # מנהל 407: מצב השיחה נשמר כ-opted_out מההודעה שנכנסה בזמן הירושה ⇒ בלי איפוס, ההודעה הבאה שלה
+        # (גם «מתי צריך לשלם?») נרשמה כבקשת הסרה **שלה** (suppression + audit opt_out) — הפוך מההכרעה.
+        self.db.x("UPDATE conversations SET state='idle', updated_at=? WHERE customer_id=? AND state='opted_out'",
+                  (_iso(self.clock()), customer_id))
         self.db.x("UPDATE messages SET needs_owner=0 WHERE customer_id=? AND intent='inherited_optout' "
                   "AND needs_owner=1", (customer_id,))
         self.audit(actor, "inherited_optout_lifted", {"customer": customer_id})

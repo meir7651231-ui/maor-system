@@ -16,8 +16,6 @@ opted_out=1 שוב. מיכל כותבת «מתי צריך לשלם?» ⇒ `_inhe
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
-
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,סטטוס,תאריך,תאריך לתשלום\n"
 DANA, MICHAL = "050-1234567", "050-0000999"
 
@@ -26,7 +24,6 @@ def _r(num, name, phone):
     return f"{num},{name},{phone},,1200,פתוח,01/10/26,15/10/26\n"
 
 
-@pytest.mark.xfail(strict=True, reason="241🟡: הסרה שבוטלה ע״י בעל העסק חוזרת בשקט במעבר חשבונית נוספת")
 def test_lifted_inherited_optout_not_silently_reapplied(svc, clock):
     svc.s = replace(svc.s, source_system="csv")
     svc.db.x("DELETE FROM invoices")
