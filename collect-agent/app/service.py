@@ -232,7 +232,8 @@ def shared_split_rename_plan_text(number: str) -> str:
 
 # מנהל 307: כרטיסי «כתובת משותפת» (inbox.SHARED_CARDS — כאן כמחרוזות כדי לא לייבא את inbox)
 _SHARED_URGENT_INTENT = "shared_contact_urgent"
-_SHARED_CARD_INTENTS = (_SHARED_URGENT_INTENT, "shared_contact_paid_claim", "shared_contact_promise")   # מבקר 233
+_SHARED_CARD_INTENTS = (_SHARED_URGENT_INTENT, "shared_contact_paid_claim", "shared_contact_promise",
+                        "shared_contact_plan_request")   # מבקר 233 · 234א
 
 
 def _linked_ids(payload) -> set:

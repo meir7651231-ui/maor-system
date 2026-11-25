@@ -177,7 +177,11 @@ class ConversationInbox:
     # ובלי כפתור שיוך ⇒ ההבטחה לא נרשמה ולמחרת «טרם סומנה כשולמה» לשני האנשים. עכשיו כמו «שילמתי»: כרטיס עם בחירה,
     # כל המקושרים מושהים עד השיוך; בשיוך ההבטחה נרשמת ללקוח שנבחר בלבד, והשאר חוזרים למסלול הרגיל.
     SHARED_PROMISE = "shared_contact_promise"
-    SHARED_CARDS = (SHARED_URGENT, SHARED_PAID, SHARED_PROMISE)
+    # מבקר 234א🟡 (מנהל 398): «אפשר בשלושה תשלומים?» מכתובת משותפת בלי שיוך ⇒ היה shared_contact_ambiguous בלי השהיה
+    # ובלי שיוך ⇒ למחרת «טרם סומנה כשולמה» לשניהם, אף שבפנייה ישירה plan_request עוצר. עכשיו כמו ההבטחה (233):
+    # כרטיס עם בחירה, כל המקושרים מושהים עד השיוך; בשיוך הצעת ההסדר נבנית ללקוח שנבחר בלבד.
+    SHARED_PLAN = "shared_contact_plan_request"
+    SHARED_CARDS = (SHARED_URGENT, SHARED_PAID, SHARED_PROMISE, SHARED_PLAN)
 
     def _shared_urgent_card(self, channel: str, sender: str, text: str, linked: list, intent: str,
                             found: set, now, card: str = SHARED_URGENT) -> dict:
@@ -376,6 +380,9 @@ class ConversationInbox:
         if cust is None and ambiguous and Intent.PROMISE in found:
             return self._shared_urgent_card(channel, sender, text, linked, Intent.PROMISE.value, found, now,
                                             card=self.SHARED_PROMISE)
+        if cust is None and ambiguous and Intent.PLAN_REQUEST in found:
+            return self._shared_urgent_card(channel, sender, text, linked, Intent.PLAN_REQUEST.value, found, now,
+                                            card=self.SHARED_PLAN)
         if cust is None and ambiguous:
             # critic סבב 27: כתובת של כמה לקוחות ואף אחד מהם לא קיבל הודעה ⇒ לא משייכים ולא מנסחים
             # (אין טיוטה עם חוב של אדם אחר). «הסר» ⇒ רשימת ההסרה לפי הכתובת ⇒ חל על כולם.
@@ -985,7 +992,7 @@ _HARD_PAUSES = ("minor", "deceased", "insolvency", "distress", "legal", "dispute
 # critic סבב 153: השהיות שאחריהן אין שליחה אוטומטית (safe_auto) — רק טיוטה לבעל העסק. ההשהיות הקשות + מצב רגיש +
 # כרטיסי כתובת משותפת + «שילמתי» (קישור תשלום אוטומטי למי שטוען ששילם = תזכורת בלי אישור)
 _NO_AUTO_SEND_PAUSES = _HARD_PAUSES + ("sensitive", "paid_claim", "shared_contact_urgent", "shared_contact_paid_claim",
-                                       "shared_contact_promise")
+                                       "shared_contact_promise", "shared_contact_plan_request")
 
 
 def _protected(row) -> bool:

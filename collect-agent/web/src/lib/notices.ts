@@ -51,13 +51,15 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   // גבייה סוכן 18.11: «שילמתי» מכתובת משותפת בלי שיוך — כל המקושרים מושהים עד שבעל העסק בוחר
   // מבקר 233: הבטחה מכתובת משותפת בלי שיוך — כל המקושרים מושהים עד שבעל העסק בוחר
   shared_contact_promise: { icon: '👥', title: 'הבטחת תשלום ממספר/כתובת של כמה לקוחות — התזכורות לכולם נעצרו, בחרו מי הבטיח', tone: 'warn' },
+  // מבקר 234א: בקשת הסדר מכתובת משותפת בלי שיוך — כל המקושרים מושהים עד שבעל העסק בוחר
+  shared_contact_plan_request: { icon: '👥', title: 'בקשת הסדר תשלומים ממספר/כתובת של כמה לקוחות — התזכורות לכולם נעצרו, בחרו מי ביקש', tone: 'warn' },
   shared_contact_paid_claim: { icon: '👥', title: '«שילמתי» ממספר/כתובת של כמה לקוחות — התזכורות לכולם נעצרו, בחרו מי שילם', tone: 'warn' },
   shared_contact_ambiguous: { icon: '👥', title: 'הודעה ממספר/כתובת של כמה לקוחות — לא שויכה, לבדיקתך', tone: 'warn' },
 };
 /** נכנסות שמוצגות כאן: רק בלי לקוח מזוהה (ללקוח מזוהה יש טיוטה/כרטיס ב«תשובות לקוחות»). */
-const INBOUND_ORPHANS = new Set(['unknown_sender', 'unknown_sender_urgent', 'shared_contact_ambiguous', 'shared_contact_urgent', 'shared_contact_paid_claim', 'shared_contact_promise']);
+const INBOUND_ORPHANS = new Set(['unknown_sender', 'unknown_sender_urgent', 'shared_contact_ambiguous', 'shared_contact_urgent', 'shared_contact_paid_claim', 'shared_contact_promise', 'shared_contact_plan_request']);
 /** כרטיסי כתובת משותפת עם בחירת לקוח (POST /owner/shared-cards/{id}/assign). */
-const SHARED_CARDS = new Set(['shared_contact_urgent', 'shared_contact_paid_claim', 'shared_contact_promise']);
+const SHARED_CARDS = new Set(['shared_contact_urgent', 'shared_contact_paid_claim', 'shared_contact_promise', 'shared_contact_plan_request']);
 /** critic סבב 192: כרטיס «בדוק ואשר» — נסגר רק בהכרעה (חסום / החזר מיילים), לא ב«טופל». */
 export const BOUNCE_REVIEW = 'email_bounce_review';
 const URGENT_ORPHANS = new Set(['unknown_sender_urgent', 'shared_contact_urgent']);

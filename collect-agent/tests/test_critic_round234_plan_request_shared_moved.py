@@ -44,7 +44,6 @@ def test_attributed_plan_request_only_own_invoice(svc, clock):
     assert plan["invoice_ids"] == "[2]" and "7001" not in body and "1,200" not in body and "דויד" not in body
 
 
-@pytest.mark.xfail(strict=True, reason="234א🟡: פריסה מטלפון משותף בלי שיוך — בלי השהיה/שיוך, תזכורות לשניהם")
 def test_shared_plan_request_is_assignable_or_pauses(svc, clock):
     _csv(svc, ROWS)
     r = svc.inbound("sms", "050-0000111", "אפשר בשלושה תשלומים?")

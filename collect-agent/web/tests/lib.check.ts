@@ -1707,3 +1707,12 @@ test('מבקר 233: כרטיס הבטחה מכתובת משותפת — מוצג
   assert.equal(n.length, 1);
   assert.deepEqual((n[0] as { linked?: unknown }).linked, [{ id: 1, name: 'דויד' }, { id: 2, name: 'שרה' }]);
 });
+
+test('מבקר 234א: כרטיס בקשת הסדר מכתובת משותפת — מוצג עם הלקוחות לשיוך', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const n = systemNotices([{ id: 8, customer_id: null, direction: 'in', channel: 'sms', body: 'אפשר בשלושה תשלומים?',
+    intent: 'shared_contact_plan_request', created_at: '2026-11-08T10:00:00+02:00',
+    payload: JSON.stringify({ linked_customers: [{ id: 1, name: 'דויד' }, { id: 2, name: 'שרה' }] }) }]);
+  assert.equal(n.length, 1);
+  assert.deepEqual((n[0] as { linked?: unknown }).linked, [{ id: 1, name: 'דויד' }, { id: 2, name: 'שרה' }]);
+});
