@@ -924,6 +924,23 @@ class CollectService:
         self._cancel_invoice(old["id"], "contact_changed")
         self.audit("system", "csv_contact_changed", {"invoice": old["id"], "from": old["customer_id"], "to": cid})
 
+    def moved_away_open(self, cid: int, after_audit_id: int = 0) -> list:
+        """מנהל 395 (מבקר 231/232): חשבוניות פתוחות שקובץ CSV העביר **מ**-cid ללקוח אחר (audit csv_contact_changed,
+        219א) ועדיין רשומות על הלקוח שאליו עברו. מזהים פנימיים + מספר חשבונית + שם הלקוח הנוכחי (לכרטיס של בעל העסק)."""
+        out, seen = [], set()
+        for a in self.db.q("SELECT id, detail FROM audit WHERE action='csv_contact_changed' AND id>? "
+                           "AND json_extract(detail,'$.from')=? ORDER BY id", (after_audit_id, cid)):
+            iid = json.loads(a["detail"]).get("invoice")
+            if iid in seen:
+                continue
+            seen.add(iid)
+            row = self.db.one("SELECT i.id, i.number, i.customer_id, c.name, c.paused_reason FROM invoices i "
+                              "JOIN customers c ON c.id=i.customer_id WHERE i.id=? AND i.status='open' "
+                              "AND i.customer_id!=?", (iid, cid))
+            if row is not None:
+                out.append(row)
+        return out
+
     def _in_live_plan(self, iid: int) -> bool:
         return any(iid in self._plan_invoice_ids(p) for p in self.db.q(
             "SELECT invoice_id, invoice_ids FROM plans WHERE status IN ('proposed','approving','approved')"))
@@ -3504,6 +3521,18 @@ class CollectService:
             until = (date.fromisoformat(info["requested"]) + timedelta(days=1)).isoformat()
             self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (f"promise:until={until}", cid))
             self.db.x("UPDATE conversations SET pause_until=? WHERE customer_id=?", (until, cid))
+            # מנהל 395 (מבקר 232🟡): החשבונית שעליה ההבטחה עברה בקובץ CSV ללקוח אחר אחרי הבקשה (219א), והוא ירש את
+            # השהיית ההבטחה **כפי שהייתה** (promise:until=<התקרה>). האישור הוא על החוב, לא על הטלפון ⇒ מאריכים גם
+            # אותו — רק כשההשהיה שלו היא בדיוק הירושה (השהיה אחרת/חזקה יותר לא נדרסת, הבטחה משלו לא משתנה).
+            inherited = f"promise:until={info['until']}"
+            for r in self.moved_away_open(cid, after_audit_id=req["id"]):
+                if r["paused_reason"] == inherited:
+                    self.db.x("UPDATE customers SET paused_reason=? WHERE id=? AND paused_reason=?",
+                              (f"promise:until={until}", r["customer_id"], inherited))
+                    self.db.x("UPDATE conversations SET pause_until=? WHERE customer_id=?",
+                              (until, r["customer_id"]))
+                    self.audit(actor, "promise_extended_moved_invoice",
+                               {"invoice": r["id"], "customer": r["customer_id"], "from": cid})
         self.audit(actor, "promise_request_approved" if approve else "promise_request_refused",
                    {"customer": cid, "requested": info["requested"]})
         notice = self._promise_decision_notice(cid, req["id"], info, approve)

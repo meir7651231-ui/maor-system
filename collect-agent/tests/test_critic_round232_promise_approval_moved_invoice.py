@@ -11,8 +11,6 @@
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
-
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,סטטוס,תאריך,תאריך לתשלום\n"
 
 
@@ -53,7 +51,7 @@ def test_move_inherits_promise_pause_without_leak(svc, clock):
     assert "דנה" not in body and "5.12" not in body, body
 
 
-@pytest.mark.xfail(strict=True, reason="232🟡: אישור 5.12 אחרי מעבר מאריך רק את דנה — 9001 של מיכל ב-23.11")
+
 def test_promise_approval_after_move_covers_moved_invoice(svc, clock):
     dana, michal = _setup(svc, clock)
     svc.decide_promise_request(dana, True)

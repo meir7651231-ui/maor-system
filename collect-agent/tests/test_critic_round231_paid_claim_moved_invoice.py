@@ -11,12 +11,10 @@
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
-
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,סטטוס,תאריך,תאריך לתשלום\n"
 
 
-@pytest.mark.xfail(strict=True, reason="231🟡: «שילמתי על 9001» — הכרטיס אומר הושהו, 9001 של מיכל ממשיכה")
+
 def test_paid_claim_on_moved_invoice_pauses_it_or_says_so(svc, clock):
     svc.s = replace(svc.s, source_system="csv")
     svc.db.x("DELETE FROM invoices")

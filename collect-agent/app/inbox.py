@@ -443,6 +443,8 @@ class ConversationInbox:
             d = replace(d, owner_actions=d.owner_actions + (
                 f"עצרנו {'תשובה שאישרת' if one else f'{stopped} תשובות שאישרת'} קודם ועוד לא יצא"
                 f"{'ה' if one else 'ו'} (ממתינ{'ה' if one else 'ות'} לחלון השליחה) — לא תישלח אחרי ההודעה הזו",))
+        if Intent.PAID_CLAIM in d.all_intents:
+            d = self._paid_claim_moved_note(cust["id"], d)
         draft_id = None
         if d.reply or d.escalate != Escalation.NONE:
             # בלי טיוטה (למשל עו"ד) ⇒ כרטיס "דרוש טיפול" בתור, שבעל העסק יכול לענות ממנו בעצמו
@@ -609,6 +611,21 @@ class ConversationInbox:
             plan_id = row["id"] if row else None
             self.svc.audit("customer", "plan_accepted_by_customer", {"plan": plan_id})
         return plan_id
+
+    def _paid_claim_moved_note(self, cid: int, d: Decision) -> Decision:
+        """מנהל 395 (מבקר 231🟡): «שילמתי» מטלפון שחשבונית עברה ממנו בקובץ CSV ללקוח אחר (219א) ⇒ ההשהיה חלה על
+        הכותב/ת, והחשבונית שעברה ממשיכה אצל הלקוח הנוכחי. לא משהים אדם אחר על סמך הודעה ממספר אחר (מבודד
+        לקוחות) — אבל הכרטיס אומר את האמת: «הושהו» לא חל עליה, ותזכורת עליה ממילא דורשת אישורכם."""
+        moved = self.svc.moved_away_open(cid)
+        if not moved:
+            return d
+        lines = "; ".join(f"חשבונית {r['number']} רשומה כעת על {r['name'] or 'לקוח אחר'}" for r in moved)
+        one = len(moved) == 1
+        note = (f" שימו לב: {lines} (פרטי הקשר השתנו בקובץ) — התזכורות עלי{'ה' if one else 'הן'} לא הושהו. "
+                "בדקו את התשלום לפני שמאשרים תזכורת עלי" + ("ה." if one else "הן."))
+        return replace(d, owner_summary=(d.owner_summary or "") + note,
+                       owner_actions=d.owner_actions + (
+                           "לבדוק אם התשלום שייך לחשבונית שעברה ללקוח אחר לפני אישור תזכורת עליה",))
 
     def _stop_approved_on_protective(self, cid: int, d: Decision) -> int:
         """מנהל 360 (מבקר 206🔴): `_draft` מחליף רק `pending_approval` ⇒ תשובה שבעל העסק אישר בערב וממתינה לחלון
