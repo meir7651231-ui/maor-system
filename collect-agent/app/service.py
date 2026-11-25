@@ -938,7 +938,10 @@ class CollectService:
         בטעות / ייצוא לא מעודכן) נפתחה מחדש בשקט. עכשיו: כרטיס לבעל העסק — התזכורות עליה ממילא דורשות
         אישור פרטני, והכרטיס אומר לו לבדוק לפני שמאשר. כרטיס אחד לחשבונית ליום."""
         key = f"csv_reopen:{iid}:{self.clock().date().isoformat()}"
-        if self.db.one("SELECT 1 FROM messages WHERE intent='csv_reopened' AND message_id=?", (key,)):
+        prev = self.db.one("SELECT id, needs_owner FROM messages WHERE intent='csv_reopened' AND message_id=?", (key,))
+        if prev:
+            if not prev["needs_owner"]:   # מנהל 389: ירד (227) והקובץ הישן חזר באותו יום ⇒ הכרטיס חוזר
+                self.db.x("UPDATE messages SET needs_owner=1 WHERE id=?", (prev["id"],))
             return
         cust = self.db.one("SELECT customer_id FROM invoices WHERE id=?", (iid,))
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
@@ -958,7 +961,11 @@ class CollectService:
         והתזכורת חזרה לאישור על הסכום הישן-הגבוה. עכשיו: כרטיס לבעל העסק, כמו csv_reopened. אחד לחשבונית
         ולסכום ליום."""
         key = f"csv_rose:{iid}:{inv.amount_agorot}:{self.clock().date().isoformat()}"
-        if self.db.one("SELECT 1 FROM messages WHERE intent='csv_balance_rose' AND message_id=?", (key,)):
+        prev = self.db.one("SELECT id, needs_owner FROM messages WHERE intent='csv_balance_rose' "
+                           "AND message_id=?", (key,))
+        if prev:
+            if not prev["needs_owner"]:   # מנהל 389: ירד (227) והקובץ הישן חזר באותו יום ⇒ הכרטיס חוזר
+                self.db.x("UPDATE messages SET needs_owner=1 WHERE id=?", (prev["id"],))
             return
         cust = self.db.one("SELECT customer_id FROM invoices WHERE id=?", (iid,))
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
@@ -1121,6 +1128,7 @@ class CollectService:
                                  review=[(c, "csv_negative_balance") for c in res.credits])
             closed = self._csv_close_paid(res)
             self._resolve_paid_claims_closed_at_source()   # מבקר 224
+            self._resolve_csv_cards()   # מבקר 227
             # מנהל 374 (מבקר 217): טריות = מועד הייבוא האחרון שזוהו בו שורות (או קובץ נקי בלי חוב פתוח בכלל),
             # לא MAX(synced_at) של חשבוניות פתוחות — אחרת קובץ שבו הכול שולם לא מוריד את הבאנר לעולם.
             # קובץ שכל שורותיו נדחו לא נחשב טרי (הרשימה לא התעדכנה).
@@ -1151,6 +1159,52 @@ class CollectService:
             self.audit("system", "paid_claim_confirmed_by_source", {"message": m["id"], "customer": cid})
             n += 1
         return n
+
+    def _resolve_csv_cards(self) -> int:
+        """מבקר סבב 227🟡: כרטיסי `csv_reopened` / `csv_balance_rose` («אולי הועלה קובץ ישן?») נשארו ב«דורש טיפול»
+        גם אחרי שהקובץ הבא כבר פתר את השאלה. עכשיו, אחרי כל ייבוא CSV:
+          · csv_reopened — החשבונית נסגרה שוב **אחרי** הכרטיס ⇒ יורד.
+          · csv_balance_rose — החשבונית נסגרה אחרי הכרטיס, או שהיתרה חזרה ל≤ הסכום שלפני העלייה ⇒ יורד.
+        עוד פתוחה / עדיין מעל הסכום הקודם ⇒ נשאר. audit `csv_card_resolved` (בלי PII). מספר החשבונית נלקח
+        מהמפתח (`csv_reopen:{iid}:…` / `csv_rose:{iid}:{סכום}:…`); הסכום הקודם מה-audit של הכרטיס."""
+        n = 0
+        for m in self.db.q("SELECT id, intent, message_id, created_at FROM messages WHERE needs_owner=1 "
+                           "AND intent IN ('csv_reopened','csv_balance_rose') AND message_id IS NOT NULL"):
+            parts = m["message_id"].split(":")
+            try:
+                iid = int(parts[1])
+                risen = int(parts[2]) if m["intent"] == "csv_balance_rose" else None
+            except (IndexError, ValueError):
+                continue
+            inv = self.db.one("SELECT status, closed_at, amount_agorot FROM invoices WHERE id=?", (iid,))
+            if inv is None:
+                continue
+            why = None
+            if inv["status"] == "closed" and (inv["closed_at"] or "") >= m["created_at"]:
+                why = "closed"
+            elif m["intent"] == "csv_balance_rose" and inv["status"] == "open":
+                was = self._csv_rose_was(iid, risen, m["created_at"])
+                if inv["amount_agorot"] <= (was if was is not None else risen - 1):
+                    why = "balance_back"
+            if why is None:
+                continue
+            self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (m["id"],))
+            self.audit("system", "csv_card_resolved", {"message": m["id"], "invoice": iid,
+                                                        "card": m["intent"], "why": why})
+            n += 1
+        return n
+
+    def _csv_rose_was(self, iid: int, risen: int, at: str) -> int | None:
+        """הסכום שלפני העלייה — מה-audit `csv_balance_rose` שנכתב יחד עם הכרטיס."""
+        for a in self.db.q("SELECT detail FROM audit WHERE action='csv_balance_rose' AND at=? ORDER BY id DESC",
+                           (at,)):
+            try:
+                d = json.loads(a["detail"] or "{}")
+            except ValueError:
+                continue
+            if d.get("invoice") == iid and d.get("now") == risen and isinstance(d.get("was"), int):
+                return d["was"]
+        return None
 
     def _csv_close_paid(self, res) -> int:
         """מנהל 374 (מבקר 217🟠): ייבוא CSV חלקי לא סוגר חשבונית **שלא** בקובץ — אבל שורה שהקובץ מסמן במפורש

@@ -48,7 +48,9 @@ def test_card_once_per_day_per_amount(svc, clock):
     assert len(_cards(svc, "csv_balance_rose")) == 1
     clock.now += timedelta(days=1)
     _imp(svc, "800", "1200")
-    assert len(_cards(svc, "csv_balance_rose")) == 2
+    # מנהל 389 (מבקר 227): ה-800 הוריד את הכרטיס של אתמול ⇒ פתוח רק החדש; שתי שורות בסך הכול
+    assert len(_cards(svc, "csv_balance_rose")) == 1
+    assert svc.db.one("SELECT COUNT(*) n FROM messages WHERE intent='csv_balance_rose'")["n"] == 2
 
 
 def test_plan_single_card_csv_wording(svc, clock):

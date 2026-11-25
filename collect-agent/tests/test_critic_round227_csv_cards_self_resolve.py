@@ -7,11 +7,10 @@
   ב. 1,200 ⇒ 800 ⇒ 1,200 (כרטיס csv_balance_rose ✓) ⇒ הקובץ הבא 800 ⇒ **הכרטיס נשאר** («עלתה… אולי קובץ ישן»).
   ג. אותו כרטיס אחרי שהחשבונית סומנה «שולם» ונסגרה ⇒ **נשאר**.
 בעל העסק בודק «קובץ ישן?» על חשבונית שכבר נסגרה / חזרה ליתרה הנכונה. הצעה: כשהקובץ הבא מחזיר את המצב (נסגרה /
-היתרה ירדה ל≤ הקודמת) ⇒ הכרטיס יורד (או מתעדכן). xfail(strict=True) ×3."""
+היתרה ירדה ל≤ הקודמת) ⇒ הכרטיס יורד (או מתעדכן).
+מנהל 389: תוקן (`_resolve_csv_cards`) — 3 ה-xfail ירוקים; בקרות ב-test_mgr389_csv_cards_resolve.py."""
 from dataclasses import replace
 from datetime import timedelta
-
-import pytest
 
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,סטטוס,תאריך,תאריך לתשלום\n"
 
@@ -32,20 +31,17 @@ def _open(svc, intent):
     return bool(svc.db.one("SELECT 1 FROM messages WHERE needs_owner=1 AND intent=?", (intent,)))
 
 
-@pytest.mark.xfail(strict=True, reason="227א🟡: csv_reopened נשאר אחרי שהקובץ הבא סגר את החשבונית שוב")
 def test_reopened_card_clears_when_closed_again(svc, clock):
     _seq(svc, clock, [_r(500), _r(500, "שולם"), _r(500), _r(500, "שולם")])
     assert svc.db.one("SELECT status FROM invoices WHERE number='9001'")["status"] == "closed"
     assert not _open(svc, "csv_reopened")
 
 
-@pytest.mark.xfail(strict=True, reason="227ב🟡: csv_balance_rose נשאר אחרי שהיתרה חזרה לנמוכה")
 def test_balance_rose_card_clears_when_back_down(svc, clock):
     _seq(svc, clock, [_r(1200), _r(800), _r(1200), _r(800)])
     assert not _open(svc, "csv_balance_rose")
 
 
-@pytest.mark.xfail(strict=True, reason="227ג🟡: csv_balance_rose נשאר אחרי שהחשבונית נסגרה")
 def test_balance_rose_card_clears_when_paid(svc, clock):
     _seq(svc, clock, [_r(1200), _r(800), _r(1200), _r(1200, "שולם")])
     assert svc.db.one("SELECT status FROM invoices WHERE number='9001'")["status"] == "closed"
