@@ -11,11 +11,9 @@ superseded + כרטיס 💱. דנה: «מאשר» ⇒ plan_id=None, הכרטי�
 ואחרי האישור נשלח את פרטי התשלום הראשון».
 ✓ 244 (מנהל 410) תוקן — התזכורת לא אומרת «$1,100»; הסדר approved ⇒ superseded + כרטיס.
 הצעה: PLAN_ACCEPT כשההסדר האחרון superseded בגלל מטבע ⇒ כרטיס «ההצעה בוטלה כי המטבע השתנה — הציעו מחדש», והתשובה
-ללקוחה לא מבטיחה אישור סופי (נוסח «נחזור אליכם»). xfail(strict=True)."""
+ללקוחה לא מבטיחה אישור סופי (נוסח «נחזור אליכם»). תוקן במנהל 411 (`_plan_accept_currency_check`) — xfail הוסר."""
 from dataclasses import replace
 from datetime import timedelta
-
-import pytest
 
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,מטבע,סטטוס,תאריך,תאריך לתשלום\n"
 DANA = "050-1234567"
@@ -25,7 +23,7 @@ def _row(amount, currency):
     return (H + f"9001,דנה כהן,{DANA},,{amount},{currency},פתוח,01/10/26,15/10/26\n").encode()
 
 
-@pytest.mark.xfail(strict=True, reason="245🟡: «מאשר» אחרי החלפת מטבע — «400 ₪… נדרש אישור סופי» להסדר שהוחלף")
+
 def test_accept_after_currency_superseded_offer(svc, clock):
     svc.s = replace(svc.s, source_system="csv")
     svc.db.x("DELETE FROM invoices")
@@ -43,3 +41,4 @@ def test_accept_after_currency_superseded_offer(svc, clock):
     body = svc.db.one("SELECT body FROM drafts WHERE id=?", (r["draft_id"],))["body"] if r["draft_id"] else ""
     summary = r["owner_summary"] or ""
     assert "400 ₪" not in summary and "אישור סופי" not in body, (summary, body)
+    assert "בוטלה" in summary and "plan_accept_currency_changed" in r["tags"]

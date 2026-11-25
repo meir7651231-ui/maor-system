@@ -101,3 +101,32 @@ def test_two_invoices_one_changes_csv(svc, clock):
     assert svc.plan() == []
     svc.dispatch()
     assert [m for m in svc.sender.sent if m.get("audience") != "owner"] == []
+
+
+def _usd_plan_sent(svc, clock):
+    svc.s = replace(svc.s, source_system="csv")
+    svc.db.x("DELETE FROM invoices")
+    svc.import_csv((H + f"9001,דנה כהן,{DANA},,1200,USD,פתוח,01/10/26,15/10/26\n").encode())
+    clock.now += timedelta(days=1)
+    svc.approve(svc.plan()[0], confirm_open=True)
+    svc.dispatch()
+    r = svc.inbound("sms", DANA, "אפשר בשלושה תשלומים?")
+    svc.inbox.approve_draft(r["draft_id"], confirm_amount=True)
+
+
+def test_accept_after_plan_superseded_other_reason_unchanged(svc, clock):
+    """בקרה ל-245🟡: הסדר שהוחלף **לא** בגלל מטבע ⇒ המסלול הקיים לא משתנה (אין כרטיס «בוטלה כי המטבע השתנה»)."""
+    _usd_plan_sent(svc, clock)
+    svc.db.x("UPDATE plans SET status='superseded'")
+    r = svc.inbound("sms", DANA, "מאשר")
+    assert "plan_accept_currency_changed" not in r["tags"]
+    assert "המטבע" not in (r["owner_summary"] or "")
+
+
+def test_accept_after_currency_change_audited(svc, clock):
+    _usd_plan_sent(svc, clock)
+    svc.import_csv((H + f"9001,דנה כהן,{DANA},,4400,ILS,פתוח,01/10/26,15/10/26\n").encode())
+    r = svc.inbound("sms", DANA, "מאשר")
+    assert "plan_accept_currency_changed" in r["tags"]
+    assert svc.db.one("SELECT 1 FROM audit WHERE action='plan_accept_held_currency_changed'")
+    assert not svc.db.one("SELECT 1 FROM drafts WHERE id=? AND body LIKE '%אישור סופי%'", (r["draft_id"] or 0,))

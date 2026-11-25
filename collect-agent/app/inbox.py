@@ -659,7 +659,7 @@ class ConversationInbox:
         plan = self.db.one("SELECT * FROM plans WHERE customer_id=? AND status IN ('approved','proposed') "
                            "ORDER BY id DESC LIMIT 1", (cust["id"],))
         if not plan:
-            return d
+            return self._plan_accept_currency_check(cust, d)
         ids = self.svc._plan_invoice_ids(plan)
         rows = [r for r in (self.db.one("SELECT id, number, external_id, status FROM invoices WHERE id=?", (i,))
                             for i in ids) if r]
@@ -690,6 +690,33 @@ class ConversationInbox:
                                           "השתנו. לא נוסחה הודעה — שום הודעה לא תצא לפרטים הישנים עד שתבדקו."),
                            owner_actions=("לעדכן את הטלפון/המייל בכרטיס הלקוח ולפנות אישית לגבי ההסדר",))
         return d
+
+    def _plan_accept_currency_check(self, cust, d: Decision) -> Decision:
+        """מנהל 411 (מבקר 245🟡): «מאשר» על הצעת פריסה שהוחלפה כי המקור שינה את מטבע החשבונית (מנהל 410 ⇒
+        `superseded`). היה: הכרטיס «אישר/ה את הצעת הפריסה (3 תשלומים של 400 ₪…). נדרש אישור סופי שלך» — ההצעה הייתה
+        $400, ואין הסדר לאשר — והטיוטה ללקוחה הבטיחה «אישור סופי ופרטי התשלום הראשון». עכשיו: בלי טיוטה, וכרטיס
+        שאומר שההצעה בוטלה בגלל שינוי המטבע ויש להציע מחדש. רק כשההסדר האחרון של הלקוח הוחלף **בגלל מטבע**."""
+        last = self.db.one("SELECT id, status FROM plans WHERE customer_id=? ORDER BY id DESC LIMIT 1", (cust["id"],))
+        if not last or last["status"] != "superseded":
+            return d
+        hit = False
+        for a in self.db.q("SELECT detail FROM audit WHERE action='currency_changed'"):
+            try:
+                hit = last["id"] in (json.loads(a["detail"] or "{}").get("plans_superseded") or [])
+            except (ValueError, AttributeError):
+                hit = False
+            if hit:
+                break
+        if not hit:
+            return d
+        name = cust["name"] or "הלקוח/ה"
+        self.svc.audit("system", "plan_accept_held_currency_changed", {"plan": last["id"]})
+        return replace(d, reply=None, auto_send=False,
+                       escalate=d.escalate if d.escalate != Escalation.NONE else Escalation.NORMAL,
+                       tags=d.tags + ("plan_accept_currency_changed",),
+                       owner_summary=(f"{name} אישר/ה את הצעת הפריסה, אבל ההצעה בוטלה: מטבע החשבונית השתנה במקור "
+                                      "אחרי שנשלחה. לא נוסחה הודעה — כדי להמשיך יש להציע הסדר חדש במטבע הנוכחי."),
+                       owner_actions=("להציע ללקוח/ה הסדר חדש במטבע הנוכחי (או לפנות אישית)",))
 
     def _moved_invoice_note(self, cid: int, d: Decision) -> Decision:
         """מבקר 234ב🟡: כמו `_paid_claim_moved_note` (395) לבקשת פריסה / הבטחה / מחלוקת — «אפשר לשלם את 9001 בשלושה
