@@ -12,8 +12,6 @@
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
-
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,סטטוס,תאריך,תאריך לתשלום\n"
 ROWS = "7001,דויד כהן,050-0000111,,1200,פתוח,01/10/26,15/10/26\n7002,שרה לוי,050-0000111,,450,פתוח,01/10/26,15/10/26\n"
 
@@ -32,7 +30,6 @@ def test_shared_promise_no_auto_reply(svc):
     assert r["draft_id"] is None and r["auto_reply"] is None
 
 
-@pytest.mark.xfail(strict=True, reason="233🟡: «אשלם ב-12» מטלפון משותף — בלי שיוך/השהיה, תזכורות לשניהם למחרת")
 def test_shared_promise_is_assignable_or_pauses(svc, clock):
     _split(svc)
     r = svc.inbound("sms", "050-0000111", "אשלם ב-12 לחודש")

@@ -173,7 +173,11 @@ class ConversationInbox:
     # גבייה סוכן 18.11 («אף לקוח ששילם לא מקבל תזכורת»): «שילמתי» מכתובת משותפת בלי שיוך ⇒ היה
     # shared_contact_ambiguous בלי השהיה ⇒ plan() בנה תזכורת גם למי ששילם. עכשיו כרטיס עם בחירה + השהיית כולם.
     SHARED_PAID = "shared_contact_paid_claim"
-    SHARED_CARDS = (SHARED_URGENT, SHARED_PAID)
+    # מבקר 233🟡 (הכרעת ראש צוות 25.11): «אשלם ב-12» מכתובת משותפת בלי שיוך ⇒ היה shared_contact_ambiguous בלי השהיה
+    # ובלי כפתור שיוך ⇒ ההבטחה לא נרשמה ולמחרת «טרם סומנה כשולמה» לשני האנשים. עכשיו כמו «שילמתי»: כרטיס עם בחירה,
+    # כל המקושרים מושהים עד השיוך; בשיוך ההבטחה נרשמת ללקוח שנבחר בלבד, והשאר חוזרים למסלול הרגיל.
+    SHARED_PROMISE = "shared_contact_promise"
+    SHARED_CARDS = (SHARED_URGENT, SHARED_PAID, SHARED_PROMISE)
 
     def _shared_urgent_card(self, channel: str, sender: str, text: str, linked: list, intent: str,
                             found: set, now, card: str = SHARED_URGENT) -> dict:
@@ -259,7 +263,8 @@ class ConversationInbox:
     def assign_shared_card(self, card_id: int, customer_id: int | None, actor: str = "owner") -> dict:
         """בעל העסק בחר למי ההודעה שייכת (או None = «אף אחד מהם»). רק אז המנוע מטפל בה כרגיל עבור הלקוח
         הנבחר (השפעות + טיוטה לאישור); שאר הלקוחות המקושרים משתחררים מההשהיה של הכרטיס הזה."""
-        m = self.db.one("SELECT * FROM messages WHERE id=? AND intent IN (?,?)", (card_id, *self.SHARED_CARDS))
+        m = self.db.one("SELECT * FROM messages WHERE id=? AND intent IN (SELECT value FROM json_each(?))",
+                        (card_id, json.dumps(self.SHARED_CARDS)))
         if m is None:
             raise KeyError(card_id)
         if not m["needs_owner"]:
@@ -368,6 +373,9 @@ class ConversationInbox:
         if cust is None and ambiguous and Intent.PAID_CLAIM in found:
             return self._shared_urgent_card(channel, sender, text, linked, Intent.PAID_CLAIM.value, found, now,
                                             card=self.SHARED_PAID)
+        if cust is None and ambiguous and Intent.PROMISE in found:
+            return self._shared_urgent_card(channel, sender, text, linked, Intent.PROMISE.value, found, now,
+                                            card=self.SHARED_PROMISE)
         if cust is None and ambiguous:
             # critic סבב 27: כתובת של כמה לקוחות ואף אחד מהם לא קיבל הודעה ⇒ לא משייכים ולא מנסחים
             # (אין טיוטה עם חוב של אדם אחר). «הסר» ⇒ רשימת ההסרה לפי הכתובת ⇒ חל על כולם.
@@ -976,7 +984,8 @@ _HARD_PAUSES = ("minor", "deceased", "insolvency", "distress", "legal", "dispute
 
 # critic סבב 153: השהיות שאחריהן אין שליחה אוטומטית (safe_auto) — רק טיוטה לבעל העסק. ההשהיות הקשות + מצב רגיש +
 # כרטיסי כתובת משותפת + «שילמתי» (קישור תשלום אוטומטי למי שטוען ששילם = תזכורת בלי אישור)
-_NO_AUTO_SEND_PAUSES = _HARD_PAUSES + ("sensitive", "paid_claim", "shared_contact_urgent", "shared_contact_paid_claim")
+_NO_AUTO_SEND_PAUSES = _HARD_PAUSES + ("sensitive", "paid_claim", "shared_contact_urgent", "shared_contact_paid_claim",
+                                       "shared_contact_promise")
 
 
 def _protected(row) -> bool:

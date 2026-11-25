@@ -222,7 +222,7 @@ def shared_split_rename_text(number: str, *, csv: bool = True) -> str:
 
 # מנהל 307: כרטיסי «כתובת משותפת» (inbox.SHARED_CARDS — כאן כמחרוזות כדי לא לייבא את inbox)
 _SHARED_URGENT_INTENT = "shared_contact_urgent"
-_SHARED_CARD_INTENTS = (_SHARED_URGENT_INTENT, "shared_contact_paid_claim")
+_SHARED_CARD_INTENTS = (_SHARED_URGENT_INTENT, "shared_contact_paid_claim", "shared_contact_promise")   # מבקר 233
 
 
 def _linked_ids(payload) -> set:
@@ -1955,7 +1955,7 @@ class CollectService:
         row = self.db.one("SELECT intent, message_id FROM messages WHERE id=? AND needs_owner=1", (mid,))
         if not row:
             raise KeyError(mid)
-        if row["intent"] in ("shared_contact_urgent", "shared_contact_paid_claim"):
+        if row["intent"] in _SHARED_CARD_INTENTS:
             # critic סבב 149: «טופל» על כרטיס כתובת משותפת = «אף אחד מהם» — אחרת ההשהיה נשארה על כל המקושרים לתמיד
             return {"id": mid, "done": True, **self.inbox.assign_shared_card(mid, None, actor=actor)}
         if row["intent"] == restore_guard.HOLD_INTENT and restore_guard.active(self.db):
@@ -2279,8 +2279,8 @@ class CollectService:
     def _scrub_shared_card_name(self, customer_id: int) -> None:
         """מנהל 307 (ר-10): לקוח שהותמם — השם שלו נמחק גם מ-payload של כרטיסי «כתובת משותפת» (customer_id=NULL,
         ולכן לא נתפסו בהתממה). המזהה נשאר, כדי שהכרטיס לא יישבר."""
-        for m in self.db.q("SELECT id, payload FROM messages WHERE customer_id IS NULL AND intent IN (?,?)",
-                           _SHARED_CARD_INTENTS):
+        for m in self.db.q("SELECT id, payload FROM messages WHERE customer_id IS NULL AND intent IN "
+                           "(SELECT value FROM json_each(?))", (json.dumps(_SHARED_CARD_INTENTS),)):
             if customer_id in _linked_ids(m["payload"]):
                 self.db.x("UPDATE messages SET payload=? WHERE id=?",
                           (_scrub_linked_names(m["payload"], only=customer_id), m["id"]))
