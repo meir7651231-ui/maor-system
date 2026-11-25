@@ -63,8 +63,8 @@ def test_assign_builds_plan_only_for_chosen_other_back_to_normal(svc, clock):
         assert leak not in body, leak
     assert _paused(svc, ids["דויד כהן"]) is None               # השהיית הכרטיס שוחררה לדויד
     # כלל קיים (critic 65): טיוטה שממתינה לבעל העסק מחזיקה את כל מי שבאותה כתובת — כמו בפנייה משויכת
-    from app.service import AWAITING_OWNER
-    assert svc._customer_block(ids["דויד כהן"]) == AWAITING_OWNER
+    # סט #26 q26-10 (הכרעת המקשר): אותה החזקה, בסיבה נפרדת וגלויה — דויד לא כתב
+    assert svc._customer_block(ids["דויד כהן"]) == "shared_contact_hold"
     svc.inbox.reject_draft(j["draft_id"])                      # בעל העסק הכריע ⇒ דויד חוזר למסלול
     clock.now += timedelta(days=1)
     assert "7001" in _planned_numbers(svc)

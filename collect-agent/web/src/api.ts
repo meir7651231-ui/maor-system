@@ -102,6 +102,7 @@ export interface DashRow {
   last_reminder: null | { id: number; step: number; status: string; template_key: string; sent_at: string | null; block_reason: string | null;
     /** הפעלה 159: תזכורת מאושרת שהסכום שלה השתנה במקור. חסר בשרת ישן. */ amount_drift?: { was_text: string | null; now_text: string } | null };
   customer_block: string | null;
+  hold_with?: string | null;   // q26-10: מי כתב/ה מאותה כתובת (כש-customer_block = shared_contact_hold)
 }
 /** סיכום למטבע שאינו ₪ (app/service.py _other_currency). הסכומים ב-totals הם ₪ בלבד. */
 export interface OtherCurrency { currency: string; open_invoices: number; open_agorot: number; overdue_agorot: number; at_risk_agorot: number; collected_agorot: number }
@@ -251,6 +252,8 @@ export const BLOCK_LABEL: Record<string, string> = {
   credit_review: 'זיכוי לא משויך — לבדיקתך',
   // critic סבב 64: הלקוח כתב והודעתו ממתינה לך ⇒ אין תזכורות עד שתענה או תסגור את הכרטיס
   awaiting_owner: 'הלקוח כתב לך — התזכורות ממתינות לתשובה שלך',
+  // סט #26 q26-10: לקוח אחר על אותו טלפון/מייל כתב — לא הלקוח הזה (התווית המלאה עם השם: holdLabel)
+  shared_contact_hold: 'הטלפון משותף עם לקוח אחר — ממתין להכרעתכם על ההודעה שלו/שלה',
   compliance: 'הנוסח נחסם במסנן הניסוח — לתקן את שם העסק או את הנוסח',
   no_reply_to: 'ללקוח יש רק מייל ולא הוגדרה כתובת תשובה לעסק — להגדיר בהגדרות',
 };
@@ -278,6 +281,12 @@ export const driftText = (d: { was: string | null; now: string }) =>
   `הסכום במקור השתנה${d.was ? ` מ-${d.was}` : ''} ל-${d.now} אחרי שאישרתם. התזכורת לא תישלח על הסכום הקודם: לפני השליחה היא תחזור אליכם לאישור עם הסכום המעודכן.`;
 
 /** 'hard' = אסור לאשר (כפתור מושבת) · 'reapprove' = מותר, עם הסבר · 'refresh' = כבר אושרה, ממתינה לרענון מול המקור · null = אין. לא מוכר ⇒ 'hard' (שמרני). */
+/** סט #26 q26-10: «הטלפון משותף עם {שם} — ממתין להכרעתכם על ההודעה שלו/שלה» (במקום «הלקוח כתב לך»). */
+export function holdLabel(block: string, holdWith?: string | null): string {
+  if (block === 'shared_contact_hold' && holdWith) return `הטלפון משותף עם ${holdWith} — ממתין להכרעתכם על ההודעה שלו/שלה`;
+  return BLOCK_LABEL[block] ?? block;
+}
+
 export function blockKind(b: string | null | undefined): 'hard' | 'reapprove' | 'refresh' | null {
   if (!b) return null;
   if (b in REFRESH_LABEL) return 'refresh';   // מנהל 322: מאושרת וממתינה לרענון — לא «⛔ חסום: refresh_failed»
@@ -316,7 +325,7 @@ export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
     const drift = r.status === 'open' && !r.customer_block ? r.last_reminder?.amount_drift : null;
     const lr = r.last_reminder;
     const refreshNote = r.status === 'open' && lr?.status === 'approved' && lr.block_reason ? REFRESH_LABEL[lr.block_reason] : undefined;
-    const blockNote = r.customer_block ? BLOCK_LABEL[r.customer_block] ?? r.customer_block : refreshNote;
+    const blockNote = r.customer_block ? holdLabel(r.customer_block, r.hold_with) : refreshNote;
     invoices.push({
       id: String(r.invoice_id), source: r.source === 'csv' ? 'csv' : 'api', number: r.number, customerId: cid, amount: r.amount_agorot / 100,
       issuedAt: r.due ?? d.today, dueAt: r.due ?? d.today, dueEstimated: !!r.due_estimated, status, payUrl: '', reminders, note: blockNote,

@@ -47,7 +47,8 @@ def test_assign_runs_paid_claim_for_chosen_and_resumes_other(svc, clock):
     assert out.status_code == 200 and out.json()["intent"] == "paid_claim"
     paused = {c["id"]: c["paused_reason"] for c in svc.db.q("SELECT id, paused_reason FROM customers")}
     assert paused[payer] == "paid_claim" and paused[other] is None
-    assert svc._customer_block(other) == "awaiting_owner"   # כלל קיים: טיוטה פתוחה לאותה כתובת חוסמת את השותפים
+    # כלל קיים: טיוטה פתוחה לאותה כתובת חוסמת את השותפים — בסיבה נפרדת (סט #26 q26-10)
+    assert svc._customer_block(other) == "shared_contact_hold"
     svc.inbox.approve_draft(out.json()["draft_id"])          # בעל העסק אישר את התשובה למשה
     clock.now += timedelta(days=1)
     planned = {svc.db.one("SELECT i.customer_id c FROM reminders r JOIN invoices i ON i.id=r.invoice_id "

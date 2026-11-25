@@ -1699,6 +1699,15 @@ test('b050cc8 · באנר «העלו קובץ CSV עדכני»: רק כש-upload
   assert.match(csvBannerText({ last_import: null, upload_needed: true })!, /עוד לא הועלה קובץ CSV/);
 });
 
+test('סט #26 q26-10: לקוח מוחזק בגלל טלפון משותף — «הטלפון משותף עם {שם}», לא «הלקוח כתב לך»', async () => {
+  const { holdLabel, BLOCK_LABEL } = await import('../src/api.ts');
+  const t = holdLabel('shared_contact_hold', 'דנה כהן');
+  assert.equal(t, 'הטלפון משותף עם דנה כהן — ממתין להכרעתכם על ההודעה שלו/שלה');
+  assert.ok(!t.includes('כתב לך'));
+  assert.equal(holdLabel('awaiting_owner', null), BLOCK_LABEL.awaiting_owner);
+  assert.ok(holdLabel('shared_contact_hold', null).includes('הטלפון משותף'));
+});
+
 test('מבקר 233: כרטיס הבטחה מכתובת משותפת — מוצג עם הלקוחות לשיוך', async () => {
   const { systemNotices } = await import('../src/lib/notices.ts');
   const n = systemNotices([{ id: 7, customer_id: null, direction: 'in', channel: 'sms', body: 'אשלם ב-12 לחודש',

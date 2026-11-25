@@ -82,7 +82,8 @@ def test_shared_phone_hold_covers_the_other_customer(svc, fake_gi, clock):
     api.post("/dispatch")
     api.post("/inbound", json={"sender": "050-1234567", "text": TEXT})
     blocks = {c["id"]: svc._customer_block(c["id"]) for c in svc.db.q("SELECT id FROM customers")}
-    assert set(blocks.values()) == {"awaiting_owner"}, blocks
+    # סט #26 q26-10 (הכרעת המקשר): הכותב/ת ⇒ awaiting_owner; הלקוח האחר על אותו נייד ⇒ shared_contact_hold (אותה החזקה)
+    assert set(blocks.values()) == {"awaiting_owner", "shared_contact_hold"}, blocks
     assert svc._customer_blocks() == blocks                       # הגרסה המקובצת (הפעלה 175) זהה
     clock.now += timedelta(days=8)
     assert api.post("/plan").json()["created"] == []

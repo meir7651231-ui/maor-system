@@ -55,6 +55,9 @@ STEP_OFFSETS_DAYS = (1, 7, 14)   # 3 תזכורות לכל היותר (הכרע�
 ACTIVE = ("pending_approval", "approved")
 ORBIT_FIRST_LINK = "orbit_first_linked_at"   # critic סבב 68: סימון «היה מקושר לאורביט» (לא ניתן לעריכה ב-API)
 AWAITING_OWNER = "awaiting_owner"   # critic סבב 64: הודעת הלקוח ממתינה לבעל העסק ⇒ אין תזכורת עד שיטפל
+# סט #26 q26-10 (הכרעת המקשר 25.11): לקוח **אחר** על אותו טלפון/מייל מוחזק (critic 65), אבל הוא לא כתב — היה מוצג
+# «הלקוח כתב לכם». סיבה נפרדת, דינמית (לא paused_reason; משתחררת לבד כשבעל העסק מטפל), עם שם הכותב/ת ב-hold_with.
+SHARED_CONTACT_HOLD = "shared_contact_hold"
 AMOUNT_CHECK = "amount_check"   # הפעלה 123: סכום חריג ⇒ אישור מפורש (לא חסימה קשה)
 HARD_BLOCKS = {"no_contact", "no_payment_link", "compliance", "no_reply_to"}
 
@@ -3906,7 +3909,8 @@ class CollectService:
     DASH_LIST_INVOICE = ("invoice_id", "number", "customer", "customer_id", "paused_reason", "phone",
                          "amount_agorot", "currency", "due", "due_estimated", "status", "days_overdue",
                          "reminders_sent",
-                         "last_sent", "last_reminder", "customer_block", "email_state")
+                         "last_sent", "last_reminder", "customer_block", "email_state",
+                         "hold_with")   # סט #26 q26-10
     DASH_LIST_LAST = ("id", "step", "status", "block_reason", "amount_drift")
 
     def dashboard(self, view: str | None = None) -> dict:
@@ -3941,6 +3945,7 @@ class CollectService:
             return (d is not None, d or "", iid)
         rids = {rid: sorted((i for i in ids if i in due_of), key=_order) for rid, ids in members.items()}
         blocks = self._customer_blocks()
+        holds = self.shared_hold_names() if SHARED_CONTACT_HOLD in blocks.values() else {}   # q26-10
         # הפעלה 177: ערוצי היוצאים של כל תזכורת שיצאה — בשאילתה אחת (לכל 500 מזהים), לא שורה-שורה
         chans = self._sent_channels_many(x["message_id"] for xs in by_inv.values() for x in xs
                                          if x["status"] in ("sent_dry_run", "send_unknown"))
@@ -3966,6 +3971,7 @@ class CollectService:
             rows.append({
                 "invoice_id": r["id"], "number": r["number"], "customer": r["cname"],
                 "customer_id": r["customer_id"], "paused_reason": r["paused_reason"],
+                "hold_with": holds.get(r["customer_id"]) if block == SHARED_CONTACT_HOLD else None,   # q26-10
                 "phone": r["cphone"], "email": r["cemail"], "amount_agorot": r["amount_agorot"],
                 "currency": r["currency"], "due": r["due"], "status": r["status"],
                 # הכרעת רכז: מועד מוערך (הנפקה+30) גלוי ⇒ תג «מועד מוערך» בממשק
@@ -4339,7 +4345,7 @@ class CollectService:
                 return AWAITING_OWNER
             me = self.db.one("SELECT phone, email FROM customers WHERE id=?", (cid,))
             if me and self._contacts_of(me) & contacts:   # critic סבב 65: אותה כתובת ⇒ אותה החזקה
-                return AWAITING_OWNER
+                return SHARED_CONTACT_HOLD   # q26-10: לא «הלקוח כתב לכם» — הכותב/ת הוא/היא לקוח אחר
         return block
 
     @staticmethod
@@ -4365,6 +4371,24 @@ class CollectService:
             contacts |= self._contacts_of(r)
         return {r["id"] for r in rows}, contacts
 
+    def shared_hold_names(self) -> dict[int, str]:
+        """q26-10: לכל לקוח שמוחזק בגלל כתובת משותפת — שמות הלקוחות שהודעתם ממתינה לבעל העסק על אותה כתובת."""
+        if not self._table_exists("drafts"):
+            return {}
+        rows = self.db.q("SELECT DISTINCT c.id, c.name, c.phone, c.email FROM drafts d JOIN customers c "
+                         "ON c.id=d.customer_id WHERE d.status IN ('pending_approval','needs_owner') "
+                         "AND d.intent != 'promise'")
+        if not rows:
+            return {}
+        writers = [(r["id"], r["name"] or "לקוח אחר", self._contacts_of(r)) for r in rows]
+        out: dict[int, str] = {}
+        for c in self.db.q("SELECT id, phone, email FROM customers"):
+            mine = self._contacts_of(c)
+            names = [n for wid, n, cs in writers if wid != c["id"] and cs & mine]
+            if names:
+                out[c["id"]] = ", ".join(dict.fromkeys(names))
+        return out
+
     def _customer_blocks(self) -> dict[int, str | None]:
         """הפעלה 175: `_customer_block` לכל הלקוחות בבת אחת (ל-/dashboard) — אותם כללים, 3–4 שאילתות במקום
         3 לכל לקוח. מוגן בבדיקת זהות מול `_customer_block` (tests/test_dashboard_batched.py)."""
@@ -4375,8 +4399,11 @@ class CollectService:
         for c in self.db.q("SELECT id, opted_out, disputed, paused_reason, phone, email FROM customers"):
             block = customer_blocked(opted_out=bool(c["opted_out"]), disputed=bool(c["disputed"]),
                                      plan_active=c["id"] in plans, paused=c["paused_reason"])
-            held = c["id"] in waiting or bool(contacts and self._contacts_of(c) & contacts)
-            out[c["id"]] = AWAITING_OWNER if block is None and held else block
+            if block is None and c["id"] in waiting:
+                block = AWAITING_OWNER
+            elif block is None and contacts and self._contacts_of(c) & contacts:
+                block = SHARED_CONTACT_HOLD   # q26-10
+            out[c["id"]] = block
         return out
 
     def _cancel_invoice(self, iid: int, reason: str) -> None:
