@@ -1275,11 +1275,18 @@ class CollectService:
         («הסכום עלה בזמן ההסדר») — נשארו ב«דורש טיפול» אחרי שהמקור סימן את החשבונית «שולם» וההסדר הושלם: בעל העסק
         התבקש לעדכן טלפון ולחדש לקוח על חשבונית ששולמה. עכשיו (כמו 227/224): החשבונית נסגרה **אחרי** הכרטיס, או
         ההסדר completed ⇒ הכרטיס יורד. audit `plan_card_resolved` (בלי PII). עוד פתוחה ⇒ נשאר."""
+        self._complete_missed_plans()   # מנהל 402
         n = 0
         for m in self.db.q("SELECT id, intent, message_id, created_at FROM messages WHERE needs_owner=1 "
-                           "AND intent IN ('csv_contact_plan','plan_amount_changed') AND message_id IS NOT NULL"):
+                           "AND intent IN ('csv_contact_plan','plan_amount_changed','plan_missed') "
+                           "AND message_id IS NOT NULL"):
             parts = m["message_id"].split(":")
             inv, plan = None, None
+            if m["intent"] == "plan_missed" and len(parts) == 2:
+                try:
+                    plan = self.db.one("SELECT status FROM plans WHERE id=?", (int(parts[1]),))
+                except ValueError:
+                    continue
             if m["intent"] == "csv_contact_plan" and len(parts) >= 2:
                 inv = self.db.one("SELECT id, status, closed_at FROM invoices WHERE external_id=?",
                                   (":".join(parts[1:]),))
@@ -1301,6 +1308,23 @@ class CollectService:
             self.audit("system", "plan_card_resolved", {"message": m["id"], "card": m["intent"], "why": why})
             n += 1
         return n
+
+    def _complete_missed_plans(self) -> list[int]:
+        """מנהל 402: הסדר שסומן «הוחמץ» וכל חשבוניותיו נסגרו מאז (קובץ/סנכרון/סימון ידני) ⇒ `completed`, כמו
+        ב-`_sweep_plans` (אותו כלל: יתרה פתוחה ≤ התוספת שנרשמה). לפני כן נשאר «הוחמץ» לנצח והכרטיס «לא התקבל»
+        נשאר ב«דורש טיפול» על חשבונית ששולמה. תשלום חלקי ⇒ ללא שינוי (חזרה ל-approved = הכרעת בעל העסק).
+        audit `plan_completed` עם `after_missed` (בלי PII)."""
+        done: list[int] = []
+        for p in self.db.q("SELECT * FROM plans WHERE status='missed' ORDER BY id"):
+            open_now = self.db.one("SELECT COALESCE(SUM(amount_agorot),0) n FROM invoices WHERE status='open' "
+                                   "AND id IN (SELECT value FROM json_each(?))",
+                                   (json.dumps(self._plan_invoice_ids(p)),))["n"]
+            if open_now > self._plan_raised(p):
+                continue
+            if self.db.update("UPDATE plans SET status='completed' WHERE id=? AND status='missed'", (p["id"],)) == 1:
+                self.audit("system", "plan_completed", {"plan": p["id"], "after_missed": True})
+                done.append(p["id"])
+        return done
 
     def _resolve_rename_cards(self) -> int:
         """מנהל 394 (ממצא QA 393🟡): כרטיס «אולי שינוי שם?» (388) ביקש «העלו קובץ עם כולן; גבי תאחד» — ואחרי שבעל
@@ -1813,6 +1837,7 @@ class CollectService:
         dsr.sweep(self)   # בקשות עיון/תיקון/מחיקה: התראה 5 ימים לפני המועד ובאיחור
         self._sweep_refresh_stuck()   # מנהל 323: תזכורת מאושרת שתקועה על כשל רענון >48 שעות ⇒ התראה
         self._sweep_plans()   # מנהל 332 (מבקר 183): הסדר שהושלם/הוחמץ/הצעה שפגה — לא חוסם לתמיד
+        self._resolve_plan_cards()   # מנהל 402: הסדר «מוחמץ» שחשבוניותיו נסגרו (גם בסימון ידני) ⇒ הושלם + הכרטיס יורד
         self.purge_closed()   # ר-10: זול, פעם בסבב
         self._roll_episodes(now)
         created: list[int] = []
