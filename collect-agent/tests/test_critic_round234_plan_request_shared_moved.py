@@ -13,8 +13,6 @@
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
-
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,סטטוס,תאריך,תאריך לתשלום\n"
 ROWS = "7001,דויד כהן,050-0000111,,1200,פתוח,01/10/26,15/10/26\n7002,שרה לוי,050-0000111,,450,פתוח,01/10/26,15/10/26\n"
 
@@ -52,7 +50,6 @@ def test_shared_plan_request_is_assignable_or_pauses(svc, clock):
     assert r["intent"] in svc.inbox.SHARED_CARDS and not reminded, (r["intent"], reminded)
 
 
-@pytest.mark.xfail(strict=True, reason="234ב🟡: פריסה על 9001 שעברה — הכרטיס לא אומר שהיא על מיכל ולא הושהתה")
 def test_plan_request_on_moved_invoice_card_says_so(svc, clock):
     _csv(svc, "9001,דנה כהן,050-1234567,d@x.example,1200,פתוח,01/10/26,15/10/26\n")
     clock.now += timedelta(days=1)
@@ -60,3 +57,10 @@ def test_plan_request_on_moved_invoice_card_says_so(svc, clock):
     r = svc.inbound("sms", "050-1234567", "אפשר לשלם את 9001 בשלושה תשלומים?")
     assert r["intent"] == "plan_request"
     assert "9001" in r["owner_summary"] and "מיכל" in r["owner_summary"], r["owner_summary"]
+
+
+def test_control_no_moved_note_without_moved_invoice(svc, clock):
+    """בקרה (גבי מנוע, 234ב): בלי חשבונית שעברה ⇒ אין הערת «רשומה כעת על»."""
+    _csv(svc, "9001,דנה כהן,050-1234567,d@x.example,1200,פתוח,01/10/26,15/10/26\n")
+    r = svc.inbound("sms", "050-1234567", "אפשר לשלם בשלושה תשלומים?")
+    assert r["intent"] == "plan_request" and "רשומה כעת על" not in (r["owner_summary"] or "")

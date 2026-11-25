@@ -460,6 +460,8 @@ class ConversationInbox:
                 f"{'ה' if one else 'ו'} (ממתינ{'ה' if one else 'ות'} לחלון השליחה) — לא תישלח אחרי ההודעה הזו",))
         if Intent.PAID_CLAIM in d.all_intents:
             d = self._paid_claim_moved_note(cust["id"], d)
+        elif {Intent.PLAN_REQUEST, Intent.PROMISE, Intent.DISPUTE} & set(d.all_intents):
+            d = self._moved_invoice_note(cust["id"], d)   # מבקר 234ב
         draft_id = None
         if d.reply or d.escalate != Escalation.NONE:
             # בלי טיוטה (למשל עו"ד) ⇒ כרטיס "דרוש טיפול" בתור, שבעל העסק יכול לענות ממנו בעצמו
@@ -641,6 +643,21 @@ class ConversationInbox:
         return replace(d, owner_summary=(d.owner_summary or "") + note,
                        owner_actions=d.owner_actions + (
                            "לבדוק אם התשלום שייך לחשבונית שעברה ללקוח אחר לפני אישור תזכורת עליה",))
+
+    def _moved_invoice_note(self, cid: int, d: Decision) -> Decision:
+        """מבקר 234ב🟡: כמו `_paid_claim_moved_note` (395) לבקשת פריסה / הבטחה / מחלוקת — «אפשר לשלם את 9001 בשלושה
+        תשלומים?» מטלפון שהחשבונית עברה ממנו בקובץ ⇒ הכרטיס «מבקש/ת הסדר» + «להציע הסדר» לכותב/ת (בלי חשבונית
+        פתוחה), בלי לומר שהחשבונית רשומה כעת על לקוח אחר ולא הושהתה. עכשיו הכרטיס אומר זאת."""
+        moved = self.svc.moved_away_open(cid)
+        if not moved:
+            return d
+        lines = "; ".join(f"חשבונית {r['number']} רשומה כעת על {r['name'] or 'לקוח אחר'}" for r in moved)
+        one = len(moved) == 1
+        note = (f" שימו לב: {lines} (פרטי הקשר השתנו בקובץ) — הבקשה הזו לא חלה עלי{'ה' if one else 'הן'} "
+                f"והתזכורות עלי{'ה' if one else 'הן'} לא הושהו.")
+        return replace(d, owner_summary=(d.owner_summary or "") + note,
+                       owner_actions=d.owner_actions + (
+                           "לבדוק אם הבקשה שייכת לחשבונית שעברה ללקוח אחר לפני שמציעים הסדר/מאשרים מועד",))
 
     def _stop_approved_on_protective(self, cid: int, d: Decision) -> int:
         """מנהל 360 (מבקר 206🔴): `_draft` מחליף רק `pending_approval` ⇒ תשובה שבעל העסק אישר בערב וממתינה לחלון
