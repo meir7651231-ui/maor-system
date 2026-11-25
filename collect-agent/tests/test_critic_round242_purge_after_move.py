@@ -8,7 +8,8 @@ continue` — לקוח **בלי אף חשבונית** מדולג) + `_csv_contac
 (שום ריצה עתידית לא תתפוס: אין לה חשבונית). מדיניות השמירה (90 יום מסגירת החוב) נשברת דווקא למי שעברה ממנה החשבונית.
 ✓ 241 (מנהל 407) תוקן — הבדיקה עוברת.
 הצעה: לקוח בלי חשבוניות שכל חשבוניותיו הקודמות (audit csv_contact_changed from=cid) נסגרו/נמחקו לפני 90 יום — או בלי
-חשבוניות ובלי פעילות 90 יום — מותמם כמו כל לקוח (בכפוף ל-legal_hold/כרטיס דחוף). xfail(strict=True)."""
+חשבוניות ובלי פעילות 90 יום — מותמם כמו כל לקוח (בכפוף ל-legal_hold/כרטיס דחוף).
+תוקן במנהל 408 (`_moved_away_all_purged`)."""
 from datetime import timedelta
 
 from tests.test_critic_round239_inherited_optout import DANA, MICHAL, H, _row, _sent_to_dana
