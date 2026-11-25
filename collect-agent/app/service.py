@@ -220,6 +220,16 @@ def shared_split_rename_text(number: str, *, csv: bool = True) -> str:
             "אם החשבונית עברה לאדם אחר — אין צורך לעשות דבר.").replace("החשבוניות ;", "החשבוניות;")
 
 
+def shared_split_rename_plan_text(number: str) -> str:
+    """מנהל 397 (גבי מנוע, «הבא» מ-396🟡): ב-API חשבונית בהסדר פעיל **לא זזה** לשם החדש (הסדר שבעל העסק אישר
+    קשור ללקוח) — אז הנוסח של 388 («שמרנו אותה כלקוח נפרד… בסנכרון הבא גבי תאחד») לא נכון. כאן: מה קרה באמת
+    (נשארה בשם הקודם, ההסדר ממשיך) ומה לעשות בכל אחת מהאפשרויות. בלי שמות/טלפון — מספר החשבונית בלבד."""
+    return (f"חשבונית {number} הגיעה מהמערכת בשם אחר מזה שרשום אצלנו, עם אותו טלפון/מייל. "
+            "היא בהסדר תשלומים פעיל, ולכן נשארה בשם הקודם וההסדר ממשיך כרגיל (לא משנים הסדר שאישרתם). "
+            "אולי שינוי שם? אם זה אותו אדם — אין צורך לעשות דבר. "
+            "אם החשבונית עברה לאדם אחר — בדקו את ההסדר בכרטיס הלקוח לפני התשלום הבא.")
+
+
 # מנהל 307: כרטיסי «כתובת משותפת» (inbox.SHARED_CARDS — כאן כמחרוזות כדי לא לייבא את inbox)
 _SHARED_URGENT_INTENT = "shared_contact_urgent"
 _SHARED_CARD_INTENTS = (_SHARED_URGENT_INTENT, "shared_contact_paid_claim", "shared_contact_promise")   # מבקר 233
@@ -686,7 +696,10 @@ class CollectService:
             return renamed
         if not self.db.one("SELECT 1 FROM customers WHERE external_id=?", (alt,)):
             maybe_rename = self._owned_by_same_contact(inv, key)
-            body = (shared_split_rename_text(inv.number, csv=inv.external_id.startswith("csv:")) if maybe_rename
+            is_csv = inv.external_id.startswith("csv:")
+            body = (shared_split_rename_plan_text(inv.number) if maybe_rename and not is_csv
+                    and self._invoice_in_live_plan_by_ext(inv.external_id)     # מנהל 397
+                    else shared_split_rename_text(inv.number, csv=is_csv) if maybe_rename
                     else f"חשבונית {inv.number}: שני לקוחות בשמות שונים עם אותו טלפון/מייל ובלי מזהה לקוח נשמרו "
                          "כלקוחות נפרדים (לא מאחדים חובות של אנשים שונים). אם זה אותו אדם — אחדו את השם "
                          "במערכת החשבוניות.")
@@ -974,6 +987,10 @@ class CollectService:
             if row is not None:
                 out.append(row)
         return out
+
+    def _invoice_in_live_plan_by_ext(self, external_id: str) -> bool:
+        row = self.db.one("SELECT id FROM invoices WHERE external_id=?", (external_id,))
+        return row is not None and self._in_live_plan(row["id"])
 
     def _in_live_plan(self, iid: int) -> bool:
         return any(iid in self._plan_invoice_ids(p) for p in self.db.q(
