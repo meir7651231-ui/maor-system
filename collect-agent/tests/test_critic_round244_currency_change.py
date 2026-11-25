@@ -13,8 +13,6 @@
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
-
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,מטבע,סטטוס,תאריך,תאריך לתשלום\n"
 
 
@@ -22,7 +20,6 @@ def _row(amount, currency):
     return (H + f"9001,דנה כהן,050-1234567,,{amount},{currency},פתוח,01/10/26,15/10/26\n").encode()
 
 
-@pytest.mark.xfail(strict=True, reason="244🟠: מטבע שהשתנה במקור נשאר הישן — «$1,100» כשהקובץ אומר ₪1,100")
 def test_currency_change_in_source_not_silently_kept(svc, clock):
     svc.s = replace(svc.s, source_system="csv")
     svc.db.x("DELETE FROM invoices")

@@ -115,6 +115,15 @@ def csv_balance_rose_text(number: str, old_agorot: int, new_agorot: int, currenc
             "בדקו לפני שאתם מאשרים תזכורת עליה.")
 
 
+def currency_changed_text(number: str, old_agorot: int, old_cur: str, new_agorot: int, new_cur: str,
+                          plan: bool = False) -> str:
+    """מבקר 244🟠: מטבע החשבונית השתנה במקור — סכומים במטבעות שונים לא מושווים, וההחלטה של בעל העסק."""
+    tail = (" ההסדר על החשבונית היה במטבע הקודם ולכן הוחלף — אם צריך, הציעו הסדר חדש." if plan else "")
+    return (f"המטבע של חשבונית {number} השתנה: {templates.fmt_amount(old_agorot, old_cur)} ⇒ "
+            f"{templates.fmt_amount(new_agorot, new_cur)}. לא נשלחות תזכורות ללקוח עד שתבדקו — אם זו טעות "
+            f"בקובץ/במערכת החשבוניות תקנו שם, ואם השינוי נכון חדשו את הלקוח.{tail}")
+
+
 def plan_outside_text(name: str | None, number: str, amount_agorot: int, due: str | None,
                       currency: str = "ILS") -> str:
     """מבקר 204ב: חשבונית שאינה בהסדר הגיעה למועד בזמן שהסדר פעיל — ההסדר חוסם תזכורות ללקוח כולו."""
@@ -841,11 +850,15 @@ class CollectService:
                                        "AND status='open' AND owner_paid_at IS NULL", (inv.external_id,))
             elif not inv.client_external_id:
                 self._api_same_contact_moved(inv, cid)   # מנהל 396
+            # מבקר 244🟠: מטבע שהשתנה במקור נשאר הישן ⇒ «$1,100» כשהקובץ אומר ₪1,100
+            prev_cur = self.db.one("SELECT id, amount_agorot, currency FROM invoices WHERE external_id=? "
+                                   "AND status='open'", (inv.external_id,))
             self.db.x(
                 "INSERT INTO invoices(external_id,number,doc_type,amount_agorot,currency,issued,"
                 "due,customer_id,status,payment_url,synced_at,source,credit_agorot,due_estimated) "
                 "VALUES(?,?,?,?,?,?,?,?, 'open', ?, ?, ?, ?, ?) "
                 "ON CONFLICT(external_id) DO UPDATE SET amount_agorot=excluded.amount_agorot, "
+                "currency=COALESCE(NULLIF(excluded.currency,''), invoices.currency), "
                 # מועד שבעל העסק תיקן ברשימת הפתוחות (due_owner_at) לא נדרס בסנכרון, וגם לא חוזר ל«מוערך»
                 "due=CASE WHEN invoices.due_owner_at IS NOT NULL THEN invoices.due ELSE excluded.due END, "
                 "due_estimated=CASE WHEN invoices.due_owner_at IS NOT NULL THEN 0 "
@@ -863,8 +876,12 @@ class CollectService:
                  inv.issued.isoformat() if inv.issued else None,
                  inv.due.isoformat() if inv.due else None, cid, inv.payment_url, now, source,
                  inv.credit_agorot, int(bool(getattr(inv, "due_estimated", False)))))
+            cur_changed = prev_cur is not None and self._note_currency_change(
+                prev_cur["id"], prev_cur["currency"], inv.currency, prev_cur["amount_agorot"], inv.amount_agorot)
             if reopened:
                 self._notify_csv_reopened(inv, reopened["id"])
+            elif cur_changed:
+                pass   # «היתרה עלתה» בין מטבעות אינה השוואה — כרטיס המטבע מכסה
             elif was_open is not None and inv.amount_agorot > was_open["amount_agorot"] \
                     and not self._in_approved_plan(was_open["id"]):
                 # בהסדר מאושר — הכרטיס של _note_plan_raises (בנוסח CSV) מכסה; לא שני כרטיסים
@@ -1128,6 +1145,38 @@ class CollectService:
     def _in_approved_plan(self, iid: int) -> bool:
         return any(iid in self._plan_invoice_ids(p) for p in self.db.q(
             "SELECT invoice_id, invoice_ids FROM plans WHERE status='approved'"))
+
+    def _note_currency_change(self, iid: int, old_cur: str | None, new_cur: str | None, old_agorot: int,
+                              new_agorot: int) -> bool:
+        """מבקר 244🟠: המקור (קובץ / API / רענון לפני שליחה) שינה את מטבע חשבונית פתוחה. היה: הסכום החדש נקלט
+        **במטבע הישן** ⇒ «$1,100» כשהחוב ₪1,100; ובהסדר דולרי הירידה 1,200⇒1,100 נספרה «שולם $100».
+        עכשיו (המטבע כבר עודכן ע״י הקורא): תזכורות פעילות על החשבונית מבוטלות, הלקוח מושהה (`currency_changed`,
+        לא דורס השהיה קיימת), הסדר מאושר שכולל אותה מוחלף (`superseded` — מטבע ההסדר כבר לא נכון), וכרטיס
+        לבעל העסק — אחד לחשבונית ולמעבר. True ⇒ המטבע השתנה (הקורא מדלג על השוואות סכום)."""
+        old_c, new_c = (old_cur or "ILS").upper(), (new_cur or "").upper()
+        if not new_c or old_c == new_c:
+            return False
+        self._cancel_invoice(iid, "currency_changed")
+        inv = self.db.one("SELECT number, customer_id FROM invoices WHERE id=?", (iid,))
+        cid = inv["customer_id"] if inv else None
+        if cid is not None:
+            self.db.x("UPDATE customers SET paused_reason=COALESCE(paused_reason, 'currency_changed') WHERE id=?",
+                      (cid,))
+        replaced = []
+        for p in self.db.q("SELECT * FROM plans WHERE status='approved'"):
+            if iid in self._plan_invoice_ids(p):
+                self.db.x("UPDATE plans SET status='superseded' WHERE id=?", (p["id"],))
+                replaced.append(p["id"])
+        key = f"currency_changed:{iid}:{old_c}:{new_c}:{new_agorot}"
+        if not self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                      "message_id,created_at) VALUES(?,'system','owner',?,'currency_changed',1,?,?)",
+                      (cid, currency_changed_text(inv["number"] if inv else "", old_agorot, old_c, new_agorot,
+                                                  new_c, plan=bool(replaced)), key, _iso(self.clock())))
+        self.audit("system", "currency_changed", {"invoice": iid, "was": old_c, "now": new_c,
+                                                  "was_agorot": old_agorot, "now_agorot": new_agorot,
+                                                  "plans_superseded": replaced})
+        return True
 
     def _notify_csv_balance_rose(self, inv: Invoice, iid: int, old_agorot: int, currency: str) -> None:
         """מבקר 225ב🟡: יתרה של חשבונית CSV פתוחה שעלתה בין קבצים (1,200 ⇒ 800 ⇒ 1,200 — קובץ ישן) עברה בשקט,
@@ -3123,6 +3172,13 @@ class CollectService:
             self.audit("system", "refresh_closed", {"invoice": inv["id"]})
             return "closed"
         self.db.x("UPDATE invoices SET synced_at=? WHERE id=?", (_iso(self.clock()), inv["id"]))
+        if (doc.currency or "") and (doc.currency or "").upper() != (inv["currency"] or "ILS").upper():
+            # מבקר 244🟠: המטבע השתנה במקור ⇒ לא שולחים; כרטיס + השהיה
+            self.db.x("UPDATE invoices SET amount_agorot=?, currency=?, payment_url=NULL WHERE id=?",
+                      (doc.amount_agorot, doc.currency, inv["id"]))
+            self._note_currency_change(inv["id"], inv["currency"], doc.currency, inv["amount_agorot"],
+                                       doc.amount_agorot)
+            return "failed"
         if doc.amount_agorot != inv["amount_agorot"]:
             self.db.x("UPDATE invoices SET amount_agorot=?, payment_url=NULL WHERE id=?",
                       (doc.amount_agorot, inv["id"]))
@@ -3203,6 +3259,12 @@ class CollectService:
                 self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?",
                           (_iso(self.clock()), inv["id"]))   # critic 157
                 self._cancel_invoice(inv["id"], "invoice_closed")
+            elif (doc.currency or "") and (doc.currency or "").upper() != (inv["currency"] or "ILS").upper():
+                self.db.x("UPDATE invoices SET amount_agorot=?, currency=?, synced_at=?, payment_url=NULL "
+                          "WHERE id=?", (doc.amount_agorot, doc.currency, _iso(self.clock()), inv["id"]))
+                self._note_currency_change(inv["id"], inv["currency"], doc.currency, inv["amount_agorot"],
+                                           doc.amount_agorot)   # מבקר 244🟠
+                ok = False
             elif doc.amount_agorot != inv["amount_agorot"]:
                 self.db.x("UPDATE invoices SET amount_agorot=?, synced_at=? WHERE id=?",
                           (doc.amount_agorot, _iso(self.clock()), inv["id"]))
