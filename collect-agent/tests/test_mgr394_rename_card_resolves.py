@@ -110,8 +110,8 @@ def test_old_wording_card_untouched(svc, clock):
 
 
 def test_api_sync_card_unchanged(svc, clock):
-    """סנכרון API: החשבונית לא עוברת לקוח בכלל (upsert לא משנה customer_id) ⇒ אין «איחוד» לזהות; הכרטיס נשאר
-    כמו קודם (ממצא פתוח ב-STATUS 394 — נוסח API של 388). חשוב: לא יורד בשקט באותו סנכרון."""
+    """סנכרון API חלקי שחוזר על עצמו ⇒ הכרטיס נשאר (עוד חשבונית פתוחה בשם הקודם). מאז 396 החשבונית עוברת גם
+    ב-API לשם החדש, והאיחוד/החזרה מורידים את הכרטיס — test_mgr396. חשוב: לא יורד בשקט באותו סנכרון."""
     def inv(num, name):
         return Invoice(external_id=f"gi-{num}", number=num, doc_type=305, amount_agorot=50000, currency="ILS",
                        issued=date(2026, 10, 1), due=date(2026, 10, 15), client_external_id="",

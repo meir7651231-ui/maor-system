@@ -822,6 +822,8 @@ class CollectService:
                                        "AND owner_paid_at IS NULL", (inv.external_id,))
                 was_open = self.db.one("SELECT id, amount_agorot, currency FROM invoices WHERE external_id=? "
                                        "AND status='open' AND owner_paid_at IS NULL", (inv.external_id,))
+            elif not inv.client_external_id:
+                self._api_same_contact_moved(inv, cid)   # מנהל 396
             self.db.x(
                 "INSERT INTO invoices(external_id,number,doc_type,amount_agorot,currency,issued,"
                 "due,customer_id,status,payment_url,synced_at,source,credit_agorot,due_estimated) "
@@ -923,6 +925,38 @@ class CollectService:
         self.db.x("UPDATE invoices SET customer_id=? WHERE id=?", (cid, old["id"]))
         self._cancel_invoice(old["id"], "contact_changed")
         self.audit("system", "csv_contact_changed", {"invoice": old["id"], "from": old["customer_id"], "to": cid})
+
+    def _api_same_contact_moved(self, inv: Invoice, cid: int) -> None:
+        """מנהל 396 (ממצא 394🟡, נוסח API של 388): בסנכרון API בלי מזהה לקוח ה-upsert לא העביר את החשבונית ללקוח
+        שהמפתח שלה נגזר אליו ⇒ חשבונית שהגיעה בשם חדש נשארה אצל השם הקודם (לקוח-רפאים בשם החדש), התזכורת המשיכה
+        בשם הקודם, והכרטיס «אולי שינוי שם?» אמר «שמרנו אותה כלקוח נפרד… בסנכרון הבא גבי תאחד» — ושניהם לא קרו.
+        עכשיו: כמו CSV (219א) — אבל **רק בתוך אותו טלפון/מייל** (הבעלים הנוכחי במפתח הקשר הזה או בגרסת-שם שלו), כך
+        שאין כאן שינוי של פרטי קשר: רק לאיזה שם החשבונית שייכת. החלפת טלפון/מייל ב-API ⇒ ללא שינוי (לא בתחום).
+        חשבונית בהסדר פעיל לא זזה (הסדר שבעל העסק אישר קשור ללקוח; audit בלבד). אותו audit `csv_contact_changed`
+        עם `api: true` — כך שירידת הכרטיס (394, united/back) ו«שילמתי» אחרי מעבר (395) עובדים גם ב-API."""
+        key = self.customer_key(inv)
+        if key.startswith("doc:"):
+            return
+        old = self.db.one("SELECT i.id, i.customer_id, c.external_id ext FROM invoices i "
+                          "JOIN customers c ON c.id=i.customer_id WHERE i.external_id=?", (inv.external_id,))
+        if old is None or old["customer_id"] == cid:
+            return
+        ext = old["ext"] or ""
+        if not (ext == key or ext.startswith(key + "|name:")):
+            return
+        if self._in_live_plan(old["id"]):
+            self.audit("system", "api_same_contact_move_skipped_plan", {"invoice": old["id"]})
+            return
+        prev = self.db.one("SELECT opted_out, disputed, paused_reason, legal_hold FROM customers WHERE id=?",
+                           (old["customer_id"],))
+        if prev is not None:
+            self.db.x("UPDATE customers SET opted_out=MAX(opted_out, ?), disputed=MAX(disputed, ?), "
+                      "paused_reason=COALESCE(paused_reason, ?), legal_hold=COALESCE(legal_hold, ?) WHERE id=?",
+                      (prev["opted_out"], prev["disputed"], prev["paused_reason"], prev["legal_hold"], cid))
+        self.db.x("UPDATE invoices SET customer_id=? WHERE id=?", (cid, old["id"]))
+        self._cancel_invoice(old["id"], "contact_changed")
+        self.audit("system", "csv_contact_changed", {"invoice": old["id"], "from": old["customer_id"], "to": cid,
+                                                     "api": True})
 
     def moved_away_open(self, cid: int, after_audit_id: int = 0) -> list:
         """מנהל 395 (מבקר 231/232): חשבוניות פתוחות שקובץ CSV העביר **מ**-cid ללקוח אחר (audit csv_contact_changed,
@@ -1238,8 +1272,7 @@ class CollectService:
             if own is None:
                 continue
             if own["customer_id"] == frm:
-                # «חזרה» רק אם החשבונית באמת עברה ממנו וחזרה (CSV: audit csv_contact_changed אחרי הכרטיס). בסנכרון API
-                # החשבונית לא עוברת לקוח בכלל — שם הכרטיס נשאר (ממצא פתוח, STATUS 394).
+                # «חזרה» רק אם החשבונית באמת עברה ממנו וחזרה (audit csv_contact_changed אחרי הכרטיס; גם API מ-396).
                 if not self._moved_back_since(iid, frm, m["created_at"]):
                     continue
                 why = "back"
