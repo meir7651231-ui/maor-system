@@ -81,6 +81,8 @@ def run_flow(flow: dict) -> tuple[list[str], list[str]]:
                 fails.append(f"{tag} ציפייה שהמריץ לא בודק: {sorted(unknown)}")
             out: dict = {}
             before = svc.db.one("SELECT COALESCE(MAX(id), 0) m FROM messages")["m"]
+            before_draft = (svc.db.one("SELECT COALESCE(MAX(id), 0) m FROM drafts")["m"]
+                            if svc._table_exists("drafts") else 0)
             if "csv" in st:
                 raw = (st.get("header", HEADER) + "\n" + "\n".join(st["csv"]) + "\n").encode()
                 try:
@@ -165,9 +167,15 @@ def run_flow(flow: dict) -> tuple[list[str], list[str]]:
                 fails.append(f"{tag} ok {out.get('ok')}≠{e['ok']} {out.get('why', '')}".rstrip())
             if "draft" in e and bool(out.get("draft_id")) != e["draft"]:
                 fails.append(f"{tag} draft {bool(out.get('draft_id'))}≠{e['draft']}")
-            newc = svc.db.q("SELECT intent, body FROM messages WHERE id>? AND needs_owner=1", (before,))
+            newc = [dict(r) for r in svc.db.q("SELECT intent, body FROM messages WHERE id>? AND needs_owner=1",
+                                              (before,))]
+            # q25-25: כרטיס שמגובה בטיוטה (למשל «שילמתי») — בעל העסק רואה את owner_summary של הטיוטה, לא את גוף
+            # ההודעה. קודם נקרא רק messages.body ⇒ «רשומה כעת על …» שבסיכום נראה חסר (באג מריץ, לא מוצר)
+            if svc._table_exists("drafts"):
+                newc += [{"intent": "draft", "body": r["owner_summary"]} for r in svc.db.q(
+                    "SELECT owner_summary FROM drafts WHERE id>?", (before_draft,))]
             pre = e.get("new_card_intent_not_prefix")
-            if pre and any((r["intent"] or "").startswith(pre) for r in newc):
+            if pre and any((r["intent"] or "").startswith(pre) for r in newc if r["intent"] != "draft"):
                 fails.append(f"{tag} נפתח כרטיס {pre}* (אסור): {[r['intent'] for r in newc]}")
             for txt in e.get("new_card_body_has", []):
                 if not any(txt in (r["body"] or "") for r in newc):
