@@ -80,6 +80,8 @@ SEALED = {
                                              "ccada02ea613e9dc765ee80c32654e1d4fc4242543d9cb6f456c0a851970fe98"),
     "external-2026-11-24-qa24-csvflows.jsonl": ("גבי בדיקות", "(this)",
                                                "463a070d17f22bd040484c33594975d80f515c42f79efeafb31d3da9105517b6"),
+    "external-2026-11-25-qa25-csvflows.jsonl": ("גבי בדיקות", "(this)",
+                                               "6dbc85b4c79ef7e698081203fc8ac8f6c111663d46df4f6efcb3ae84ac933c6f"),
 }
 
 
