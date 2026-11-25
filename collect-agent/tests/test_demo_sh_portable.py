@@ -69,13 +69,15 @@ def test_bash_parses():
     subprocess.run([BASH, "-n", str(DEMO_PATH)], check=True)  # noqa: S603
 
 
-def _needs_plain_rm() -> None:
-    """גבי בדיקות 21.11: בסשן Claude Code `rm` ב-PATH הוא מגן-מחיקה (~/.claude/rm-guard/…) — בתוך ה-sandbox של הבדיקה
-    הוא לא רץ (127) ⇒ שתי בדיקות ה-.venv נכשלו בלי באג ב-demo.sh. לא עוקפים את המגן (לא מקשרים /bin/rm): מדלגים
-    עם סיבה כשה-rm הוא מגן; ב-CI (GitHub) אין מגן ⇒ הבדיקות רצות במלואן."""
-    rm = shutil.which("rm") or ""
-    if "/.claude/" in rm:
-        pytest.skip(f"rm בסביבה הזו הוא מגן-מחיקה של הסשן ({rm}) — הבדיקה רצה ב-CI")
+def _rm_chain() -> list[str]:
+    """כל ה-rm שב-PATH של הבדיקה, לפי הסדר, בלי כפילויות (אותו קובץ ב-/bin וב-/usr/bin נספר פעם אחת)."""
+    seen, out = [], []
+    for d in os.environ.get("PATH", "").split(os.pathsep):
+        p = os.path.join(d or ".", "rm")
+        if os.path.isfile(p) and os.access(p, os.X_OK) and not any(os.path.samefile(p, q) for q in seen):
+            seen.append(p)
+            out.append(p)
+    return out
 
 
 def _sandbox(tmp_path, *, newer=False, old_venv=False):
@@ -93,7 +95,18 @@ def _sandbox(tmp_path, *, newer=False, old_venv=False):
         (bin_ / tool).symlink_to(shutil.which(tool))
     if newer:  # כמו python3.12 של brew
         (bin_ / "python3.12").symlink_to(sys.executable)
-    env = {"PATH": str(bin_), "HOME": str(tmp_path), "SKIP_WEB": "1"}
+    path = [str(bin_)]
+    # גבי בדיקות 25.11: בסשן Claude Code ה-rm הראשון ב-PATH הוא מגן-מחיקה שבודק את הארגומנטים ואז מריץ «את ה-rm הבא
+    # ב-PATH». ב-sandbox היה רק הוא ⇒ «rm: command not found» (127) ושתי בדיקות ה-.venv נכשלו בלי באג ב-demo.sh.
+    # משקפים את סדר ה-rm של הסביבה: ה-rm הבא בתיקייה נפרדת אחרי bin. המגן נשאר ראשון ובודק כל קריאה (לא עוקפים אותו);
+    # בלי מגן (CI, mac) יש rm אחד ⇒ ה-sandbox בדיוק כמו קודם. שום כלי נוסף לא נכנס ל-PATH של demo.sh.
+    chain = _rm_chain()
+    if len(chain) > 1:
+        nxt = tmp_path / "bin-rm-next"
+        nxt.mkdir()
+        (nxt / "rm").symlink_to(chain[1])
+        path.append(str(nxt))
+    env = {"PATH": os.pathsep.join(path), "HOME": str(tmp_path), "SKIP_WEB": "1"}
     return work, env
 
 
@@ -113,7 +126,6 @@ def test_old_python_without_alternative_fails_with_clear_message(tmp_path):
 
 @pytest.mark.skipif(not BASH, reason="אין bash")
 def test_venv_from_old_python_is_rebuilt(tmp_path):
-    _needs_plain_rm()
     work, env = _sandbox(tmp_path, old_venv=True)
     r = _run(work, env)
     assert "יוצר מחדש" in r.stdout, r.stdout
@@ -135,7 +147,6 @@ def test_picks_newer_interpreter_for_venv(tmp_path):
 
 @pytest.mark.skipif(not BASH, reason="אין bash")
 def test_venv_with_dead_interpreter_is_rebuilt(tmp_path):
-    _needs_plain_rm()
     # הפעלה 215 (QA, מ-213): .venv/bin/python3 = קישור למפרש שנמחק ⇒ נבנה מחדש, לא נשאר שבור
     work, env = _sandbox(tmp_path)
     (work / ".venv/bin").mkdir(parents=True)
