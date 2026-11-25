@@ -562,7 +562,11 @@ class ConversationInbox:
                 # הכרעת ראש צוות 19.11: «מספר שגוי + תפסיקו» ⇒ גם בקשת ההסרה עצמה מתועדת (לא רק «מספר שגוי»)
                 self.svc.audit("customer", "opt_out_request", {"customer": cid, "with": "wrong_number"})
         elif d.stop == Stop.PERMANENT:
-            self.svc._opt_out(cid, "reply")
+            if Intent.OPT_OUT.value not in intents and self.svc._inherited_optout(cid):
+                # מבקר 239🟡: ההסרה עברה בקובץ מלקוח קודם — הודעה שאינה בקשת הסרה לא נרשמת כבקשה שלו
+                self.svc._inherited_optout_card(cid)
+            else:
+                self.svc._opt_out(cid, "reply")
         if intents & {Intent.DISPUTE.value, Intent.LEGAL.value}:
             self.db.x("UPDATE customers SET disputed=1 WHERE id=?", (cid,))
         if d.stop == Stop.PAUSE:

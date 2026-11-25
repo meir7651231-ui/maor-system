@@ -12,11 +12,10 @@ stop=permanent ⇒ `_opt_out(מיכל, "reply")`: הטלפון שלה נכנס �
 ✓ נבדק בלי ממצא: «הסר אותי» מהטלפון הישן **אחרי** המעבר ⇒ רק דנה; «זה לא המספר שלי» מהטלפון של מיכל ⇒ מיכל
 (wrong_number, הטלפון מנוקה), דנה לא מושפעת.
 הצעה: הודעה שאינה בקשת הסרה מלקוח שה-opted_out שלו **ירושה** (csv_contact_changed) לא נרשמת כבקשת הסרה שלו
-(suppress/audit רק כשהוא עצמו ביקש), וכרטיס לבעל העסק «ההסרה עברה מדנה — להחיל על מיכל?». xfail(strict=True)."""
+(suppress/audit רק כשהוא עצמו ביקש), וכרטיס לבעל העסק «ההסרה עברה מדנה — להחיל על מיכל?».
+תוקן במנהל 404 (`_inherited_optout` + כרטיס `inherited_optout`)."""
 from dataclasses import replace
 from datetime import timedelta
-
-import pytest
 
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,סטטוס,תאריך,תאריך לתשלום\n"
 DANA, MICHAL = "050-1234567", "050-0000999"
@@ -46,7 +45,6 @@ def test_optout_after_move_only_old(svc, clock):
     assert not svc.suppressed("sms", MICHAL)
 
 
-@pytest.mark.xfail(strict=True, reason="239🟡: הסרה שעברה בקובץ ⇒ «איך משלמים?» של מיכל נרשם כבקשת הסרה שלה")
 def test_inherited_optout_not_recorded_as_new_customer_request(svc, clock):
     _sent_to_dana(svc, clock)
     svc.inbound("sms", DANA, "הסר אותי")
@@ -57,3 +55,45 @@ def test_inherited_optout_not_recorded_as_new_customer_request(svc, clock):
     hers = svc.db.one("SELECT 1 FROM audit WHERE actor='customer' AND action='opt_out' "
                       "AND json_extract(detail,'$.customer')=?", (michal,))
     assert not hers and not svc.suppressed("sms", MICHAL), (bool(hers), svc.suppressed("sms", MICHAL))
+
+
+def _moved_optout(svc, clock):
+    _sent_to_dana(svc, clock)
+    svc.inbound("sms", DANA, "הסר אותי")
+    clock.now += timedelta(days=1)
+    svc.import_csv(_row("מיכל לוי", MICHAL))
+    return svc.db.one("SELECT id FROM customers WHERE phone=?", (MICHAL,))["id"]
+
+
+def test_inherited_optout_card_once_and_still_stopped(svc, clock):
+    """מנהל 404: כרטיס אחד לבעל העסק (גם אחרי הודעה שנייה), ההסרה ממשיכה לעצור תזכורות — שמרני."""
+    michal = _moved_optout(svc, clock)
+    svc.inbound("sms", MICHAL, "איך אפשר לשלם?")
+    svc.inbound("sms", MICHAL, "תודה")
+    cards = svc.db.q("SELECT body FROM messages WHERE intent='inherited_optout' AND needs_owner=1 AND customer_id=?",
+                     (michal,))
+    assert len(cards) == 1 and "דנה" not in cards[0]["body"] and DANA not in cards[0]["body"]
+    assert svc.db.one("SELECT opted_out FROM customers WHERE id=?", (michal,))["opted_out"] == 1
+    clock.now += timedelta(days=2)
+    assert not [r for r in svc.plan() if svc.db.one(
+        "SELECT 1 FROM reminders r JOIN invoices i ON i.id=r.invoice_id WHERE r.id=? AND i.customer_id=?", (r, michal))]
+    assert svc.db.one("SELECT 1 FROM audit WHERE action='inherited_optout_not_applied'")
+
+
+def test_inherited_then_own_optout_request_is_recorded(svc, clock):
+    """«הסר אותי» מהלקוחה החדשה עצמה ⇒ בקשה שלה: הטלפון שלה ברשימת ההסרה + audit על שמה."""
+    michal = _moved_optout(svc, clock)
+    svc.inbound("sms", MICHAL, "הסר אותי")
+    assert svc.suppressed("sms", MICHAL)
+    assert svc.db.one("SELECT 1 FROM audit WHERE actor='customer' AND action='opt_out' "
+                      "AND json_extract(detail,'$.customer')=?", (michal,))
+    assert not svc.db.one("SELECT 1 FROM messages WHERE intent='inherited_optout'")
+
+
+def test_own_optout_unchanged(svc, clock):
+    """בקרה: לקוחה שביקשה הסרה בעצמה וכותבת «איך משלמים?» ⇒ כמו קודם (אין כרטיס ירושה)."""
+    _sent_to_dana(svc, clock)
+    svc.inbound("sms", DANA, "הסר אותי")
+    svc.inbound("sms", DANA, "איך אפשר לשלם?")
+    assert svc.suppressed("sms", DANA)
+    assert not svc.db.one("SELECT 1 FROM messages WHERE intent='inherited_optout'")

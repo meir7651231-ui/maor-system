@@ -21,6 +21,8 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   draft_stopped_opt_out: { icon: '🚫', title: 'תשובה ללקוח לא נשלחה — הלקוח ביקש הסרה', tone: 'warn' },
   // מבקר 219ב: חשבונית CSV שנסגרה לפי קובץ חזרה כפתוחה בקובץ חדש (קובץ ישן שהועלה בטעות?)
   csv_contact_plan: { icon: '📇', title: 'פרטי קשר השתנו בקובץ לחשבונית בהסדר — הלקוח הושהה, לעדכן', tone: 'warn' },
+  // מבקר 239: הסרה שעברה בקובץ עם חשבונית — הלקוח החדש כתב ולא ביקש הסרה; לא נרשמה כבקשה שלו
+  inherited_optout: { icon: '📇', title: 'הסרה שעברה עם חשבונית מפרטי קשר קודמים — הלקוח לא ביקש, להכריע', tone: 'warn' },
   csv_reopened: { icon: '📂', title: 'חשבונית שנסגרה לפי קובץ חזרה כפתוחה — לבדוק', tone: 'warn' },
   csv_balance_rose: { icon: '📂', title: 'יתרה של חשבונית עלתה בקובץ — אולי קובץ ישן, לבדוק', tone: 'warn' },
   doc_without_id: { icon: '🧾', title: 'מסמכים בלי מזהה ממערכת החשבוניות — לא נשלחות עליהם תזכורות', tone: 'warn' },

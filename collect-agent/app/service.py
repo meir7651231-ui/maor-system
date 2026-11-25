@@ -3762,6 +3762,33 @@ class CollectService:
                 self.audit("customer", "opt_out", {"customer": o["id"], "via": how,
                                                     "shared_contact_of": cid})
 
+    def _inherited_optout(self, cid: int) -> bool:
+        """מבקר 239🟡: opted_out של הלקוח הגיע **בירושה** — קובץ CSV העביר אליו חשבונית מלקוח שביקש הסרה (219א,
+        `csv_contact_changed`), והוא עצמו מעולם לא ביקש: הכתובת שלו לא ברשימת ההסרה ואין audit הסרה על שמו.
+        הסרה אמיתית (שלו / כתובת משותפת / שחזור — כולן מסמנות suppression או audit) ⇒ False."""
+        c = self.db.one("SELECT opted_out, phone, email FROM customers WHERE id=?", (cid,))
+        if c is None or not c["opted_out"]:
+            return False
+        if (c["phone"] and self.suppressed("sms", c["phone"])) or (c["email"] and self.suppressed("email", c["email"])):
+            return False
+        if self.db.one("SELECT 1 FROM audit WHERE action='opt_out' AND json_extract(detail,'$.customer')=?", (cid,)):
+            return False
+        return bool(self.db.one("SELECT 1 FROM audit WHERE action='csv_contact_changed' "
+                                "AND json_extract(detail,'$.to')=?", (cid,)))
+
+    def _inherited_optout_card(self, cid: int) -> None:
+        """מבקר 239🟡: הודעה מלקוח שההסרה שלו ירושה, והיא אינה בקשת הסרה ⇒ לא נרשמת כבקשה שלו (בלי suppression,
+        בלי audit `opt_out` על שמו — §30א). העצירה נשארת (שמרני: אין תזכורות), ובעל העסק מכריע. כרטיס אחד ללקוח."""
+        key = f"inherited_optout:{cid}"
+        if self.db.one("SELECT 1 FROM messages WHERE intent='inherited_optout' AND message_id=?", (key,)):
+            return
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(?,'system','owner',?,'inherited_optout',1,?,?)",
+                  (cid, "חשבונית עברה בקובץ ללקוח הזה מפרטי קשר קודמים, ואיתה עברה גם בקשת הסרה של בעל הפרטים "
+                   "הקודמים. הלקוח כתב עכשיו ולא ביקש הסרה — לא רשמנו זאת כבקשת הסרה שלו. תזכורות אליו עדיין "
+                   "עצורות. אם זה אדם אחר שלא ביקש הסרה — עדכנו בכרטיס הלקוח.", key, _iso(self.clock())))
+        self.audit("system", "inherited_optout_not_applied", {"customer": cid})
+
     def _stop_pending_drafts(self, cid: int) -> None:
         """critic סבב 58–59: טיוטות שנוסחו לפני ההסרה וממתינות (לאישור או לחלון) לא יוצאות אחריה, גם בכוונות
         שמותרות אחרי הסרה (איך משלמים / עותק / חזרו אליי) — המותר נועד לשאלה שנשאלה *אחרי* ההסרה.
