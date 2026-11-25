@@ -20,7 +20,9 @@ HELDOUT = Path(__file__).resolve().parents[1] / "evals" / "heldout"
 
 # שם קובץ ⇒ (מי כתב, commit החתימה, sha256). commit החתימה = המסירה, או תיקון מבני מתועד אחריה:
 # qa6 ⇒ acdca3a4 (תוויות intent ל-5 מלכודות כשה-harness התחיל לחייב intent), qa10 ⇒ 87ae5325 (advance_days
-# הועבר לרמת התור — המריץ התעלם). כל השאר = המסירה עצמה (תואם ל-sha בהודעת ה-commit, חוץ מ-self4 של המנוע).
+# הועבר לרמת התור — המריץ התעלם), qa24 ⇒ q24-25 בלבד (25.11, ראש צוות): «אפס כרטיסים» אחרי שינוי שם + עלייה
+# 1200⇒1500 נכתב לפני הכרעת מנהל 389 (יתרה עלתה ⇒ csv_balance_rose); עכשיו: אין shared_contact (הכוונה של 382) +
+# כרטיס csv_balance_rose אחד בדיוק. כל השאר = המסירה עצמה (תואם ל-sha בהודעת ה-commit, חוץ מ-self4 של המנוע).
 SEALED = {
     "external-2026-11-15-critic.jsonl": ("גבי מבקר", "5cd26e8",
                                         "cbed0c0fc37462025120e0aaa9d3a6c47dff971567e626acd69260837238c6dd"),
@@ -79,7 +81,7 @@ SEALED = {
     "external-2026-11-21-qa22c-flows.jsonl": ("גבי בדיקות", "(this)",
                                              "ccada02ea613e9dc765ee80c32654e1d4fc4242543d9cb6f456c0a851970fe98"),
     "external-2026-11-24-qa24-csvflows.jsonl": ("גבי בדיקות", "(this)",
-                                               "463a070d17f22bd040484c33594975d80f515c42f79efeafb31d3da9105517b6"),
+                                               "7679394b8a1b3b88bce45bc99dd934a1cdf33aafe1a1852e55c2e86f6f1aa5fc"),
     "external-2026-11-25-qa25-csvflows.jsonl": ("גבי בדיקות", "(this)",
                                                "6dbc85b4c79ef7e698081203fc8ac8f6c111663d46df4f6efcb3ae84ac933c6f"),
 }
