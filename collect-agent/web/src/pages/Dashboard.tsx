@@ -19,7 +19,7 @@ import { ALREADY_PLAN, alreadyDone, failPrefix, type Already } from '../lib/fail
 import { mockAmountCheck } from '../lib/policy.ts';
 import { areaPath, cumulative, otherInSeries, toBars, type Bar } from '../lib/series.ts';
 import { BOUNCE_REVIEW, requeuedToast } from '../lib/notices.ts';
-import { OWNER_ONLY_TAG, noticeDoneLocked, resumeOwnerOnly } from '../lib/roles.ts';
+import { OWNER_ONLY_TAG, isStaff, noticeDoneLocked, resumeOwnerOnly } from '../lib/roles.ts';
 
 const AGING_COLOR: Record<Aging, string> = { notDue: 'bg-ink-400', d0_30: 'bg-due', d31_60: 'bg-late', d61_90: 'bg-red-500', d90p: 'bg-red-700' };
 
@@ -392,6 +392,16 @@ function NeedsYou() {
                 <Button size="sm" variant={armed === `bb${n.id}` ? 'dark' : 'outline'} data-testid="notice-bounce-block"
                   onClick={() => act(`bb${n.id}`, () => api.emailBounce(n.customerId!, true), 'הכתובת נחסמה למייל — SMS ממשיך')}>
                   {armed === `bb${n.id}` ? 'לחצו שוב לאישור' : 'המייל באמת חזר — חסום'}</Button>
+              </div>
+            ) : n.intent === 'inherited_optout' && n.customerId != null && !isStaff(me) ? (
+              // מנהל 405 (מבקר 240א): הכרטיס ביקש הכרעה שלא הייתה לה דרך — עכשיו: ביטול ההסרה שעברה, או השארתה
+              <div className="flex flex-wrap gap-2 mt-2">
+                <Button size="sm" variant={armed === `il${n.id}` ? 'dark' : 'outline'} data-testid="notice-inherited-lift"
+                  onClick={() => act(`il${n.id}`, () => api.liftInheritedOptout(n.customerId!), 'ההסרה שעברה בוטלה — התזכורות הבאות לאישורכם')}>
+                  {armed === `il${n.id}` ? 'לחצו שוב לאישור' : 'זה אדם אחר — בטל את ההסרה שעברה'}</Button>
+                <Button size="sm" variant={armed === `n${n.id}` ? 'dark' : 'outline'} data-testid="notice-done"
+                  onClick={() => act(`n${n.id}`, () => api.ownerDone(n.id), 'ההסרה נשארת — סומן כטופל')}>
+                  {armed === `n${n.id}` ? 'לחצו שוב לאישור' : 'השאר מוסר/ת'}</Button>
               </div>
             ) : n.linked?.length ? (
               // critic סבב 149: החלטה 5 — בעל העסק בוחר למי הפנייה שייכת (רק אז המנוע מטפל בה); «אף אחד» משחרר את ההשהיה

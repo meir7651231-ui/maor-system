@@ -199,6 +199,8 @@ export const api = {
   /** הכרעת ראש צוות q21-19: approve=true ⇒ ההשהיה עד המועד המבוקש · false ⇒ נשאר 14 יום, ואז התזכורות חוזרות */
   promiseRequest: (cid: number, approve: boolean) => j<PromiseDecision>(
     `/customers/${cid}/promise-request`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ approve }) }),
+  /** מנהל 405 (מבקר 240א): «זה אדם אחר» — ביטול הסרה שעברה בירושה מקובץ (בעל העסק בלבד; השרת: 403 לעובד/ת) */
+  liftInheritedOptout: (cid: number) => j<unknown>(`/customers/${cid}/lift-inherited-optout`, { method: 'POST' }),
   emailBounce: (cid: number, confirm: boolean) => j<{ customer: number; email: 'blocked' | 'resumed' }>(`/customers/${cid}/email-bounce`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm }) }),
   // critic סבב 149: שיוך כרטיס כתובת משותפת (החלטה 5) — לקוח נבחר, או null = «אף אחד מהם»

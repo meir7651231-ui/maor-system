@@ -941,7 +941,13 @@ class CollectService:
                       (prev["opted_out"], prev["disputed"], prev["paused_reason"], prev["legal_hold"], cid))
         self.db.x("UPDATE invoices SET customer_id=? WHERE id=?", (cid, old["id"]))
         self._cancel_invoice(old["id"], "contact_changed")
-        self.audit("system", "csv_contact_changed", {"invoice": old["id"], "from": old["customer_id"], "to": cid})
+        self.audit("system", "csv_contact_changed", {"invoice": old["id"], "from": old["customer_id"], "to": cid,
+                                                     "upto_reminder": self._last_reminder_id(old["id"])})
+
+    def _last_reminder_id(self, invoice_id: int) -> int:
+        """מנהל 405 (מבקר 240ב): התזכורת האחרונה שנבנתה לחשבונית לפני מעבר — כל תזכורת עד אליה שייכת ללקוח הקודם."""
+        r = self.db.one("SELECT MAX(id) m FROM reminders WHERE invoice_id=?", (invoice_id,))
+        return int(r["m"] or 0) if r else 0
 
     def _api_same_contact_moved(self, inv: Invoice, cid: int) -> None:
         """מנהל 396 (ממצא 394🟡, נוסח API של 388): בסנכרון API בלי מזהה לקוח ה-upsert לא העביר את החשבונית ללקוח
@@ -973,7 +979,7 @@ class CollectService:
         self.db.x("UPDATE invoices SET customer_id=? WHERE id=?", (cid, old["id"]))
         self._cancel_invoice(old["id"], "contact_changed")
         self.audit("system", "csv_contact_changed", {"invoice": old["id"], "from": old["customer_id"], "to": cid,
-                                                     "api": True})
+                                                     "api": True, "upto_reminder": self._last_reminder_id(old["id"])})
 
     def moved_away_open(self, cid: int, after_audit_id: int = 0) -> list:
         """מנהל 395 (מבקר 231/232): חשבוניות פתוחות שקובץ CSV העביר **מ**-cid ללקוח אחר (audit csv_contact_changed,
@@ -2258,6 +2264,7 @@ class CollectService:
             "FROM reminders r WHERE r.invoice_id IN (SELECT id FROM invoices WHERE customer_id=?) "
             "OR r.id IN (SELECT ri.reminder_id FROM reminder_invoices ri JOIN invoices i "
             "ON i.id=ri.invoice_id WHERE i.customer_id=?) ORDER BY r.id", (customer_id, customer_id))]
+        reminders = self._export_reminders_by_owner(customer_id, reminders)
         # critic 164: התכתבות עם זר שענה «מספר שגוי» היא מידע על **צד שלישי**, לא על הלקוח (סעיף 13 = מידע עליו).
         # ההודעה הנכנסת נשארת כשורה (התאריך = עובדה על הטיפול בחוב שלה) אבל בלי התוכן; טיוטת התשובה לזר
         # וההודעה היוצאת אליו לא נמסרות. שאילתות קבועות, בלי SQL דינמי.
@@ -2300,6 +2307,44 @@ class CollectService:
                 "generated_at": _iso(self.clock()),
                 "note": "ייצוא לפי בקשת עיון (סעיף 13). מפתחות גישה, כרטיסים משותפים עם לקוחות אחרים "
                         "ופרטים של צד שלישי (מי שענה «מספר שגוי») אינם כלולים."}
+
+    def _export_reminders_by_owner(self, customer_id: int, reminders: list[dict]) -> list[dict]:
+        """מבקר 240ב🟡: חשבונית שקובץ העביר ללקוח אחר (219א/396, audit `csv_contact_changed`) נושאת איתה תזכורות שנשלחו
+        לבעל הפרטים **הקודם** («שלום דנה…») — מידע על צד שלישי בייצוא של הלקוחה החדשה (העיקרון של critic 164).
+        בעלות על תזכורת = הלקוח שהחשבונית הייתה רשומה עליו כשהתזכורת נבנתה/יצאה: לפי `upto_reminder` שנרשם במעבר
+        (מנהל 405), ובמעבר ישן בלעדיו — לפי זמן השליחה/ההכרעה מול זמן המעבר. תזכורת של הלקוח הקודם יורדת מהייצוא
+        של החדש ונכנסת לייצוא של הקודם (זכות העיון שלו — היא נשלחה אליו). SQL קבוע."""
+        moves: dict[int, list[dict]] = {}
+        for a in self.db.q("SELECT at, detail FROM audit WHERE action='csv_contact_changed' ORDER BY id"):
+            try:
+                d = json.loads(a["detail"] or "{}")
+                moves.setdefault(int(d["invoice"]), []).append(
+                    {"at": a["at"], "from": int(d["from"]), "upto": d.get("upto_reminder")})
+            except (ValueError, KeyError, TypeError):
+                continue
+        if not moves:
+            return reminders
+        moved_from_me = [iid for iid, ms in moves.items() if any(m["from"] == customer_id for m in ms)]
+        if moved_from_me:
+            have = {r["id"] for r in reminders}
+            reminders = reminders + [dict(r) for r in self.db.q(
+                "SELECT r.id,r.invoice_id,r.step,r.scheduled_for,r.status,r.body,r.sent_at,r.decided_at "
+                "FROM reminders r WHERE r.invoice_id IN (SELECT value FROM json_each(?)) ORDER BY r.id",
+                (json.dumps(moved_from_me),)) if r["id"] not in have]
+            reminders.sort(key=lambda r: r["id"])
+        current = {r["id"]: r["customer_id"] for r in self.db.q(
+            "SELECT id, customer_id FROM invoices WHERE id IN (SELECT value FROM json_each(?))",
+            (json.dumps(sorted({r["invoice_id"] for r in reminders})),))}
+
+        def owner(r: dict) -> int | None:
+            when = r["sent_at"] or r["decided_at"] or r["scheduled_for"]
+            for m in moves.get(r["invoice_id"], []):
+                before = (r["id"] <= m["upto"]) if isinstance(m["upto"], int) else bool(when and when < m["at"])
+                if before:
+                    return m["from"]
+            return current.get(r["invoice_id"])
+
+        return [r for r in reminders if owner(r) == customer_id]
 
     def purge_closed(self, actor: str = "system") -> dict[str, int]:
         """חוב סגור מעל 90 יום ⇒ ריקון תוכן ההודעות והתממת הלקוח (כשאין לו חוב פתוח),
@@ -3788,6 +3833,23 @@ class CollectService:
                    "הקודמים. הלקוח כתב עכשיו ולא ביקש הסרה — לא רשמנו זאת כבקשת הסרה שלו. תזכורות אליו עדיין "
                    "עצורות. אם זה אדם אחר שלא ביקש הסרה — עדכנו בכרטיס הלקוח.", key, _iso(self.clock())))
         self.audit("system", "inherited_optout_not_applied", {"customer": cid})
+
+    def lift_inherited_optout(self, customer_id: int, actor: str = "owner") -> dict:
+        """מנהל 405 (מבקר 240א🟡): כרטיס «ההסרה עברה בירושה» ביקש הכרעה שלא הייתה לה דרך — אין מסלול שמבטל
+        opted_out. בעל העסק קובע «זה אדם אחר שלא ביקש הסרה» ⇒ ההסרה שעברה מבוטלת **רק** לו. מותר רק כשההסרה
+        באמת ירושה (`_inherited_optout`: הכתובת שלו לא ברשימת ההסרה ואין בקשת הסרה על שמו) — הסרה אמיתית לא
+        מבוטלת כאן. עצירות אחרות שעברו (מחלוקת/השהיה/עיכוב) נשארות. הכרטיס יורד, audit בלי PII. התזכורות
+        הבאות נבנות בתכנון הבא — לאישור, כרגיל."""
+        c = self.db.one("SELECT id FROM customers WHERE id=?", (customer_id,))
+        if not c:
+            raise KeyError(customer_id)
+        if not self._inherited_optout(customer_id):
+            raise ValueError("ההסרה של הלקוח לא הגיעה בירושה מפרטי קשר קודמים — אי אפשר לבטל אותה כאן")
+        self.db.x("UPDATE customers SET opted_out=0 WHERE id=?", (customer_id,))
+        self.db.x("UPDATE messages SET needs_owner=0 WHERE customer_id=? AND intent='inherited_optout' "
+                  "AND needs_owner=1", (customer_id,))
+        self.audit(actor, "inherited_optout_lifted", {"customer": customer_id})
+        return dict(self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)))
 
     def _stop_pending_drafts(self, cid: int) -> None:
         """critic סבב 58–59: טיוטות שנוסחו לפני ההסרה וממתינות (לאישור או לחלון) לא יוצאות אחריה, גם בכוונות

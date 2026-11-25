@@ -1546,6 +1546,17 @@ test('critic 192: כרטיס email_bounce_review — כותרת ייעודית +
   assert.equal(m.customerId, undefined);
 });
 
+test('מנהל 405 (מבקר 240א): כרטיס inherited_optout נושא customerId — כפתור «זה אדם אחר» לבעל העסק', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const [n] = systemNotices([{ id: 9, customer_id: 4, direction: 'system', channel: 'owner', body: 'x', intent: 'inherited_optout', created_at: '2026-11-25T10:00:00+02:00' }]);
+  assert.equal(n.customerId, 4);
+  const { readFileSync } = await import('node:fs');
+  const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  // הגנת-מקור: הכפתור קורא ל-api.liftInheritedOptout ומוצג רק למי שאינו עובד/ת (השרת: 403)
+  assert.match(dash, /n\.intent === 'inherited_optout' && n\.customerId != null && !isStaff\(me\)/);
+  assert.match(dash, /api\.liftInheritedOptout\(n\.customerId!\)/);
+});
+
 test('מבקר 194: שדות בעל העסק בהגדרות נעולים לעובד/ת בלבד', async () => {
   const { settingsOwnerOnly, fieldLocked, OWNER_ONLY_FIELDS } = await import('../src/lib/settings.ts');
   const staff = { actor: 'user:2', kind: 'user' as const, name: 'עובד' };

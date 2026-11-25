@@ -623,6 +623,14 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(403, "רק בעל העסק יכול לבטל השהיה שהוא סימן (קטין / פטירה / חדלות פירעון)")
         return guard(svc.resume_customer, cid, request.state.actor)
 
+    @app.post("/customers/{cid}/lift-inherited-optout", dependencies=auth)
+    def lift_inherited_optout(cid: int, request: Request):
+        # מנהל 405 (מבקר 240א): ביטול הסרה = הכרעה משפטית (§30א) ⇒ בעל העסק בלבד, כמו ביטול השהיית-בעלים (191א)
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, "inherited_optout_lift_refused", {"customer": cid})
+            raise HTTPException(403, "רק בעל העסק מבטל הסרה שעברה בירושה")
+        return guard(svc.lift_inherited_optout, cid, request.state.actor)
+
     @app.post("/customers/{cid}/email-bounce", dependencies=auth)
     def customer_email_bounce(cid: int, b: EmailBounceIn, request: Request):   # q22-04: הכרעת בעל העסק
         return guard(svc.confirm_email_bounce, cid, b.confirm, request.state.actor)

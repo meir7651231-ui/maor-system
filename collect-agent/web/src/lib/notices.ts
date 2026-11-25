@@ -129,7 +129,7 @@ export function systemNotices(rows: OwnerMsg[]): Notice[] {
       if (unverified) body = `${UNVERIFIED_EMAIL_LINE}\n\n${body}`;
       return { id: r.id, icon: k.icon, title: k.title, body, tone: k.tone, intent: r.intent ?? '',
         ...(linked.length ? { linked } : {}), ...(unverified ? { unverified: true } : {}),
-        ...(r.intent === BOUNCE_REVIEW && r.customer_id != null ? { customerId: r.customer_id } : {}) };
+        ...((r.intent === BOUNCE_REVIEW || r.intent === 'inherited_optout') && r.customer_id != null ? { customerId: r.customer_id } : {}) };
     })
     .sort((a, b) => Number(URGENT_ORPHANS.has(b.intent)) - Number(URGENT_ORPHANS.has(a.intent))
       || Number(b.intent === 'trial_ending') - Number(a.intent === 'trial_ending') || b.id - a.id);
