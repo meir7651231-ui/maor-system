@@ -286,6 +286,13 @@ def _mark_unverified(payload) -> str:
     return json.dumps(info, ensure_ascii=False)
 
 
+def _inheritable_pause(reason: str | None) -> str | None:
+    """מנהל 412 (409🟡): השהיית `csv_contact_changed` מגינה על **הפרטים הישנים** של לקוח עם חשבונית בהסדר
+    (219א) — היא לא עוברת עם חשבונית שזזה ללקוח אחר (אחרת הלקוח החדש מושהה בלי כרטיס משלו, ושחרור 409 לא
+    נוגע בו). כל השהיה אחרת עוברת — שינוי טלפון לא משחרר עצירה."""
+    return None if reason == "csv_contact_changed" else reason
+
+
 def _iso(dt: datetime) -> str:
     return dt.astimezone(TZ).isoformat(timespec="seconds")
 
@@ -960,7 +967,8 @@ class CollectService:
             inherit = 0 if self._optout_lift_covers(cid, old["customer_id"]) else prev["opted_out"]
             self.db.x("UPDATE customers SET opted_out=MAX(opted_out, ?), disputed=MAX(disputed, ?), "
                       "paused_reason=COALESCE(paused_reason, ?), legal_hold=COALESCE(legal_hold, ?) WHERE id=?",
-                      (inherit, prev["disputed"], prev["paused_reason"], prev["legal_hold"], cid))
+                      (inherit, prev["disputed"], _inheritable_pause(prev["paused_reason"]), prev["legal_hold"],
+                       cid))
         self.db.x("UPDATE invoices SET customer_id=? WHERE id=?", (cid, old["id"]))
         self._cancel_invoice(old["id"], "contact_changed")
         self.audit("system", "csv_contact_changed", {"invoice": old["id"], "from": old["customer_id"], "to": cid,
@@ -1015,7 +1023,8 @@ class CollectService:
             inherit = 0 if self._optout_lift_covers(cid, old["customer_id"]) else prev["opted_out"]
             self.db.x("UPDATE customers SET opted_out=MAX(opted_out, ?), disputed=MAX(disputed, ?), "
                       "paused_reason=COALESCE(paused_reason, ?), legal_hold=COALESCE(legal_hold, ?) WHERE id=?",
-                      (inherit, prev["disputed"], prev["paused_reason"], prev["legal_hold"], cid))
+                      (inherit, prev["disputed"], _inheritable_pause(prev["paused_reason"]), prev["legal_hold"],
+                       cid))
         self.db.x("UPDATE invoices SET customer_id=? WHERE id=?", (cid, old["id"]))
         self._cancel_invoice(old["id"], "contact_changed")
         self.audit("system", "csv_contact_changed", {"invoice": old["id"], "from": old["customer_id"], "to": cid,
@@ -1096,7 +1105,7 @@ class CollectService:
                                    (from_cid,))
                 if prev is not None:
                     inherit = 0 if self._optout_lift_covers(to, from_cid) else prev["opted_out"]
-                    pause = None if prev["paused_reason"] == "csv_contact_changed" else prev["paused_reason"]
+                    pause = _inheritable_pause(prev["paused_reason"])
                     self.db.x("UPDATE customers SET opted_out=MAX(opted_out, ?), disputed=MAX(disputed, ?), "
                               "paused_reason=COALESCE(paused_reason, ?), legal_hold=COALESCE(legal_hold, ?) "
                               "WHERE id=?", (inherit, prev["disputed"], pause, prev["legal_hold"], to))
