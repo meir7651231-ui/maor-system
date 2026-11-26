@@ -36,7 +36,7 @@ class BusinessSecrets:
         if not isinstance(box, SecretBox):
             raise SecretError("נדרש SecretBox — אין שמירת סודות בלי הצפנה")
         self.db, self.box = db, box
-        db.conn.executescript(SCHEMA)
+        db.ensure_table(SCHEMA)   # מנהל 434 (263ב): נבנה פר-בקשה ב-orbit_connect — בלי COMMIT לטרנזקציה זרה
 
     def _check(self, field: str) -> None:
         if field not in FIELDS:

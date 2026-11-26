@@ -19,7 +19,6 @@ import pytest
 from app import dsr
 
 
-@pytest.mark.xfail(strict=True, reason="263ב🟠: dsr.ensure_schema בלי lock מבצע COMMIT לטרנזקציה של thread אחר")
 def test_dsr_listing_does_not_commit_another_threads_batch(svc):
     svc.sync()
     started, done = threading.Event(), threading.Event()

@@ -308,6 +308,16 @@ class DB:
             self.conn.commit()
             self.conn.execute("VACUUM")
 
+    def ensure_table(self, ddl: str) -> None:
+        """מנהל 434 (מבקר 263ב🟠): DDL של מודול («CREATE TABLE IF NOT EXISTS …», משפט אחד) בלי לגעת בטרנזקציה
+        של thread אחר. `executescript` מבצע COMMIT לטרנזקציה הפתוחה על החיבור המשותף ⇒ `GET /dsr` במקביל
+        ל-`batch()` של סנכרון/ייבוא התחייב בחצי-טרנזקציה. כאן: תחת ה-lock, `execute` (לא commit מרומז),
+        ו-commit רק כשאיננו בתוך batch (בתוך batch — ה-DDL חלק מהטרנזקציה ונופל/נשמר איתה)."""
+        with self.lock:
+            self.conn.execute(ddl)
+            if not self._batch_depth:
+                self.conn.commit()
+
     @contextmanager
     def batch(self) -> Iterator[None]:
         """critic סבב 37: טרנזקציה אחת לכמה כתיבות (`x` לא עושה commit בפנים). כשל ⇒ rollback של הכול.

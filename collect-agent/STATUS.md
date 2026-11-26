@@ -1,7 +1,23 @@
-# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 433, 26.11)
+# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 434, 26.11)
 
 
 
+
+## 🧭 הפעלת מנהל · 26.11.2026 (הפעלה 434) — מנוע: DDL של מודולים לא מבצע COMMIT לטרנזקציה של thread אחר (מבקר 263ב🟠)
+- **מיזוג:** נסרקו כל `origin/claude/*` מול `collect-agent` (לפי commits שנוגעים ב-`collect-agent/`). **אין ענפים חדשים.** בחוץ (ידועים): `bold-bell-xom3mc` (WIP «נעצר לפי בקשת מאיר»), `gabi-019-inbound` (התוכן בפנים), `stoic-mccarthy-23f03p` (נדחה ב-107). נכנס מאז 433: ביקורת 263 (`553abd1f`, 🟠+🟡, xfail ×2). ה-workflow `collect-agent.yml` קיים ורץ רק על `collect-agent/`.
+- **המשימה (263ב🟠 — החמור מבין השניים):** `dsr.ensure_schema` הריץ `executescript` בלי `db.lock`; executescript מבצע COMMIT לטרנזקציה הפתוחה על החיבור המשותף ⇒ `GET /dsr` במקביל לסנכרון/ייבוא CSV (`db.batch()`, «הכול או כלום») התחייב בחצי-טרנזקציה של thread אחר. זה השורש של ה-500 החולף ב-e2e (`live` 263, `app-staff-owner-only` 262). אותו דפוס ב-`BusinessSecrets.__init__` (נבנה פר-בקשה ב-orbit_connect).
+- **תיקון:** `DB.ensure_table(ddl)` חדש (`app/db.py`) — תחת ה-lock, `execute` (בלי COMMIT מרומז), commit רק מחוץ ל-batch (בתוך batch של אותו thread ה-DDL חלק מהטרנזקציה). `dsr.ensure_schema` + `BusinessSecrets.__init__` עוברים אליו. users/inbox/orbit_connect/orbit_entitlement כבר תחת lock — לא נגעתי.
+- **בדיקות:** xfail של 263ב הוסר (עובר) + `tests/test_mgr434_ensure_table_no_foreign_commit.py` (3): dsr מ-thread אחר לא שובר rollback · BusinessSecrets מ-thread אחר לא שובר rollback · ensure_schema בתוך batch של אותו thread ⇒ rollback מלא. **מוטציה:** dsr חוזר ל-executescript ⇒ 3 נופלות. ruff ✓ · `./demo.sh --check` ✓ (exit 0, 0 ❌) · pytest מלא (4 רסיסים): **9,913 עברו**, 20 דולגו, 3 xfail (2 הכרעות מאיר + 263🟡), 0 נכשלו.
+- **מצב לפי תפקיד:**
+  - מנוע: 263ב🟠 ✓. **הבא:** 263🟡 — תווית `inherited_optout` בטבלת החובות («הסרה שעברה מפרטי קשר קודמים») במקום «הלקוח ביקש הסרה» (`service._customer_block`, `web/src/api.ts`, `app/ui.html`; xfail קיים).
+  - ביקורת: **הבא:** 264 — לאמת 434 (e2e `live` ×3 בלולאה במקביל ל-pytest — ה-500 החולף נעלם?).
+  - QA: **הבא:** תרחיש `/_mock/outage` בדפדפן (`/app/` 390px) + הורדת «ייצוא כל הנתונים» ב-e2e + הדפסת נתיב לכל 500 ב-e2e (262ℹ️).
+  - משפט: **הבא:** `addr_hash` ⇒ HMAC · אישור 405/407/408.
+  - חיבורים: **הבא:** אימות `pages` מול sandbox (חסום — מפתח אצל מאיר) · סנכרון לפי תאריך כחלופה לתקרה.
+  - עיצוב: **הבא:** כרטיס מתמשך — «מאז <תאריך>».
+  - תשתית/CI · מכירות / AI / שיווק: ללא שינוי.
+- **הבא:** (1) מנוע 263🟡 תווית ירושה. (2) ביקורת 264. (3) QA דפדפן `/_mock/outage`. (4) משפט: `addr_hash` HMAC. (5) הכרעות מאיר: הסף 5/50% + «ריק ⇒ כרטיס מ-2» + נדנוד-יומי אחרי «השאר פתוחות».
+- **חסמים (מאיר):** ללא שינוי (ראו 378 + 402).
 
 ## 🧭 הפעלת מנהל · 26.11.2026 (הפעלה 433) — מנוע: «הסר» ראשון של לקוחה שירשה הסרה מקבל אישור (מבקר 262🟡)
 - **מיזוג:** נסרקו כל `origin/claude/*` מול `collect-agent` (לפי שינויים ב-`collect-agent/`). **אין ענפים חדשים.** בחוץ (ידועים): `bold-bell-xom3mc` (WIP «נעצר לפי בקשת מאיר»), `gabi-019-inbound` (התוכן בפנים), `stoic-mccarthy-23f03p` (נדחה ב-107); `bridge-gabi-engine-*` לא נוגעים ב-`collect-agent/`. נכנס מאז 432: ביקורת 262 (`cf095e13`, 🟡 + xfail). ה-workflow `collect-agent.yml` קיים ורץ רק על `collect-agent/`.

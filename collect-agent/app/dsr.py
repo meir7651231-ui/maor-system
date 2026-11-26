@@ -137,7 +137,7 @@ def _iso(dt: datetime) -> str:
 
 
 def ensure_schema(db) -> None:
-    db.conn.executescript(SCHEMA)
+    db.ensure_table(SCHEMA)   # מנהל 434 (263ב): תחת lock, בלי COMMIT לטרנזקציה של thread אחר
 
 
 def open_request(svc: Any, customer_id: int | None, kind: str, channel: str,
