@@ -9,17 +9,15 @@
 לפי כתובת נאכפת: התזכורת שנבנתה מבוטלת `opted_out` לפני שליחה. ✓ סריקת כל הטבלאות אחרי התממה (סבב 255) — אין שם/טלפון/
 מייל מחוץ ל-external_id. ℹ️ גם `addr_hash` של רשימת ההסרה הוא SHA-256 בלי מפתח (קיים מקודם; נשמר בכוונה לאכיפת §30א) —
 אותה הפיכות; שווה הכרעה של גבי משפט אם HMAC עם סוד השרת.
-הצעה: `purged:<uuid4>` (לא דטרמיניסטי — אין התאמה ממילא), או HMAC עם סוד השרת. xfail(strict=True)."""
+הצעה: `purged:<uuid4>` (לא דטרמיניסטי — אין התאמה ממילא), או HMAC עם סוד השרת. xfail(strict=True).
+✓ תוקן במנהל 425 (purged:<אקראי 128 ביט>)."""
 import hashlib
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
-
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,סטטוס,תאריך,תאריך לתשלום\n"
 
 
-@pytest.mark.xfail(strict=True, reason="256🟡: purged:<sha256> בלי מלח — הטלפון משוחזר בסריקה של מרחב הניידים")
 def test_purged_key_not_reversible_by_enumeration(svc, clock):
     svc.s = replace(svc.s, source_system="csv")
     svc.db.x("DELETE FROM invoices")

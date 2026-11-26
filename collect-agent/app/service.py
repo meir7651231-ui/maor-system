@@ -302,6 +302,15 @@ def _inheritable_pause(reason: str | None) -> str | None:
     return None if reason == "csv_contact_changed" else reason
 
 
+# מנהל 425 (מבקר 256🟡): מפתח התממה של 424 = "purged:" + sha256 (64 hex) — הפיך בסריקת מרחב הטלפונים
+_HASHED_PURGED_LEN = len("purged:") + 64
+_HEX = set("0123456789abcdef")
+
+
+def _is_hashed_purged_key(ext: str) -> bool:
+    return len(ext) == _HASHED_PURGED_LEN and ext.startswith("purged:") and set(ext[7:]) <= _HEX
+
+
 def _iso(dt: datetime) -> str:
     return dt.astimezone(TZ).isoformat(timespec="seconds")
 
@@ -2683,14 +2692,16 @@ class CollectService:
         return {"invoices": inv_n, "customers": cust_n}
 
     def _purged_customer_key(self, cid: int) -> str:
-        """מנהל 424: external_id אחרי התממה. `phone:…`/`email:…` (כולל `|name:…`) ⇒ `purged:<sha256>` —
-        דטרמיניסטי וייחודי כמו המקור, בלי הערך הגלוי. ייבוא עתידי של אותו אדם יוצר לקוח חדש (נקי), כמו לקוח
-        חדש; רשימת ההסרה נשמרת בנפרד (גיבוב הכתובת) ולכן הסרה ממשיכה לחול."""
+        """מנהל 424: external_id אחרי התממה. `phone:…`/`email:…` (כולל `|name:…`) ⇒ `purged:<אקראי>`.
+        מנהל 425 (מבקר 256🟡): לא גיבוב — sha256 בלי מלח על מרחב הניידים (~10⁸) נסרק בדקות והטלפון חוזר. המפתח
+        לא משמש להתאמה (ייבוא עתידי של אותו אדם יוצר לקוח חדש ונקי), ולכן אקראי (128 ביט, ייחודי) מספיק.
+        רשימת ההסרה נשמרת בנפרד (גיבוב הכתובת) ולכן הסרה ממשיכה לחול. מפתח `purged:` ישן (גיבוב 64 תווים, 424)
+        ⇒ מוחלף גם הוא."""
         row = self.db.one("SELECT external_id FROM customers WHERE id=?", (cid,))
         ext = (row["external_id"] if row else "") or ""
-        if not ext.startswith(("phone:", "email:")):
+        if not (ext.startswith(("phone:", "email:")) or _is_hashed_purged_key(ext)):
             return ext
-        return "purged:" + hashlib.sha256(ext.encode()).hexdigest()
+        return "purged:" + secrets.token_hex(16)
 
     def _purge_rows(self) -> tuple[int, int, int]:
         cutoff = _iso(self.clock() - timedelta(days=RETENTION_DAYS))
@@ -2714,9 +2725,12 @@ class CollectService:
                       (now, r["id"]))
             inv_n += 1
         # מנהל 424: ריפוי — לקוחות שהותממו לפני 424 עם מפתח phone:/email: גלוי (ריקים לגמרי, בלי חשבונית חיה)
+        # מנהל 425 (מבקר 256🟡): וגם מפתח 424 מגובב (purged:<64 hex>, הפיך בסריקה) ⇒ אקראי
         for c in self.db.q("SELECT id FROM customers c WHERE purged_at IS NOT NULL AND name IS NULL AND phone IS NULL "
-                           "AND email IS NULL AND (external_id LIKE 'phone:%' OR external_id LIKE 'email:%') AND NOT "
-                           "EXISTS (SELECT 1 FROM invoices i WHERE i.customer_id=c.id AND i.purged_at IS NULL)"):
+                           "AND email IS NULL AND (external_id LIKE 'phone:%' OR external_id LIKE 'email:%' OR "
+                           "(external_id LIKE 'purged:%' AND length(external_id)=?)) AND NOT "
+                           "EXISTS (SELECT 1 FROM invoices i WHERE i.customer_id=c.id AND i.purged_at IS NULL)",
+                           (_HASHED_PURGED_LEN,)):
             self.db.x("UPDATE customers SET external_id=? WHERE id=?", (self._purged_customer_key(c["id"]), c["id"]))
         for c in self.db.q("SELECT id FROM customers WHERE purged_at IS NULL AND "
                            "legal_hold IS NULL"):

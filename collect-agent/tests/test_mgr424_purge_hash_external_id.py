@@ -25,7 +25,7 @@ def test_keys_hashed_unique_and_split_too(svc, clock):
     rows = svc.db.q("SELECT external_id FROM customers")
     exts = [r["external_id"] for r in rows]
     assert len(exts) == 3 and len(set(exts)) == 3
-    assert all(e.startswith("purged:") and len(e) == len("purged:") + 64 for e in exts), exts
+    assert all(e.startswith("purged:") and len(e) == len("purged:") + 32 for e in exts), exts   # 425: אקראי, לא גיבוב
     assert svc._purged_customer_key(-1) == ""   # שורה חסרה ⇒ לא קורס
 
 
