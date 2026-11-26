@@ -13,15 +13,12 @@ pay in 3 installments?» / «please remove me» ⇒ shared_contact_paid_claim/_p
 צילום docs/screens/critic-262-sync-page-cap-390.png.
 ✓ 432: /maintenance/purge מריץ גם dsr.sweep (ℹ️ 259).
 הצעה: «הסר» מלקוח שה-opted_out שלו ירושה (`_inherited_optout`) ⇒ כבקשה ראשונה (טיוטת אישור), כמו 366.
-xfail(strict=True)."""
+תוקן במנהל 433 (`app/inbox.py` → `handle_customer`) — ה-xfail הוסר."""
 from datetime import timedelta
-
-import pytest
 
 from tests.test_critic_round239_inherited_optout import DANA, MICHAL, _row, _sent_to_dana
 
 
-@pytest.mark.xfail(strict=True, reason="262🟡: הסרה ראשונה של לקוחה שירשה הסרה — נרשמת בלי טיוטת אישור")
 def test_first_real_optout_after_inheritance_gets_ack(svc, clock):
     _sent_to_dana(svc, clock)
     svc.inbound("sms", DANA, "STOP")

@@ -421,6 +421,14 @@ class ConversationInbox:
         web = channel == "web"
         ctx = self._context(cust, "sms" if web else channel)
         d = respond(text, ctx, llm=self.llm)
+        if (not web and ctx.state == State.OPTED_OUT and d.intent == Intent.OPT_OUT
+                and self.svc._inherited_optout(cust["id"])):
+            # מנהל 433 (מבקר 262🟡): ההסרה עברה בקובץ מלקוח קודם (239) — «הסר» של הלקוח עצמו הוא הבקשה **הראשונה**
+            # שלו ⇒ כמו 366: המנוע מטפל בה כבקשה ראשונה (טיוטת «הבקשה התקבלה…»), וההסרה נרשמת על שמו
+            # (_apply_effects ⇒ _opt_out). רק לכוונת הסרה — הודעה אחרת נשארת במסלול 239 (כרטיס, בלי תשובה).
+            cust = {**dict(cust), "opted_out": 0}
+            ctx = self._context(cust, channel)
+            d = respond(text, ctx, llm=self.llm)
         if web:
             d = replace(d, reply=None, auto_send=False)
         d = self._hold_reply_if_opted_out(cust, channel, d)
