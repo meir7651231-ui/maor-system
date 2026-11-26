@@ -25,7 +25,8 @@ const H = { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json'
 const totpCode = () => execFileSync('python3', ['-c',
   'import sys; from app import totp; from app.demo import DEMO_NOW; print(totp.code_at(open(sys.argv[1]).read().strip(), DEMO_NOW.timestamp()))',
   USER.secretFile], { cwd: root }).toString().trim();
-const LOCKED = ['פרטי העסק', 'מאיפה מגיעות החשבוניות', 'ערוצי שליחה', 'קישור לתשלום'];
+// מבקר 261: מנהל 429 הוסיף כרטיס «ייצוא כל הנתונים» עם תג בעלים (עובד/ת לא מייצא/ת) — 5 תגים
+const LOCKED = ['פרטי העסק', 'מאיפה מגיעות החשבוניות', 'ערוצי שליחה', 'קישור לתשלום', 'ייצוא כל הנתונים'];
 const b = await launchChromium(chromium); const errors = [];
 try {
   await waitHealthy(base, srv);
