@@ -254,6 +254,8 @@ jobs:
         run: TZ=UTC node e2e/app-csv-excel.mjs "$RUNNER_TEMP/shots"
       - name: "e2e — «זה אדם אחר» / «השאר מוסר/ת» בכרטיס ההסרה שעברה בירושה (שם הלקוחה בכרטיס, 407, תכנון אחרי ביטול, 390px)"
         run: TZ=UTC node e2e/app-inherited-optout.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e — תקלת ספק (/_mock/outage) ⇒ כרטיס «נעלמו» אחד ב-/app/: «השאר פתוחות» / «כולן שולמו» (2 לחיצות), לא מציק שוב באותו יום, 390px, מול ה-mock של חשבונית ירוקה (מנהל 435)"
+        run: TZ=UTC node e2e/app-mass-vanish.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
         run: TZ=UTC node e2e/rebuild.mjs "$RUNNER_TEMP/shots"
       - name: e2e CSP — 7 עמודי HTML (/p, /p-404, /ui, /app, /pay, /connect/orbit) בלי הפרות, וסקריפט מוזרק נחסם
