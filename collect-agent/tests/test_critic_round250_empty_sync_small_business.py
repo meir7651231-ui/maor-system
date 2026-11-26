@@ -11,12 +11,9 @@
 כרגיל (לא לחסום סגירה לגיטימית). xfail(strict=True)."""
 from datetime import timedelta
 
-import pytest
-
 from tests.conftest import gi_doc
 
 
-@pytest.mark.xfail(strict=True, reason="250🟡: 4 פתוחות + תשובת API ריקה ⇒ כולן נסגרות בשקט (מתחת לסף 416ב)")
 def test_empty_response_small_business_held(svc, clock, fake_gi):
     fake_gi.docs[:] = [gi_doc(i, phone=f"050-00001{i:02d}") for i in range(1, 5)]
     svc.sync()
@@ -36,3 +33,22 @@ def test_single_invoice_vanish_closes(svc, clock, fake_gi):
     clock.now += timedelta(hours=2)
     svc.sync()
     assert svc.db.one("SELECT status FROM invoices")["status"] == "closed"
+
+
+def test_two_invoices_empty_response_held(svc, clock, fake_gi):
+    """מנהל 418: הגבול התחתון — 2 פתוחות + תשובה ריקה ⇒ מוחזקות + כרטיס."""
+    fake_gi.docs[:] = [gi_doc(i, phone=f"050-00001{i:02d}") for i in (1, 2)]
+    svc.sync()
+    fake_gi.docs[:] = []
+    clock.now += timedelta(hours=2)
+    out = svc.sync()
+    assert out["vanish_held"] == 2
+    assert svc.db.one("SELECT COUNT(*) n FROM invoices WHERE status='open'")["n"] == 2
+
+
+def test_threshold_unit():
+    """יחידה: ריק+≥2 ⇒ חשוד · ריק+1 ⇒ לא · לא-ריק מתחת לסף ⇒ לא."""
+    from app.service import CollectService
+    assert CollectService._mass_vanish(2, 2, 0) and not CollectService._mass_vanish(1, 1, 0)
+    assert not CollectService._mass_vanish(4, 4, 1)
+

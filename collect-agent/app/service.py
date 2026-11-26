@@ -911,7 +911,7 @@ class CollectService:
                 # חשבונית של מקור אחר — העדרה מהסנכרון הזה לא אומר שנסגרה
                 if provider is None or _closable_by(provider, row["external_id"])]
         gone = [row["id"] for row in base if row["external_id"] not in seen]
-        if source != "csv" and self._mass_vanish(len(gone), len(base)):
+        if source != "csv" and self._mass_vanish(len(gone), len(base), len(seen)):
             # מנהל 416 (מבקר 249🟠): רשימה ריקה/מקוצרת ב-HTTP 200 (פילטר שגוי, חשבון אחר, תקלה אצל הספק) סגרה את כל
             # החובות בשקט כ«שולמו». עכשיו: לא סוגרים, כרטיס לבעל העסק — הוא מכריע («כולן שולמו» ⇒ accept_mass_close)
             self._hold_mass_vanish(gone, len(base), len(seen))
@@ -936,8 +936,12 @@ class CollectService:
     MASS_VANISH_MIN = 5   # מבקר 249: פחות מזה — עסק קטן שבאמת נגבה כולו (2–4 חשבוניות) לא נעצר
 
     @classmethod
-    def _mass_vanish(cls, gone: int, base: int) -> bool:
-        """מבקר 249🟠: סנכרון מלא שבו נעלמו ≥5 חשבוניות פתוחות שהן ≥50% מהפתוחות של המקור ⇒ חשוד כתקלה."""
+    def _mass_vanish(cls, gone: int, base: int, got: int | None = None) -> bool:
+        """מבקר 249🟠: סנכרון מלא שבו נעלמו ≥5 חשבוניות פתוחות שהן ≥50% מהפתוחות של המקור ⇒ חשוד כתקלה.
+        מנהל 418 (ביקורת 250🟡): תשובה **ריקה** (0 מסמכים) כשנעלמו ≥2 ⇒ גם חשוד, גם בעסק קטן מתחת לסף —
+        רשימה ריקה היא האות החזק ביותר לתקלה. חשבונית יחידה שנעלמה נסגרת כרגיל (לא חוסמים סגירה לגיטימית)."""
+        if got == 0 and gone >= 2:
+            return True
         return gone >= cls.MASS_VANISH_MIN and gone * 2 >= base
 
     def _hold_mass_vanish(self, gone: list[int], base: int, got: int) -> None:

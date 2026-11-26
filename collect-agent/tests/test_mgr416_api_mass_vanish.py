@@ -1,7 +1,8 @@
 """מנהל 416 (מבקר 249🟠) — סנכרון API מלא שמחזיר רשימה ריקה/מקוצרת (HTTP 200) סגר את כל החובות הפתוחים בשקט כ«שולמו».
 עכשיו: נעלמו ≥5 שהן ≥50% מהפתוחות של המקור ⇒ לא נסגרות, תזכורות לא מבוטלות, כרטיס `api_mass_vanish` לבעל העסק.
 «כולן באמת שולמו» (`accept_mass_close`, בעל העסק בלבד) ⇒ נסגרות. סנכרון תקין אחר כך ⇒ הכרטיס יורד.
-בקרות: עסק קטן (3 פתוחות שנגבו) ⇒ נסגרות כרגיל · מיעוט שנעלם (25%) ⇒ נסגר כרגיל · CSV לא מושפע (full=False ממילא)."""
+בקרות: עסק קטן (3 פתוחות, 2 נגבו, התשובה לא ריקה) ⇒ נסגרות כרגיל
+תשובה ריקה עם ≥2 שנעלמו ⇒ כרטיס (מנהל 418) · מיעוט שנעלם (25%) ⇒ נסגר כרגיל · CSV לא מושפע (full=False ממילא)."""
 import json
 from datetime import timedelta
 
@@ -66,11 +67,25 @@ def test_minority_vanish_closes_normally(svc, clock, fake_gi):
     assert not _card(svc)
 
 
-def test_small_business_all_paid_closes(svc, clock, fake_gi):
+def test_small_business_partial_vanish_closes(svc, clock, fake_gi):
+    """עסק קטן (3 פתוחות), 2 נגבו והשלישית עדיין במקור ⇒ סגירה רגילה (מתחת לסף, התשובה לא ריקה)."""
+    _setup(svc, clock, fake_gi, n=3)
+    fake_gi.docs[:] = _docs(1, start=3)
+    out = svc.sync()
+    assert out["closed"] == 2 and _open_count(svc) == 1 and not _card(svc)
+
+
+def test_small_business_empty_response_held_then_owner_closes(svc, clock, fake_gi):
+    """מנהל 418 (ביקורת 250🟡): היה «3 פתוחות + תשובה ריקה ⇒ נסגרות בשקט». עכשיו תשובה ריקה עם ≥2 שנעלמו ⇒ כרטיס;
+    בעל העסק מאשר «כולן שולמו» ⇒ נסגרות (אותו מסלול כמו בעסק גדול)."""
     _setup(svc, clock, fake_gi, n=3)
     fake_gi.docs[:] = []
     out = svc.sync()
-    assert out["closed"] == 3 and _open_count(svc) == 0 and not _card(svc)
+    assert out["closed"] == 0 and out["vanish_held"] == 3 and _open_count(svc) == 3
+    c = _card(svc)
+    assert c and "3 מתוך 3" in c["body"]
+    r = svc.accept_mass_close(c["id"])
+    assert r["closed"] == 3 and _open_count(svc) == 0 and not _card(svc)
 
 
 def test_normal_sync_after_resolves_card(svc, clock, fake_gi):
