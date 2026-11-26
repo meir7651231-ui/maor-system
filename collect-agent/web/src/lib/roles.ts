@@ -17,8 +17,9 @@ export const resumeLocked = (me: Me | null | undefined, paused: string | null | 
 /** שם היסטורי (מבקר 195, Dashboard) — מנהל 348: lib/ownerOnly.ts אוחד לכאן, מקור יחיד. */
 export const resumeOwnerOnly = resumeLocked;
 /** מבקר 195א: «✓ טופל» על התראת-הביטחון «הגדרות רגישות שונו» — בעל העסק בלבד (השרת: 403 OwnerOnly).
- *  מנהל 422 (מבקר 253🟡): גם כרטיס «נעלמו» (api_mass_vanish) — ההכרעה אם שולמו של בעל העסק. = app/service.py _OWNER_ONLY_NOTICES */
-export const OWNER_ONLY_NOTICES = ['settings_changed', 'api_mass_vanish'] as const;
+ *  מנהל 422 (מבקר 253🟡): גם כרטיס «נעלמו» (api_mass_vanish) — ההכרעה אם שולמו של בעל העסק. = app/service.py _OWNER_ONLY_NOTICES
+ *  מנהל 423 (מבקר 254🟡): גם inherited_optout — «טופל» של עובד/ת הסתיר את הכרעת ההסרה לצמיתות. */
+export const OWNER_ONLY_NOTICES = ['settings_changed', 'api_mass_vanish', 'inherited_optout'] as const;
 export const noticeDoneLocked = (me: Me | null | undefined, intent: string | null | undefined) =>
   isStaff(me) && (OWNER_ONLY_NOTICES as readonly string[]).includes(intent ?? '');
 /** ייצוא כל המידע על לקוח (זכות עיון) — בעל העסק בלבד. */

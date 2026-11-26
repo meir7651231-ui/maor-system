@@ -16,7 +16,6 @@ opted_out=1.
 בלבד» במסך (דפוס 195א/ג). xfail(strict=True)."""
 from datetime import timedelta
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app import totp
@@ -29,7 +28,6 @@ from tests.test_critic_round239_inherited_optout import DANA, MICHAL, _row, _sen
 PW = "correct-horse-battery-9"
 
 
-@pytest.mark.xfail(strict=True, reason="254🟡: «טופל» של עובד/ת מעלים לצמיתות את כרטיס inherited_optout מבעל העסק")
 def test_staff_done_does_not_hide_inherited_optout(svc, clock, monkeypatch):
     monkeypatch.setenv("COLLECT_MASTER_KEYS", f"k1:{generate_key()}")
     u = Users(svc.db, svc.clock)

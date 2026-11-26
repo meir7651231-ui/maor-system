@@ -446,6 +446,9 @@ function NeedsYou() {
                 {/* מנהל 422 (מבקר 253🟡): הגוף אומר «סמנו כאן» — לעובד/ת אין כפתור; אומרים מי מכריע */}
                 {n.intent === 'api_mass_vanish' && <span data-testid="notice-staff-hint" className="w-full text-xs text-ink-700">
                   בעל העסק מכריע אם החשבוניות באמת שולמו. עד אז הן נשארות פתוחות.</span>}
+                {/* מנהל 423 (מבקר 254🟡): הסרה שעברה מפרטי קשר קודמים — ההכרעה של בעל העסק */}
+                {n.intent === 'inherited_optout' && <span data-testid="notice-staff-hint" className="w-full text-xs text-ink-700">
+                  בעל העסק מכריע אם להסיר את ההסרה. עד אז לא נשלחות ללקוח תזכורות.</span>}
               </div>
             ) : (
             <Button size="sm" variant={armed === `n${n.id}` ? 'dark' : 'outline'} className="mt-2" data-testid="notice-done"

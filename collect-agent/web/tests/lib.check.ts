@@ -1598,6 +1598,8 @@ test('מבקר 195א: «✓ טופל» על התראת-ביטחון — נעול
   assert.equal(noticeDoneLocked(staff, 'max_reminders'), false);
   assert.equal(noticeDoneLocked(staff, 'api_mass_vanish'), true);    // מנהל 422 (מבקר 253🟡)
   assert.equal(noticeDoneLocked(ownerUser, 'api_mass_vanish'), false);
+  assert.equal(noticeDoneLocked(staff, 'inherited_optout'), true);    // מנהל 423 (מבקר 254🟡)
+  assert.equal(noticeDoneLocked(ownerUser, 'inherited_optout'), false);
   assert.equal(noticeDoneLocked(ownerUser, 'settings_changed'), false);
   assert.equal(noticeDoneLocked(token, 'settings_changed'), false);
   assert.equal(noticeDoneLocked(null, 'settings_changed'), false);

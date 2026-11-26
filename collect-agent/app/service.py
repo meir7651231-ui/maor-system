@@ -250,6 +250,8 @@ _SHARED_URGENT_INTENT = "shared_contact_urgent"
 _OWNER_ONLY_NOTICES = {
     "settings_changed": "את ההתראה על שינוי ההגדרות הרגישות סוגר רק בעל העסק.",
     "api_mass_vanish": "רק בעל העסק מכריע אם החשבוניות שנעלמו באמת שולמו או נשארות פתוחות.",
+    # מנהל 423 (מבקר 254🟡): «טופל» של עובד/ת הסתיר לצמיתות את הכרעת ההסרה שעברה (מפתח קבוע ⇒ לא חוזר)
+    "inherited_optout": "רק בעל העסק מכריע אם להסיר את ההסרה שעברה מפרטי הקשר הקודמים או להשאיר אותה.",
 }
 _SHARED_CARD_INTENTS = (_SHARED_URGENT_INTENT, "shared_contact_paid_claim", "shared_contact_promise",
                         "shared_contact_plan_request")   # מבקר 233 · 234א
@@ -2413,7 +2415,7 @@ class CollectService:
         if row["intent"] in _OWNER_ONLY_NOTICES and not self._actor_is_owner(actor):
             # מבקר 195א: התראת-הביטחון «הגדרות רגישות שונו — ודאו שזה אתם» מיועדת לבעל העסק. עובד/ת שסגר/ה אותה
             # הוריד/ה אותה מ«דורש טיפול שלך» בלי שבעל העסק ראה. עכשיו: בעל העסק בלבד (403 + audit). מנהל 422: גם
-            # כרטיס api_mass_vanish (מבקר 253🟡)
+            # כרטיס api_mass_vanish (מבקר 253🟡). מנהל 423: גם inherited_optout (מבקר 254🟡)
             self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "owner_only"})
             raise OwnerOnly(_OWNER_ONLY_NOTICES[row["intent"]])
         if self._self_dismiss_blocked(row, actor):

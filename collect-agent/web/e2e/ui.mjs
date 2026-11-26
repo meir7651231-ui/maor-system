@@ -266,7 +266,12 @@ try {
   await p.unroute('**/reminders/*/approve');
   const st145 = (await (await fetch(base + '/reminders?view=summary', { headers: H })).json()).find(r => r.id === approvedId);
   ok(st145 && st145.status !== 'pending_approval', 'האישור לא נרשם בשרת (הבדיקה לא משחזרת תשובה שאבדה)');
-  ok(!/ממתינה לאישורך/.test(await p.locator(`#list .item[data-id="${approvedId}"] .chip`).textContent()), 'אחרי הרענון האוטומטי התור עדיין מציג «ממתינה לאישורך»');
+  // מנהל 423 (מבקר 243/254ℹ️): תחת עומס (pytest מלא במקביל) הרשימה מצוירת אחרי הודעת «התרעננו» — מחכים לתנאי, לא לרגע
+  const chipCleared = await p.waitForFunction(id => {
+    const c = document.querySelector(`#list .item[data-id="${id}"] .chip`);
+    return !!c && !/ממתינה לאישורך/.test(c.textContent);
+  }, approvedId, { timeout: 10000 }).then(() => true, () => false);
+  ok(chipCleared, 'אחרי הרענון האוטומטי התור עדיין מציג «ממתינה לאישורך»');
   await p.locator('#btnWunk').click();
   // (ג) נתונים לא עדכניים ⇒ רענון אוטומטי: אחרי כ-2 שניות בלי לחיצה, ומיד באירוע online
   const before145 = errors.length;

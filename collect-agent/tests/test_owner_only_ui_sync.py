@@ -40,7 +40,7 @@ def test_single_owner_only_module_and_notice_lock():
     from app.service import _OWNER_ONLY_NOTICES
     # מנהל 422 (מבקר 253🟡): אותה רשימה בשרת ובמסך — כולל api_mass_vanish
     assert m and set(re.findall(r"'([a-z_]+)'", m.group(1))) == set(_OWNER_ONLY_NOTICES)
-    assert {"settings_changed", "api_mass_vanish"} <= set(_OWNER_ONLY_NOTICES)
+    assert {"settings_changed", "api_mass_vanish", "inherited_optout"} <= set(_OWNER_ONLY_NOTICES)
     svc_src = (ROOT / "app/service.py").read_text("utf-8")
     assert 'row["intent"] in _OWNER_ONLY_NOTICES and not self._actor_is_owner(actor)' in svc_src
     dash = (ROOT / "web/src/pages/Dashboard.tsx").read_text("utf-8")
