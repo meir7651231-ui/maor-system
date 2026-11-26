@@ -23,7 +23,8 @@
 320 חשבונית מס/קבלה · 330 זיכוי · 400 קבלה · 405 קבלה על תרומה.
 קודי סטטוס: 0 פתוח · 1 סגור · 2 נסגר ידנית · 3 מבטל מסמך אחר · 4 מבוטל.
 קישור בין מסמכים: linkedDocumentIds (קבלה ⇒ חשבונית · זיכוי 330 ⇒ חשבונית · 305 ⇒ ה-300 שממנו
-הומר). ניהול: /_mock/documents/{id}/credit · /_mock/documents/{id}/convert (ממצא 2.16; לאמת).
+הומר). ניהול: /_mock/documents/{id}/credit · /_mock/documents/{id}/convert (ממצא 2.16; לאמת) ·
+/_mock/outage {mode: off|empty|hide|account} — הדמיית תקלת ספק (מנהל 426).
 
 שימוש:
   - בבדיקות:   httpx.MockTransport(GreenInvoiceMock(...).handler)   — בלי רשת
@@ -74,6 +75,10 @@ class GreenInvoiceMock:
         self.requests: list[tuple[str, str]] = []
         self.deliver = deliver or _http_deliver
         self._seq = 1000
+        # מנהל 426: הדמיית תקלה אצל הספק (חיבור לחשבון אחר / סינון שבור) — `/_mock/outage`. None = תקין;
+        # {"mode": "empty"} חיפוש מחזיר 0 · {"mode": "hide", "ids": [...]} מסתיר מסמכים מהחיפוש ·
+        # {"mode": "account"} חיפוש ריק וגם GET ⇒ 404 (חשבון אחר). כלי בדיקה/הדגמה בלבד.
+        self.outage: dict | None = None
         self.lock = threading.RLock()
         for d in docs or []:
             self._add_doc(dict(d), fire=False)
@@ -174,7 +179,7 @@ class GreenInvoiceMock:
         if (m, p) == ("POST", "/documents/search"):
             return self._search_docs(b if isinstance(b, dict) else {})
         if m == "GET" and len(parts) == 2 and parts[0] == "documents":
-            if parts[1] not in self.docs:
+            if parts[1] not in self.docs or (self.outage or {}).get("mode") == "account":
                 raise MockError(404, 404, "Document not found")
             return self.docs[parts[1]]
         if (m, p) == ("POST", "/clients"):
@@ -220,6 +225,12 @@ class GreenInvoiceMock:
                  and (statuses is None or d.get("status") in statuses)
                  and (not frm or str(d.get("documentDate", "")) >= frm)
                  and (not to or str(d.get("documentDate", "")) <= to)]
+        mode = (self.outage or {}).get("mode")
+        if mode in ("empty", "account"):
+            items = []
+        elif mode == "hide":
+            hidden = {str(x) for x in (self.outage or {}).get("ids", [])}
+            items = [d for d in items if str(d["id"]) not in hidden]
         key = b.get("sort") or "documentDate"
         items.sort(key=lambda d: (str(d.get(key, "")), str(d["id"])))
         return self._page(items, b)
@@ -242,6 +253,16 @@ class GreenInvoiceMock:
                 raise MockError(400, 9001, "mock webhooks: loopback only")
             self.webhooks.append(url)
             return {"webhooks": self.webhooks}
+        if (m, parts) == ("POST", ["outage"]):
+            body = b if isinstance(b, dict) else {}
+            mode = body.get("mode")
+            if mode in (None, "off"):
+                self.outage = None
+            elif mode in ("empty", "account") or (mode == "hide" and isinstance(body.get("ids"), list)):
+                self.outage = {"mode": mode, "ids": [str(x) for x in body.get("ids", [])]}
+            else:
+                raise MockError(400, 9005, "mode must be off|empty|hide(ids[])|account")
+            return {"outage": self.outage}
         if (m, parts) == ("GET", ["deliveries"]):
             return {"deliveries": self.deliveries}
         if (m, parts) == ("POST", ["documents"]):
