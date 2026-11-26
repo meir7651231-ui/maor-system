@@ -49,9 +49,11 @@ if ! python3 -c "$PY_OK" 2>/dev/null || ! python3 -c "$DEPS" 2>/dev/null; then
 fi
 python3 -c "$DEPS" 2>/dev/null || {
   echo "❌ חסרות תלויות ל-$(command -v python3): הריצו  python3 -m pip install --require-hashes -r requirements-dev.lock && python3 -m pip install --no-deps -e ." >&2; exit 1; }
-# הממשק המעוצב (web/) — נבנה פעם אחת אם יש Node, ומוגש מ-/app/ (חי מול ה-API, dry-run).
-if [[ ! -f web/dist/index.html ]] && command -v npm >/dev/null 2>&1 && [[ "${SKIP_WEB:-}" != "1" ]]; then
-  echo "▶ בונה את הממשק (web/)…"; (cd web && npm ci --no-audit --no-fund --silent && npm run build --silent) >/dev/null
+# הממשק המעוצב (web/) — מוגש מ-/app/ (חי מול ה-API, dry-run). הפעלה 421 (ביקורת 252): נבנה מחדש גם כש-dist
+# ישן מהמקור (לא רק כשהוא חסר) — scripts/web_build.sh. build שנכשל ⇒ עצירה עם הפלט; אין npm ⇒ אזהרה וממשיכים.
+if [[ "${SKIP_WEB:-}" != "1" ]]; then
+  rc=0; bash scripts/web_build.sh web || rc=$?
+  [[ $rc -eq 0 || $rc -eq 2 ]] || exit "$rc"
 fi
 # ה-API דורש טוקן בעלים (team/qa.md S1). להדגמה: טוקן חד-פעמי אקראי, אלא אם הוגדר.
 export OWNER_API_TOKEN="${OWNER_API_TOKEN:-$(python3 -c 'import secrets;print(secrets.token_urlsafe(32))')}"
