@@ -13,12 +13,9 @@
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
-
 from app import dsr
 
 
-@pytest.mark.xfail(strict=True, reason="258🟡: ניסיון לא פעיל ⇒ dsr.sweep לא רץ ⇒ אין התראת מועד/איחור לבקשת עיון")
 def test_dsr_deadline_alerts_when_trial_inactive(svc, clock):
     svc.sync()
     cid = svc.db.one("SELECT id FROM customers LIMIT 1")["id"]
