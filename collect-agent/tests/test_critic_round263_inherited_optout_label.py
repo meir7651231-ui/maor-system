@@ -13,12 +13,9 @@
 xfail(strict=True)."""
 from datetime import timedelta
 
-import pytest
-
 from tests.test_critic_round239_inherited_optout import DANA, MICHAL, _row, _sent_to_dana
 
 
-@pytest.mark.xfail(strict=True, reason="263🟡: ירושת הסרה מוצגת «הלקוח ביקש הסרה» (customer_block=opted_out)")
 def test_inherited_optout_not_labeled_as_customer_request(svc, clock):
     _sent_to_dana(svc, clock)
     svc.inbound("sms", DANA, "הסר אותי")
@@ -27,3 +24,17 @@ def test_inherited_optout_not_labeled_as_customer_request(svc, clock):
     row = next(r for r in svc.dashboard()["invoices"] if r["number"] == "9001")
     assert row["customer"] == "מיכל לוי"
     assert row["customer_block"] != "opted_out", row["customer_block"]
+
+
+def test_inherited_label_and_real_optout_unchanged(svc, clock):
+    """בקרות (גבי מנוע, 263): הירושה ⇒ inherited_optout (גם בגרסה המקובצת); דנה שביקשה בעצמה ⇒ opted_out."""
+    _sent_to_dana(svc, clock)
+    svc.inbound("sms", DANA, "הסר אותי")
+    dana = svc.db.one("SELECT id FROM customers WHERE phone=?", (DANA,))["id"]
+    assert svc._customer_block(dana) == "opted_out"
+    clock.now += timedelta(days=1)
+    svc.import_csv(_row("מיכל לוי", MICHAL))
+    michal = svc.db.one("SELECT id FROM customers WHERE phone=?", (MICHAL,))["id"]
+    assert svc._customer_block(michal) == "inherited_optout"
+    assert svc._customer_blocks()[michal] == "inherited_optout"
+    assert svc._customer_blocks()[dana] == "opted_out"

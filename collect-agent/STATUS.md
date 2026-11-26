@@ -3,6 +3,11 @@
 
 
 
+
+## ✅ גבי מנוע · מבקר 263🟡 + 261ℹ️ (26.11)
+- **263:** לקוחה שירשה הסרה בקובץ הוצגה בטבלת החובות «הלקוח ביקש הסרה» (/app/ ו-/ui), בעוד שכרטיס inherited_optout אומר «לא ביקש». עכשיו `_customer_block`/`_customer_blocks` ⇒ `inherited_optout` כש-`_inherited_optout` (התנהגות זהה — opted_out=1, אין שליחה), ותווית «הסרה שעברה מפרטי קשר קודמים — הלקוח לא ביקש, להכרעתכם»; `optedOut` ב-/app/ נשאר true. מי שביקשה בעצמה ⇒ `opted_out` כרגיל.
+- **261:** «שילמתי» מלקוח בלי חשבונית פתוחה (אחרי מעבר בקובץ) ⇒ הסיכום «טוען/ת ששילם/ה . …» (סכום ריק) ⇒ «טוען/ת ששילם/ה (אין כרגע חשבונית פתוחה על שמו/ה)…».
+- **בדיקות:** xfail של 263 הוסר + בקרה (ירושה/בקשה אמיתית, גם בגרסה המקובצת) · `tests/test_engine_261_paid_claim_no_open.py` · בדיקת web · web 134 · tsc ✓ · evals + `evals/seq` 100% · pytest **9918 עברו** · ruff נקי.
 ## 🧭 הפעלת מנהל · 26.11.2026 (הפעלה 434) — מנוע: DDL של מודולים לא מבצע COMMIT לטרנזקציה של thread אחר (מבקר 263ב🟠)
 - **מיזוג:** נסרקו כל `origin/claude/*` מול `collect-agent` (לפי commits שנוגעים ב-`collect-agent/`). **אין ענפים חדשים.** בחוץ (ידועים): `bold-bell-xom3mc` (WIP «נעצר לפי בקשת מאיר»), `gabi-019-inbound` (התוכן בפנים), `stoic-mccarthy-23f03p` (נדחה ב-107). נכנס מאז 433: ביקורת 263 (`553abd1f`, 🟠+🟡, xfail ×2). ה-workflow `collect-agent.yml` קיים ורץ רק על `collect-agent/`.
 - **המשימה (263ב🟠 — החמור מבין השניים):** `dsr.ensure_schema` הריץ `executescript` בלי `db.lock`; executescript מבצע COMMIT לטרנזקציה הפתוחה על החיבור המשותף ⇒ `GET /dsr` במקביל לסנכרון/ייבוא CSV (`db.batch()`, «הכול או כלום») התחייב בחצי-טרנזקציה של thread אחר. זה השורש של ה-500 החולף ב-e2e (`live` 263, `app-staff-owner-only` 262). אותו דפוס ב-`BusinessSecrets.__init__` (נבנה פר-בקשה ב-orbit_connect).

@@ -254,7 +254,9 @@ export const payer = {
 
 export const BLOCK_LABEL: Record<string, string> = {
   no_contact: 'אין נייד או מייל תקין', no_payment_link: 'אין קישור תשלום מאובטח',
-  opted_out: 'הלקוח ביקש הסרה', disputed: 'במחלוקת', plan_active: 'בהסדר תשלומים', paid_claim: 'טוען ששילם — לבדיקתך',
+  opted_out: 'הלקוח ביקש הסרה',
+  // מבקר 263: הסרה שעברה עם חשבונית מפרטי קשר קודמים — הלקוח הזה לא ביקש (אין שליחה עד הכרעתכם)
+  inherited_optout: 'הסרה שעברה מפרטי קשר קודמים — הלקוח לא ביקש, להכרעתכם', disputed: 'במחלוקת', plan_active: 'בהסדר תשלומים', paid_claim: 'טוען ששילם — לבדיקתך',
   credit_review: 'זיכוי לא משויך — לבדיקתך',
   // critic סבב 64: הלקוח כתב והודעתו ממתינה לך ⇒ אין תזכורות עד שתענה או תסגור את הכרטיס
   awaiting_owner: 'הלקוח כתב לך — התזכורות ממתינות לתשובה שלך',
@@ -312,7 +314,7 @@ export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
   for (const p of pending) for (const iid of p.invoice_ids ?? []) if (iid !== p.invoice_id) mergedBy.set(String(iid), String(p.invoice_id));
   for (const r of d.invoices) {
     const cid = `c${r.invoice_id}`;
-    customers.push({ id: cid, name: r.customer, phone: r.phone || undefined, email: r.email || undefined, optedOut: r.customer_block === 'opted_out',
+    customers.push({ id: cid, name: r.customer, phone: r.phone || undefined, email: r.email || undefined, optedOut: r.customer_block === 'opted_out' || r.customer_block === 'inherited_optout',
       backendId: r.customer_id, paused: r.paused_reason ?? null, emailState: r.email_state ?? null });
     const status: InvoiceStatus = r.status !== 'open' ? 'paid'
       : r.customer_block === 'disputed' ? 'disputed'

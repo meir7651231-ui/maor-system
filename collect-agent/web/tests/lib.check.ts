@@ -1731,6 +1731,12 @@ test('סט #26 q26-10: לקוח מוחזק בגלל טלפון משותף — «
   assert.ok(holdLabel('shared_contact_hold', null).includes('הטלפון משותף'));
 });
 
+test('מבקר 263: הסרה בירושה מוצגת «הלקוח לא ביקש», לא «הלקוח ביקש הסרה»', async () => {
+  const { BLOCK_LABEL, holdLabel } = await import('../src/api.ts');
+  assert.match(BLOCK_LABEL.inherited_optout, /לא ביקש/);
+  assert.notEqual(holdLabel('inherited_optout'), BLOCK_LABEL.opted_out);
+});
+
 test('מבקר 233: כרטיס הבטחה מכתובת משותפת — מוצג עם הלקוחות לשיוך', async () => {
   const { systemNotices } = await import('../src/lib/notices.ts');
   const n = systemNotices([{ id: 7, customer_id: null, direction: 'in', channel: 'sms', body: 'אשלם ב-12 לחודש',

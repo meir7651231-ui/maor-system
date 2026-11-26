@@ -58,6 +58,9 @@ AWAITING_OWNER = "awaiting_owner"   # critic סבב 64: הודעת הלקוח מ
 # סט #26 q26-10 (הכרעת המקשר 25.11): לקוח **אחר** על אותו טלפון/מייל מוחזק (critic 65), אבל הוא לא כתב — היה מוצג
 # «הלקוח כתב לכם». סיבה נפרדת, דינמית (לא paused_reason; משתחררת לבד כשבעל העסק מטפל), עם שם הכותב/ת ב-hold_with.
 SHARED_CONTACT_HOLD = "shared_contact_hold"
+# מבקר 263🟡: הסרה שעברה בירושה (219א/239) הוצגה בטבלת החובות «הלקוח ביקש הסרה» — סותר את כרטיס inherited_optout.
+# סיבה נפרדת לתצוגה; ההתנהגות זהה (opted_out=1 ⇒ אין שליחה).
+INHERITED_OPTOUT = "inherited_optout"
 AMOUNT_CHECK = "amount_check"   # הפעלה 123: סכום חריג ⇒ אישור מפורש (לא חסימה קשה)
 HARD_BLOCKS = {"no_contact", "no_payment_link", "compliance", "no_reply_to"}
 
@@ -4914,6 +4917,8 @@ class CollectService:
                            "('proposed','approved')", (cid,))
         block = customer_blocked(opted_out=bool(c["opted_out"]), disputed=bool(c["disputed"]),
                                  plan_active=bool(plan), paused=c["paused_reason"])
+        if block == "opted_out" and self._inherited_optout(cid):   # מבקר 263
+            block = INHERITED_OPTOUT
         # critic סבב 64: הלקוח כתב והודעתו ממתינה לבעל העסק (טיוטה/כרטיס) ⇒ אין תזכורת חדשה, ומאושרת לא יוצאת.
         # היה: «קיבלתי, בודקת עם רואה החשבון ואחזור אליכם» ⇒ שבוע אחרי כן «חשבונית … פתוחה» יצאה בלי שאיש ענה.
         # משתחרר מעצמו כשבעל העסק ענה/סגר (אין השהיה שצריך לזכור לשחרר).
@@ -4977,6 +4982,8 @@ class CollectService:
         for c in self.db.q("SELECT id, opted_out, disputed, paused_reason, phone, email FROM customers"):
             block = customer_blocked(opted_out=bool(c["opted_out"]), disputed=bool(c["disputed"]),
                                      plan_active=c["id"] in plans, paused=c["paused_reason"])
+            if block == "opted_out" and self._inherited_optout(c["id"]):   # מבקר 263
+                block = INHERITED_OPTOUT
             if block is None and c["id"] in waiting:
                 block = AWAITING_OWNER
             elif block is None and contacts and self._contacts_of(c) & contacts:
