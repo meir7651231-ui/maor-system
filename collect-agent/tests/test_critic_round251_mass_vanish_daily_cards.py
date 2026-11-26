@@ -13,12 +13,9 @@
 xfail(strict=True)."""
 from datetime import timedelta
 
-import pytest
-
 from tests.conftest import gi_doc
 
 
-@pytest.mark.xfail(strict=True, reason="251🟡: תקלת API ממושכת ⇒ כרטיס api_mass_vanish חדש כל יום, הקודמים פתוחים")
 def test_ongoing_vanish_keeps_single_open_card(svc, clock, fake_gi):
     fake_gi.docs[:] = [gi_doc(i, phone=f"050-00001{i:02d}") for i in range(1, 7)]
     svc.sync()

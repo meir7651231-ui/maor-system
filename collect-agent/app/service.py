@@ -952,12 +952,15 @@ class CollectService:
         body = (f"מערכת החשבוניות החזירה בסנכרון {got} מסמכים פתוחים, ו-{len(gone)} מתוך {base} החשבוניות "
                 "הפתוחות אצלנו לא הופיעו בה. זה נראה כמו תקלה (חיבור לחשבון אחר, סינון או תקלה אצל הספק), ולכן גבי "
                 "לא סימנה אותן כשולמו — הן נשארות פתוחות. בדקו את החיבור. אם כולן באמת שולמו — סמנו כאן.")
-        row = self.db.one("SELECT id, needs_owner FROM messages WHERE intent='api_mass_vanish' AND message_id=?",
-                          (key,))
-        if row:
-            if row["needs_owner"]:
-                self.db.x("UPDATE messages SET body=?, payload=? WHERE id=?", (body, payload, row["id"]))
+        # מנהל 419 (ביקורת 251🟡): תקלה שנמשכת כמה ימים פתחה כרטיס חדש כל יום והקודמים נשארו פתוחים (5 כרטיסים
+        # זהים). עכשיו: כרטיס **פתוח** אחד לתקלה — קיים (מכל יום) ⇒ מעדכנים אותו; רק אם אין פתוח בודקים את מפתח היום
+        open_row = self.db.one("SELECT id FROM messages WHERE intent='api_mass_vanish' AND needs_owner=1 "
+                               "ORDER BY id DESC LIMIT 1")
+        if open_row:
+            self.db.x("UPDATE messages SET body=?, payload=? WHERE id=?", (body, payload, open_row["id"]))
             return
+        if self.db.one("SELECT 1 FROM messages WHERE intent='api_mass_vanish' AND message_id=?", (key,)):
+            return   # בעל העסק הוריד את כרטיס היום («השאר פתוחות») — לא מציקים שוב באותו יום
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,payload,"
                   "message_id,created_at) VALUES(NULL,'system','owner',?,'api_mass_vanish',1,?,?,?)",
                   (body, payload, key, _iso(self.clock())))
@@ -989,6 +992,20 @@ class CollectService:
                 continue
             p["resolved"] = 1
             self.db.x("UPDATE messages SET payload=? WHERE id=?", (json.dumps(p), row["id"]))
+
+    def _settle_stale_vanish_cards(self) -> None:
+        """מנהל 419 (ביקורת 251🟡): אחרי «כולן שולמו» — כרטיסי api_mass_vanish פתוחים אחרים (ממסד שנוצר לפני 419,
+        כרטיס ליום) שכל החשבוניות שלהם כבר לא פתוחות אומרים «הן נשארות פתוחות» — כבר לא נכון ⇒ יורדים ומסומנים
+        resolved. כרטיס שעדיין יש בו חשבונית פתוחה — נשאר (לא סוגרים חוב בלי הכרעה)."""
+        for row in self.db.q("SELECT id, payload FROM messages WHERE intent='api_mass_vanish' AND needs_owner=1"):
+            try:
+                ids = [int(x) for x in json.loads(row["payload"] or "{}").get("invoice_ids", [])]
+            except (ValueError, TypeError, AttributeError):
+                continue
+            if any(self.db.one("SELECT 1 FROM invoices WHERE id=? AND status='open'", (i,)) for i in ids):
+                continue
+            self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (row["id"],))
+            self._mark_vanish_resolved(row["id"])
 
     def _resolve_mass_vanish(self) -> None:
         """סנכרון תקין אחרי הכרטיס (המסמכים חזרו, או שנעלמו מעט ונסגרו כרגיל) ⇒ הכרטיס יורד."""
@@ -1022,6 +1039,7 @@ class CollectService:
                     closed += 1
             self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (mid,))
             self._mark_vanish_resolved(mid)
+            self._settle_stale_vanish_cards()
         self.audit(actor, "api_mass_close_accepted", {"message": mid, "closed": closed})
         return {"id": mid, "closed": closed}
 
