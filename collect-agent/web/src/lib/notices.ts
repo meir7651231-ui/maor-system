@@ -34,6 +34,8 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   amount_check: { icon: '🔢', title: 'סכום חריג מאוד מהרגיל ללקוח — לבדוק לפני אישור', tone: 'warn' },
   // מנהל 416 (מבקר 249🟠): סנכרון API שבו נעלמו רוב הפתוחות ⇒ לא נסגרו, בעל העסק מכריע
   api_mass_vanish: { icon: '🧾', title: 'מערכת החשבוניות החזירה הרבה פחות חשבוניות פתוחות — לא סגרנו, לבדוק', tone: 'warn' },
+  // מנהל 431: יותר מ-10,000 חשבוניות פתוחות במקור ⇒ הסנכרון נעצר בלי לסגור; יורד בסנכרון הבא שמצליח
+  sync_page_cap: { icon: '🧾', title: 'הסנכרון נעצר: יותר מדי חשבוניות פתוחות במקור — לא נסגר אף חוב', tone: 'warn' },
   doc_malformed: { icon: '🧾', title: 'מסמכים עם נתון לא תקין — דולגו, ולא נסגרה אף חשבונית', tone: 'warn' },
   // critic 175: DB שוחזר מגיבוי — כל השליחה עצורה עד שבעל העסק מאשר (POST /owner/restore-hold/release)
   restore_hold: { icon: '🛑', title: 'המערכת שוחזרה מגיבוי — השליחה ללקוחות עצורה', tone: 'warn' },

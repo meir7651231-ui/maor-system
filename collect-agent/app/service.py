@@ -153,9 +153,22 @@ def refresh_stuck_text(items: list[tuple[str, str, str]]) -> str:
     return " ".join(parts)
 
 
-def refresh_block_reason(e: BaseException) -> str:
+def is_page_cap(e: BaseException) -> bool:
+    """מנהל 431: הסריקה הגיעה לתקרת העמודים. GI זורק PageCapError; iCount/EZcount זורקים ProviderError שהטקסט
+    שלו מתחיל בשם הספק («icount: page_cap: …») — קודם `startswith("page_cap:")` לא זיהה אותם."""
     from .greeninvoice import PageCapError
-    if isinstance(e, PageCapError) or str(e).startswith("page_cap:"):
+    return isinstance(e, PageCapError) or re.match(r"^(?:[\w-]+: )?page_cap:", str(e)) is not None
+
+
+# מנהל 431 (430 «הבא 4»): הסנכרון נכשל על תקרת העמודים ⇒ טקסט ברור לבעל העסק במקום «page_cap: more than…»
+SYNC_PAGE_CAP_MSG = ("במערכת החשבוניות יש יותר מ-10,000 חשבוניות פתוחות — יותר ממה שגבי קורא בסנכרון אחד. "
+                     "כדי לא לסמן בטעות חוב פתוח כשולם, הסנכרון נעצר בלי לסגור אף חשבונית ובלי לקלוט חדשות. "
+                     "חשבוניות שכבר ברשימה ממשיכות כרגיל (עם בדיקת סכום מול המקור לפני כל שליחה). "
+                     "לטיפול: פנו לתמיכה של גבי.")
+
+
+def refresh_block_reason(e: BaseException) -> str:
+    if is_page_cap(e):
         return REFRESH_PAGE_CAP
     return "refresh_failed"
 
@@ -1072,6 +1085,20 @@ class CollectService:
                    _iso(self.clock())))
         self.audit("system", "doc_malformed", {"count": n})
 
+    def _notify_sync_page_cap(self, provider: str) -> None:
+        """מנהל 431: כרטיס פתוח אחד (לא אחד ליום — הבעיה נמשכת עד שתטופל), בלי PII. יורד בסנכרון הבא שמצליח."""
+        if self.db.one("SELECT 1 FROM messages WHERE intent='sync_page_cap' AND needs_owner=1"):
+            return
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(NULL,'system','owner',?,'sync_page_cap',1,?,?)",
+                  (SYNC_PAGE_CAP_MSG, "page_cap:" + self.clock().date().isoformat(), _iso(self.clock())))
+        self.audit("system", "sync_page_cap", {"provider": provider})
+
+    def _resolve_sync_page_cap(self) -> None:
+        if self.db.one("SELECT 1 FROM messages WHERE intent='sync_page_cap' AND needs_owner=1"):
+            self.db.x("UPDATE messages SET needs_owner=0 WHERE intent='sync_page_cap' AND needs_owner=1")
+            self.audit("system", "sync_page_cap_resolved", {})
+
     def _notify_docs_without_id(self, n: int) -> None:
         """התראה אחת ליום (בלי PII) — לא בכל סנכרון."""
         key = "noid:" + self.clock().date().isoformat()
@@ -1415,8 +1442,13 @@ class CollectService:
                 invs, review = net.invoices, net.review
             else:
                 invs, review = list(self.gi.iter_open_invoices()), []
+        except Exception as e:
+            if is_page_cap(e):   # מנהל 431: כרטיס לבעל העסק — עד היום רק הניטור ידע, והממשק שתק
+                self._notify_sync_page_cap(provider)
+            raise
         finally:
             AS_OF.reset(as_of_token)
+        self._resolve_sync_page_cap()
         # critic סבב 44: מסמך פגום (סכום/תאריך לא תקין) דולג. ייתכן שזה מסמך פתוח שכבר אצלנו ⇒
         # בסנכרון הזה לא סוגרים כלום (אחרת הוא ייראה «שולם»), ובעל העסק מקבל התראה.
         if not self.s.real_data_allowed:

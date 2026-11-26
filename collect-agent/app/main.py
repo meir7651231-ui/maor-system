@@ -25,7 +25,7 @@ from .db import DB
 from .greeninvoice import GreenInvoiceClient
 from .integrations.base import jstr
 from .ratelimit import RateLimiter, group_for
-from .service import CollectService, OwnerOnly, RealDataBlocked
+from .service import SYNC_PAGE_CAP_MSG, CollectService, OwnerOnly, RealDataBlocked, is_page_cap
 from .templates import SLOGAN, TAGLINE
 from .users import Users
 
@@ -390,7 +390,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             headers = {**({"X-Gabi-Already": state} if state else {}), **({"X-Gabi-Stale": stale} if stale else {})}
             raise HTTPException(409, str(e), headers=headers or None) from e
         except RuntimeError as e:
-            raise HTTPException(503, str(e)) from e
+            # מנהל 431: תקרת עמודים ⇒ הסבר בעברית במקום «page_cap: more than 200 pages (types=…)»
+            raise HTTPException(503, SYNC_PAGE_CAP_MSG if is_page_cap(e) else str(e)) from e
 
     @app.get("/health")
     def health():

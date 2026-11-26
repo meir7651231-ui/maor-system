@@ -98,6 +98,9 @@ def run_morning(svc, now: datetime | None = None, *, force: bool = False) -> dic
             except Exception as e:  # noqa: BLE001 — כל כשל סנכרון: ממשיכים עם מה שב-DB, ומדווחים
                 out["status"] = "sync_failed"
                 out["sync_error"] = f"{type(e).__name__}: {str(e)[:200]}"
+                from .service import is_page_cap
+                if is_page_cap(e):   # מנהל 431: הניטור אומר מה קרה (לא «לבדוק את החיבור» — החיבור תקין)
+                    out["sync_reason"] = "page_cap"
         out["planned"] = len(svc.plan())
         out.update(_summary(svc))
     svc.db.x("INSERT OR REPLACE INTO morning_runs(day,at,status,summary) VALUES(?,?,?,?)",
@@ -119,6 +122,9 @@ def check(db, max_hours: float = 26, now: datetime | None = None) -> tuple[bool,
         return False, (f"עבודת הבוקר האחרונה ({row['day']}) לפני {age.total_seconds() / 3600:.0f} שעות "
                        f"(מעל {max_hours:g}) — ה-cron נעצר?")
     if row["status"] == "sync_failed":
+        if json.loads(row["summary"]).get("sync_reason") == "page_cap":
+            return False, (f"עבודת הבוקר ({row['day']}): הסנכרון נעצר — יותר מ-10,000 חשבוניות פתוחות במקור "
+                           "(תקרת עמודים). לא נסגר אף חוב; להגדיל max_pages או לסנכרן לפי תאריך")
         return False, f"עבודת הבוקר ({row['day']}) רצה אבל הסנכרון נכשל — לבדוק את החיבור למקור"
     if row["status"] == "sync_suspect":
         sync = json.loads(row["summary"]).get("sync") or {}
