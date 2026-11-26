@@ -968,6 +968,14 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         except OwnerOnly as e:   # מבקר 195א: התראת-ביטחון של בעל העסק — עובד/ת ⇒ 403
             raise HTTPException(403, str(e)) from e
 
+    @app.post("/owner/inbox/{mid}/accept-close", dependencies=auth)
+    def owner_accept_mass_close(mid: int, request: Request):
+        """מנהל 416 (מבקר 249🟠): «כולן באמת שולמו» על כרטיס api_mass_vanish ⇒ סגירה. בעל העסק בלבד (עובד/ת ⇒ 403)."""
+        try:
+            return guard(svc.accept_mass_close, mid, request.state.actor)
+        except OwnerOnly as e:
+            raise HTTPException(403, str(e)) from e
+
     @app.get("/plans", dependencies=auth)
     def list_plans():
         def check(r):   # critic סבב 49: הסדר מוצע על סכום חריג ⇒ הדשבורד מציג תיבת אישור

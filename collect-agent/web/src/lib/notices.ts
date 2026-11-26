@@ -32,6 +32,8 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   doc_without_id: { icon: '🧾', title: 'מסמכים בלי מזהה ממערכת החשבוניות — לא נשלחות עליהם תזכורות', tone: 'warn' },
   // critic סבב 49: התראת הסכום החריג (הפעלה 123) הופיעה ככותרת כללית «הודעה מגבי» בטון מידע
   amount_check: { icon: '🔢', title: 'סכום חריג מאוד מהרגיל ללקוח — לבדוק לפני אישור', tone: 'warn' },
+  // מנהל 416 (מבקר 249🟠): סנכרון API שבו נעלמו רוב הפתוחות ⇒ לא נסגרו, בעל העסק מכריע
+  api_mass_vanish: { icon: '🧾', title: 'מערכת החשבוניות החזירה הרבה פחות חשבוניות פתוחות — לא סגרנו, לבדוק', tone: 'warn' },
   doc_malformed: { icon: '🧾', title: 'מסמכים עם נתון לא תקין — דולגו, ולא נסגרה אף חשבונית', tone: 'warn' },
   // critic 175: DB שוחזר מגיבוי — כל השליחה עצורה עד שבעל העסק מאשר (POST /owner/restore-hold/release)
   restore_hold: { icon: '🛑', title: 'המערכת שוחזרה מגיבוי — השליחה ללקוחות עצורה', tone: 'warn' },

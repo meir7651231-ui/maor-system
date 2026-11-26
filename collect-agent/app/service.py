@@ -907,19 +907,90 @@ class CollectService:
         if not full:
             self.audit("system", "import", {"source": source, "rows": len(seen)})
             return {"open": len(seen), "closed": 0}
-        for row in self.db.q("SELECT id, external_id FROM invoices WHERE status='open'"):
-            if provider is not None and not _closable_by(provider, row["external_id"]):
-                continue   # חשבונית של מקור אחר — העדרה מהסנכרון הזה לא אומר שנסגרה
-            if row["external_id"] not in seen:
-                self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?",
-                          (now, row["id"]))
-                self._cancel_invoice(row["id"], "invoice_closed")
-                closed += 1
+        base = [row for row in self.db.q("SELECT id, external_id FROM invoices WHERE status='open'")
+                # חשבונית של מקור אחר — העדרה מהסנכרון הזה לא אומר שנסגרה
+                if provider is None or _closable_by(provider, row["external_id"])]
+        gone = [row["id"] for row in base if row["external_id"] not in seen]
+        if source != "csv" and self._mass_vanish(len(gone), len(base)):
+            # מנהל 416 (מבקר 249🟠): רשימה ריקה/מקוצרת ב-HTTP 200 (פילטר שגוי, חשבון אחר, תקלה אצל הספק) סגרה את כל
+            # החובות בשקט כ«שולמו». עכשיו: לא סוגרים, כרטיס לבעל העסק — הוא מכריע («כולן שולמו» ⇒ accept_mass_close)
+            self._hold_mass_vanish(gone, len(base), len(seen))
+            self.audit("system", "sync", {"open": len(seen), "closed": 0, "review": held,
+                                          "vanish_held": len(gone)})
+            out = {"open": len(seen), "closed": 0, "vanish_held": len(gone)}
+            if held:
+                out["review"] = held
+            return out
+        for iid in gone:
+            self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?", (now, iid))
+            self._cancel_invoice(iid, "invoice_closed")
+            closed += 1
+        if source != "csv":
+            self._resolve_mass_vanish()
         self.audit("system", "sync", {"open": len(seen), "closed": closed, "review": held})
         out = {"open": len(seen), "closed": closed}
         if held:
             out["review"] = held   # לקוחות שהושהו לבדיקת זיכוי (2.16) — רק כשיש
         return out
+
+    MASS_VANISH_MIN = 5   # מבקר 249: פחות מזה — עסק קטן שבאמת נגבה כולו (2–4 חשבוניות) לא נעצר
+
+    @classmethod
+    def _mass_vanish(cls, gone: int, base: int) -> bool:
+        """מבקר 249🟠: סנכרון מלא שבו נעלמו ≥5 חשבוניות פתוחות שהן ≥50% מהפתוחות של המקור ⇒ חשוד כתקלה."""
+        return gone >= cls.MASS_VANISH_MIN and gone * 2 >= base
+
+    def _hold_mass_vanish(self, gone: list[int], base: int, got: int) -> None:
+        """כרטיס אחד ליום (מזהי החשבוניות ב-payload, בלי PII). כבר קיים היום ⇒ מעדכנים את הרשימה; אם בעל העסק
+        כבר סגר אותו היום («השאר פתוחות») — לא מציקים שוב באותו יום."""
+        key = "mass_vanish:" + self.clock().date().isoformat()
+        payload = json.dumps({"invoice_ids": gone, "gone": len(gone), "base": base, "got": got})
+        body = (f"מערכת החשבוניות החזירה בסנכרון {got} מסמכים פתוחים, ו-{len(gone)} מתוך {base} החשבוניות "
+                "הפתוחות אצלנו לא הופיעו בה. זה נראה כמו תקלה (חיבור לחשבון אחר, סינון או תקלה אצל הספק), ולכן גבי "
+                "לא סימנה אותן כשולמו — הן נשארות פתוחות. בדקו את החיבור. אם כולן באמת שולמו — סמנו כאן.")
+        row = self.db.one("SELECT id, needs_owner FROM messages WHERE intent='api_mass_vanish' AND message_id=?",
+                          (key,))
+        if row:
+            if row["needs_owner"]:
+                self.db.x("UPDATE messages SET body=?, payload=? WHERE id=?", (body, payload, row["id"]))
+            return
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,payload,"
+                  "message_id,created_at) VALUES(NULL,'system','owner',?,'api_mass_vanish',1,?,?,?)",
+                  (body, payload, key, _iso(self.clock())))
+        self.audit("system", "api_mass_vanish", {"gone": len(gone), "base": base, "got": got})
+
+    def _resolve_mass_vanish(self) -> None:
+        """סנכרון תקין אחרי הכרטיס (המסמכים חזרו, או שנעלמו מעט ונסגרו כרגיל) ⇒ הכרטיס יורד."""
+        if self.db.one("SELECT 1 FROM messages WHERE intent='api_mass_vanish' AND needs_owner=1"):
+            self.db.x("UPDATE messages SET needs_owner=0 WHERE intent='api_mass_vanish' AND needs_owner=1")
+            self.audit("system", "api_mass_vanish_resolved", {})
+
+    def accept_mass_close(self, mid: int, actor: str = "owner") -> dict:
+        """מבקר 249: בעל העסק מאשר «כולן באמת שולמו» ⇒ החשבוניות מהכרטיס שעדיין פתוחות נסגרות כמו בסנכרון רגיל
+        (closed_at=עכשיו, תזכורות מבוטלות). בעל העסק בלבד — סגירת חובות בהיקף. חשבונית שתחזור פתוחה בסנכרון הבא
+        ⇒ כרטיס api_reopened (415)."""
+        row = self.db.one("SELECT payload FROM messages WHERE id=? AND intent='api_mass_vanish' AND needs_owner=1",
+                          (mid,))
+        if not row:
+            raise KeyError(mid)
+        if not self._actor_is_owner(actor):
+            self.audit(actor, "api_mass_close_refused", {"message": mid})
+            raise OwnerOnly("רק בעל העסק מאשר שכל החשבוניות האלה שולמו.")
+        try:
+            ids = [int(x) for x in json.loads(row["payload"] or "{}").get("invoice_ids", [])]
+        except (ValueError, TypeError):
+            ids = []
+        now = _iso(self.clock())
+        closed = 0
+        with self.db.batch():
+            for iid in ids:
+                if self.db.one("SELECT 1 FROM invoices WHERE id=? AND status='open'", (iid,)):
+                    self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?", (now, iid))
+                    self._cancel_invoice(iid, "invoice_closed")
+                    closed += 1
+            self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (mid,))
+        self.audit(actor, "api_mass_close_accepted", {"message": mid, "closed": closed})
+        return {"id": mid, "closed": closed}
 
     def _notify_malformed(self, n: int) -> None:
         key = "malformed:" + self.clock().date().isoformat()

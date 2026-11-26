@@ -8,15 +8,13 @@
 closed_at). סנכרון אחר כך עם 10 ⇒ 10 נפתחות מחדש, 10 נשארות «שולמו». אין שום הבדל בין «הכול שולם הלילה» לבין תקלה.
 ✓ 248 (מנהל 415) תוקן — הסדר «הושלם» משחרר את השהיית ההסדר ⇒ חשבונית שנפתחה מחדש חוזרת לתזכורות.
 הצעה: סף שפיות — היעלמות של חלק גדול מהפתוחות (למשל הכול, או ≥50% ו-≥5) בסנכרון אחד ⇒ לא סוגרים, כרטיס «מערכת
-החשבוניות החזירה N מסמכים במקום M — בדקו את החיבור», כמו `_notify_malformed`. xfail(strict=True)."""
+החשבוניות החזירה N מסמכים במקום M — בדקו את החיבור», כמו `_notify_malformed`. xfail(strict=True).
+   תוקן במנהל 416 (`_mass_vanish` + כרטיס `api_mass_vanish` + `accept_mass_close`) — ה-xfail הוסר."""
 from datetime import timedelta
-
-import pytest
 
 from tests.conftest import gi_doc
 
 
-@pytest.mark.xfail(strict=True, reason="249🟠: API מחזיר 0 מסמכים ⇒ כל 20 החובות נסגרים בשקט כ«שולמו»")
 def test_empty_api_response_does_not_close_everything_silently(svc, clock, fake_gi):
     fake_gi.docs[:] = [gi_doc(i, phone=f"050-00001{i:02d}") for i in range(1, 21)]
     svc.sync()

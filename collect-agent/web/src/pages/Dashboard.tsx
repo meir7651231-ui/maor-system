@@ -403,6 +403,17 @@ function NeedsYou() {
                   onClick={() => act(`bb${n.id}`, () => api.emailBounce(n.customerId!, true), 'הכתובת נחסמה למייל — SMS ממשיך')}>
                   {armed === `bb${n.id}` ? 'לחצו שוב לאישור' : 'המייל באמת חזר — חסום'}</Button>
               </div>
+            ) : n.intent === 'api_mass_vanish' && !isStaff(me) ? (
+              // מנהל 416 (מבקר 249🟠): הסנכרון לא סגר את החשבוניות שנעלמו — בעל העסק מכריע אם באמת שולמו
+              <div className="flex flex-wrap gap-2 mt-2">
+                <Button size="sm" variant={armed === `mv${n.id}` ? 'dark' : 'outline'} data-testid="notice-mass-close"
+                  onClick={() => act(`mv${n.id}`, () => api.acceptMassClose(n.id),
+                    r => `${(r as { closed?: number } | null)?.closed ?? 0} חשבוניות סומנו כשולמו`)}>
+                  {armed === `mv${n.id}` ? 'לחצו שוב לאישור' : 'כולן באמת שולמו — סמן כשולמו'}</Button>
+                <Button size="sm" variant={armed === `n${n.id}` ? 'dark' : 'outline'} data-testid="notice-done"
+                  onClick={() => act(`n${n.id}`, () => api.ownerDone(n.id), 'החשבוניות נשארות פתוחות — סומן כטופל')}>
+                  {armed === `n${n.id}` ? 'לחצו שוב לאישור' : 'השאר פתוחות — אבדוק את החיבור'}</Button>
+              </div>
             ) : n.intent === 'inherited_optout' && n.customerId != null && !isStaff(me) ? (
               // מנהל 405 (מבקר 240א): הכרטיס ביקש הכרעה שלא הייתה לה דרך — עכשיו: ביטול ההסרה שעברה, או השארתה
               <div className="flex flex-wrap gap-2 mt-2">

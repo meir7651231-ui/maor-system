@@ -200,6 +200,8 @@ export const api = {
   promiseRequest: (cid: number, approve: boolean) => j<PromiseDecision>(
     `/customers/${cid}/promise-request`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ approve }) }),
   /** מנהל 405 (מבקר 240א): «זה אדם אחר» — ביטול הסרה שעברה בירושה מקובץ (בעל העסק בלבד; השרת: 403 לעובד/ת) */
+  /** מנהל 416 (מבקר 249): «כולן באמת שולמו» על כרטיס api_mass_vanish (בעל העסק בלבד; עובד/ת ⇒ 403) */
+  acceptMassClose: (id: number) => j<{ id: number; closed: number }>(`/owner/inbox/${id}/accept-close`, { method: 'POST' }),
   liftInheritedOptout: (cid: number) => j<unknown>(`/customers/${cid}/lift-inherited-optout`, { method: 'POST' }),
   emailBounce: (cid: number, confirm: boolean) => j<{ customer: number; email: 'blocked' | 'resumed' }>(`/customers/${cid}/email-bounce`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ confirm }) }),
