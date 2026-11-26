@@ -673,7 +673,12 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.post("/maintenance/purge", dependencies=auth)
     def purge(request: Request):                     # ר-10 (רץ גם בכל plan)
         owner_only(request, "maintenance_purge", {}, "רק בעל העסק מריץ פעולות תחזוקה")
-        return svc.purge_closed(request.state.actor)   # critic סבב 73: מי הפעיל
+        out = svc.purge_closed(request.state.actor)   # critic סבב 73: מי הפעיל
+        # מנהל 432 (מבקר 259 ℹ️): שירות שה-cron שלו לא רץ — המסלול הידני הוא החלופה היחידה ל-plan(), ולכן גם
+        # מועדי בקשות עיון/תיקון/מחיקה (30 יום) נבדקים כאן. אידמפוטנטי (warned + message_id), התראה פנימית בלבד.
+        from . import dsr
+        n = dsr.sweep(svc)
+        return {**out, "dsr_alerts": n} if n else out   # בלי התראה חדשה ⇒ אותה תשובה כמו קודם
 
     @app.get("/outbox", dependencies=auth)
     def outbox(limit: int | None = None):
