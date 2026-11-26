@@ -959,11 +959,39 @@ class CollectService:
                   (body, payload, key, _iso(self.clock())))
         self.audit("system", "api_mass_vanish", {"gone": len(gone), "base": base, "got": got})
 
+    def _vanish_held(self, iid: int) -> bool:
+        """מנהל 417 (ביקורת 250🟠): החשבונית ברשימת כרטיס api_mass_vanish שלא הוכרע? גם אחרי «השאר פתוחות» (הכרטיס
+        ירד, needs_owner=0) — ההחזקה נשארת עד סנכרון תקין (`_resolve_mass_vanish`) או «כולן שולמו»,
+        שמסמנים את הכרטיס `resolved`. אחרת ה-dispatch הבא היה סוגר אותן ב-404 מיד אחרי «השאר פתוחות»."""
+        for row in self.db.q("SELECT payload FROM messages WHERE intent='api_mass_vanish'"):
+            try:
+                p = json.loads(row["payload"] or "{}")
+                if not p.get("resolved") and iid in {int(x) for x in p.get("invoice_ids", [])}:
+                    return True
+            except (ValueError, TypeError, AttributeError):
+                continue
+        return False
+
+    def _mark_vanish_resolved(self, mid: int | None = None) -> None:
+        rows = self.db.q("SELECT id, payload FROM messages WHERE intent='api_mass_vanish'")
+        for row in rows:
+            if mid is not None and row["id"] != mid:
+                continue
+            try:
+                p = json.loads(row["payload"] or "{}")
+            except (ValueError, TypeError):
+                p = {}
+            if not isinstance(p, dict) or p.get("resolved"):
+                continue
+            p["resolved"] = 1
+            self.db.x("UPDATE messages SET payload=? WHERE id=?", (json.dumps(p), row["id"]))
+
     def _resolve_mass_vanish(self) -> None:
         """סנכרון תקין אחרי הכרטיס (המסמכים חזרו, או שנעלמו מעט ונסגרו כרגיל) ⇒ הכרטיס יורד."""
         if self.db.one("SELECT 1 FROM messages WHERE intent='api_mass_vanish' AND needs_owner=1"):
             self.db.x("UPDATE messages SET needs_owner=0 WHERE intent='api_mass_vanish' AND needs_owner=1")
             self.audit("system", "api_mass_vanish_resolved", {})
+        self._mark_vanish_resolved()   # מנהל 417: גם כרטיס שבעל העסק הוריד («השאר פתוחות») — ההחזקה מסתיימת
 
     def accept_mass_close(self, mid: int, actor: str = "owner") -> dict:
         """מבקר 249: בעל העסק מאשר «כולן באמת שולמו» ⇒ החשבוניות מהכרטיס שעדיין פתוחות נסגרות כמו בסנכרון רגיל
@@ -989,6 +1017,7 @@ class CollectService:
                     self._cancel_invoice(iid, "invoice_closed")
                     closed += 1
             self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (mid,))
+            self._mark_vanish_resolved(mid)
         self.audit(actor, "api_mass_close_accepted", {"message": mid, "closed": closed})
         return {"id": mid, "closed": closed}
 
@@ -3306,6 +3335,12 @@ class CollectService:
         except Exception as e:  # noqa: BLE001 — כל כשל ברענון (כולל זיכויים) חוסם שליחה
             self._mark_refresh_failed(r, refresh_block_reason(e), str(e))
             return "failed"
+        if doc is None and self._vanish_held(inv["id"]):
+            # מנהל 417 (ביקורת 250🟠): חשבונית שמוחזקת בכרטיס api_mass_vanish ו«לא קיימת» במקור (404 — אותה תקלה:
+            # חשבון אחר/טוקן אחר) נסגרה כאן בשקט בכל dispatch ⇒ עקפה את ההחזקה של 416ב. עכשיו: לא נסגרת, לא נשלחת;
+            # בעל העסק מכריע בכרטיס. מסמך שנמצא ונסגר במקור (שולם באמת, מאומת) — נסגר כרגיל.
+            self._mark_refresh_failed(r, "refresh_failed", "mass_vanish_hold")
+            return "failed"
         if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
             self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?",
                       (_iso(self.clock()), inv["id"]))   # critic 157
@@ -3394,6 +3429,10 @@ class CollectService:
                 return False
             except Exception as e:  # noqa: BLE001
                 self.audit("system", "refresh_failed", {"invoice": inv["id"], "error": str(e)[:200]})
+                return False
+            if doc is None and self._vanish_held(inv["id"]):
+                # מנהל 417 (ביקורת 250🟠): כמו ב-_refresh_invoice — 404 על חשבונית מוחזקת אינו «שולם»
+                self.audit("system", "refresh_failed", {"invoice": inv["id"], "error": "mass_vanish_hold"})
                 return False
             if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
                 self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?",
