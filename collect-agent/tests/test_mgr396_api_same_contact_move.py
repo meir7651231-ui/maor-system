@@ -142,4 +142,5 @@ def test_audit_without_pii(svc, clock):
 def test_source_guard():
     src = Path(__file__).resolve().parents[1].joinpath("app", "service.py").read_text(encoding="utf-8")
     assert "self._api_same_contact_moved(inv, cid)" in src
-    assert "elif not inv.client_external_id:" in src
+    # מנהל 415: המבנה שונה (פתיחה מחדש ב-API) — אותו תנאי: API בלבד, בלי מזהה לקוח
+    assert "if source != \"csv\" and not inv.client_external_id:" in src

@@ -855,7 +855,11 @@ class CollectService:
                                        "AND owner_paid_at IS NULL", (inv.external_id,))
                 was_open = self.db.one("SELECT id, amount_agorot, currency FROM invoices WHERE external_id=? "
                                        "AND status='open' AND owner_paid_at IS NULL", (inv.external_id,))
-            elif not inv.client_external_id:
+            else:
+                # מנהל 415 (מבקר 248🟡): מסמך שנסגר (נעלם מסנכרון מלא) וחוזר פתוח — קבלה שבוטלה במקור — נפתח בשקט
+                reopened = self.db.one("SELECT id FROM invoices WHERE external_id=? AND status='closed' "
+                                       "AND owner_paid_at IS NULL", (inv.external_id,))
+            if source != "csv" and not inv.client_external_id:
                 self._api_same_contact_moved(inv, cid)   # מנהל 396
                 if self._api_contact_changed(inv, cid):   # מנהל 414 (מבקר 247🟠): 219א גם ב-API
                     self._csv_contact_moved(inv, cid, api=True)
@@ -888,7 +892,7 @@ class CollectService:
             cur_changed = prev_cur is not None and self._note_currency_change(
                 prev_cur["id"], prev_cur["currency"], inv.currency, prev_cur["amount_agorot"], inv.amount_agorot)
             if reopened:
-                self._notify_csv_reopened(inv, reopened["id"])
+                self._notify_csv_reopened(inv, reopened["id"], api=source != "csv")
             elif cur_changed:
                 pass   # «היתרה עלתה» בין מטבעות אינה השוואה — כרטיס המטבע מכסה
             elif was_open is not None and inv.amount_agorot > was_open["amount_agorot"] \
@@ -1155,24 +1159,28 @@ class CollectService:
                    "הלקוח הושהה — שום הודעה לא תצא לפרטים הישנים. עדכנו את הטלפון/המייל בכרטיס הלקוח וחדשו.",
                    key, _iso(self.clock())))
 
-    def _notify_csv_reopened(self, inv: Invoice, iid: int) -> None:
+    def _notify_csv_reopened(self, inv: Invoice, iid: int, api: bool = False) -> None:
         """מבקר 219ב🟡: חשבונית CSV שנסגרה לפי קובץ («שולם» / יתרה 0) ומופיעה שוב כפתוחה (קובץ ישן שהועלה
         בטעות / ייצוא לא מעודכן) נפתחה מחדש בשקט. עכשיו: כרטיס לבעל העסק — התזכורות עליה ממילא דורשות
         אישור פרטני, והכרטיס אומר לו לבדוק לפני שמאשר. כרטיס אחד לחשבונית ליום."""
-        key = f"csv_reopen:{iid}:{self.clock().date().isoformat()}"
-        prev = self.db.one("SELECT id, needs_owner FROM messages WHERE intent='csv_reopened' AND message_id=?", (key,))
+        intent = "api_reopened" if api else "csv_reopened"   # מנהל 415: אותו כרטיס גם בסנכרון API
+        key = f"{'api' if api else 'csv'}_reopen:{iid}:{self.clock().date().isoformat()}"
+        prev = self.db.one("SELECT id, needs_owner FROM messages WHERE intent=? AND message_id=?", (intent, key))
         if prev:
             if not prev["needs_owner"]:   # מנהל 389: ירד (227) והקובץ הישן חזר באותו יום ⇒ הכרטיס חוזר
                 self.db.x("UPDATE messages SET needs_owner=1 WHERE id=?", (prev["id"],))
             return
         cust = self.db.one("SELECT customer_id FROM invoices WHERE id=?", (iid,))
+        body = (f"חשבונית {inv.number} נסגרה קודם במערכת החשבוניות, ועכשיו היא שוב פתוחה שם (למשל קבלה שבוטלה). "
+                "כדאי לוודא שהחוב באמת פתוח; אם היא נפתחה בטעות — סגרו אותה במערכת החשבוניות או השהו את הלקוח."
+                if api else
+                f"חשבונית {inv.number} נסגרה לפי קובץ קודם (שולם / יתרה 0), ובקובץ הזה היא שוב פתוחה. "
+                "אם הועלה בטעות קובץ ישן — העלו את הקובץ העדכני; אם החוב באמת פתוח — אפשר להמשיך. "
+                "תזכורת עליה לא תצא בלי אישורכם.")
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
-                  "message_id,created_at) VALUES(?,'system','owner',?,'csv_reopened',1,?,?)",
-                  (cust["customer_id"] if cust else None,
-                   f"חשבונית {inv.number} נסגרה לפי קובץ קודם (שולם / יתרה 0), ובקובץ הזה היא שוב פתוחה. "
-                   "אם הועלה בטעות קובץ ישן — העלו את הקובץ העדכני; אם החוב באמת פתוח — אפשר להמשיך. "
-                   "תזכורת עליה לא תצא בלי אישורכם.", key, _iso(self.clock())))
-        self.audit("system", "csv_invoice_reopened", {"invoice": iid})
+                  "message_id,created_at) VALUES(?,'system','owner',?,?,1,?,?)",
+                  (cust["customer_id"] if cust else None, body, intent, key, _iso(self.clock())))
+        self.audit("system", "api_invoice_reopened" if api else "csv_invoice_reopened", {"invoice": iid})
 
     def _in_approved_plan(self, iid: int) -> bool:
         return any(iid in self._plan_invoice_ids(p) for p in self.db.q(
@@ -1286,6 +1294,7 @@ class CollectService:
             self._notify_malformed(bad)
         out = self.ingest(invs, review=review, provider=provider, full=not bad)
         self._resolve_paid_claims_closed_at_source()   # מבקר 224
+        self._resolve_csv_cards()   # מנהל 415: כרטיס api_reopened יורד כשהמסמך נסגר שוב
         self._resolve_plan_cards()   # מבקר 237 (plan_amount_changed גם בסנכרון API)
         return out
 
@@ -1425,7 +1434,8 @@ class CollectService:
         מהמפתח (`csv_reopen:{iid}:…` / `csv_rose:{iid}:{סכום}:…`); הסכום הקודם מה-audit של הכרטיס."""
         n = 0
         for m in self.db.q("SELECT id, intent, message_id, created_at FROM messages WHERE needs_owner=1 "
-                           "AND intent IN ('csv_reopened','csv_balance_rose') AND message_id IS NOT NULL"):
+                           "AND intent IN ('csv_reopened','api_reopened','csv_balance_rose') "
+                           "AND message_id IS NOT NULL"):
             parts = m["message_id"].split(":")
             try:
                 iid = int(parts[1])
@@ -1503,6 +1513,7 @@ class CollectService:
                 continue
             if self.db.update("UPDATE plans SET status='completed' WHERE id=? AND status='missed'", (p["id"],)) == 1:
                 self.audit("system", "plan_completed", {"plan": p["id"], "after_missed": True})
+                self._release_completed_plan_pause(p, self.clock().date())
                 done.append(p["id"])
         return done
 
@@ -3068,6 +3079,7 @@ class CollectService:
                                   (p["id"],)) == 1:
                     self.audit("system", "plan_completed", {"plan": p["id"]})
                     self._clear_plan_offer(p)
+                    self._release_completed_plan_pause(p, today)
                     out["completed"].append(p["id"])
                 continue
             total = sum(i["amount_agorot"] for i in items)
@@ -3094,23 +3106,8 @@ class CollectService:
                 continue
             self._clear_plan_offer(p)
             cust = self.db.one("SELECT name, paused_reason FROM customers WHERE id=?", (p["customer_id"],))
-            # fuzz ב׳ (20.11): הסדר שנולד בשיחה («אפשר בתשלומים?» / «אין לי כסף» / «מאשר») השהה את הלקוח
-            # (plan_request / cant_pay / plan_accept) — וההשהיה נשארה לנצח אחרי שההסדר הוחמץ, בזמן שהכרטיס הבטיח
-            # «התזכורות חוזרות». משחררים רק השהיה **של ההסדר**; «שילמתי», מחלוקת, הסרה וכל השאר — נשארים.
-            reason = (cust["paused_reason"] or "") if cust else ""
-            # fuzz ב׳ זרעים 40605/40950: הבטחה בזמן ההסדר לא נרשמה כהשהיה (_keeps_old_pause שומר את השהיית ההסדר), אבל
-            # ללקוח נאמר «עד X לא נשלח תזכורות» ⇒ בשחרור, אם השיחה ב-PROMISED עם מועד עתידי — ההשהיה הופכת להבטחה עד אז
-            conv = self.db.one("SELECT state, pause_until FROM conversations WHERE customer_id=?",
-                               (p["customer_id"],)) if self._table_exists("conversations") else None
-            keep = (f"promise:until={conv['pause_until']}" if conv and conv["state"] == "promised"
-                    and conv["pause_until"] and conv["pause_until"] > today.isoformat() else None)
-            if reason.split(":", 1)[0] in self.PLAN_PAUSES and not self._protective_since_resume(p["customer_id"]) \
-                    and self.db.update(
-                    "UPDATE customers SET paused_reason=? WHERE id=? AND paused_reason=?",
-                    (keep, p["customer_id"], reason)) == 1:
-                self.audit("system", "plan_missed_pause_released", {"plan": p["id"], "was": reason.split(":", 1)[0],
-                                                                     **({"promise_until": keep[14:]} if keep else {})})
-                reason = keep or ""
+            reason = self._release_plan_pause(p, today, "plan_missed_pause_released",
+                                              (cust["paused_reason"] or "") if cust else "")
             body = plan_missed_text(cust["name"] if cust else None, late["n"], len(items), late["amount_agorot"],
                                     late["due"], open_now, still_paused=bool(reason),
                                     currency=self.plan_currency(p), partial_agorot=max(0, paid - before_late))
@@ -3121,6 +3118,37 @@ class CollectService:
             self.audit("system", "plan_missed", {"plan": p["id"], "installment": late["n"], "of": len(items)})
             out["missed"].append(p["id"])
         return out
+
+    def _release_plan_pause(self, p, today: date, action: str, reason: str | None = None) -> str:
+        """משחרר את השהיית **ההסדר** (plan_request / plan_accept / cant_pay) של לקוח ההסדר; מחזיר את ההשהיה שנשארה.
+        fuzz ב׳ (20.11): הסדר שנולד בשיחה («אפשר בתשלומים?» / «אין לי כסף» / «מאשר») השהה את הלקוח — וההשהיה
+        נשארה לנצח אחרי שההסדר הוחמץ. משחררים רק השהיה של ההסדר; «שילמתי», מחלוקת, הסרה וכל השאר — נשארים.
+        fuzz ב׳ זרעים 40605/40950: הבטחה בזמן ההסדר (השיחה ב-PROMISED עם מועד עתידי) ⇒ ההשהיה הופכת להבטחה עד אז.
+        מנהל 415 (מבקר 248🟡): אותו שחרור גם כשההסדר **הושלם** — אחרת חשבונית חדשה / שנפתחה מחדש ללקוח הזה לא
+        קיבלה תזכורת לעולם."""
+        cid = p["customer_id"]
+        if reason is None:
+            row = self.db.one("SELECT paused_reason FROM customers WHERE id=?", (cid,))
+            reason = (row["paused_reason"] or "") if row else ""
+        if reason.split(":", 1)[0] not in self.PLAN_PAUSES or self._protective_since_resume(cid):
+            return reason
+        conv = self.db.one("SELECT state, pause_until FROM conversations WHERE customer_id=?",
+                           (cid,)) if self._table_exists("conversations") else None
+        keep = (f"promise:until={conv['pause_until']}" if conv and conv["state"] == "promised"
+                and conv["pause_until"] and conv["pause_until"] > today.isoformat() else None)
+        if self.db.update("UPDATE customers SET paused_reason=? WHERE id=? AND paused_reason=?",
+                          (keep, cid, reason)) != 1:
+            return reason
+        self.audit("system", action, {"plan": p["id"], "was": reason.split(":", 1)[0],
+                                      **({"promise_until": keep[14:]} if keep else {})})
+        return keep or ""
+
+    def _release_completed_plan_pause(self, p, today: date) -> None:
+        """מנהל 415: הסדר הושלם ⇒ השהיית ההסדר משתחררת, אלא אם ללקוח עוד הסדר חי (מוצע/מאושר)."""
+        if self.db.one("SELECT 1 FROM plans WHERE customer_id=? AND id<>? AND status IN ('proposed','approved')",
+                       (p["customer_id"], p["id"])):
+            return
+        self._release_plan_pause(p, today, "plan_completed_pause_released")
 
     def _claim_reminder(self, rid: int) -> bool:
         """critic סבב 39: תפיסה אטומית לפני השליחה. False ⇒ מישהו אחר כבר תפס/שלח."""

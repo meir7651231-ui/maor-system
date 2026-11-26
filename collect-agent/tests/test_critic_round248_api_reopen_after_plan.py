@@ -13,12 +13,9 @@ completed, `paused_reason='plan_accept'`, אין כרטיס; 3 ימי plan() ⇒
 השהיית ההסדר + כרטיס. xfail(strict=True)."""
 from datetime import timedelta
 
-import pytest
-
 from tests.conftest import gi_doc
 
 
-@pytest.mark.xfail(strict=True, reason="248🟡: API — מסמך שנפתח מחדש אחרי «הושלם»: הלקוחה מושהית לתמיד, בלי כרטיס")
 def test_api_reopened_after_completed_plan_is_visible(svc, clock, fake_gi):
     d = gi_doc(1)
     fake_gi.docs[:] = [d]
