@@ -2204,15 +2204,24 @@ class CollectService:
         if self.db.one("SELECT 1 FROM messages WHERE intent='max_reminders' AND message_id=?",
                        (key,)):
             return
-        nums = [r["number"] for r in self.db.q(
-            "SELECT number FROM invoices WHERE customer_id=? AND status='open' ORDER BY due, id",
-            (cust["id"],))]
+        # מבקר 246: הכרטיס מונה רק חשבוניות שנכללו בתזכורות שנשלחו; פתוחה שלא הוזכרה (מטבע אחר ממתין —
+        # הכרעת מאיר 7.11) מצוינת בנפרד, כדי שבעל העסק לא יקרא שגם עליה נשלחו תזכורות.
+        covered = {i for r in sent for i in self.reminder_invoice_ids(r["id"])}
+        rows = self.db.q("SELECT id, number, amount_agorot, currency FROM invoices "
+                         "WHERE customer_id=? AND status='open' ORDER BY due, id", (cust["id"],))
+        on = [r for r in rows if r["id"] in covered] or rows
+        off = [r for r in rows if r not in on]
+        nums = [r["number"] for r in on]
         what = (f"לחשבונית {nums[0]}" if len(nums) == 1 else
                 f"על {len(nums)} חשבוניות פתוחות ({', '.join(nums)})")
+        cur = {r["currency"] for r in on}
+        unsent = "".join(
+            f" {r['number']} ({templates.fmt_amount(r['amount_agorot'], r['currency'])}) — לא נשלחה עליה "
+            f"תזכורת{' (מטבע אחר)' if r['currency'] not in cur else ''}, והיא עדיין פתוחה." for r in off)
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                   "message_id,created_at) VALUES(?,'system','owner',?,'max_reminders',1,?,?)",
                   (cust["id"], f"נשלחו {MAX_REMINDERS_PER_INVOICE} תזכורות {what} ({cust['name']}) "
-                   "והחוב עדיין פתוח. התזכורות האוטומטיות נעצרו — מומלץ קשר אישי.", key,
+                   f"והחוב עדיין פתוח.{unsent} התזכורות האוטומטיות נעצרו — מומלץ קשר אישי.", key,
                    _iso(self.clock())))
         self.audit("system", "max_reminders_reached", {"customer": cust["id"]})
 

@@ -15,15 +15,12 @@
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
-
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,מטבע,סטטוס,תאריך,תאריך לתשלום\n"
 DANA = "050-1234567"
 ROWS = (H + f"9001,דנה כהן,{DANA},,1200,USD,פתוח,01/10/26,15/10/26\n"
         f"9002,דנה כהן,{DANA},,900,ILS,פתוח,01/10/26,15/10/26\n").encode()
 
 
-@pytest.mark.xfail(strict=True, reason="246🟡: max_reminders «נשלחו 3 תזכורות על (9001, 9002)» — 9002 (₪) לא נשלחה")
 def test_max_reminders_card_does_not_claim_unsent_currency(svc, clock):
     svc.s = replace(svc.s, source_system="csv")
     svc.db.x("DELETE FROM invoices")
@@ -41,3 +38,21 @@ def test_max_reminders_card_does_not_claim_unsent_currency(svc, clock):
     assert nine2 not in sent_on
     card = svc.db.one("SELECT body FROM messages WHERE intent='max_reminders'")["body"]
     assert "9002" not in card or "לא נשלח" in card, card
+    assert "לחשבונית 9001" in card and "9002 (900 ₪) — לא נשלחה עליה תזכורת (מטבע אחר)" in card, card
+
+
+def test_max_reminders_card_same_currency_unchanged(svc, clock):
+    """בקרה: שתי חשבוניות ₪ שנכללו בתזכורת המשולבת ⇒ הכרטיס כמו קודם (שתיהן ברשימה, בלי «לא נשלחה»)."""
+    rows = ROWS.replace(b"1200,USD", b"1200,ILS")
+    svc.s = replace(svc.s, source_system="csv")
+    svc.db.x("DELETE FROM invoices")
+    svc.import_csv(rows)
+    for _ in range(40):
+        clock.now += timedelta(days=1)
+        svc.import_csv(rows)
+        svc.plan()
+        for r in svc.db.q("SELECT id FROM reminders WHERE status='pending_approval'"):
+            svc.approve(r["id"], confirm_open=True, confirm_amount=True)
+        svc.dispatch()
+    card = svc.db.one("SELECT body FROM messages WHERE intent='max_reminders'")["body"]
+    assert "על 2 חשבוניות פתוחות (9001, 9002)" in card and "לא נשלח" not in card, card
