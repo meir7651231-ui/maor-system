@@ -857,6 +857,8 @@ class CollectService:
                                        "AND status='open' AND owner_paid_at IS NULL", (inv.external_id,))
             elif not inv.client_external_id:
                 self._api_same_contact_moved(inv, cid)   # מנהל 396
+                if self._api_contact_changed(inv, cid):   # מנהל 414 (מבקר 247🟠): 219א גם ב-API
+                    self._csv_contact_moved(inv, cid, api=True)
             # מבקר 244🟠: מטבע שהשתנה במקור נשאר הישן ⇒ «$1,100» כשהקובץ אומר ₪1,100
             prev_cur = self.db.one("SELECT id, amount_agorot, currency FROM invoices WHERE external_id=? "
                                    "AND status='open'", (inv.external_id,))
@@ -938,7 +940,24 @@ class CollectService:
                    _iso(self.clock())))
         self.audit("system", "doc_without_id", {"count": n})
 
-    def _csv_contact_moved(self, inv: Invoice, cid: int) -> None:
+    def _api_contact_changed(self, inv: Invoice, cid: int) -> bool:
+        """מנהל 414 (מבקר 247🟠): סנכרון API בלי מזהה לקוח שבו **פרטי הקשר** של חשבונית התחלפו במקור (טלפון/מייל
+        אחרים — לא רק שם; שינוי שם בתוך אותו טלפון/מייל = 396/397). החשבונית רשומה אצל לקוח שהמפתח שלו נגזר
+        מפרטי קשר (`phone:`/`email:`, כולל גרסת-שם) ששונים מהמפתח הנוכחי ⇒ אותו כלל כמו 219א: המסמך הוא מקור
+        האמת לפרטי הקשר. לקוח קודם עם מזהה מקור או `doc:` / מסמך בלי פרטי קשר ⇒ לא נוגעים (שמרני)."""
+        key = self.customer_key(inv)
+        if key.startswith("doc:"):
+            return False
+        old = self.db.one("SELECT i.customer_id, c.external_id ext FROM invoices i "
+                          "JOIN customers c ON c.id=i.customer_id WHERE i.external_id=?", (inv.external_id,))
+        if old is None or old["customer_id"] == cid:
+            return False
+        ext = old["ext"] or ""
+        if not ext.startswith(("phone:", "email:")):
+            return False
+        return not (ext == key or ext.startswith(key + "|name:"))
+
+    def _csv_contact_moved(self, inv: Invoice, cid: int, api: bool = False) -> None:
         """מבקר 219א🟠: ב-CSV אין מזהה לקוח — המפתח נגזר מהטלפון/מייל. קובץ עם טלפון/מייל חדשים לאותה
         חשבונית ⇒ לקוח חדש, אבל ה-upsert לא העביר אליו את החשבונית ⇒ התזכורת יצאה לפרטים **הישנים** (מספר
         שעבר לאדם אחר ⇒ פרטי חוב לזר). עכשיו: הקובץ הוא מקור האמת לפרטי הקשר — החשבונית עוברת ללקוח
@@ -957,9 +976,10 @@ class CollectService:
             self.db.x("UPDATE customers SET paused_reason=COALESCE(paused_reason, 'csv_contact_changed') WHERE id=?",
                       (old["customer_id"],))
             self._cancel_invoice(old["id"], "contact_changed")
-            self._csv_contact_card(inv, old["customer_id"])
+            self._csv_contact_card(inv, old["customer_id"], api=api)
             # מנהל 409: `to` — לאן החשבונית תעבור כשההסדר יסתיים (`_apply_deferred_contact_moves`)
-            self.audit("system", "csv_contact_changed_in_plan", {"invoice": old["id"], "to": cid})
+            self.audit("system", "csv_contact_changed_in_plan",
+                       {"invoice": old["id"], "to": cid, **({"api": True} if api else {})})
             return
         prev = self.db.one("SELECT opted_out, disputed, paused_reason, legal_hold FROM customers WHERE id=?",
                            (old["customer_id"],))
@@ -972,6 +992,7 @@ class CollectService:
         self.db.x("UPDATE invoices SET customer_id=? WHERE id=?", (cid, old["id"]))
         self._cancel_invoice(old["id"], "contact_changed")
         self.audit("system", "csv_contact_changed", {"invoice": old["id"], "from": old["customer_id"], "to": cid,
+                                                     **({"api": True, "contact": True} if api else {}),
                                                      "upto_reminder": self._last_reminder_id(old["id"])})
 
     def _optout_lift_covers(self, cid: int, prev_cid: int) -> bool:
@@ -1001,7 +1022,8 @@ class CollectService:
         שהמפתח שלה נגזר אליו ⇒ חשבונית שהגיעה בשם חדש נשארה אצל השם הקודם (לקוח-רפאים בשם החדש), התזכורת המשיכה
         בשם הקודם, והכרטיס «אולי שינוי שם?» אמר «שמרנו אותה כלקוח נפרד… בסנכרון הבא גבי תאחד» — ושניהם לא קרו.
         עכשיו: כמו CSV (219א) — אבל **רק בתוך אותו טלפון/מייל** (הבעלים הנוכחי במפתח הקשר הזה או בגרסת-שם שלו), כך
-        שאין כאן שינוי של פרטי קשר: רק לאיזה שם החשבונית שייכת. החלפת טלפון/מייל ב-API ⇒ ללא שינוי (לא בתחום).
+        שאין כאן שינוי של פרטי קשר: רק לאיזה שם החשבונית שייכת. החלפת טלפון/מייל ב-API ⇒
+        `_api_contact_changed` (מנהל 414, 219א).
         חשבונית בהסדר פעיל לא זזה (הסדר שבעל העסק אישר קשור ללקוח; audit בלבד). אותו audit `csv_contact_changed`
         עם `api: true` — כך שירידת הכרטיס (394, united/back) ו«שילמתי» אחרי מעבר (395) עובדים גם ב-API."""
         key = self.customer_key(inv)
@@ -1122,13 +1144,14 @@ class CollectService:
             n += 1
         return n
 
-    def _csv_contact_card(self, inv: Invoice, old_cid: int) -> None:
+    def _csv_contact_card(self, inv: Invoice, old_cid: int, api: bool = False) -> None:
         key = f"csv_contact_plan:{inv.external_id}"
         if self.db.one("SELECT 1 FROM messages WHERE intent='csv_contact_plan' AND message_id=?", (key,)):
             return
+        where = "במערכת החשבוניות" if api else "בקובץ החדש"   # מנהל 414: אותו כרטיס גם ב-API
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                   "message_id,created_at) VALUES(?,'system','owner',?,'csv_contact_plan',1,?,?)",
-                  (old_cid, f"חשבונית {inv.number} בהסדר תשלומים, ובקובץ החדש פרטי הקשר של הלקוח השתנו. "
+                  (old_cid, f"חשבונית {inv.number} בהסדר תשלומים, ו{where} פרטי הקשר של הלקוח השתנו. "
                    "הלקוח הושהה — שום הודעה לא תצא לפרטים הישנים. עדכנו את הטלפון/המייל בכרטיס הלקוח וחדשו.",
                    key, _iso(self.clock())))
 

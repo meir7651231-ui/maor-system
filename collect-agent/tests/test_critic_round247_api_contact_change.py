@@ -10,10 +10,9 @@
 (אולי עבר לאדם אחר). עם `client.id` או מייל קבוע ⇒ ✓ הלקוח מתעדכן והתזכורות עוברות ל-050-0000999 (בקרה).
 ✓ נבדק: 246 (מנהל 413) תוקן; 412 לא שובר את 239–241 (הבדיקות עוברות).
 הצעה: אותו כלל כמו 219א גם ב-API — המסמך הוא מקור האמת לפרטי הקשר (מעבר + ביטול תזכורת שנבנתה לפרטים הישנים), או
-לפחות השהיה + כרטיס «פרטי הקשר של 1001 השתנו במקור» כמו בהסדר. xfail(strict=True)."""
+לפחות השהיה + כרטיס «פרטי הקשר של 1001 השתנו במקור» כמו בהסדר.
+מנהל 414: תוקן — `_api_contact_changed` ⇒ `_csv_contact_moved(api=True)`; xfail הוסר."""
 from datetime import timedelta
-
-import pytest
 
 from app.channels import sent_mark, sent_since
 from tests.conftest import gi_doc
@@ -48,7 +47,7 @@ def test_api_contact_change_with_stable_key_moves_reminders(svc, clock, fake_gi)
     assert tos and all(t != "972501234567" for t in tos), tos
 
 
-@pytest.mark.xfail(strict=True, reason="247🟠: API בלי מזהה/מייל — טלפון הוחלף במקור, התזכורות ממשיכות לטלפון הישן")
+
 def test_api_contact_change_without_key_stops_old_phone(svc, clock, fake_gi):
     tos = _run(svc, clock, fake_gi, None, email=False)
     assert "972501234567" not in tos, tos

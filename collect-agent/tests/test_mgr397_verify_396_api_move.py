@@ -77,14 +77,19 @@ def test_email_only_moves_and_resolves(svc, clock):
     assert _open_cards(svc) == []
 
 
-def test_email_change_not_moved(svc, clock):
-    """מייל אחר = שינוי פרטי קשר, מחוץ לתחום — ללא העברה."""
+def test_email_change_moves_as_contact_change(svc, clock):
+    """מייל אחר = שינוי פרטי קשר, מחוץ לתחום — ללא העברה.
+    מנהל 414 (מבקר 247🟠): כבר לא מחוץ לתחום — כלל 219א חל גם ב-API: 8002 עוברת ללקוח של הפרטים החדשים
+    (audit `contact`), 8001 נשארת. מסלול שינוי-השם (396) לא מופעל."""
     svc.ingest([_inv("8001", OLD, phone="", email="a@x.example"),
                 _inv("8002", OLD, phone="", email="a@x.example")], full=False)
     before = _owner(svc)
     _sync(svc, clock, _inv("8002", OLD, phone="", email="b@x.example"))
-    assert _owner(svc) == before
-    assert svc.db.one("SELECT COUNT(*) n FROM audit WHERE action='csv_contact_changed'")["n"] == 0
+    assert _owner(svc) == before   # השם לא השתנה — רק פרטי הקשר
+    cids = {r["number"]: r["customer_id"] for r in svc.db.q("SELECT number, customer_id FROM invoices")}
+    assert cids["8001"] != cids["8002"]
+    rows = [json.loads(a["detail"]) for a in svc.db.q("SELECT detail FROM audit WHERE action='csv_contact_changed'")]
+    assert len(rows) == 1 and rows[0].get("contact") is True and rows[0].get("api") is True, rows
 
 
 # ---------- (3) «שילמתי» מהטלפון אחרי מעבר ב-API ----------

@@ -105,13 +105,18 @@ def test_client_id_from_system_unchanged(svc, clock):
     assert len({r["customer_id"] for r in svc.db.q("SELECT customer_id FROM invoices")}) == 1
 
 
-def test_phone_change_in_api_not_moved(svc, clock):
-    """טלפון אחר ב-API = שינוי פרטי קשר, לא שינוי שם — מחוץ לתחום, ללא שינוי (החשבונית נשארת)."""
+def test_phone_change_in_api_moves_as_contact_change(svc, clock):
+    """טלפון אחר ב-API = שינוי פרטי קשר, לא שינוי שם — מחוץ לתחום, ללא שינוי (החשבונית נשארת).
+    מנהל 414 (מבקר 247🟠): כבר לא מחוץ לתחום — כלל 219א חל גם ב-API: 8002 עוברת ללקוח של הפרטים החדשים
+    (audit `contact`), 8001 נשארת. מסלול שינוי-השם (396) לא מופעל."""
     svc.ingest([_inv("8001", OLD), _inv("8002", OLD)], full=False)
     before = _owner(svc)
     _sync(svc, clock, _inv("8002", OLD, phone="0549998888"))
-    assert _owner(svc) == before
-    assert svc.db.one("SELECT COUNT(*) n FROM audit WHERE action='csv_contact_changed'")["n"] == 0
+    assert _owner(svc) == before   # השם לא השתנה — רק פרטי הקשר
+    cids = {r["number"]: r["customer_id"] for r in svc.db.q("SELECT number, customer_id FROM invoices")}
+    assert cids["8001"] != cids["8002"]
+    rows = [json.loads(a["detail"]) for a in svc.db.q("SELECT detail FROM audit WHERE action='csv_contact_changed'")]
+    assert len(rows) == 1 and rows[0].get("contact") is True and rows[0].get("api") is True, rows
 
 
 def test_live_plan_not_moved(svc, clock, monkeypatch):
