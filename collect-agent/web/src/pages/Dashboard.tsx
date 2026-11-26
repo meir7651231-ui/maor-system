@@ -443,6 +443,9 @@ function NeedsYou() {
               <div className="mt-2 flex flex-wrap items-center gap-2" data-testid="notice-done-locked">
                 <Button size="sm" variant="outline" disabled title="רק בעל העסק סוגר את ההתראה הזו">✓ טופל</Button>
                 <span data-testid="owner-only-badge" className="whitespace-nowrap rounded-full bg-ink-100 px-2 py-0.5 text-xs font-bold text-ink-700">{OWNER_ONLY_TAG}</span>
+                {/* מנהל 422 (מבקר 253🟡): הגוף אומר «סמנו כאן» — לעובד/ת אין כפתור; אומרים מי מכריע */}
+                {n.intent === 'api_mass_vanish' && <span data-testid="notice-staff-hint" className="w-full text-xs text-ink-700">
+                  בעל העסק מכריע אם החשבוניות באמת שולמו. עד אז הן נשארות פתוחות.</span>}
               </div>
             ) : (
             <Button size="sm" variant={armed === `n${n.id}` ? 'dark' : 'outline'} className="mt-2" data-testid="notice-done"

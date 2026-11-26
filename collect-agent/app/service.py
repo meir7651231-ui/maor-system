@@ -244,6 +244,13 @@ def shared_split_rename_plan_text(number: str) -> str:
 
 # מנהל 307: כרטיסי «כתובת משותפת» (inbox.SHARED_CARDS — כאן כמחרוזות כדי לא לייבא את inbox)
 _SHARED_URGENT_INTENT = "shared_contact_urgent"
+# מבקר 195א + מנהל 422 (מבקר 253🟡): כרטיסים שרק בעל העסק סוגר ב«טופל». עובד/ת ⇒ 403 + audit. api_mass_vanish:
+# «טופל» של עובד/ת הוריד את הכרטיס מבעל העסק לפני שראה אותו (ההכרעה «כולן שולמו» / «השאר פתוחות» — שלו).
+# web/src/lib/roles.ts OWNER_ONLY_NOTICES = אותה רשימה (tests/test_owner_only_ui_sync.py)
+_OWNER_ONLY_NOTICES = {
+    "settings_changed": "את ההתראה על שינוי ההגדרות הרגישות סוגר רק בעל העסק.",
+    "api_mass_vanish": "רק בעל העסק מכריע אם החשבוניות שנעלמו באמת שולמו או נשארות פתוחות.",
+}
 _SHARED_CARD_INTENTS = (_SHARED_URGENT_INTENT, "shared_contact_paid_claim", "shared_contact_promise",
                         "shared_contact_plan_request")   # מבקר 233 · 234א
 
@@ -2403,11 +2410,12 @@ class CollectService:
             return {"id": mid, "done": False, "email_bounce_review": True,
                     "reason": "המיילים ללקוח עדיין מושהים. הכרטיס יורד רק בהכרעה: «המייל באמת חזר — חסום» "
                               "או «הכתובת תקינה — החזר מיילים»."}
-        if row["intent"] == "settings_changed" and not self._actor_is_owner(actor):
+        if row["intent"] in _OWNER_ONLY_NOTICES and not self._actor_is_owner(actor):
             # מבקר 195א: התראת-הביטחון «הגדרות רגישות שונו — ודאו שזה אתם» מיועדת לבעל העסק. עובד/ת שסגר/ה אותה
-            # הוריד/ה אותה מ«דורש טיפול שלך» בלי שבעל העסק ראה. עכשיו: בעל העסק בלבד (403 + audit)
+            # הוריד/ה אותה מ«דורש טיפול שלך» בלי שבעל העסק ראה. עכשיו: בעל העסק בלבד (403 + audit). מנהל 422: גם
+            # כרטיס api_mass_vanish (מבקר 253🟡)
             self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "owner_only"})
-            raise OwnerOnly("את ההתראה על שינוי ההגדרות הרגישות סוגר רק בעל העסק.")
+            raise OwnerOnly(_OWNER_ONLY_NOTICES[row["intent"]])
         if self._self_dismiss_blocked(row, actor):
             self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "self_dismiss"})
             raise ValueError("את ההתראה על שינוי ההגדרות הרגישות צריך לסמן «טופל» בעל עסק אחר — "

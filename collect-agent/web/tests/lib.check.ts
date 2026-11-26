@@ -1596,6 +1596,8 @@ test('מבקר 195א: «✓ טופל» על התראת-ביטחון — נעול
   const token = { actor: 'owner', kind: 'owner' as const, name: 'בעלים' };
   assert.equal(noticeDoneLocked(staff, 'settings_changed'), true);
   assert.equal(noticeDoneLocked(staff, 'max_reminders'), false);
+  assert.equal(noticeDoneLocked(staff, 'api_mass_vanish'), true);    // מנהל 422 (מבקר 253🟡)
+  assert.equal(noticeDoneLocked(ownerUser, 'api_mass_vanish'), false);
   assert.equal(noticeDoneLocked(ownerUser, 'settings_changed'), false);
   assert.equal(noticeDoneLocked(token, 'settings_changed'), false);
   assert.equal(noticeDoneLocked(null, 'settings_changed'), false);

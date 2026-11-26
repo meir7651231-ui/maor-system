@@ -10,10 +10,9 @@
 נעילה — בעוד שכרטיס «הגדרות רגישות שונו» ממש מתחתיו מציג «🔒 בעל העסק בלבד».
 ✓ 252 (מנהל 420) תוקן — החזקה ⇒ `sync_suspect` ו-check מתריע.
 הצעה: `api_mass_vanish` ב-OWNER_ONLY_NOTICES (תג נעילה לעובד/ת) ו-`owner_message_done` של עובד/ת עליו ⇒ 403 + audit
-(כמו 195א), או נוסח לעובד/ת «בעל העסק יכריע». xfail(strict=True)."""
+(כמו 195א), או נוסח לעובד/ת «בעל העסק יכריע». ✓ תוקן במנהל 422 (403 + נעילה + «בעל העסק מכריע»)."""
 from datetime import timedelta
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app import totp
@@ -25,7 +24,6 @@ from tests.conftest import OWNER_TOKEN, gi_doc
 PW = "correct-horse-battery-9"
 
 
-@pytest.mark.xfail(strict=True, reason="253🟡: «טופל» של עובד/ת מוריד את כרטיס api_mass_vanish מבעל העסק")
 def test_staff_done_does_not_hide_mass_vanish_from_owner(svc, clock, fake_gi, monkeypatch):
     monkeypatch.setenv("COLLECT_MASTER_KEYS", f"k1:{generate_key()}")
     u = Users(svc.db, svc.clock)

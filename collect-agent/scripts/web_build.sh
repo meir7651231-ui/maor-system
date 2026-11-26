@@ -36,7 +36,7 @@ command -v npm >/dev/null 2>&1 || {
   echo "⚠️ web/dist ישן או חסר ($why) ואין npm — /app/ יגיש גרסה ישנה (או לא יוגש). התקינו Node ונסו שוב." >&2
   exit 2; }
 
-LOG=$(mktemp "${TMPDIR:-/tmp}/gabi-web-build.XXXXXX")
+LOG="$(mktemp "${TMPDIR:-/tmp}/gabi-web-build.XXXXXX")"   # מנהל 422: בצורה שמגן ה-mktemp מזהה
 trap 'rm -f "$LOG"' EXIT
 if [[ ! -d node_modules ]] || [[ package-lock.json -nt node_modules ]]; then
   echo "▶ מתקין תלויות ממשק (npm ci)…"
