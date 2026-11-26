@@ -252,6 +252,8 @@ jobs:
         run: TZ=UTC node e2e/app-tab-return.mjs "$RUNNER_TEMP/shots"
       - name: "e2e — ייבוא CSV מהמסך בקבצי Excel עברי (Windows-1255, UTF-16+טאבים, «;»), קידוד לא מזוהה ⇒ עברית, 390px"
         run: TZ=UTC node e2e/app-csv-excel.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e — «זה אדם אחר» / «השאר מוסר/ת» בכרטיס ההסרה שעברה בירושה (שם הלקוחה בכרטיס, 407, תכנון אחרי ביטול, 390px)"
+        run: TZ=UTC node e2e/app-inherited-optout.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
         run: TZ=UTC node e2e/rebuild.mjs "$RUNNER_TEMP/shots"
       - name: e2e CSP — 7 עמודי HTML (/p, /p-404, /ui, /app, /pay, /connect/orbit) בלי הפרות, וסקריפט מוזרק נחסם

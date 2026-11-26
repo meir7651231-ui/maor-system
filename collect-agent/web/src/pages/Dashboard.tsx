@@ -378,6 +378,14 @@ function NeedsYou() {
           <li key={`n${n.id}`} className={`rounded-lg p-3 text-sm ${n.tone === 'warn' ? 'bg-amber-50' : 'bg-ink-50'}`} data-testid="notice" data-intent={n.intent}>
             <div className="font-bold"><span aria-hidden>{n.icon}</span> {n.title}</div>
             <div className="text-ink-700 text-xs mt-0.5 whitespace-pre-line">{n.body}</div>
+            {/* מנהל 416 (QA e2e): כרטיס הכרעה על לקוח מסוים (הסרה בירושה / מייל שחזר) לא אמר על מי מדובר — שני כרטיסים
+                נראו זהים, והכפתור «בטל את ההסרה» היה הימור. השם (+טלפון/מייל) מהרשימה; לא נמצא ⇒ בלי שורה. */}
+            {n.customerId != null && (() => {
+              const c = customers.find(x => x.backendId === n.customerId);
+              const reach = c?.phone || c?.email;
+              return c ? <div className="text-ink-900 text-xs font-bold mt-1" data-testid="notice-customer">
+                לקוח/ה: {c.name}{reach ? <> · <bdi dir="ltr">{reach}</bdi></> : null}</div> : null;
+            })()}
             {/* critic סבב 172ב: «✓ טופל» סוגר רק את ההתראה; הבקשה עצמה נסגרת במרשם עם תיעוד */}
             {n.intent === 'dsr' && <a href="#/inbox?dsr=1" data-testid="notice-dsr-link"
               className="mt-1 inline-flex items-center min-h-10 text-xs font-bold text-ink-700 underline">למרשם הבקשות — סגירה עם תיעוד ←</a>}
