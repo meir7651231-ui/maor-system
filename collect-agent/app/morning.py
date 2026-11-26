@@ -91,6 +91,10 @@ def run_morning(svc, now: datetime | None = None, *, force: bool = False) -> dic
         else:
             try:
                 out["sync"] = svc.sync()
+                if out["sync"].get("vanish_held"):
+                    # מנהל 420 (מבקר 252🟡): המקור החזיר רשימה ריקה/מקוצרת והחובות מוחזקים פתוחים (כרטיס
+                    # api_mass_vanish לבעל העסק) — קודם הסטטוס נשאר «ok» והניטור התפעולי שתק ימים. עכשיו: חשוד ⇒ ALERT.
+                    out["status"] = "sync_suspect"
             except Exception as e:  # noqa: BLE001 — כל כשל סנכרון: ממשיכים עם מה שב-DB, ומדווחים
                 out["status"] = "sync_failed"
                 out["sync_error"] = f"{type(e).__name__}: {str(e)[:200]}"
@@ -116,6 +120,10 @@ def check(db, max_hours: float = 26, now: datetime | None = None) -> tuple[bool,
                        f"(מעל {max_hours:g}) — ה-cron נעצר?")
     if row["status"] == "sync_failed":
         return False, f"עבודת הבוקר ({row['day']}) רצה אבל הסנכרון נכשל — לבדוק את החיבור למקור"
+    if row["status"] == "sync_suspect":
+        sync = json.loads(row["summary"]).get("sync") or {}
+        return False, (f"עבודת הבוקר ({row['day']}): המקור החזיר {sync.get('open', 0)} חשבוניות פתוחות ו-"
+                       f"{sync.get('vanish_held', 0)} חובות שנעלמו מוחזקים פתוחים (לא נסגרו) — לבדוק את החיבור למקור")
     return True, f"עבודת הבוקר ({row['day']}, {row['status']}) לפני {age.total_seconds() / 3600:.1f} שעות"
 
 

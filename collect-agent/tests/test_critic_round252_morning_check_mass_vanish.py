@@ -10,16 +10,14 @@
 אופקית; אחרי אישור הכרטיס יורד ו-8 החשבוניות נסגרות; לעובד/ת הכפתור מוסתר (`!isStaff`). צילום:
 docs/screens/critic-252-mass-vanish-card-390.png.
 הצעה: `run_morning` עם `vanish_held` ⇒ סטטוס `sync_suspect` ו-`check` מתריע («המקור החזיר N במקום M — לבדוק חיבור»),
-כמו `sync_failed`. xfail(strict=True)."""
+כמו `sync_failed`. xfail(strict=True).
+   תוקן במנהל 420 (`run_morning` ⇒ `sync_suspect` · `check` מתריע עם המספרים) — ה-xfail הוסר."""
 from datetime import timedelta
-
-import pytest
 
 from app.morning import check, run_morning
 from tests.conftest import gi_doc
 
 
-@pytest.mark.xfail(strict=True, reason="252🟡: החזקת mass_vanish ⇒ run_morning=ok ו-check «תקין»; הניטור לא מתריע")
 def test_morning_check_alerts_on_mass_vanish_hold(svc, clock, fake_gi):
     fake_gi.docs[:] = [gi_doc(i, phone=f"050-00001{i:02d}") for i in range(1, 11)]
     svc.sync()
