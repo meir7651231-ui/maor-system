@@ -126,6 +126,14 @@ class EZcountClient:
                     yield inv
             if len(rows) < self.page_size:
                 return
+        # מנהל 430: עמוד מלא אחרון ב-max_pages ⇒ עמוד בדיקה אחד. יש עוד ⇒ קודם עצירה שקטה ⇒ החובות שמעבר
+        # «נעלמו» ⇒ הסנכרון סגר אותם כשולמו. עכשיו נכשל בלי לסגור כלום (fail-closed).
+        probe = self._call({"types": list(DEBT_TYPES), "open_only": True,
+                            "page": self.max_pages + 1, "page_size": self.page_size})
+        if not [r for r in (probe.get("docs") or []) if isinstance(r, dict)]:
+            return
+        raise ProviderError(self.provider, f"page_cap: יותר מ-{self.max_pages * self.page_size:,} "
+                            "חשבוניות פתוחות — הסנכרון נעצר ולא נסגר אף חוב")
 
     def iter_credits(self) -> Iterator[Invoice]:
         """זיכויים (330) שלא בוטלו. נקודת החיפוש עצמה «לאמת» (ראו למעלה)."""

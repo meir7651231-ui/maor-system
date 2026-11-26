@@ -213,7 +213,11 @@ class ICountClient:
         if d.get("doctype") and d.get("docnum") not in (None, ""):
             self._index[inv.external_id] = (str(d["doctype"]), str(d["docnum"]))
 
-    def _rows(self, doctype: str, status: int | None = STATUS_OPEN) -> Iterator[dict[str, Any]]:
+    def _rows(self, doctype: str, status: int | None = STATUS_OPEN,
+              strict: bool = False) -> Iterator[dict[str, Any]]:
+        """strict (מנהל 430): עמוד מלא אחרון ב-max_pages ⇒ ProviderError «page_cap», לא עצירה שקטה. בחובות
+        רשימה קטועה = החובות שמעבר «נעלמו» ⇒ הסנכרון סגר אותם כשולמו. עמוד מלא בדיוק בגבול ⇒ עמוד בדיקה אחד
+        נוסף; ריק ⇒ תקין."""
         offset = 0
         for _ in range(self.max_pages):
             b = self.search_page(doctype, offset, status)
@@ -224,12 +228,20 @@ class ICountClient:
             if len(rows) < self.page_size:
                 return
             offset += self.page_size
+        if strict and self._more_rows(doctype, offset, status):
+            raise ProviderError(self.provider, f"page_cap: יותר מ-{self.max_pages * self.page_size:,} "
+                                f"מסמכים פתוחים (doctype={doctype}) — הסנכרון נעצר ולא נסגר אף חוב")
+
+    def _more_rows(self, doctype: str, offset: int, status: int | None) -> bool:
+        b = self.search_page(doctype, offset, status)
+        rows = b.get("results_list") or b.get("docs") or []
+        return bool(rows)
 
     def iter_open_invoices(self) -> Iterator[Invoice]:
         """גולמי — **לפני** קיזוז זיכויים. הסנכרון משתמש ב-open_debts()."""
         self._clients = {}
         for doctype in ICOUNT_DEBT_DOCTYPES:
-            for d in self._rows(doctype):
+            for d in self._rows(doctype, strict=True):
                 d = self._enrich(d)
                 inv = safe_map(self, map_icount_doc, d)
                 if inv is None:

@@ -57,6 +57,19 @@ class PageCapError(GreenInvoiceError):
     כדי שבעל העסק יראה סיבה אמיתית («יותר מדי קבלות מאז תאריך החשבונית»), לא «המקור לא זמין»."""
 
 
+def _has_more(body: dict[str, Any], page: int, page_size: int) -> bool:
+    """מנהל 430: האם יש עמוד נוסף. `pages` חסר/לא תקין ⇒ קודם נחשב 1 ⇒ עצירה שקטה אחרי עמוד מלא (חובות
+    מעבר לו «נעלמו» ⇒ נסגרו כשולמו). עכשיו: בלי `pages` ממשיכים כל עוד העמוד מלא (עמוד חלקי/ריק = הסוף)."""
+    raw = body.get("pages")
+    try:
+        pages = int(raw) if raw is not None else None
+    except (TypeError, ValueError):
+        pages = None
+    if pages is None or pages < 1:
+        return len(body.get("items") or []) >= page_size
+    return page < pages
+
+
 def is_loopback_url(url: str) -> bool:
     from urllib.parse import urlparse
 
@@ -434,11 +447,10 @@ class GreenInvoiceClient:
                 if total is None:
                     continue
                 yield replace(inv, amount_agorot=abs(total)) if inv.doc_type == TYPE_CREDIT else inv
-            pages = int(body.get("pages") or 1)
-            if page >= pages:
+            if not _has_more(body, page, page_size):
                 return
             if strict and page >= max_pages:
-                raise PageCapError(f"page_cap: {pages} pages > max_pages={max_pages} (types={list(types)})")
+                raise PageCapError(f"page_cap: more than {max_pages} pages (types={list(types)})")
             page += 1
 
     def credits_for(self, doc_id: str, since=None, doc: Invoice | None = None) -> int:
@@ -500,7 +512,7 @@ class GreenInvoiceClient:
     def open_debts(self, page_size: int = 50, max_pages: int = 200) -> Netting:
         """החוב הפתוח **אחרי קיזוז** (ממצא מבקר 2.16) — זה מה שהסנכרון קולט.
         זיכויים ומסמכי-המשך נשלפים רק מתאריך החוב הפתוח הוותיק (לא כל ההיסטוריה)."""
-        debts = list(self.iter_open_invoices(page_size=page_size, max_pages=max_pages))
+        debts = list(self.iter_open_invoices(page_size=page_size, max_pages=max_pages, strict=True))
         dates = [d.issued for d in debts if d.issued]
         if not debts:
             return Netting([])
@@ -518,8 +530,13 @@ class GreenInvoiceClient:
                                         from_date=start, page_size=page_size, max_pages=max_pages))
         return net_credits(debts, credits, successors, receipts)
 
-    def iter_open_invoices(self, page_size: int = 50, max_pages: int = 200) -> Iterator[Invoice]:
-        """גולמי — **לפני** קיזוז זיכויים והמרות 300⇒305. הסנכרון משתמש ב-open_debts()."""
+    def iter_open_invoices(self, page_size: int = 50, max_pages: int = 200,
+                           strict: bool = True) -> Iterator[Invoice]:
+        """גולמי — **לפני** קיזוז זיכויים והמרות 300⇒305. הסנכרון משתמש ב-open_debts().
+
+        מנהל 430 (strict): קודם הסריקה נעצרה בשקט אחרי max_pages (10,000 חובות) ⇒ החובות שמעבר «נעלמו» ⇒
+        הסנכרון סגר אותם כשולמו (מתחת לסף api_mass_vanish). עכשיו: עוד עמודים מעבר לתקרה ⇒ PageCapError ⇒
+        הסנכרון נכשל בלי לסגור כלום (fail-closed), עבודת הבוקר = sync_failed."""
         self.__dict__["_client_cache"] = {}
         page = 1
         while page <= max_pages:
@@ -532,7 +549,9 @@ class GreenInvoiceClient:
                 # ממצא מבקר 2.10: רק מסמך בסטטוס «פתוח» הוא חוב, גם אם החיפוש החזיר אחר
                 if inv.amount_agorot > 0 and inv.status == STATUS_OPEN:
                     yield inv
-            pages = int(body.get("pages") or 1)
-            if page >= pages:
+            if not _has_more(body, page, page_size):
                 return
+            if strict and page >= max_pages:
+                raise PageCapError(f"page_cap: יותר מ-{max_pages * page_size:,} חשבוניות פתוחות במקור — "
+                                   "הסנכרון נעצר ולא נסגר אף חוב (חשבוניות שמעבר לתקרה היו נראות «שולמו»)")
             page += 1
