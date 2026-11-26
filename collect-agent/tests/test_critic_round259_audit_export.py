@@ -10,14 +10,12 @@
 מסלול אחר ל-dsr.sweep (`/maintenance/purge` מריץ רק התממה).
 הצעה: ייצוא עסקי לבעל העסק בלבד (יומן מלא + לקוחות/חשבוניות/הודעות, בלי סודות) עם audit, או תיקון הנוסח במסמכים אם
 הייצוא נעשה ע״י המפעיל. xfail(strict=True)."""
-import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
 from tests.conftest import AUTH, OWNER_TOKEN
 
 
-@pytest.mark.xfail(strict=True, reason="259🟡: אין דרך לייצא את יומן הביקורת המלא (/audit = 200) למרות TERMS §9")
 def test_owner_can_export_full_audit_log(svc):
     for i in range(350):
         svc.audit("system", "probe", {"i": i})

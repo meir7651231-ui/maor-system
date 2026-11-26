@@ -2644,6 +2644,39 @@ class CollectService:
                 "note": "ייצוא לפי בקשת עיון (סעיף 13). מפתחות גישה, כרטיסים משותפים עם לקוחות אחרים "
                         "ופרטים של צד שלישי (מי שענה «מספר שגוי») אינם כלולים."}
 
+    # מנהל 429 (מבקר 259🟡): ייצוא עסקי מלא — TERMS §9 / DPA 4.3 «30 יום לייצוא», «היומן מיוצא לעסק לפני המחיקה».
+    # רשימת טבלאות קבועה (SQL קבוע, בלי שמות דינמיים מקלט); עמודות לפי denylist כדי שעמודה חדשה תיוצא מעצמה.
+    # לא נכללים: סודות/טוקנים (link_tokens, users, orbit_links, כספת), גיבובי הסרה/bounce, dedupe פנימי;
+    # מצד הלקוח — טוקן הסרה וכתובות של צד שלישי («מספר שגוי»), payload גולמי של ספקים ו-to_addr של טיוטות.
+    _BUSINESS_EXPORT_TABLES = (
+        ("customers", "SELECT * FROM customers ORDER BY id", _EXPORT_CUSTOMER_HIDE),
+        ("invoices", "SELECT * FROM invoices ORDER BY id", frozenset()),
+        ("reminders", "SELECT * FROM reminders ORDER BY id", frozenset({"payload"})),
+        ("reminder_invoices", "SELECT * FROM reminder_invoices ORDER BY reminder_id", frozenset()),
+        ("plans", "SELECT * FROM plans ORDER BY id", frozenset()),
+        ("messages", "SELECT * FROM messages ORDER BY id", frozenset({"payload"})),
+        ("drafts", "SELECT * FROM drafts ORDER BY id", frozenset({"to_addr"})),
+        ("dsr", "SELECT * FROM dsr ORDER BY id", frozenset()),
+        ("business_settings", "SELECT key, value, updated_at FROM business_settings ORDER BY key", frozenset()),
+        ("access_log", "SELECT * FROM access_log ORDER BY id", frozenset()),
+        ("audit", "SELECT * FROM audit ORDER BY id", frozenset()),
+    )
+
+    def business_export(self, actor: str = "owner") -> dict:
+        """ייצוא כל נתוני העסק (בעל העסק בלבד — נאכף ב-API). יומן הביקורת מלא, לא 200 אחרונות."""
+        out: dict = {}
+        for name, sql, hide in self._BUSINESS_EXPORT_TABLES:
+            if not self._table_exists(name):
+                out[name] = []
+                continue
+            out[name] = [{k: r[k] for k in r.keys() if k not in hide} for r in self.db.q(sql)]
+        self.audit(actor, "business_export", {k: len(v) for k, v in out.items()})
+        out["generated_at"] = _iso(self.clock())
+        out["note"] = ("ייצוא כל נתוני העסק (תנאי השימוש §9, DPA 4.3). סודות, מפתחות גישה, טוקני הסרה, גיבובי "
+                       "רשימת ההסרה ופרטי צד שלישי («מספר שגוי») אינם כלולים. רישום הייצוא עצמו נכנס ליומן "
+                       "אחרי הפקת הקובץ.")
+        return out
+
     def _export_reminders_by_owner(self, customer_id: int, reminders: list[dict]) -> list[dict]:
         """מבקר 240ב🟡: חשבונית שקובץ העביר ללקוח אחר (219א/396, audit `csv_contact_changed`) נושאת איתה תזכורות שנשלחו
         לבעל הפרטים **הקודם** («שלום דנה…») — מידע על צד שלישי בייצוא של הלקוחה החדשה (העיקרון של critic 164).

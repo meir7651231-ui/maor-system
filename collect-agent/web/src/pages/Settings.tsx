@@ -6,6 +6,7 @@ import { fmtMoney } from '../lib/format.ts';
 import { RULES } from '../lib/domain.ts';
 import { diffPatch, explainImportError, fieldLocked, settingsOwnerOnly, explainSettingsError, draftFor, formDiff, mergeServerForm, restoreDraft, settingsDraft, SOURCE_SYSTEMS, sourceLabel, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
 import { Button, Card, Field, inputCls, OwnerBadge } from '../components/ui.tsx';
+import { businessExportFileName, downloadJson, exportOwnerOnly } from '../lib/dataExport.ts';
 import { HolidayBanner } from '../components/HolidayBanner.tsx';
 import { TeamCard } from '../components/TeamCard.tsx';
 import { failPrefix } from '../lib/failure.ts';
@@ -19,7 +20,16 @@ const PAY: [PayProvider, string][] = [['greeninvoice', 'חשבונית ירוק�
  * כללי המוצר (3 תזכורות, 08–20, אישור לכל הודעה), הסולם והמחיר — קבועים, מוצגים לקריאה בלבד.
  */
 export function Settings() {
-  const { mode, business, setBusiness, showToast, reload, dataSeq, me, sendWindow } = useApp();
+  const { mode, business, setBusiness, showToast, reload, dataSeq, me, sendWindow, today, showFail } = useApp();
+  // מנהל 429 (מבקר 259🟡): ייצוא כל נתוני העסק — TERMS §9 «30 יום לייצוא אחרי הסיום»
+  const [exportingAll, setExportingAll] = useState(false);
+  const exportAll = async () => {
+    if (exportingAll) return;
+    setExportingAll(true);
+    try { downloadJson(businessExportFileName(today), await api.businessExport()); showToast('הקובץ ירד — כל נתוני העסק ויומן הביקורת המלא'); }
+    catch (e) { showFail(`הייצוא לא בוצע: ${(e as Error).message}`); }
+    finally { setExportingAll(false); }
+  };
   // «לפרטים ועדכון» מבאנר לוח החגים בבית ⇒ #/settings?s=holidays ⇒ גוללים לסעיף (אחרי גלילת-הראוטר לראש)
   useEffect(() => {
     // b050cc8: באנר «העלו קובץ CSV עדכני» ⇒ #/settings?s=csv ⇒ גוללים לייבוא ה-CSV
@@ -228,6 +238,14 @@ export function Settings() {
         </ul>
         <p className="text-sm">סולם התזכורות (ימים אחרי מועד התשלום): {cadence.map((d, i) => <span key={i}>{i > 0 && ' · '}<b className="num">+{d}</b></span>)}</p>
         <p className="text-xs text-ink-500">כללים קבועים של המוצר — לא ניתנים לשינוי.</p>
+      </Card>
+
+      <Card className="p-5 space-y-3" data-testid="business-export">
+        <h2 className="text-lg font-extrabold">ייצוא כל הנתונים{exportOwnerOnly(me) && <OwnerBadge />}</h2>
+        <p className="text-sm text-ink-500">קובץ אחד עם הלקוחות, החשבוניות, התזכורות, ההודעות ויומן הביקורת המלא. סיסמאות ומפתחות גישה לא נכללים. הייצוא נרשם ביומן.</p>
+        {exportOwnerOnly(me) ? <p className="text-sm" data-testid="business-export-owner-only">רק בעל העסק מייצא את כל הנתונים.</p>
+          : <Button variant="ghost" disabled={!live || exportingAll} onClick={exportAll} data-testid="business-export-btn">{exportingAll ? 'מכינים את הקובץ…' : '⬇ ייצוא כל הנתונים'}</Button>}
+        {!live && <p className="text-xs text-ink-500">זמין בחיבור לשרת בלבד.</p>}
       </Card>
 
       <TeamCard />

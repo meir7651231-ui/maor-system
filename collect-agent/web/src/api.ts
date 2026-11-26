@@ -182,6 +182,8 @@ export const api = {
   resume: (cid: number) => j<unknown>(`/customers/${cid}/resume`, { method: 'POST' }),
   /** מנהל 310: בקשת עיון — כל המידע על לקוח אחד (קריאה בלבד; נרשם ב-access_log וב-audit בשרת) */
   customerData: (cid: number) => j<Record<string, unknown>>(`/customers/${cid}/data`),
+  /** מנהל 429 (מבקר 259🟡): ייצוא כל נתוני העסק + יומן הביקורת המלא — בעל העסק בלבד (403 לעובד/ת), נרשם ב-audit */
+  businessExport: () => j<Record<string, unknown>>('/export'),
   /** critic סבב 172ב: מרשם בקשות עיון/תיקון/מחיקה + סגירה עם תיעוד (השרת דורש ≥5 תווים) */
   dsr: () => j<DsrRow[]>('/dsr'),
   dsrDone: (id: number, note: string) => j<DsrRow>(`/dsr/${id}/done`, { method: 'POST', body: JSON.stringify({ note }) }),

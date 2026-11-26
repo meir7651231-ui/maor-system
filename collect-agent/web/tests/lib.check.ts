@@ -1330,6 +1330,14 @@ test('dataExport: שם קובץ ASCII בלי שם הלקוח', () => {
   assert.equal(dataExportFileName(-3, '../x'), 'gabi-data-request-customer-0-export.json');
   assert.match(dataExportFileName(123456, '2026-01-02'), /^[\x20-\x7e]+$/);
 });
+test('מנהל 429: ייצוא עסקי — שם קובץ ASCII בלי פרטים, כפתור בהגדרות לבעל העסק בלבד', async () => {
+  const { businessExportFileName } = await import('../src/lib/dataExport.ts');
+  assert.equal(businessExportFileName('2026-11-26'), 'gabi-business-export-2026-11-26.json');
+  assert.equal(businessExportFileName('../x'), 'gabi-business-export-export.json');
+  const src = readFileSync(new URL('../src/pages/Settings.tsx', import.meta.url), 'utf8');
+  assert.match(src, /exportOwnerOnly\(me\) \? <p[^>]*business-export-owner-only/);
+  assert.match(src, /api\.businessExport\(\)/);
+});
 test('dataExport: התוכן הוא בדיוק מה שהשרת החזיר', () => {
   const d = { customer: { id: 1, name: 'דנה' }, invoices: [] };
   assert.deepEqual(JSON.parse(dataExportText(d)), d);

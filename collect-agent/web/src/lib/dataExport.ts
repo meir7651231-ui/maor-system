@@ -15,6 +15,11 @@ export function dataExportFileName(cid: number, today: string): string {
   return `gabi-data-request-customer-${Number.isFinite(id) && id > 0 ? id : 0}-${day}.json`;
 }
 
+/** מנהל 429 (מבקר 259🟡): ייצוא כל נתוני העסק (GET /export, TERMS §9 / DPA 4.3). שם קובץ ASCII: תאריך בלבד. */
+export function businessExportFileName(today: string): string {
+  return `gabi-business-export-${/^\d{4}-\d{2}-\d{2}$/.test(today) ? today : 'export'}.json`;
+}
+
 /** תוכן הקובץ: JSON קריא (הזחה), כפי שהשרת החזיר — בלי להוסיף או להסיר שדות. */
 export const dataExportText = (data: unknown): string => `${JSON.stringify(data, null, 2)}\n`;
 

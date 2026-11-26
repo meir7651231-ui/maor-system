@@ -106,7 +106,7 @@ PII_READ_ROUTES = frozenset({
     "/reminders", "/reminders/{rid}/preview", "/dashboard", "/customers", "/outbox",
     "/owner/inbox", "/plans", "/audit", "/conversation/drafts", "/access-log",
     "/open-list",    # שער רשימת הפתוחות: שמות לקוחות + סכומים
-    "/customers/{cid}/data",
+    "/customers/{cid}/data", "/export",
     "/dsr"})   # מרשם בקשות עיון/תיקון/מחיקה (שם לקוח + מועדים)   # מנהל 309: ייצוא לבקשת עיון (סעיף 13)
 
 
@@ -1004,8 +1004,25 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return [dict(r) for r in svc.db.q("SELECT * FROM access_log ORDER BY id DESC LIMIT 500")]
 
     @app.get("/audit", dependencies=auth)
-    def audit():
+    def audit(request: Request, all: int = 0):   # noqa: A002 — שם הפרמטר בכתובת (?all=1)
+        # מנהל 429 (מבקר 259🟡): ?all=1 = היומן המלא (TERMS §9 «היומן מיוצא לעסק») — בעל העסק בלבד, נרשם ב-audit.
+        # בלי הפרמטר — 200 אחרונות כמו קודם (גם לעובד/ת). limit/page לא נתמכים במכוון: מסלול מלא אחד, מבוקר.
+        if all:
+            if not request.state.is_owner:
+                svc.audit(request.state.actor, "audit_export_refused", {})
+                raise HTTPException(403, "רק בעל העסק מייצא את יומן הביקורת המלא")
+            rows = [dict(r) for r in svc.db.q("SELECT * FROM audit ORDER BY id DESC")]
+            svc.audit(request.state.actor, "audit_export", {"rows": len(rows)})
+            return rows
         return [dict(r) for r in svc.db.q("SELECT * FROM audit ORDER BY id DESC LIMIT 200")]
+
+    @app.get("/export", dependencies=auth)
+    def business_export(request: Request):
+        # מנהל 429 (מבקר 259🟡): ייצוא עסקי מלא בסיום התקשרות (TERMS §9, DPA 4.3) — בעל העסק בלבד, כמו ייצוא לקוח
+        if not request.state.is_owner:
+            svc.audit(request.state.actor, "business_export_refused", {})
+            raise HTTPException(403, "רק בעל העסק מייצא את כל נתוני העסק")
+        return svc.business_export(request.state.actor)
 
     # ---------- כניסה מאורביט (חוזה-המסירה v1, app/orbit_connect.py) ----------
     from .orbit_connect import CONNECT_PAGE, HandoffRejected, OrbitConnect
