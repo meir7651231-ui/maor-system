@@ -2159,6 +2159,9 @@ class CollectService:
         now = self.clock()
         t = self.trial()
         self._notify_orbit_billing(t)   # גם (ובעיקר) כשהשליחה נעצרה — בעל העסק צריך לדעת למה
+        # מנהל 427 (מבקר 257🟠): ר-10 (התממה 90 יום מסגירה) לפני שער הניסיון/המנוי — התממה אינה שליחה, ועסק
+        # שהמנוי שלו נגמר (בדיוק כשהמידע כבר לא משמש לכלום) שמר PII לתמיד. זול, פעם בסבב.
+        self.purge_closed()
         if not t["active"]:
             return []
         # באג: release_expired_pauses לא נקרא מאף מקום ⇒ "אשלם בחמישי" שלא שולם השהה לנצח
@@ -2169,7 +2172,6 @@ class CollectService:
         self._sweep_refresh_stuck()   # מנהל 323: תזכורת מאושרת שתקועה על כשל רענון >48 שעות ⇒ התראה
         self._sweep_plans()   # מנהל 332 (מבקר 183): הסדר שהושלם/הוחמץ/הצעה שפגה — לא חוסם לתמיד
         self._resolve_plan_cards()   # מנהל 402: הסדר «מוחמץ» שחשבוניותיו נסגרו (גם בסימון ידני) ⇒ הושלם + הכרטיס יורד
-        self.purge_closed()   # ר-10: זול, פעם בסבב
         self._roll_episodes(now)
         created: list[int] = []
         custs = self.db.q("SELECT DISTINCT customer_id FROM invoices WHERE status='open' "
