@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react';
 import type { InvoiceStatus } from '../lib/domain.ts';
 
 type Variant = 'primary' | 'dark' | 'ghost' | 'outline' | 'danger';
@@ -15,8 +15,9 @@ export function Button({ variant = 'primary', size = 'md', className = '', ...p 
   return <button {...p} className={`inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-colors disabled:opacity-50 cursor-pointer ${sz} ${VARIANT[variant]} ${className}`} />;
 }
 
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`bg-white rounded-2xl shadow-card border border-ink-200/60 ${className}`}>{children}</div>;
+// מנהל 436: Card בלע data-testid/id (ב-TS מאפיין עם מקף לא נבדק) ⇒ `business-export` (מנהל 429) לא הגיע ל-DOM. מעבירים הלאה.
+export function Card({ children, className = '', ...p }: HTMLAttributes<HTMLDivElement> & { children: ReactNode; 'data-testid'?: string }) {
+  return <div {...p} className={`bg-white rounded-2xl shadow-card border border-ink-200/60 ${className}`}>{children}</div>;
 }
 
 const STATUS: Record<InvoiceStatus, [string, string]> = {
