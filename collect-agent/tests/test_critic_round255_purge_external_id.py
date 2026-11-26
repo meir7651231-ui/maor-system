@@ -11,11 +11,9 @@ avi@y.example.com) ⇒ «שולם» ⇒ 100 יום ⇒ `purge_closed` ⇒ שלו
 ו-api_mass_vanish נעולים לעובד/ת עם «🔒 בעל העסק בלבד». ✓ ℹ️ 243 טופל (ui.mjs — המתנה לתנאי). ℹ️ כרטיס inherited_optout
 פתוח שהלקוח שלו הותמם נשאר `needs_owner=1` עם גוף ריק לתמיד (עובד/ת לא יכול/ה לסגור — 403).
 הצעה: בהתממה — `external_id` ⇒ גיבוב (כמו `addr_hash` ב-suppressions), כך שהתאמה בייבוא עתידי עדיין אפשרית בלי לשמור את
-הערך הגלוי. xfail(strict=True)."""
+הערך הגלוי. ✓ תוקן במנהל 424 (`_purged_customer_key`)."""
 from dataclasses import replace
 from datetime import timedelta
-
-import pytest
 
 H = "מספר מסמך,שם לקוח,טלפון,מייל,סכום,סטטוס,תאריך,תאריך לתשלום\n"
 ROWS = ("7001,דויד כהן,050-0000111,david@x.example.com,1200,{s},01/10/26,15/10/26\n"
@@ -23,7 +21,6 @@ ROWS = ("7001,דויד כהן,050-0000111,david@x.example.com,1200,{s},01/10/26,
         "8001,אבי מור,,avi@y.example.com,300,{s},01/10/26,15/10/26\n")
 
 
-@pytest.mark.xfail(strict=True, reason="255🟠: אחרי התממה external_id שומר phone:/email: גלויים")
 def test_purge_scrubs_contact_in_external_id(svc, clock):
     svc.s = replace(svc.s, source_system="csv")
     svc.db.x("DELETE FROM invoices")

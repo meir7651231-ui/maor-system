@@ -2682,6 +2682,16 @@ class CollectService:
             self.db.scrub()   # critic סבב 24: גם דפים פנויים מלפני secure_delete (DB קיים)
         return {"invoices": inv_n, "customers": cust_n}
 
+    def _purged_customer_key(self, cid: int) -> str:
+        """מנהל 424: external_id אחרי התממה. `phone:…`/`email:…` (כולל `|name:…`) ⇒ `purged:<sha256>` —
+        דטרמיניסטי וייחודי כמו המקור, בלי הערך הגלוי. ייבוא עתידי של אותו אדם יוצר לקוח חדש (נקי), כמו לקוח
+        חדש; רשימת ההסרה נשמרת בנפרד (גיבוב הכתובת) ולכן הסרה ממשיכה לחול."""
+        row = self.db.one("SELECT external_id FROM customers WHERE id=?", (cid,))
+        ext = (row["external_id"] if row else "") or ""
+        if not ext.startswith(("phone:", "email:")):
+            return ext
+        return "purged:" + hashlib.sha256(ext.encode()).hexdigest()
+
     def _purge_rows(self) -> tuple[int, int, int]:
         cutoff = _iso(self.clock() - timedelta(days=RETENTION_DAYS))
         now = _iso(self.clock())
@@ -2703,6 +2713,11 @@ class CollectService:
             self.db.x("UPDATE invoices SET purged_at=?, payment_url=NULL, short_code=NULL WHERE id=?",
                       (now, r["id"]))
             inv_n += 1
+        # מנהל 424: ריפוי — לקוחות שהותממו לפני 424 עם מפתח phone:/email: גלוי (ריקים לגמרי, בלי חשבונית חיה)
+        for c in self.db.q("SELECT id FROM customers c WHERE purged_at IS NOT NULL AND name IS NULL AND phone IS NULL "
+                           "AND email IS NULL AND (external_id LIKE 'phone:%' OR external_id LIKE 'email:%') AND NOT "
+                           "EXISTS (SELECT 1 FROM invoices i WHERE i.customer_id=c.id AND i.purged_at IS NULL)"):
+            self.db.x("UPDATE customers SET external_id=? WHERE id=?", (self._purged_customer_key(c["id"]), c["id"]))
         for c in self.db.q("SELECT id FROM customers WHERE purged_at IS NULL AND "
                            "legal_hold IS NULL"):
             left = self.db.one("SELECT COUNT(*) n FROM invoices WHERE customer_id=? AND "
@@ -2736,8 +2751,11 @@ class CollectService:
             self._scrub_sent_log(self.db.one("SELECT phone, email FROM customers WHERE id=?", (c["id"],)))
             self._scrub_shared_card_name(c["id"])
             self._release_bounce_on_purge(c["id"])
+            # מנהל 424 (מבקר 255🟠): מפתח לקוח שנגזר מטלפון/מייל (`phone:`/`email:`, ובפיצול גם `|name:`) נשמר
+            # גלוי לתמיד ⇒ מוחלף בגיבוב חד-כיווני. מזהה GI/`doc:` אינו פרט קשר ונשאר.
             self.db.x("UPDATE customers SET name=NULL, phone=NULL, email=NULL, blocked_phone=NULL,"
-                      " blocked_email=NULL, purged_at=? WHERE id=?", (now, c["id"]))
+                      " blocked_email=NULL, purged_at=?, external_id=? WHERE id=?",
+                      (now, self._purged_customer_key(c["id"]), c["id"]))
             cust_n += 1
         # QA: הודעה משולח לא מוכר (customer_id=NULL) = PII של מי שאינו לקוח ⇒ 90 יום מקבלתה
         unk = self.db.q("SELECT id, intent, needs_owner, payload, created_at FROM messages WHERE customer_id IS NULL "
