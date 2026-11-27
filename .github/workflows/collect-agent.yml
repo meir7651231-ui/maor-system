@@ -256,6 +256,8 @@ jobs:
         run: TZ=UTC node e2e/app-inherited-optout.mjs "$RUNNER_TEMP/shots"
       - name: "e2e — תקלת ספק (/_mock/outage) ⇒ כרטיס «נעלמו» אחד ב-/app/: «השאר פתוחות» / «כולן שולמו» (2 לחיצות), לא מציק שוב באותו יום, 390px, מול ה-mock של חשבונית ירוקה (מנהל 435)"
         run: TZ=UTC node e2e/app-mass-vanish.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e — תקלה חלקית (/_mock/outage mode=hide): מתחת לסף נסגרות כרגיל בלי כרטיס; מעל הסף כרטיס ⇒ «כולן שולמו» סוגר רק את מה שנעלם, זו שחזרה נשארת פתוחה; 390px (מנהל 438)"
+        run: TZ=UTC node e2e/app-mass-vanish-hide.mjs "$RUNNER_TEMP/shots"
       - name: "e2e — «⬇ ייצוא כל הנתונים»: הורדה אמיתית (דסקטופ+390) = מה שנרשם ביומן, בלי סודות, יומן מלא; עובדת ⇒ אין כפתור + 403 (מנהל 436)"
         run: TZ=UTC node e2e/app-business-export.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
