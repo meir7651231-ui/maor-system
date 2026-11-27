@@ -16,8 +16,6 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-import pytest
-
 from tests.test_orbit_entitlement import _ent, _ingest, _link, keys  # noqa: F401
 
 
@@ -43,14 +41,12 @@ def test_cancel_stops_and_resubscribe_resumes_control(svc, clock):
     assert svc.dispatch() is not None
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 268א🟡: כרטיס «המנוי בוטל» נשאר ב«דורש טיפול» אחרי חידוש")
 def test_cancelled_card_resolves_after_resubscribe(svc, clock):
     _cancel_then_resubscribe(svc, clock)
     svc.plan()
     assert [c["needs_owner"] for c in _cards(svc)] == [0]
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 268ב🟡: ביטול שני בלי paid_until — אותו מפתח, אין הודעה")
 def test_second_cancellation_notifies_again(svc, clock):
     _cancel_then_resubscribe(svc, clock)
     first = _cards(svc)[0]["id"]

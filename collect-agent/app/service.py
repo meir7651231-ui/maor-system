@@ -2109,6 +2109,9 @@ class CollectService:
         """חיוב דרך אורביט: חסד / סיום / ביטול ⇒ הודעה אחת לבעל העסק (עם קישור לחיוב באורביט)."""
         if t.get("source") != "orbit":
             return
+        if t.get("active") and t.get("state") in ("active", "trial"):
+            self._resolve_orbit_billing_cards(t)
+            return
         n = orbit_entitlement.notice(t)
         if not n:
             return
@@ -2121,6 +2124,24 @@ class CollectService:
                   (body, key, _iso(self.clock())))
         self.audit("system", "orbit_billing_notice", {"state": t.get("state"),
                                                       "ends": t.get("ends")})
+
+    def _resolve_orbit_billing_cards(self, t: dict) -> int:
+        """מנהל 441 (מבקר 268א+ב🟡): המנוי חזר לפעול (active / ניסיון פעיל) ⇒ כרטיסי חסד/סיום/ביטול יורדים
+        מ«דורש טיפול» (בעל העסק ראה «התזכורות נעצרו» כשהן פועלות). המפתח מקבל סיומת `:ended:{id}` — כך ביטול
+        **חדש** אחרי החידוש (גם בלי paid_until, שהמפתח שלו `orbit_billing:cancelled:` זהה) מייצר הודעה חדשה
+        ולא נבלע ב«כבר טופל». ביטול שנשלח שוב בלי חידוש באמצע ⇒ אותו מפתח ⇒ אין כפילות (כמו קודם)."""
+        rows = self.db.q("SELECT id, needs_owner FROM messages WHERE intent='orbit_billing' "
+                         "AND message_id IS NOT NULL AND message_id NOT LIKE '%:ended:%'")
+        if not rows:
+            return 0
+        with self.db.batch():
+            for r in rows:
+                self.db.x("UPDATE messages SET needs_owner=0, message_id=message_id || ':ended:' || id "
+                          "WHERE id=?", (r["id"],))
+        self.audit("system", "orbit_billing_resolved", {"state": t.get("state"),
+                                                        "cards": [r["id"] for r in rows],
+                                                        "open": sum(1 for r in rows if r["needs_owner"])})
+        return len(rows)
 
     # ---------- planning ----------
     # ---------- שער «אישור רשימת הפתוחות» ----------
