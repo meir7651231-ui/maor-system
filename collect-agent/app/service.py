@@ -3176,8 +3176,17 @@ class CollectService:
                 ids = []
                 failed = False
                 gated: set[str] = set()
-                for m in json.loads(r["payload"]):
+                stopped = None
+                for n, m in enumerate(json.loads(r["payload"])):
                     msg = Message(**m)
+                    if n:
+                        # מבקר 277ℹ️: בין ה-SMS למייל של אותה תזכורת — שורת לקוח טרייה. «הסר אותי»/«שולם»/השהיה
+                        # שהגיעו אחרי שההודעה הראשונה יצאה עוצרים את השאר (gate רואה opted_out עדכני).
+                        cust = self.db.one("SELECT * FROM customers WHERE id=?", (cust["id"],))
+                        stopped = stopped or self._midsend_block(r, cust["id"])
+                        if stopped:
+                            gated.add(stopped)
+                            continue
                     why = self.gate(cust, msg.channel, msg.to)
                     if why:
                         gated.add(why)
@@ -3197,9 +3206,12 @@ class CollectService:
                     # שום הודעה לא יצאה ⇒ משחררים את התפיסה, וננסה בסבב הבא
                     self.db.x("UPDATE reminders SET status='approved', claimed_at=NULL WHERE id=?", (r["id"],))
                     continue
+                if stopped and ids:
+                    self.audit("system", "dispatch_stopped_midway", {"reminder": r["id"], "reason": stopped,
+                                                                     "sent": len(ids)})
                 if not ids:
                     # critic 188: כל הערוצים נחסמו רק בגלל מייל שחזר ⇒ סיבה מדויקת (לא «ביקש הסרה»)
-                    why = "email_bounced" if gated == {"email_bounced"} else "opted_out"
+                    why = "email_bounced" if gated == {"email_bounced"} else (stopped or "opted_out")
                     self.db.x("UPDATE reminders SET status='cancelled', block_reason=? "
                               "WHERE id=?", (why, r["id"]))
                     continue
@@ -3441,6 +3453,20 @@ class CollectService:
                        (p["customer_id"], p["id"])):
             return
         self._release_plan_pause(p, today, "plan_completed_pause_released")
+
+    def _midsend_block(self, r, cid: int) -> str | None:
+        """מבקר 277ℹ️: נבדק לפני כל הודעה נוספת של תזכורת שכבר התחילה לצאת. None ⇒ ממשיכים.
+        חסימת לקוח (הסרה/השהיה/מחלוקת/הסדר/ממתין לבעל העסק) או חשבונית שכבר לא פתוחה ⇒ עוצרים."""
+        block = self._customer_block(cid)
+        if block:
+            return block
+        iids = {r["invoice_id"]} | {x["invoice_id"] for x in self.db.q(
+            "SELECT invoice_id FROM reminder_invoices WHERE reminder_id=?", (r["id"],))}
+        for iid in iids:
+            inv = self._invoice(iid)
+            if inv is not None and inv["status"] != "open":
+                return "invoice_closed"
+        return None
 
     def _claim_reminder(self, rid: int) -> bool:
         """critic סבב 39: תפיסה אטומית לפני השליחה. False ⇒ מישהו אחר כבר תפס/שלח."""
