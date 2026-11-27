@@ -20,6 +20,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Resp
 from pydantic import BaseModel, Field
 
 from . import csp, dbcrypt, security
+from .bodycap import BodyCapMiddleware
 from .config import SafetyError, Settings, load_settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient
@@ -1342,6 +1343,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         from fastapi.staticfiles import StaticFiles
         app.mount("/app", StaticFiles(directory=web_dist, html=True), name="web")
 
+    # מבקר 267🟠: תקרת גוף לפני כל קריאה לזיכרון (אחרון שנוסף = החיצוני מבין ה-middleware)
+    app.add_middleware(BodyCapMiddleware)
     return app
 
 

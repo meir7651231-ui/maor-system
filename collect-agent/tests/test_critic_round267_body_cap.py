@@ -12,8 +12,6 @@ from __future__ import annotations
 
 import asyncio
 
-import pytest
-
 from app.main import create_app
 from app.ratelimit import RateLimiter
 from tests.conftest import OWNER_TOKEN
@@ -52,7 +50,6 @@ def test_public_orbit_connect_reads_whole_body_before_413_control(svc):
     assert code == 413
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 267🟠: גוף הבקשה נקרא כולו לזיכרון לפני בדיקת הגודל — אין תקרה בשרת")
 def test_public_orbit_connect_rejects_oversized_without_reading(svc):
     app = create_app(svc, owner_token=OWNER_TOKEN, limiter=RateLimiter(rules={}))
     code, n = _post(app, "/api/connect/orbit", [(b"content-type", b"application/json")])
@@ -60,7 +57,6 @@ def test_public_orbit_connect_rejects_oversized_without_reading(svc):
     assert n <= 2, f"השרת משך {n} נתחים (~{n * 64}KB) לפני הדחייה"
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 267🟠: /import/csv קורא את כל הגוף לפני תקרת 2MB")
 def test_csv_import_rejects_oversized_without_reading(svc):
     app = create_app(svc, owner_token=OWNER_TOKEN, limiter=RateLimiter(rules={}))
     code, n = _post(app, "/import/csv", [(b"authorization", f"Bearer {OWNER_TOKEN}".encode())])
