@@ -260,6 +260,7 @@ class DB:
         # אינדקסים (IF NOT EXISTS ⇒ בטוח גם ל-DB קיים; אחרי כל ה-ALTER, כך שהעמודות קיימות).
         self.conn.executescript(
             "CREATE INDEX IF NOT EXISTS ix_inv_cust ON invoices(customer_id, status);"
+            "CREATE INDEX IF NOT EXISTS ix_inv_number ON invoices(number, doc_type);"   # מבקר 267: חיפוש התאום ב-CSV
             "CREATE INDEX IF NOT EXISTS ix_msg_mid ON messages(message_id);"
             "CREATE INDEX IF NOT EXISTS ix_msg_cust ON messages(customer_id);"
             # הפעלה 161: _customer_block רץ לכל חשבונית ב-/dashboard ולכל לקוח ב-plan(), וסרק את כל plans

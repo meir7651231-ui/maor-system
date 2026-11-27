@@ -9,8 +9,6 @@
 """
 from __future__ import annotations
 
-import pytest
-
 SQL = "SELECT 1 FROM invoices WHERE number=? AND doc_type=? AND source!='csv'"
 
 
@@ -24,7 +22,6 @@ def test_customer_lookup_uses_index_control(svc):
     assert "USING" in plan and "INDEX" in plan
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 267🟡: חיפוש התאום ב-CSV = SCAN מלא של invoices לכל שורה")
 def test_csv_twin_lookup_uses_index(svc):
     plan = _plan(svc)
     assert "INDEX" in plan, plan

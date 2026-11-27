@@ -28,7 +28,6 @@ def test_real_rows_over_cap_still_rejected_control():
         csv_import.parse((H + many).encode())
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 267🟡: שורות ריקות («,,,,,,,») נספרות לתקרת 5,000 השורות")
 @pytest.mark.parametrize("ghost", [",,,,,,,\r\n", "\r\n"])
 def test_excel_ghost_rows_do_not_count_toward_cap(ghost):
     raw = (H + REAL + ghost * csv_import.MAX_ROWS).encode()

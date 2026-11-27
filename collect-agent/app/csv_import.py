@@ -489,7 +489,8 @@ def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
     gross = "paid" in idx and not amount_is_balance
     doctype_explicit = ("doctype" in idx
                         and rows[0][idx["doctype"]].strip().lower() not in DOCTYPE_GENERIC_HEADERS)
-    if len(rows) - 1 > MAX_ROWS:
+    # מבקר 267: התקרה סופרת שורות עם תוכן — שורות ריקות / «,,,,,,,» (שאריות עיצוב של Excel) מדולגות ממילא
+    if sum(1 for r in rows[1:] if any(c.strip() for c in r)) > MAX_ROWS:
         raise ValueError(f"יותר מדי שורות (מקס׳ {MAX_ROWS})")
     out = CsvResult()
     seen: set[str] = set()
