@@ -1820,3 +1820,30 @@ test('הסדרים: הצעה בתור ⇒ «טרם נשלחה» עם הסיבה,
   assert.equal(planBadgeFor({ status: 'missed', offer_queued: true })?.tone, 'warn');
   assert.equal(planBadgeFor({ status: 'proposed' }), null);
 });
+
+// מנהל 448 (מבקר 274ℹ️): תזכורת שאושרה ונשארה בתור — סימן בשורת החשבונית, לא רק באנר העצירה
+import { reminderHeldNote } from '../src/lib/draftQueue.ts';
+test('חשבוניות: תזכורת מאושרת בתור ⇒ «⏳ אושרה, טרם נשלחה» עם הסיבה', () => {
+  const lr = (o: Record<string, unknown>) => ({ id: 9, step: 0, status: 'approved', template_key: 'friendly', sent_at: null, block_reason: null, ...o });
+  const t = reminderHeldNote(lr({ queued_reason: 'trial_expired' }))!;
+  assert.match(t, /טרם נשלחה/); assert.match(t, /אחרי חידוש/); assert.match(t, /7 ימים/);
+  assert.match(reminderHeldNote(lr({ queued_reason: 'restore_hold' }))!, /שחזור/);
+  assert.match(reminderHeldNote(lr({ queued_reason: 'outside_window' }))!, /בחלון השליחה הבא/);
+  assert.equal(reminderHeldNote(lr({})), undefined);                                   // שרת ישן / חלון פתוח
+  assert.equal(reminderHeldNote(lr({ status: 'sent_dry_run', queued_reason: 'trial_expired' })), undefined);
+  assert.equal(reminderHeldNote(lr({ block_reason: 'refresh_failed', queued_reason: 'trial_expired' })), undefined);
+  assert.equal(reminderHeldNote(lr({ queued_reason: 'bogus' })), undefined);
+  const row = (o: Partial<Dashboard['invoices'][0]>): Dashboard['invoices'][0] => ({
+    invoice_id: 1, number: '2001', customer: 'דנה', phone: '050-0000001', email: '', amount_agorot: 100, currency: 'ILS',
+    due: '2026-10-01', status: 'open', days_overdue: 38, reminders_sent: 0, last_reminder: null, customer_block: null, ...o });
+  const d: Dashboard = { today: '2026-11-08', totals: {} as Dashboard['totals'], invoices: [
+    row({ last_reminder: lr({ queued_reason: 'trial_expired' }) as never }),
+    row({ invoice_id: 2, last_reminder: lr({ queued_reason: 'trial_expired' }) as never, customer_block: 'paid_claim' }),
+    row({ invoice_id: 3, last_reminder: lr({}) as never }),
+    row({ invoice_id: 4, status: 'closed', last_reminder: lr({ queued_reason: 'trial_expired' }) as never }) ] };
+  const m = fromDashboard(d, []);
+  assert.equal(m.invoices[0].queued, true); assert.match(m.invoices[0].note!, /טרם נשלחה/);
+  assert.equal(m.invoices[1].queued, undefined); assert.doesNotMatch(m.invoices[1].note ?? '', /טרם נשלחה/);   // השהיה גוברת
+  assert.equal(m.invoices[2].queued, undefined); assert.equal(m.invoices[2].note, undefined);
+  assert.equal(m.invoices[3].queued, undefined);
+});

@@ -39,7 +39,10 @@ def _reference(svc, iid: int, cid: int) -> dict:
             "id": last["id"], "step": last["step"], "status": last["status"],
             "invoice_ids": svc.reminder_invoice_ids(last["id"]),
             "template_key": last["template_key"], "sent_at": last["sent_at"],
-            "block_reason": last["block_reason"], "amount_drift": svc.reminder_amount_drift(last)},
+            "block_reason": last["block_reason"], "amount_drift": svc.reminder_amount_drift(last),
+            # מנהל 448: מאושרת וממתינה בחשבונית פתוחה ⇒ סיבת ההמתנה של dispatch
+            "queued_reason": svc.dispatch_hold() if last["status"] == "approved" and not last["block_reason"]
+            and db.one("SELECT status FROM invoices WHERE id=?", (iid,))["status"] == "open" else None},
         "customer_block": svc._customer_block(cid)}
 
 

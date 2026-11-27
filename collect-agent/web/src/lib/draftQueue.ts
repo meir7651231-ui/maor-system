@@ -46,3 +46,22 @@ export function reminderQueuedText(held?: string | null): string {
   if (held === 'restore_hold') return 'נכנס לתור — השליחה עצורה עד שתאשרו את השחזור מגיבוי';
   return 'נכנס לתור — ייצא בחלון השליחה הבא';
 }
+
+// מנהל 448 (מבקר 274ℹ️): תזכורת שאושרה ונשארה בתור (שירות עצור / שבת-לילה / עצירת שחזור) הוצגה בטבלת
+// החשבוניות בלי שום סימן, ואחרי 7 ימים חזרה כ«האישור הקודם פג». השרת: /dashboard → last_reminder.queued_reason
+// (service.dispatch_hold). זהה ל-HELD ב-app/ui.html.
+export const REMINDER_HELD: Record<string, string> = {
+  trial_expired: '⏳ התזכורת אושרה, אבל טרם נשלחה: השירות עצור (המנוי לא פעיל) — תישלח אחרי חידוש',
+  restore_hold: '⏳ התזכורת אושרה, אבל טרם נשלחה: השליחה עצורה עד שתאשרו את השחזור מגיבוי',
+  outside_window: '⏳ התזכורת אושרה ותישלח בחלון השליחה הבא (לא בלילה, בשבת או בחג)',
+};
+/** אישור תזכורת תקף 7 ימים (policy.APPROVAL_VALID_DAYS) — אחר כך היא חוזרת לאישור */
+export const REMINDER_STALE_NOTE = 'אם תחכה יותר מ-7 ימים, היא תחזור אליכם לאישור מחדש.';
+
+/** הערה לשורת החשבונית; undefined ⇒ אין המתנה ידועה (שרת ישן / יצאה / לא מאושרת) */
+export function reminderHeldNote(lr: { status: string; block_reason: string | null; queued_reason?: string | null } | null | undefined): string | undefined {
+  if (!lr || lr.status !== 'approved' || lr.block_reason || !lr.queued_reason) return undefined;
+  const t = REMINDER_HELD[lr.queued_reason];
+  if (!t) return undefined;
+  return lr.queued_reason === 'outside_window' ? t : `${t}. ${REMINDER_STALE_NOTE}`;
+}

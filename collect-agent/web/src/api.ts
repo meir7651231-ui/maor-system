@@ -11,6 +11,7 @@ import type { OwnerMsg } from './lib/notices.ts';
 import type { DsrRow } from './lib/dsr.ts';
 import type { Role, Team } from './lib/team.ts';
 import type { PromiseDecision } from './lib/promiseRequest.ts';
+import { reminderHeldNote } from './lib/draftQueue.ts';
 
 /** השרת ענה 401 — צריך קוד גישה של בעל העסק. */
 export class AuthError extends Error {}
@@ -100,7 +101,8 @@ export interface DashRow {
   /** הפעלה 137: התזכורת האחרונה שבאמת יצאה (מתי ובאיזה ערוצים). חסר בשרת ישן. */
   last_sent?: null | { sent_at: string | null; channels: string[]; unknown?: boolean };
   last_reminder: null | { id: number; step: number; status: string; template_key: string; sent_at: string | null; block_reason: string | null;
-    /** הפעלה 159: תזכורת מאושרת שהסכום שלה השתנה במקור. חסר בשרת ישן. */ amount_drift?: { was_text: string | null; now_text: string } | null };
+    /** הפעלה 159: תזכורת מאושרת שהסכום שלה השתנה במקור. חסר בשרת ישן. */ amount_drift?: { was_text: string | null; now_text: string } | null;
+    /** מנהל 448: מאושרת וממתינה — למה לא יצאה (trial_expired / restore_hold / outside_window). חסר בשרת ישן. */ queued_reason?: string | null };
   customer_block: string | null;
   hold_with?: string | null;   // q26-10: מי כתב/ה מאותה כתובת (כש-customer_block = shared_contact_hold)
 }
@@ -337,12 +339,15 @@ export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
     const drift = r.status === 'open' && !r.customer_block ? r.last_reminder?.amount_drift : null;
     const lr = r.last_reminder;
     const refreshNote = r.status === 'open' && lr?.status === 'approved' && lr.block_reason ? REFRESH_LABEL[lr.block_reason] : undefined;
-    const blockNote = r.customer_block ? holdLabel(r.customer_block, r.hold_with) : refreshNote;
+    // מנהל 448 (מבקר 274ℹ️): מאושרת ונשארה בתור ⇒ «⏳ אושרה, טרם נשלחה: <סיבה>» (לא רק באנר העצירה)
+    const heldNote = r.status === 'open' && !drift ? reminderHeldNote(lr) : undefined;
+    const blockNote = r.customer_block ? holdLabel(r.customer_block, r.hold_with) : refreshNote ?? heldNote;
     invoices.push({
       id: String(r.invoice_id), source: r.source === 'csv' ? 'csv' : 'api', number: r.number, customerId: cid, amount: r.amount_agorot / 100,
       issuedAt: r.due ?? d.today, dueAt: r.due ?? d.today, dueEstimated: !!r.due_estimated, status, payUrl: '', reminders, note: blockNote,
       ...(r.currency && r.currency !== 'ILS' ? { currency: r.currency } : {}),
       ...(lastSent ? { lastSent } : {}),
+      ...(heldNote && !r.customer_block ? { queued: true } : {}),
       ...(drift ? { amountDrift: { was: drift.was_text, now: drift.now_text, ...(r.last_reminder?.id ? { reminderId: r.last_reminder.id } : {}) } } : {}),
     });
   }

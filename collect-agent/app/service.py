@@ -4566,7 +4566,7 @@ class CollectService:
                          "reminders_sent",
                          "last_sent", "last_reminder", "customer_block", "email_state",
                          "hold_with")   # סט #26 q26-10
-    DASH_LIST_LAST = ("id", "step", "status", "block_reason", "amount_drift")
+    DASH_LIST_LAST = ("id", "step", "status", "block_reason", "amount_drift", "queued_reason")
 
     def dashboard(self, view: str | None = None) -> dict:
         """תמונת מצב לבעל העסק: כל החובות הפתוחים + סטטוס התזכורת האחרונה לכל אחד."""
@@ -4608,6 +4608,9 @@ class CollectService:
         def _channels(message_id: str | None) -> list[str]:
             return sorted({c for m in (message_id or "").split(",") if m for c in chans.get(m, ())})
         estate = self.email_states()           # גבי עיצוב: מצב המייל — שתי שאילתות לכל הטבלה
+        # מנהל 448 (מבקר 274ℹ️): תזכורת שאושרה ונשארה בתור (שירות עצור / שבת-לילה / עצירת שחזור) — למה לא יצאה.
+        # אותו dispatch_hold כמו /dispatch → held (444). פעם אחת לכל הטבלה.
+        held = self.dispatch_hold()
         for r in self.db.q("SELECT i.*, c.name cname, c.phone cphone, c.email cemail, "
                            "c.opted_out, c.disputed, c.paused_reason FROM invoices i "
                            "JOIN customers c ON c.id=i.customer_id ORDER BY i.due, i.id"):
@@ -4645,7 +4648,9 @@ class CollectService:
                     "block_reason": last["block_reason"],
                     # הפעלה 159: טבלת החובות הציגה «מאושרת» לתזכורת שהסכום שלה השתנה במקור, בזמן שהתור
                     # (157) כבר סימן אותה כמי שתחזור לאישור. אותו חישוב כמו ב-/preview וב-/reminders.
-                    "amount_drift": self.reminder_amount_drift(last)},
+                    "amount_drift": self.reminder_amount_drift(last),
+                    "queued_reason": held if last["status"] == "approved" and not last["block_reason"]
+                    and r["status"] == "open" else None},
                 "customer_block": block,
                 # גבי עיצוב: «המייל חזר» / «סימן ספאם» בטבלה + פעולת תיקון (רק מצב, בלי הכתובת ב-view=list)
                 "email_state": estate(r["cemail"])})

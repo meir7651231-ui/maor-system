@@ -89,7 +89,9 @@ export function Invoices() {
                 return (
                   <Fragment key={i.id}>
                   <tr className="hover:bg-ink-50/60">
-                    <td className="px-4 py-3"><div className="font-bold">{c.name}</div>{i.note && <div className="text-xs text-ink-500">📝 {i.note}</div>}
+                    <td className="px-4 py-3"><div className="font-bold">{c.name}</div>{i.note && (i.queued
+                      ? <div className="text-xs font-medium text-amber-800" data-testid="inv-queued">{i.note}</div>
+                      : <div className="text-xs text-ink-500">📝 {i.note}</div>)}
                       {live && c.backendId != null && exportOwnerOnly(me) && <div className="mt-1" data-testid="data-export-owner-only" title="ייצוא מידע (בקשת עיון) — בעל העסק בלבד">
                         <button type="button" disabled className="min-h-9 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-medium text-ink-700 underline opacity-60 cursor-not-allowed">⬇ ייצוא מידע (בקשת עיון)</button>
                         <OwnerBadge testId="export-owner-badge" /></div>}
