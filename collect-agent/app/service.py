@@ -3101,6 +3101,17 @@ class CollectService:
         return dict(self._reminder(reminder_id))
 
     # ---------- dispatch (dry-run) ----------
+    def dispatch_hold(self) -> str | None:
+        """מנהל 444 (מבקר 271ℹ️): למה dispatch לא שולח עכשיו כלום — אותו סדר כמו `gate`
+        (restore_hold ⇒ trial_expired ⇒ outside_window). None ⇒ חלון פתוח."""
+        if restore_guard.active(self.db):
+            return "restore_hold"
+        if not self.trial()["active"]:
+            return "trial_expired"
+        if not self.policy.can_send_at(self.clock()):
+            return "outside_window"
+        return None
+
     def dispatch(self) -> list[dict]:
         now = self.clock()
         out: list[dict] = []
@@ -4910,9 +4921,13 @@ class CollectService:
             self._mark_plan_offered(cust["id"], items)
         self.audit(actor, "plan_approved", {"plan": plan_id, "draft": did,
                                             "message_id": dr["message_id"]})
-        return {"plan_id": plan_id, "message_id": dr["message_id"], "channel": channel,
-                "text": text, "queued": not sent and dr["status"] == "approved",
-                "draft_status": dr["status"]}
+        queued = not sent and dr["status"] == "approved"
+        out = {"plan_id": plan_id, "message_id": dr["message_id"], "channel": channel,
+               "text": text, "queued": queued, "draft_status": dr["status"]}
+        if queued:   # מנהל 444 (מבקר 271🟡): למה ההצעה לא יצאה — כמו תשובות (443), שהממשק לא יגיד «נשלחה»
+            out["queued_reason"] = self.inbox._with_queue_reason(
+                dict(self.db.one("SELECT * FROM drafts WHERE id=?", (did,))))["queued_reason"]
+        return out
 
     def _mark_plan_offered(self, cid: int, items: list[dict]) -> None:
         """מבקר 202🟠: הצעה שנשלחה מהדשבורד (/plans → אישור) אומרת ללקוח «השיבו "מאשר"», אבל השיחה לא ידעה

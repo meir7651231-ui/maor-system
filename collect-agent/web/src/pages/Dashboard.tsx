@@ -20,6 +20,7 @@ import { mockAmountCheck } from '../lib/policy.ts';
 import { areaPath, cumulative, otherInSeries, toBars, type Bar } from '../lib/series.ts';
 import { BOUNCE_REVIEW, requeuedToast } from '../lib/notices.ts';
 import { OWNER_ONLY_TAG, isStaff, noticeDoneLocked, resumeOwnerOnly } from '../lib/roles.ts';
+import { planApproveToast, type PlanApproveResult } from '../lib/draftQueue.ts';
 
 const AGING_COLOR: Record<Aging, string> = { notDue: 'bg-ink-400', d0_30: 'bg-due', d31_60: 'bg-late', d61_90: 'bg-red-500', d90p: 'bg-red-700' };
 
@@ -495,7 +496,7 @@ function NeedsYou() {
               )}
               <Button size="sm" variant={armed === `p${p.id}` ? 'dark' : 'primary'} className="mt-2"
                 disabled={(p.amount_check?.length ?? 0) > 0 && !planConfirm[p.id]}
-                onClick={() => act(`p${p.id}`, () => api.approvePlan(p.id, planConfirm[p.id] ?? false), 'ההצעה אושרה ונשלחה ללקוח (dry-run)', { want: 'approved', msg: ALREADY_PLAN })}>
+                onClick={() => act(`p${p.id}`, () => api.approvePlan(p.id, planConfirm[p.id] ?? false), res => planApproveToast(res as PlanApproveResult), { want: 'approved', msg: ALREADY_PLAN })}>
                 {armed === `p${p.id}` ? 'לחצו שוב לאישור' : '✓ אישור ההצעה'}
               </Button>
             </li>

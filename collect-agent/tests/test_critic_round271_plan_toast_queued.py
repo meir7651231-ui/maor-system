@@ -15,8 +15,6 @@ from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
 
-import pytest
-
 DASH = Path(__file__).resolve().parents[1] / "web" / "src" / "pages" / "Dashboard.tsx"
 
 
@@ -30,7 +28,7 @@ def test_server_reports_queued_plan_when_stopped_control(svc):
     assert r["queued"] is True and r["draft_status"] == "approved" and r["message_id"] is None
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 271🟡: טוסט «ההצעה אושרה ונשלחה ללקוח» קבוע — גם כש-queued")
+
 def test_plan_toast_reflects_queued():
     src = DASH.read_text(encoding="utf-8")
     assert "'ההצעה אושרה ונשלחה ללקוח (dry-run)'" not in src

@@ -12,6 +12,7 @@ import { systemNotices, type Notice } from './lib/notices.ts';
 import { ALREADY_APPROVED, alreadyDone, refreshOnReturn, retryDelayMs } from './lib/failure.ts';
 import { settingsDraft } from './lib/settings.ts';
 import { toastMs } from './lib/toast.ts';
+import { reminderQueuedText } from './lib/draftQueue.ts';
 
 /** locked = שרת חי שדורש קוד גישה (401) — לא נופלים למוק בשקט.
  *  error = יש שרת (או שיש בלשונית כניסה שמורה) אבל הטעינה נכשלה — מסך שגיאה עם «נסו שוב», לא נתוני מוק. */
@@ -269,10 +270,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           try { await api.approve(p.reminderId, !!opts?.confirmOpen, !!opts?.confirmAmount, opts?.seenHash); }
           catch (e) { if (!alreadyDone(e, 'approved')) throw e; already = true; }
           // הפעלה 143: האישור כבר נרשם בשרת. כשל בשליחה/ברענון שאחריו לא מוצג כ«לא אושר» (היה מטעה ⇒ ניסיון חוזר).
-          let r: { sent: unknown[] };
+          let r: { sent: unknown[]; held?: string | null };
           try { r = await api.dispatch(); } catch (e) { if (e instanceof AuthError) throw e; r = { sent: [] }; }
           await reload().catch(() => { /* stale ⇒ הפס «הנתונים לא עודכנו»; 401 ⇒ מסך הכניסה */ });
-          showToast(`${already ? ALREADY_APPROVED : '✓ אושר'} · ${r.sent.length ? `${r.sent.length} תזכורות יצאו ב-dry-run (ביומן היוצאים)` : 'נכנס לתור — ייצא בחלון השליחה הבא'} · לא נשלחה הודעה אמיתית`);
+          showToast(`${already ? ALREADY_APPROVED : '✓ אושר'} · ${r.sent.length ? `${r.sent.length} תזכורות יצאו ב-dry-run (ביומן היוצאים)` : reminderQueuedText(r.held)} · לא נשלחה הודעה אמיתית`);
           return;
         }
         setInvoices(list => list.map(i => i.id !== id ? i : {

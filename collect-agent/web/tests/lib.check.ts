@@ -1784,3 +1784,22 @@ test('מנהל 443 (מבקר 270🟡): טוסט «אשר ושלח» לפי הס�
   assert.match(approveToast({ status: 'rejected' }), /לא נשלח/);
   assert.doesNotMatch(approveToast(null), /נשלח/);
 });
+
+test('מנהל 444 (מבקר 271🟡+ℹ️): אישור הצעת פריסה / תזכורת — «נשלחה» רק כשבאמת יצאה', async () => {
+  const { planApproveToast, reminderQueuedText } = await import('../src/lib/draftQueue.ts');
+  assert.match(planApproveToast({ queued: false, draft_status: 'sent_dry_run' }), /ונשלחה ללקוח/);
+  for (const r of ['outside_window', 'trial_expired', 'restore_hold', 'retry']) {
+    const t = planApproveToast({ queued: true, queued_reason: r, draft_status: 'approved' });
+    assert.doesNotMatch(t, /ונשלחה/);
+    assert.match(t, /עדיין לא נשלחה/);
+    assert.match(t, /4 ימים/);
+  }
+  assert.match(planApproveToast({ queued: true, queued_reason: 'trial_expired', draft_status: 'approved' }), /חידוש/);
+  assert.match(planApproveToast({ queued: false, draft_status: 'rejected' }), /לא נשלחה/);
+  assert.doesNotMatch(planApproveToast(null), /נשלחה/);
+  assert.match(reminderQueuedText('trial_expired'), /חידוש/);
+  assert.doesNotMatch(reminderQueuedText('trial_expired'), /בחלון השליחה הבא/);
+  assert.match(reminderQueuedText('restore_hold'), /שחזור/);
+  assert.match(reminderQueuedText('outside_window'), /בחלון השליחה הבא/);
+  assert.match(reminderQueuedText(null), /בחלון השליחה הבא/);
+});

@@ -25,3 +25,24 @@ export function approveToast(r: ApproveResult | null | undefined): string {
   if (st === 'pending_approval') return 'המענה לא נשלח: הוא חיכה יותר מדי וחזר לאישור מחדש';
   return '✓ המענה אושר';
 }
+
+// מנהל 444 (מבקר 271🟡): «✓ אישור ההצעה» (הסדר תשלומים) אמר תמיד «נשלחה ללקוח» — גם כשהשרת החזיר
+// queued (שירות עצור / מחוץ לחלון / עצירת שחזור). השרת מחזיר queued + queued_reason (service._approve_plan_claimed).
+export interface PlanApproveResult { queued?: boolean; queued_reason?: QueueReason | string; draft_status?: string }
+
+/** הצעה בתור שלא יצאה תוך 4 ימים, או שמועד התשלום הראשון בה עבר — מבוטלת (inbox._withdraw_if_stale) */
+export const PLAN_STALE_NOTE = 'אם לא תצא תוך 4 ימים או לפני מועד התשלום הראשון, ההצעה תבוטל ותצטרכו לאשר הצעה חדשה.';
+
+export function planApproveToast(r: PlanApproveResult | null | undefined): string {
+  if (r?.draft_status === 'rejected') return 'ההצעה לא נשלחה ללקוח — הסיבה מחכה לכם ב«דורש טיפול», וההסדר חזר להצעה';
+  if (r?.queued) return `⏳ ההסדר אושר, אבל ההצעה עדיין לא נשלחה ללקוח: ${queueReasonText(r.queued_reason).replace('תישלח', 'היא תישלח')}. ${PLAN_STALE_NOTE}`;
+  if (r && 'queued' in r) return 'ההצעה אושרה ונשלחה ללקוח (dry-run)';
+  return '✓ ההצעה אושרה';
+}
+
+/** מבקר 271ℹ️: אישור תזכורת כשלא יצא כלום — «ייצא בחלון הבא» רק כשזו באמת הסיבה (השרת: /dispatch → held) */
+export function reminderQueuedText(held?: string | null): string {
+  if (held === 'trial_expired') return 'נכנס לתור — השירות עצור (המנוי לא פעיל), התזכורת תצא אחרי חידוש';
+  if (held === 'restore_hold') return 'נכנס לתור — השליחה עצורה עד שתאשרו את השחזור מגיבוי';
+  return 'נכנס לתור — ייצא בחלון השליחה הבא';
+}

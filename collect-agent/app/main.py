@@ -526,7 +526,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.post("/dispatch", dependencies=auth)
     def dispatch():
-        return {"dry_run": True, "sent": svc.dispatch()}
+        sent = svc.dispatch()
+        # מנהל 444 (מבקר 271ℹ️): כשלא יצא כלום — למה (הממשק לא יבטיח «ייצא בחלון הבא» כשהשירות עצור)
+        return {"dry_run": True, "sent": sent, "held": None if sent else svc.dispatch_hold()}
 
     # ---------- שער «אישור רשימת הפתוחות» (לפני תזכורת ראשונה) ----------
     @app.get("/open-list", dependencies=auth)

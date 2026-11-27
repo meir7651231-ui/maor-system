@@ -178,7 +178,7 @@ export const api = {
     const body = { ...(confirmOpen ? { confirm_open: true } : {}), ...(confirmAmount ? { confirm_amount: true } : {}), ...(seenHash ? { seen_hash: seenHash } : {}) };
     return j<unknown>(`/reminders/${rid}/approve`, { method: 'POST', ...(Object.keys(body).length ? { body: JSON.stringify(body) } : {}) });
   },
-  dispatch: () => j<{ dry_run: true; sent: unknown[] }>('/dispatch', { method: 'POST' }),
+  dispatch: () => j<{ dry_run: true; sent: unknown[]; held?: string | null }>('/dispatch', { method: 'POST' }),
   // הפעלה 181: רק מה שהדשבורד מציג (6 האחרונות) — לא כל היומן בכל רענון
   outbox: (limit = 6) => j<{ dry_run: true; messages: OutMsg[]; total?: number }>(`/outbox?limit=${limit}`),
   resume: (cid: number) => j<unknown>(`/customers/${cid}/resume`, { method: 'POST' }),
@@ -213,7 +213,7 @@ export const api = {
   assignShared: (cardId: number, customerId: number | null) => j<unknown>(`/owner/shared-cards/${cardId}/assign`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customer_id: customerId }) }),
   /** confirmAmount (critic סבב 49): הסדר על סכום חריג — אישור מפורש (השרת מחייב). */
-  approvePlan: (pid: number, confirmAmount = false) => j<{ text: string }>(`/plans/${pid}/approve`, { method: 'POST', ...(confirmAmount ? { body: JSON.stringify({ confirm_amount: true }) } : {}) }),
+  approvePlan: (pid: number, confirmAmount = false) => j<{ text: string; queued?: boolean; queued_reason?: string; draft_status?: string }>(`/plans/${pid}/approve`, { method: 'POST', ...(confirmAmount ? { body: JSON.stringify({ confirm_amount: true }) } : {}) }),
   drafts: () => j<Draft[]>('/conversation/drafts'),
   /** מבקר 270🟡: תשובות שאושרו וממתינות בתור (שירות עצור / חלון שליחה) — עם queued_reason */
   queuedDrafts: () => j<Draft[]>('/conversation/drafts?status=approved'),
