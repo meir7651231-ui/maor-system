@@ -109,7 +109,8 @@ def test_owner_accepts_mass_close(svc, clock, fake_gi):
     assert r["closed"] == 20 and _open_count(svc) == 0 and not _card(svc)
     assert svc.db.one("SELECT COUNT(*) n FROM reminders WHERE status IN ('pending_approval','approved')")["n"] == 0
     assert svc.db.one("SELECT 1 FROM audit WHERE action='api_mass_close_accepted'")
-    with pytest.raises(KeyError):   # כבר טופל ⇒ 404
+    # מנהל 459: כבר טופל ⇒ 409 שאומר מה הוכרע, מי ומתי (היה 404 «לא נמצא»)
+    with pytest.raises(ValueError, match="כבר טופל \\(סומנו כשולמו\\) — על ידי בעל העסק"):
         svc.accept_mass_close(mid)
 
 
@@ -142,4 +143,6 @@ def test_http_route(svc, clock, fake_gi):
     assert api.post(f"/owner/inbox/{mid}/accept-close").status_code == 401
     r = api.post(f"/owner/inbox/{mid}/accept-close", headers=AUTH)
     assert r.status_code == 200 and r.json()["closed"] == 20
-    assert api.post(f"/owner/inbox/{mid}/accept-close", headers=AUTH).status_code == 404
+    # מנהל 459: כבר טופל ⇒ 409 עם מה הוכרע (היה 404)
+    again = api.post(f"/owner/inbox/{mid}/accept-close", headers=AUTH)
+    assert again.status_code == 409 and "סומנו כשולמו" in again.json()["detail"]

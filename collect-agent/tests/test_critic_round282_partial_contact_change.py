@@ -8,7 +8,8 @@
 הסרת הלקוח (שמרני — בסדר), אבל החסימה חלה על הכתובות **הנוכחיות** (new@ + הטלפון), ו-`suppressed(c1@example.com)`
 = False: הכתובת שממנה ביקשו הסרה לא חסומה, ואם תשויך ללקוח אחר — תקבל מיילים.
 מצופה: `sent_to` = הכתובת שבה הקישור נשלח בפועל (מייל ⇒ רק המייל), והיא נחסמת בכל מקרה.
-רכיב: app/service.py → new_unsub_token (sent_to) / unsubscribe. ✓ מנהל 458: xfail הוסר (ראו test_mgr458_delivered_target.py).
+רכיב: app/service.py → new_unsub_token (sent_to) / unsubscribe.
+✓ מנהל 458: xfail הוסר (ראו test_mgr458_delivered_target.py).
 """
 from __future__ import annotations
 

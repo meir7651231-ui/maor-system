@@ -1057,10 +1057,11 @@ class CollectService:
         """מבקר 249: בעל העסק מאשר «כולן באמת שולמו» ⇒ החשבוניות מהכרטיס שעדיין פתוחות נסגרות כמו בסנכרון רגיל
         (closed_at=עכשיו, תזכורות מבוטלות). בעל העסק בלבד — סגירת חובות בהיקף. חשבונית שתחזור פתוחה בסנכרון הבא
         ⇒ כרטיס api_reopened (415)."""
-        row = self.db.one("SELECT payload FROM messages WHERE id=? AND intent='api_mass_vanish' AND needs_owner=1",
-                          (mid,))
+        row = self.db.one("SELECT payload, needs_owner FROM messages WHERE id=? AND intent='api_mass_vanish'", (mid,))
         if not row:
             raise KeyError(mid)
+        if not row["needs_owner"]:   # מנהל 459: כבר הוכרע («השאר פתוחות»/«כולן שולמו») ⇒ 409 עם מי ומתי, לא 404
+            raise ValueError(self._mass_vanish_handled_he(mid))
         if not self._actor_is_owner(actor):
             self.audit(actor, "api_mass_close_refused", {"message": mid})
             raise OwnerOnly("רק בעל העסק מאשר שכל החשבוניות האלה שולמו.")
@@ -1071,16 +1072,32 @@ class CollectService:
         now = _iso(self.clock())
         closed = 0
         with self.db.batch():
+            # מנהל 459 (check-then-update): «השאר פתוחות» (owner_message_done) של מכשיר אחר רץ בין הקריאה למעלה לבין
+            # הסגירה ⇒ היה: החשבוניות נסגרו בכל זאת (בעל העסק בחר להשאיר אותן פתוחות). עכשיו התפיסה מותנית ובתוך
+            # הטרנזקציה — המאוחר מקבל «כבר טופל» ולא נסגר דבר.
+            if not self.db.update("UPDATE messages SET needs_owner=0 WHERE id=? AND needs_owner=1", (mid,)):
+                raise ValueError(self._mass_vanish_handled_he(mid))
             for iid in ids:
                 if self.db.one("SELECT 1 FROM invoices WHERE id=? AND status='open'", (iid,)):
                     self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?", (now, iid))
                     self._cancel_invoice(iid, "invoice_closed")
                     closed += 1
-            self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (mid,))
             self._mark_vanish_resolved(mid)
             self._settle_stale_vanish_cards()
         self.audit(actor, "api_mass_close_accepted", {"message": mid, "closed": closed})
         return {"id": mid, "closed": closed}
+
+    def _mass_vanish_handled_he(self, mid: int) -> str:
+        """מנהל 459: מה קרה לכרטיס api_mass_vanish — «כולן שולמו» (api_mass_close_accepted) או «השאר פתוחות»
+        (owner_message_done) — עם מי ומתי (already_decided_he)."""
+        row = self.db.one("SELECT at, actor, action FROM audit WHERE action IN "
+                          "('api_mass_close_accepted','owner_message_done') AND json_extract(detail,'$.message')=? "
+                          "ORDER BY id DESC LIMIT 1", (mid,))
+        base = "הכרטיס כבר טופל"
+        if row:
+            base += (" (סומנו כשולמו)" if row["action"] == "api_mass_close_accepted"
+                     else " (נבחר «השאר פתוחות»)")
+        return self.already_decided_he(base, row)
 
     def _notify_malformed(self, n: int) -> None:
         key = "malformed:" + self.clock().date().isoformat()
@@ -2625,7 +2642,12 @@ class CollectService:
             self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "self_dismiss"})
             raise ValueError("את ההתראה על שינוי ההגדרות הרגישות צריך לסמן «טופל» בעל עסק אחר — "
                              "לא מי שביצע את השינוי.")
-        self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (mid,))
+        # מנהל 459 (check-then-update): «טופל» במקביל להכרעה אחרת על אותו כרטיס (למשל «כולן שולמו» על api_mass_vanish)
+        # ⇒ רק מי שבאמת הוריד את הכרטיס נרשם ביומן; המאוחר מקבל «כבר טופל» (לא «בוצע» על החלטה שלא קרתה).
+        if not self.db.update("UPDATE messages SET needs_owner=0 WHERE id=? AND needs_owner=1", (mid,)):
+            if row["intent"] == "api_mass_vanish":
+                raise ValueError(self._mass_vanish_handled_he(mid))
+            return {"id": mid, "done": True}
         self.audit(actor, "owner_message_done", {"message": mid})
         return {"id": mid, "done": True}
 
