@@ -120,11 +120,14 @@ def _decided_he(status: str) -> str:
 _DRAFT_APPROVED_STATES = ("approved", "sending", "sent_dry_run", "sent", "send_unknown")
 
 
-def _draft_decided(status: str, action: str) -> ValueError:
+def _draft_decided(status: str, action: str, who=None) -> ValueError:
     """הפעלה 147: אותה הכרעה שוב על טיוטה (התשובה אבדה ברשת) ⇒ AlreadyDecided, כמו בתזכורות (146).
-    עדיין 409 ובלי שינוי מצב; הממשק מציג «כבר אושר/נסגר» ולא שגיאה. הכרעה הפוכה נשארת סירוב רגיל."""
+    עדיין 409 ובלי שינוי מצב; הממשק מציג «כבר אושר/נסגר» ולא שגיאה. הכרעה הפוכה נשארת סירוב רגיל.
+    מנהל 456 (מבקר 280ℹ️ — 275 חלקי): who מוסיף «— על ידי X ב-D.M HH:MM» (מ-decided_by/decided_at)."""
     from .service import AlreadyDecided  # ייבוא מאוחר: service מייבא את inbox
     he = _decided_he(status)
+    if who is not None:
+        he = who(he)
     if action == "approve" and status in _DRAFT_APPROVED_STATES:
         return AlreadyDecided(he, "approved")
     if action == "reject" and status == "rejected":
@@ -984,7 +987,7 @@ class ConversationInbox:
             if dr["decided_by"] == "system:owner_hold":   # מנהל 359: נעצרה בסימון קטין/פטירה/חדלות פירעון
                 raise ValueError("הלקוח סומן (קטין/ה, נפטר/ה או הליך חדלות פירעון) אחרי שהטיוטה נוסחה, "
                                  "ולכן היא לא תישלח. לשחרור — «חידוש» בכרטיס הלקוח, ואז תשובה חדשה")
-            raise _draft_decided(dr["status"], "approve")
+            raise _draft_decided(dr["status"], "approve", self._draft_who(dr))
         if self._amount_check(dr) and not confirm_amount:
             raise ValueError("סכום חריג מאוד מהרגיל ללקוח (אולי נקודה עשרונית במקום הלא נכון?) — "
                              "יש לאשר במפורש שהסכום נכון (confirm_amount)")
@@ -1013,7 +1016,7 @@ class ConversationInbox:
         if not self.db.update("UPDATE drafts SET status='approved', body=?, edited=?, decided_at=?, decided_by=? "
                               "WHERE id=? AND status=?",
                               (text, edited, _iso(self.svc.clock()), actor, draft_id, dr["status"])):
-            raise _draft_decided(self._get(draft_id)["status"], "approve")
+            raise self._draft_decided_now(draft_id, "approve")
         # ר-12: מה בדיוק אושר (כמו approved_hash בתזכורות) — שינוי מאוחר של הגוף ב-DB יתגלה
         self.svc.audit(actor, "draft_approved", {"draft": draft_id, "edited": bool(edited),
                                                  "body_sha": _body_sha(text)})
@@ -1049,14 +1052,28 @@ class ConversationInbox:
         days = max(0, -(-int((deadline - now).total_seconds()) // 86400))
         return {"queued_since": since.astimezone(TZ).date().isoformat(), "queued_days_left": days}
 
+    def _draft_who(self, dr):
+        """מנהל 456: מי הכריע על הטיוטה ומתי. רק אושרה/נסגרה ע״י אדם; system:* (הסרה, חלון, הוחלפה) ⇒ בלי ייחוס."""
+        if dr["status"] not in _DRAFT_APPROVED_STATES + ("rejected",):
+            return None
+        by = dr["decided_by"] or ""
+        if not by or by.startswith("system"):
+            return None
+        row = {"at": dr["decided_at"], "actor": by}
+        return lambda he: self.svc.already_decided_he(he, row)
+
+    def _draft_decided_now(self, draft_id: int, action: str) -> ValueError:
+        dr = self._get(draft_id)
+        return _draft_decided(dr["status"], action, self._draft_who(dr))
+
     def reject_draft(self, draft_id: int, actor: str = "owner") -> dict:
         dr = self._get(draft_id)
         if dr["status"] not in ("pending_approval", "needs_owner", "approved"):
-            raise _draft_decided(dr["status"], "reject")
+            raise _draft_decided(dr["status"], "reject", self._draft_who(dr))
         if not self.db.update("UPDATE drafts SET status='rejected', decided_at=?, decided_by=? "
                               "WHERE id=? AND status=?",
                               (_iso(self.svc.clock()), actor, draft_id, dr["status"])):   # מבקר 275ב🟠
-            raise _draft_decided(self._get(draft_id)["status"], "reject")
+            raise self._draft_decided_now(draft_id, "reject")
         self.svc.audit(actor, "draft_rejected", {"draft": draft_id})
         return dict(self._get(draft_id))
 

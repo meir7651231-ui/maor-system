@@ -207,10 +207,13 @@ _NOT_PENDING_HE = {
 }
 
 
-def _not_pending(status: str, action: str) -> ValueError:
+def _not_pending(status: str, action: str, who=None) -> ValueError:
     """סירוב להכרעה על תזכורת שכבר הוכרעה: נוסח בעברית בלי קוד סטטוס גולמי.
-    action = "approve" / "reject". אותה הכרעה שוב ⇒ AlreadyDecided (הממשק מציג «כבר…»)."""
+    action = "approve" / "reject". אותה הכרעה שוב ⇒ AlreadyDecided (הממשק מציג «כבר…»).
+    מנהל 456 (מבקר 280ℹ️ — 275 חלקי): who = פונקציה שמקבלת את הנוסח ומוסיפה «— על ידי X ב-D.M HH:MM»."""
     he = _NOT_PENDING_HE.get(status, "התזכורת כבר לא ממתינה להכרעה")
+    if who is not None:
+        he = who(he)
     if action == "approve" and status in _APPROVED_STATES:
         return AlreadyDecided(he, "approved")
     if action == "reject" and status == "rejected":
@@ -3069,7 +3072,7 @@ class CollectService:
                 confirm_amount: bool = False, seen_hash: str | None = None) -> dict:
         r = self._reminder(reminder_id)
         if r["status"] != "pending_approval":
-            raise _not_pending(r["status"], "approve")
+            raise _not_pending(r["status"], "approve", self._reminder_who(reminder_id, r["status"]))
         # critic סבב 56: תזכורת שנבנתה מחדש (סכום השתנה ⇒ amount_changed) חוזרת לאישור **באותו מזהה**. בעל עסק
         # שתצוגה מקדימה ישנה (1,200 ₪) פתוחה אצלו אישר בלחיצה את הנוסח החדש (1,500 ₪) בלי לראות אותו, והוא יצא.
         # seen_hash = הגיבוב של מה שהוצג לו (מ-/preview). שונה מהנוסח הנוכחי ⇒ סירוב, ופותחים מחדש.
@@ -3102,7 +3105,7 @@ class CollectService:
                               "WHERE id=? AND status='pending_approval'",
                               (_iso(self.clock()), h, r["template_version"] or templates.template_version(),
                                actor, h, reminder_id)):
-            raise _not_pending(self._reminder(reminder_id)["status"], "approve")
+            raise self._not_pending_now(reminder_id, "approve")
         cid = self._invoice(r["invoice_id"])["customer_id"]
         self.db.x("UPDATE customers SET approved_first=1 WHERE id=?", (cid,))
         # ר-12: מי אישר, מתי, איזו גרסת נוסח ואיזה גוף בדיוק (גיבוב)
@@ -3112,13 +3115,30 @@ class CollectService:
                                       "confirm_amount": bool(confirm_amount)})
         return dict(self._reminder(reminder_id))
 
+    def _reminder_who(self, reminder_id: int, status: str):
+        """מנהל 456 (מבקר 280ℹ️ — 275 חלקי): מי הכריע על התזכורת ומתי, מתוך היומן (approve/reject האחרון).
+        רק למצבים שאדם הכריע בהם (אושרה/נדחתה); בוטלה/הוחלפה = מערכת ⇒ בלי ייחוס."""
+        if status in _APPROVED_STATES:
+            act = "approve"
+        elif status == "rejected":
+            act = "reject"
+        else:
+            return None
+        row = self.db.one("SELECT at, actor FROM audit WHERE action=? AND json_extract(detail,'$.reminder')=? "
+                          "ORDER BY id DESC LIMIT 1", (act, reminder_id))
+        return (lambda he: self.already_decided_he(he, row)) if row else None
+
+    def _not_pending_now(self, reminder_id: int, action: str) -> ValueError:
+        st = self._reminder(reminder_id)["status"]
+        return _not_pending(st, action, self._reminder_who(reminder_id, st))
+
     def reject(self, reminder_id: int, actor: str = "owner") -> dict:
         r = self._reminder(reminder_id)
         if r["status"] not in ACTIVE:
-            raise _not_pending(r["status"], "reject")
+            raise _not_pending(r["status"], "reject", self._reminder_who(reminder_id, r["status"]))
         if not self.db.update("UPDATE reminders SET status='rejected', decided_at=? WHERE id=? AND status=?",
                               (_iso(self.clock()), reminder_id, r["status"])):   # מבקר 275א🟠
-            raise _not_pending(self._reminder(reminder_id)["status"], "reject")
+            raise self._not_pending_now(reminder_id, "reject")
         self.audit(actor, "reject", {"reminder": reminder_id})
         return dict(self._reminder(reminder_id))
 
@@ -4321,6 +4341,8 @@ class CollectService:
     def already_decided_he(self, base: str, row) -> str:
         """מנהל 454: «כבר הוכרעה/טופל» + מי ומתי (מתוך שורת היומן), כדי שהעובדת השנייה תדע מה קרה בלי לחפש."""
         if not row:
+            return base
+        if str(row["actor"] or "").startswith("system"):   # מנהל 456: הכרעת מערכת ⇒ בלי «על ידי»
             return base
         try:
             dt = datetime.fromisoformat(str(row["at"]))

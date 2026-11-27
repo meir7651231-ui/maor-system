@@ -18,6 +18,12 @@ from app.main import create_app
 from tests.conftest import AUTH, OWNER_TOKEN
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def _who(detail: str, base: str, tail: str = "") -> bool:
+    """מנהל 456 (מבקר 280ℹ️ — 275 חלקי): הנוסח + «— על ידי בעל העסק ב-D.M HH:MM» (+ סיומת הסירוב)."""
+    return re.fullmatch(re.escape(base) + r" — על ידי בעל העסק ב-\d{1,2}\.\d{1,2} \d\d:\d\d"
+                        + re.escape(tail), detail) is not None
 RAW = re.compile(r"status=|pending_approval|approved|rejected|sent_dry_run|cancelled")
 
 
@@ -44,7 +50,7 @@ def test_second_approve_is_409_already_approved_in_hebrew(svc):
     assert again.status_code == 409
     assert again.headers.get("x-gabi-already") == "approved"
     detail = again.json()["detail"]
-    assert detail == "התזכורת כבר אושרה"
+    assert _who(detail, "התזכורת כבר אושרה")
     assert not RAW.search(detail)
     # לא נרשם אישור שני, והשורה לא השתנתה (decided_at, approved_hash)
     assert len(_audits(svc, "approve")) == 1
@@ -58,7 +64,7 @@ def test_approve_after_send_says_already_sent(svc):
     svc.db.x("UPDATE reminders SET status='sent_dry_run' WHERE id=?", (rid,))
     r = api.post(f"/reminders/{rid}/approve")
     assert r.status_code == 409 and r.headers.get("x-gabi-already") == "approved"
-    assert r.json()["detail"] == "התזכורת כבר אושרה ונשלחה"
+    assert _who(r.json()["detail"], "התזכורת כבר אושרה ונשלחה")
 
 
 def test_approve_of_rejected_is_a_real_refusal(svc):
@@ -68,7 +74,7 @@ def test_approve_of_rejected_is_a_real_refusal(svc):
     assert api.post(f"/reminders/{rid}/reject").status_code == 200
     r = api.post(f"/reminders/{rid}/approve")
     assert r.status_code == 409 and "x-gabi-already" not in r.headers
-    assert r.json()["detail"] == "התזכורת כבר נדחתה. אי אפשר לאשר אותה"
+    assert _who(r.json()["detail"], "התזכורת כבר נדחתה", ". אי אפשר לאשר אותה")
     assert not RAW.search(r.json()["detail"])
     assert _audits(svc, "approve") == []
 
@@ -79,7 +85,7 @@ def test_second_reject_is_already_rejected(svc):
     api.post(f"/reminders/{rid}/reject")
     r = api.post(f"/reminders/{rid}/reject")
     assert r.status_code == 409 and r.headers.get("x-gabi-already") == "rejected"
-    assert r.json()["detail"] == "התזכורת כבר נדחתה"
+    assert _who(r.json()["detail"], "התזכורת כבר נדחתה")
     assert len(_audits(svc, "reject")) == 1
 
 
@@ -90,7 +96,7 @@ def test_reject_after_send_is_refused_without_marker(svc):
     svc.db.x("UPDATE reminders SET status='sent_dry_run' WHERE id=?", (rid,))
     r = api.post(f"/reminders/{rid}/reject")
     assert r.status_code == 409 and "x-gabi-already" not in r.headers
-    assert r.json()["detail"] == "התזכורת כבר אושרה ונשלחה. אי אפשר לדחות אותה"
+    assert _who(r.json()["detail"], "התזכורת כבר אושרה ונשלחה", ". אי אפשר לדחות אותה")
 
 
 def test_unknown_status_still_hebrew_without_raw_code(svc):
@@ -187,12 +193,12 @@ def test_second_draft_reject_is_already_rejected_and_cross_decisions_refuse(svc)
     assert api.post(f"/conversation/drafts/{did}/reject").status_code == 200
     r = api.post(f"/conversation/drafts/{did}/reject")
     assert r.status_code == 409 and r.headers.get("x-gabi-already") == "rejected"
-    assert r.json()["detail"] == "הטיוטה כבר נסגרה בלי מענה"
+    assert _who(r.json()["detail"], "הטיוטה כבר נסגרה בלי מענה")
     assert len(_audits(svc, "draft_rejected")) == 1
     # אישור של טיוטה שנסגרה = סירוב אמיתי, בלי הכותרת
     r = api.post(f"/conversation/drafts/{did}/approve")
     assert r.status_code == 409 and "x-gabi-already" not in r.headers
-    assert r.json()["detail"] == "הטיוטה כבר נסגרה בלי מענה. אי אפשר לאשר אותה"
+    assert _who(r.json()["detail"], "הטיוטה כבר נסגרה בלי מענה", ". אי אפשר לאשר אותה")
     # טיוטה שהוחלפה: שתי ההכרעות מסורבות בלי הכותרת
     svc.db.x("UPDATE drafts SET status='superseded' WHERE id=?", (did,))
     for action in ("approve", "reject"):
