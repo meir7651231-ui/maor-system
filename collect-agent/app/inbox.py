@@ -971,6 +971,11 @@ class ConversationInbox:
                       (dr["id"],))
             self.db.x("UPDATE plans SET status='rejected' WHERE id=? AND status IN ('proposed','approved')",
                       (dr["plan_id"],))
+            # מנהל 446 (מבקר 272ב🟠): ההצעה בוטלה ⇒ השיחה כבר לא «הציעה» אותה. היה: awaiting_plan_reply נשאר ⇒
+            # «מאשר» של הלקוח = כרטיס אישור על הסדר שנדחה + ביטול התזכורת שתוכננה לו
+            prow = self.db.one("SELECT * FROM plans WHERE id=?", (dr["plan_id"],))
+            if prow:
+                self.svc._clear_plan_offer(prow)
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                       "created_at) VALUES(?,'system','owner',?,'stale_draft',1,?)",
                       (dr["customer_id"], "הצעת הפריסה שאישרת לא נשלחה: היא חיכתה יותר מ-4 ימים, "
@@ -1052,6 +1057,11 @@ class ConversationInbox:
             # שלח ללקוח הצעה שנייה (בנוסח ובתאריכים אחרים).
             self.db.x("UPDATE plans SET status='approved' WHERE id=? AND status='proposed'",
                       (dr["plan_id"],))
+            if dr["intent"] == "plan_offer":
+                # מנהל 446 (מבקר 272א🟠): הצעה מהדשבורד שחיכתה בתור יצאה עכשיו ⇒ רק עכשיו השיחה «הציעה» אותה
+                prow = self.db.one("SELECT installments FROM plans WHERE id=?", (dr["plan_id"],))
+                if prow:
+                    self.svc._mark_plan_offered(cust["id"], json.loads(prow["installments"] or "[]"))
         self.svc.audit("system", "draft_sent_dry_run", {"draft": draft_id, "message_id": mid,
                                                         "body_sha": _body_sha(dr["body"])})
         return True

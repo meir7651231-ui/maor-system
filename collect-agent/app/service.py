@@ -4918,7 +4918,11 @@ class CollectService:
                 self.db.x("UPDATE plans SET status='superseded' WHERE customer_id=? AND status='approved' "
                           "AND id!=?", (cust["id"], plan_id))
                 self.audit("system", "plan_replaced", {"plan": plan_id, "replaced": old})
-            self._mark_plan_offered(cust["id"], items)
+            if sent:
+                # מנהל 446 (מבקר 272א🟠): השיחה «הציעה» רק מה שיצא בפועל. היה: גם כשההצעה נשארה בתור (עצירה/חלון/
+                # שחזור) ⇒ «מאשר» של הלקוח לפני שקיבל אותה = plan_accept על תנאים שלא נשלחו. בתור ⇒ inbox._try_send
+                # מסמן כשתצא.
+                self._mark_plan_offered(cust["id"], items)
         self.audit(actor, "plan_approved", {"plan": plan_id, "draft": did,
                                             "message_id": dr["message_id"]})
         queued = not sent and dr["status"] == "approved"

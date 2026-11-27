@@ -16,8 +16,6 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
-
 PHONE = "050-1234567"
 
 
@@ -43,14 +41,14 @@ def test_queued_offer_goes_out_after_resume_control(svc):
     assert svc.db.one("SELECT status FROM drafts WHERE plan_id=?", (pid,))["status"] == "sent_dry_run"
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 272א🟠: «מאשר» לפני שההצעה יצאה ⇒ plan_accept על תנאים שלא נשלחו")
+# מנהל 446: xfail הוסר — `_mark_plan_offered` רק כשההצעה יצאה
 def test_reply_before_offer_sent_is_not_acceptance(svc):
     _stopped_plan_approved(svc)
     r = svc.inbound("sms", PHONE, "מאשר")
     assert r["intent"] != "plan_accept", r.get("owner_summary")
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 272ב🟠: הצעה שנדחתה כישנה נשארת «הוצעה» בשיחה ⇒ «מאשר» מבטל תזכורת")
+# מנהל 446: xfail הוסר — `_withdraw_if_stale` ⇒ `_clear_plan_offer`
 def test_withdrawn_offer_is_not_accepted_later(svc, clock):
     cid, pid = _stopped_plan_approved(svc)
     clock.now += timedelta(days=7)   # ראשון 15.11 10:00 — בחלון
