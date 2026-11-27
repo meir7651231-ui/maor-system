@@ -281,7 +281,10 @@ class ConversationInbox:
         if customer_id is not None and cust is None:
             # critic סבב 150: נמחק בינתיים (purge) — היה TypeError/500 אחרי שהכרטיס כבר נסגר וההשהיות שוחררו
             raise ValueError("הלקוח הזה כבר לא קיים במערכת — בחרו לקוח אחר או «אף אחד מהם»")
-        self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (card_id,))
+        # מבקר 276ב🟡: תפיסה אטומית. היה `WHERE id=?` אחרי בדיקת needs_owner ⇒ עובדת a ⇒ דויד ‖ עובדת b ⇒ שרה:
+        # שני השיוכים הצליחו, «שילמתי» נרשם לשני הלקוחות (שניהם מושהים) ושתי טיוטות לאותו טלפון.
+        if not self.db.update("UPDATE messages SET needs_owner=0 WHERE id=? AND needs_owner=1", (card_id,)):
+            raise ValueError("הכרטיס כבר טופל")
         for cid in ids:
             self.db.x("UPDATE customers SET paused_reason=NULL WHERE id=? AND paused_reason=?",
                       (cid, m["intent"]))

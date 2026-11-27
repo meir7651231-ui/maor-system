@@ -28,16 +28,24 @@ DANA = "050-1234567"
 
 def _run_inside(svc, prefix, during):
     """הקריאה הראשונה ל-db.x שמתחילה ב-prefix מריצה את during() לפני שהיא מתבצעת."""
-    orig = svc.db.x
+    # מנהל 451: עוטפים גם את db.update — התיקון (276א/ב) הוא UPDATE מותנה דרך update, אחרת ההתערבות לא הייתה רצה
+    # והבדיקה עוברת בלי לבדוק כלום.
+    orig_x, orig_u = svc.db.x, svc.db.update
     state = {"done": False}
 
-    def x(sql, args=()):
-        if not state["done"] and sql.startswith(prefix):
-            state["done"] = True
-            during()
-        return orig(sql, args)
-    svc.db.x = x
-    return lambda: setattr(svc.db, "x", orig)
+    def wrap(orig):
+        def f(sql, args=()):
+            if not state["done"] and sql.startswith(prefix):
+                state["done"] = True
+                during()
+            return orig(sql, args)
+        return f
+    svc.db.x, svc.db.update = wrap(orig_x), wrap(orig_u)
+
+    def undo():
+        assert state["done"], f"ההתערבות לא רצה (prefix={prefix!r})"
+        svc.db.x, svc.db.update = orig_x, orig_u
+    return undo
 
 
 def _promise_pending(svc):
@@ -54,7 +62,6 @@ def test_second_promise_decision_rejected_control(svc):
         svc.decide_promise_request(cid, True)
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 276א🟡: «אשר»‖«סרב» על בקשת מועד — שתי הכרעות ושתי טיוטות סותרות")
 def test_concurrent_promise_decisions_one_wins(svc):
     cid = _promise_pending(svc)
     undo = _run_inside(svc, "UPDATE customers SET paused_reason",
@@ -87,7 +94,6 @@ def test_second_assign_rejected_control(svc):
         svc.inbox.assign_shared_card(card, ids[1])
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 276ב🟡: שיוך כרטיס טלפון משותף במקביל — «שילמתי» נרשם לשני הלקוחות")
 def test_concurrent_shared_assign_one_customer(svc):
     card, ids = _shared_paid_card(svc)
     undo = _run_inside(svc, "UPDATE messages SET needs_owner=0 WHERE id=?",

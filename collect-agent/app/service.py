@@ -4236,15 +4236,24 @@ class CollectService:
                           "AND json_extract(detail,'$.customer')=? ORDER BY id DESC LIMIT 1", (cid,))
         if req is None:
             raise KeyError(cid)
-        if self.db.one("SELECT 1 FROM audit WHERE action IN ('promise_request_approved','promise_request_refused') "
-                       "AND id>? AND json_extract(detail,'$.customer')=?", (req["id"], cid)):
+        decided_sql = ("SELECT 1 FROM audit WHERE action IN ('promise_request_approved','promise_request_refused') "
+                       "AND id>? AND json_extract(detail,'$.customer')=?")
+        if self.db.one(decided_sql, (req["id"], cid)):
             raise ValueError("הבקשה כבר הוכרעה")
         info = json.loads(req["detail"])
         c = self.db.one("SELECT paused_reason FROM customers WHERE id=?", (cid,))
+        if approve and not (c and (c["paused_reason"] or "").startswith("promise:until=")):
+            raise ValueError("הלקוח כבר לא בהשהיית הבטחה (השהיה אחרת גוברת) — אין מה להאריך")
+        until = (date.fromisoformat(info["requested"]) + timedelta(days=1)).isoformat() if approve else None
+        # מבקר 276א🟡: ההכרעה נרשמת ביומן **לפני** ההשפעות, ב-INSERT מותנה (אטומי מול «כבר הוכרעה?»). היה: בדיקה
+        # ביומן ואז רישום בלי תנאי ⇒ «אשר»‖«סרב» משני מכשירים — שתי ההכרעות ושתי טיוטות סותרות ללקוחה.
+        if not self.db.update(
+                "INSERT INTO audit(at,actor,action,detail) SELECT ?,?,?,? WHERE NOT EXISTS (" + decided_sql + ")",
+                (_iso(self.clock()), actor, "promise_request_approved" if approve else "promise_request_refused",
+                 json.dumps({"customer": cid, "requested": info["requested"]}, ensure_ascii=False),
+                 req["id"], cid)):
+            raise ValueError("הבקשה כבר הוכרעה")
         if approve:
-            if not (c and (c["paused_reason"] or "").startswith("promise:until=")):
-                raise ValueError("הלקוח כבר לא בהשהיית הבטחה (השהיה אחרת גוברת) — אין מה להאריך")
-            until = (date.fromisoformat(info["requested"]) + timedelta(days=1)).isoformat()
             self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (f"promise:until={until}", cid))
             self.db.x("UPDATE conversations SET pause_until=? WHERE customer_id=?", (until, cid))
             # מנהל 395 (מבקר 232🟡): החשבונית שעליה ההבטחה עברה בקובץ CSV ללקוח אחר אחרי הבקשה (219א), והוא ירש את
@@ -4259,8 +4268,6 @@ class CollectService:
                               (until, r["customer_id"]))
                     self.audit(actor, "promise_extended_moved_invoice",
                                {"invoice": r["id"], "customer": r["customer_id"], "from": cid})
-        self.audit(actor, "promise_request_approved" if approve else "promise_request_refused",
-                   {"customer": cid, "requested": info["requested"]})
         notice = self._promise_decision_notice(cid, req["id"], info, approve)
         return {"customer": cid, "requested": info["requested"], "approved": approve,
                 "paused_until": until if approve else info["until"], "customer_update": notice}
