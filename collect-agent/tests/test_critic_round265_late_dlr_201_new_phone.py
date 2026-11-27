@@ -13,14 +13,11 @@ DLR 201 על אותו `shipment_id` ⇒ `matched`, `opted_out=1`,
 «המספר הקודם חסם הודעות». xfail(strict=True)."""
 from datetime import timedelta
 
-import pytest
-
 from tests.test_delivery_feedback_docs import FORM, _doc_019_body, _sent, api  # noqa: F401
 
 NEW = "050-0000777"
 
 
-@pytest.mark.xfail(strict=True, reason="265🟠: DLR 201 מאוחר ⇒ חוסם את הטלפון החדש ומסיר את הלקוח; הישן לא נחסם")
 def test_late_dlr_201_blocks_the_number_it_was_sent_to(api, svc, fake_gi, clock):  # noqa: F811
     m = _sent(api, svc, "sms")
     old, cid = m["cphone"], m["customer_id"]

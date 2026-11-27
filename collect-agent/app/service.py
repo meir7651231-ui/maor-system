@@ -4048,17 +4048,40 @@ class CollectService:
                 else {"ok": True, "kind": kind, "ignored": True}
             if cat == "blocked" and f.get("status", "").strip() == "201" and res.get("matched"):
                 # 201 «נחסם לפי בקשה» = כמו push מסוג blacklist ⇒ אותו טיפול: עצירת SMS למספר
-                row = self.db.one("SELECT c.phone FROM messages m JOIN customers c ON c.id=m.customer_id "
-                                  "WHERE m.direction='out' AND m.provider='019' AND m.provider_id=?", (pid,))
-                if row and row["phone"]:
-                    self.suppress("sms", row["phone"], "carrier_blacklist")
-                    for cust in self._find_customers("sms", row["phone"]):
-                        self._opt_out(cust["id"], "carrier_blacklist")
+                self._dlr_019_blacklist(pid)
         else:
             res = {"ok": True, "kind": kind, "ignored": True}
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
                   " VALUES(NULL,'webhook','sms',?,?,?)", (kind, key, _iso(self.clock())))
         return res
+
+    def _dlr_019_blacklist(self, pid: str) -> None:
+        """DLR 201 «נחסם לפי בקשה». מבקר 265🟠: החסימה חלה על המספר **שאליו נשלחה ההודעה** (`to` ברשומת השליחה),
+        לא על הטלפון הנוכחי של הלקוח — DLR מאוחר אחרי שהמקור עדכן טלפון חסם את המספר החדש והסיר את הלקוח, והמספר
+        שבאמת חסם נשאר פתוח. מסירים רק לקוחות שזה עדיין הטלפון שלהם; לקוח שהטלפון שלו כבר אחר ⇒ כרטיס לבעל העסק."""
+        row = self.db.one("SELECT m.customer_id, m.payload, c.phone FROM messages m LEFT JOIN customers c "
+                          "ON c.id=m.customer_id WHERE m.direction='out' AND m.provider='019' AND m.provider_id=?",
+                          (pid,))
+        if not row:
+            return
+        try:
+            sent_to = str(json.loads(row["payload"] or "{}").get("to") or "")
+        except (ValueError, AttributeError):
+            sent_to = ""
+        sent_to = sent_to or (row["phone"] or "")          # רשומה ישנה בלי payload ⇒ ההתנהגות הקודמת
+        if not normalize_il_phone(sent_to):
+            return
+        self.suppress("sms", sent_to, "carrier_blacklist")
+        hit = self._find_customers("sms", sent_to)
+        for cust in hit:                                     # טלפון משותף ⇒ כולם
+            self._opt_out(cust["id"], "carrier_blacklist")
+        cid = row["customer_id"]
+        if cid is not None and row["phone"] is not None and all(c["id"] != cid for c in hit):
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at)"
+                      " VALUES(?,'system','sms',?, 'carrier_blacklist_old_phone', 1, ?)",
+                      (cid, "המספר הקודם של הלקוח חסם הודעות (דיווח מספק ה-SMS). המספר הקודם נעצר; "
+                            "המספר הנוכחי שלו לא נחסם וההודעות ממשיכות אליו.", _iso(self.clock())))
+            self.audit("system", "carrier_blacklist_old_phone", {"customer": cid})
 
     def sms_webhook_inforu(self, raw: bytes) -> dict:
         try:
