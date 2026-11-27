@@ -3078,10 +3078,14 @@ class CollectService:
             raise ValueError("סכום חריג מאוד מהרגיל ללקוח (אולי נקודה עשרונית במקום הלא נכון?) — "
                              "יש לאשר במפורש שהסכום נכון (confirm_amount)")
         h = _sha(r["payload"])
-        self.db.x("UPDATE reminders SET status='approved', decided_at=?, approved_hash=?, "
-                  "approved_version=?, approved_by=?, body_hash=? WHERE id=?",
-                  (_iso(self.clock()), h, r["template_version"] or templates.template_version(),
-                   actor, h, reminder_id))
+        # מבקר 275א🟠: UPDATE מותנה במצב שנבדק. היה `WHERE id=?` בלבד ⇒ דחייה של עובדת אחרת שנכנסה בין הבדיקה
+        # לעדכון נדרסה (שתיהן 200, התזכורת approved ונשלחת). עכשיו ההחלטה השנייה מקבלת 409 לפי המצב החדש.
+        if not self.db.update("UPDATE reminders SET status='approved', decided_at=?, approved_hash=?, "
+                              "approved_version=?, approved_by=?, body_hash=? "
+                              "WHERE id=? AND status='pending_approval'",
+                              (_iso(self.clock()), h, r["template_version"] or templates.template_version(),
+                               actor, h, reminder_id)):
+            raise _not_pending(self._reminder(reminder_id)["status"], "approve")
         cid = self._invoice(r["invoice_id"])["customer_id"]
         self.db.x("UPDATE customers SET approved_first=1 WHERE id=?", (cid,))
         # ר-12: מי אישר, מתי, איזו גרסת נוסח ואיזה גוף בדיוק (גיבוב)
@@ -3095,8 +3099,9 @@ class CollectService:
         r = self._reminder(reminder_id)
         if r["status"] not in ACTIVE:
             raise _not_pending(r["status"], "reject")
-        self.db.x("UPDATE reminders SET status='rejected', decided_at=? WHERE id=?",
-                  (_iso(self.clock()), reminder_id))
+        if not self.db.update("UPDATE reminders SET status='rejected', decided_at=? WHERE id=? AND status=?",
+                              (_iso(self.clock()), reminder_id, r["status"])):   # מבקר 275א🟠
+            raise _not_pending(self._reminder(reminder_id)["status"], "reject")
         self.audit(actor, "reject", {"reminder": reminder_id})
         return dict(self._reminder(reminder_id))
 

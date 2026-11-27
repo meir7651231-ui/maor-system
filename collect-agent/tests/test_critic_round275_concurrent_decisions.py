@@ -47,7 +47,6 @@ def test_sequential_second_approve_is_409_control(svc):
     assert "כבר אושרה" in str(e.value)
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 275א🟠: אישור במקביל לדחייה דורס אותה — שתיהן 200, התזכורת approved")
 def test_reject_during_approve_is_not_overwritten(svc):
     svc.sync()
     rid = svc.plan()[0]
@@ -63,7 +62,6 @@ def test_reject_during_approve_is_not_overwritten(svc):
     assert not (approved_ok and final == "approved"), "שתי ההחלטות «הצליחו» והדחייה נדרסה"
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 275ב🟠: אישור תשובה במקביל — שליחה כפולה ללקוח / עריכה שאבדה")
 def test_concurrent_draft_approve_sends_once(svc):
     svc.sync()
     did = svc.inbound("sms", "050-1234567", "שילמתי אתמול בהעברה")["draft_id"]
@@ -73,3 +71,36 @@ def test_concurrent_draft_approve_sends_once(svc):
         svc.inbox.approve_draft(did, body="תודה דנה, נבדוק את ההעברה ונחזור אליך", actor="user:2")
     sent = [m for m in sent_since(svc.sender.sent, mark) if DANA in str(m)]
     assert len(sent) == 1, f"נשלחו {len(sent)} הודעות ללקוחה"
+
+
+def test_approve_during_reject_rejector_gets_409(svc):
+    """הכיוון ההפוך: b מאשרת בין הבדיקה לעדכון של הדחייה ⇒ הדחייה לא דורסת אישור, ומקבלת סירוב."""
+    svc.sync()
+    rid = svc.plan()[0]
+    _interleave(svc, "_reminder", lambda: svc.approve(rid, actor="user:3", confirm_open=True))
+    with pytest.raises(ValueError, match="אושרה"):
+        svc.reject(rid, actor="user:2")
+    assert svc.db.one("SELECT status FROM reminders WHERE id=?", (rid,))["status"] == "approved"
+    rejects = svc.db.q("SELECT * FROM audit WHERE action='reject'")
+    assert not rejects, "דחייה שנכשלה לא נרשמת ביומן"
+
+
+def test_draft_reject_during_approve_not_sent(svc):
+    """b דוחה תשובה בין הבדיקה לעדכון של האישור של a ⇒ שום הודעה לא יוצאת, a מקבלת סירוב."""
+    svc.sync()
+    did = svc.inbound("sms", "050-1234567", "שילמתי אתמול בהעברה")["draft_id"]
+    mark = sent_mark(svc.sender.sent)
+    _interleave(svc.inbox, "_get", lambda: svc.inbox.reject_draft(did, actor="user:3"))
+    with pytest.raises(ValueError):
+        svc.inbox.approve_draft(did, actor="user:2")
+    assert svc.db.one("SELECT status FROM drafts WHERE id=?", (did,))["status"] == "rejected"
+    assert not [m for m in sent_since(svc.sender.sent, mark) if DANA in str(m)]
+
+
+def test_sequential_draft_approve_still_sends_control(svc):
+    svc.sync()
+    did = svc.inbound("sms", "050-1234567", "שילמתי אתמול בהעברה")["draft_id"]
+    mark = sent_mark(svc.sender.sent)
+    out = svc.inbox.approve_draft(did, body="תודה דנה, נבדוק ונחזור אליך", actor="user:2")
+    assert out["status"] != "pending_approval"
+    assert len([m for m in sent_since(svc.sender.sent, mark) if DANA in str(m)]) <= 1

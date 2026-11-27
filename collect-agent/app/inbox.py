@@ -921,8 +921,12 @@ class ConversationInbox:
             if bad:
                 raise ValueError(f"הנוסח נחסם במסנן: {', '.join(bad)}")
             edited = 1
-        self.db.x("UPDATE drafts SET status='approved', body=?, edited=?, decided_at=?, decided_by=? "
-                  "WHERE id=?", (text, edited, _iso(self.svc.clock()), actor, draft_id))
+        # מבקר 275ב🟠: מותנה במצב שנבדק. היה `WHERE id=?` ⇒ אישור של עובדת אחרת בין הבדיקה לעדכון: העריכה
+        # «אושרה» (200) אבל המקור יצא, ולפעמים ה-UPDATE החזיר sent_dry_run ל-approved ⇒ שתי הודעות ללקוח.
+        if not self.db.update("UPDATE drafts SET status='approved', body=?, edited=?, decided_at=?, decided_by=? "
+                              "WHERE id=? AND status=?",
+                              (text, edited, _iso(self.svc.clock()), actor, draft_id, dr["status"])):
+            raise _draft_decided(self._get(draft_id)["status"], "approve")
         # ר-12: מה בדיוק אושר (כמו approved_hash בתזכורות) — שינוי מאוחר של הגוף ב-DB יתגלה
         self.svc.audit(actor, "draft_approved", {"draft": draft_id, "edited": bool(edited),
                                                  "body_sha": _body_sha(text)})
@@ -944,8 +948,10 @@ class ConversationInbox:
         dr = self._get(draft_id)
         if dr["status"] not in ("pending_approval", "needs_owner", "approved"):
             raise _draft_decided(dr["status"], "reject")
-        self.db.x("UPDATE drafts SET status='rejected', decided_at=?, decided_by=? WHERE id=?",
-                  (_iso(self.svc.clock()), actor, draft_id))
+        if not self.db.update("UPDATE drafts SET status='rejected', decided_at=?, decided_by=? "
+                              "WHERE id=? AND status=?",
+                              (_iso(self.svc.clock()), actor, draft_id, dr["status"])):   # מבקר 275ב🟠
+            raise _draft_decided(self._get(draft_id)["status"], "reject")
         self.svc.audit(actor, "draft_rejected", {"draft": draft_id})
         return dict(self._get(draft_id))
 
