@@ -40,7 +40,7 @@ def test_assign_without_failure_pauses_chosen_control(svc):
     assert paused == ["paid_claim", None]
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 278🟡: כשל אחרי תפיסת כרטיס משותף ⇒ הכרטיס «טופל», «שילמתי» אבד")
+
 def test_failed_assign_keeps_card_retryable(svc, clock):
     card, ids = _card(svc)
     orig = svc.inbox.handle_customer

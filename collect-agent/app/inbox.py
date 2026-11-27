@@ -252,17 +252,20 @@ class ConversationInbox:
             info["dsr_ids"] = ids
             self.db.x("UPDATE messages SET payload=? WHERE id=?", (json.dumps(info, ensure_ascii=False), mid))
 
-    def _link_card_dsr(self, info: dict, customer_id: int, actor: str) -> None:
+    def _link_card_dsr(self, info: dict, customer_id: int, actor: str) -> list[int]:
         """בקשות שנרשמו עם קבלת הכרטיס ⇒ משויכות ללקוח שנבחר (המועד נשמר מיום הקבלה). אם ללקוח כבר יש בקשה
         פתוחה מאותו סוג — לא יוצרים כפולה; הבקשה נשארת במרשם בלי לקוח, לסגירה עם תיעוד."""
         from . import dsr
         dsr.ensure_schema(self.db)
+        linked: list[int] = []
         for rid in info.get("dsr_ids") or []:
             r = self.db.one("SELECT kind FROM dsr WHERE id=? AND customer_id IS NULL AND status='open'", (rid,))
             if r and not self.db.one("SELECT 1 FROM dsr WHERE customer_id=? AND kind=? AND status='open'",
                                      (customer_id, r["kind"])):
                 self.db.x("UPDATE dsr SET customer_id=? WHERE id=?", (customer_id, rid))
                 self.svc.audit(actor, "dsr_linked", {"dsr": rid, "customer": customer_id})
+                linked.append(rid)
+        return linked
 
     def assign_shared_card(self, card_id: int, customer_id: int | None, actor: str = "owner") -> dict:
         """בעל העסק בחר למי ההודעה שייכת (או None = «אף אחד מהם»). רק אז המנוע מטפל בה כרגיל עבור הלקוח
@@ -283,28 +286,58 @@ class ConversationInbox:
             raise ValueError("הלקוח הזה כבר לא קיים במערכת — בחרו לקוח אחר או «אף אחד מהם»")
         # מבקר 276ב🟡: תפיסה אטומית. היה `WHERE id=?` אחרי בדיקת needs_owner ⇒ עובדת a ⇒ דויד ‖ עובדת b ⇒ שרה:
         # שני השיוכים הצליחו, «שילמתי» נרשם לשני הלקוחות (שניהם מושהים) ושתי טיוטות לאותו טלפון.
+        marker = (self.db.one("SELECT MAX(id) AS m FROM messages") or {"m": 0})["m"] or 0
         if not self.db.update("UPDATE messages SET needs_owner=0 WHERE id=? AND needs_owner=1", (card_id,)):
             raise ValueError("הכרטיס כבר טופל")
-        for cid in ids:
-            self.db.x("UPDATE customers SET paused_reason=NULL WHERE id=? AND paused_reason=?",
-                      (cid, m["intent"]))
+        released = [cid for cid in ids
+                    if self.db.update("UPDATE customers SET paused_reason=NULL WHERE id=? AND paused_reason=?",
+                                      (cid, m["intent"]))]
         self.svc.audit(actor, "shared_contact_assigned", {"card": card_id, "customer": customer_id})
-        requeued = self._requeue_stopped_for_others(info, card_id, customer_id, actor)
         if customer_id is None:
+            requeued = self._requeue_stopped_for_others(info, card_id, customer_id, actor)
             self._mark_released_nobody(m, info, card_id, actor)
             return {"card_id": card_id, "assigned": None, "requeued_drafts": requeued}
-        self._link_card_dsr(info, customer_id, actor)
-        # critic 171ב: המועד החוקי לבקשת עיון/מחיקה נספר מקבלת ההודעה המקורית, לא מיום השיוך
-        if customer_id in (info.get("opted_out_by_card") or []):
-            # מנהל 366 (מבקר 210🟡): ההסרה נעשתה ע״י הכרטיס עצמו, לא בבקשה קודמת ⇒ המנוע מטפל ב«הסר» כבקשה
-            # ראשונה (טיוטת «הבקשה התקבלה…» לאישור), כמו בפנייה ישירה. ההסרה עצמה נשארת (_apply_effects מחיל שוב).
-            cust = {**dict(cust), "opted_out": 0}
-        res = self.handle_customer(cust, m["channel"], m["body"], received_at=_parse_iso(m["created_at"]))
+        linked: list[int] = []
+        try:
+            linked = self._link_card_dsr(info, customer_id, actor)
+            # critic 171ב: המועד החוקי לבקשת עיון/מחיקה נספר מקבלת ההודעה המקורית, לא מיום השיוך
+            if customer_id in (info.get("opted_out_by_card") or []):
+                # מנהל 366 (מבקר 210🟡): ההסרה נעשתה ע״י הכרטיס עצמו, לא בבקשה קודמת ⇒ המנוע מטפל ב«הסר» כבקשה
+                # ראשונה (טיוטת «הבקשה התקבלה…» לאישור), כמו בפנייה ישירה. ההסרה עצמה נשארת (_apply_effects מחיל שוב).
+                cust = {**dict(cust), "opted_out": 0}
+            res = self.handle_customer(cust, m["channel"], m["body"], received_at=_parse_iso(m["created_at"]))
+        except Exception as e:
+            self._undo_failed_assign(m, card_id, customer_id, marker, released, linked, actor, e)
+            raise
+        # מנהל 453: אחרי שהלקוח הנבחר טופל (היה לפני — כשל ב-handle_customer השאיר טיוטות של האחרים בתור)
+        requeued = self._requeue_stopped_for_others(info, card_id, customer_id, actor)
         if info.get("email_verified") is False and res.get("draft_id"):
             # critic סבב 169: האזהרה עוברת מהכרטיס לטיוטה שנוצרה אחרי השיוך (אחרת נעלמת ברגע הבחירה)
             self.db.x("UPDATE drafts SET owner_summary=COALESCE(owner_summary,'') || ? WHERE id=?",
                       (UNVERIFIED_EMAIL_NOTE, res["draft_id"]))
         return {"card_id": card_id, "assigned": customer_id, **res, "requeued_drafts": requeued}
+
+    def _undo_failed_assign(self, m, card_id: int, customer_id: int, marker: int, released: list[int],
+                            linked: list[int], actor: str, err: Exception) -> None:
+        """מנהל 453 (מבקר 278🟡): מאז 451 הכרטיס נתפס וההשהיות משתחררות **לפני** handle_customer. חריגה שם ⇒
+        הכרטיס «טופל», אף לקוח לא מושהה, «שילמתי» לא נרשם, ניסיון חוזר ⇒ «כבר טופל», ולמחרת תזכורות לכולם.
+        כשל **לפני** שההודעה נרשמה ללקוח (אין השפעות) ⇒ הכרטיס חוזר ל«דורש טיפול», ההשהיות חוזרות (רק למי
+        ששוחרר כאן ולא קיבל השהיה אחרת בינתיים), ובקשות העיון/מחיקה חוזרות לכרטיס. ההודעה כבר נרשמה ⇒ ההשפעות
+        (חלקן) כבר חלו — לא פותחים שוב (שיוך שני = טיפול כפול), רק מתעדים לבדיקה."""
+        recorded = self.db.one("SELECT 1 FROM messages WHERE id>? AND customer_id=? AND direction='in'",
+                               (marker, customer_id))
+        if recorded:
+            self.svc.audit("system", "shared_assign_failed_after_effects",
+                           {"card": card_id, "customer": customer_id, "error": type(err).__name__})
+            return
+        self.db.x("UPDATE messages SET needs_owner=1 WHERE id=?", (card_id,))
+        for cid in released:
+            self.db.x("UPDATE customers SET paused_reason=? WHERE id=? AND paused_reason IS NULL",
+                      (m["intent"], cid))
+        for rid in linked:
+            self.db.x("UPDATE dsr SET customer_id=NULL WHERE id=? AND customer_id=?", (rid, customer_id))
+        self.svc.audit(actor, "shared_assign_rolled_back",
+                       {"card": card_id, "customer": customer_id, "error": type(err).__name__})
 
     # מנהל 365 (ממצא «גבייה סוכן» 21.11, fuzz זרע 89): קטין / מצוקה / משפטי מכתובת משותפת ⇒ «אף אחד מהם» משחרר
     # את ההשהיה, והתזכורת הבאה לאותו טלפון נבנתה בלי שום סימן במסך האישור. ההכרעה אם לחסום נשארת לבעלים
