@@ -12,7 +12,6 @@
 """
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
@@ -37,15 +36,57 @@ def test_landing_page_shows_no_name_control(svc, clock):
     assert "מיכל" not in page and "דנה" not in page
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 280🟠: «הפסיקו» מקישור של דנה מסיר את מיכל (החשבונית עברה)")
 def test_old_link_stop_does_not_opt_out_new_customer(svc, clock):
     api, code, michal = _moved(svc, clock)
     api.post(f"/p/{code}/stop", data={}, follow_redirects=False)
     assert svc.db.one("SELECT opted_out FROM customers WHERE id=?", (michal,))["opted_out"] == 0
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 280🟠: «שילמתי» מקישור של דנה משהה את מיכל")
 def test_old_link_paid_does_not_pause_new_customer(svc, clock):
     api, code, michal = _moved(svc, clock)
     api.post(f"/p/{code}/paid", data={}, follow_redirects=False)
     assert svc.db.one("SELECT paused_reason FROM customers WHERE id=?", (michal,))["paused_reason"] is None
+
+
+def _dana(svc):
+    return svc.db.one("SELECT id FROM customers WHERE phone='050-1234567'")["id"]
+
+
+def test_old_link_stop_opts_out_the_recipient(svc, clock):
+    """גבי מנוע 280: «הפסיקו» מהקישור הישן = בקשה של דנה (מי שקיבלה ולחצה) ⇒ דנה מוסרת, מיכל לא."""
+    api, code, michal = _moved(svc, clock)
+    r = api.post(f"/p/{code}/stop", data={}, follow_redirects=False)
+    assert r.status_code == 303
+    assert svc.db.one("SELECT opted_out FROM customers WHERE id=?", (_dana(svc),))["opted_out"] == 1
+    assert svc.db.one("SELECT opted_out FROM customers WHERE id=?", (michal,))["opted_out"] == 0
+    assert api.get(r.headers["location"]).status_code == 200
+
+
+def test_old_link_paid_makes_owner_card_on_recipient(svc, clock):
+    api, code, michal = _moved(svc, clock)
+    assert api.post(f"/p/{code}/paid", data={}, follow_redirects=False).status_code == 400
+    api.post(f"/p/{code}/paid", data={}, follow_redirects=False)   # לחיצה כפולה ⇒ כרטיס אחד
+    cards = svc.db.q("SELECT customer_id FROM messages WHERE intent='landing_moved' AND needs_owner=1")
+    assert [c["customer_id"] for c in cards] == [_dana(svc)]
+    assert not svc.db.q("SELECT 1 FROM messages WHERE customer_id=? AND direction='in'", (michal,))
+
+
+def test_old_link_page_offers_no_payment(svc, clock):
+    api, code, _ = _moved(svc, clock)
+    assert api.get(f"/p/{code}").status_code == 200
+    assert api.get(f"/p/{code}/pay", follow_redirects=False).status_code == 409
+
+
+def test_moved_invoice_gets_new_code_for_new_customer(svc, clock):
+    api, code, michal = _moved(svc, clock)
+    inv = svc.db.one("SELECT * FROM invoices WHERE number='9001'")
+    new = svc._short_code(inv)
+    assert new != code
+    api.post(f"/p/{new}/paid", data={}, follow_redirects=False)
+    assert svc.db.one("SELECT paused_reason FROM customers WHERE id=?", (michal,))["paused_reason"] == "paid_claim"
+    assert api.get("/p/nonexistent").status_code == 404
+
+
+def test_audit_keeps_only_code_hash(svc, clock):
+    _, code, _ = _moved(svc, clock)
+    assert not svc.db.q("SELECT 1 FROM audit WHERE detail LIKE ?", (f"%{code}%",))

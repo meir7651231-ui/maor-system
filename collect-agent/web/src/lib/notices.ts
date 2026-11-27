@@ -11,6 +11,7 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   no_due_date: { icon: '📅', title: 'חשבונית בלי תאריך — אין תזכורות עליה', tone: 'warn' },
   shared_contact: { icon: '👥', title: 'אותו טלפון/מייל, שמות שונים — נשמרו כלקוחות נפרדים', tone: 'info' },
   stale_draft: { icon: '⏳', title: 'הצעה שחיכתה יותר מדי — לא נשלחה', tone: 'warn' },
+  landing_moved: { icon: '🔗', title: 'לחיצה בקישור ישן — החשבונית עברה ללקוח אחר', tone: 'warn' },
   send_unknown: { icon: '⚠️', title: 'שליחה נקטעה באמצע — לבדוק ביומן היוצאים', tone: 'warn' },
   send_error: { icon: '⚠️', title: 'תשובה ללקוח לא נשלחה — שגיאת שליחה', tone: 'warn' },
   // critic סבב 60: טיוטה שנעצרה כי הלקוח ביקש הסרה אחרי שנוסחה (נעלמה בשקט מהתור, גם כשכבר אושרה)

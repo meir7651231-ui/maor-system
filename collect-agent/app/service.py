@@ -1165,11 +1165,23 @@ class CollectService:
                       "paused_reason=COALESCE(paused_reason, ?), legal_hold=COALESCE(legal_hold, ?) WHERE id=?",
                       (inherit, prev["disputed"], _inheritable_pause(prev["paused_reason"]), prev["legal_hold"],
                        cid))
+        rot = self._rotate_code_on_move(old["id"])
         self.db.x("UPDATE invoices SET customer_id=? WHERE id=?", (cid, old["id"]))
         self._cancel_invoice(old["id"], "contact_changed")
         self.audit("system", "csv_contact_changed", {"invoice": old["id"], "from": old["customer_id"], "to": cid,
                                                      **({"api": True, "contact": True} if api else {}),
-                                                     "upto_reminder": self._last_reminder_id(old["id"])})
+                                                     "upto_reminder": self._last_reminder_id(old["id"]), **rot})
+
+    def _rotate_code_on_move(self, invoice_id: int) -> dict:
+        """מבקר 280🟠: הקוד הקצר (/p/) נשלח לנמען מסוים. חשבונית שעוברת ללקוח אחר ⇒ הקוד הישן יוצא ממנה (הלקוח
+        החדש יקבל קוד חדש בהודעה הבאה), והגיבוב שלו נרשם ב-audit של המעבר — כך שלחיצה בקישור שנשלח לקודם פועלת
+        על **הקודם** בלבד (`_moved_landing`). היה: הקוד נשאר על החשבונית ⇒ «הפסיקו» מהקישור של דנה הסיר את מיכל
+        לצמיתות, ו«שילמתי» השהה את מיכל. ב-audit רק גיבוב (הקוד הוא אסימון פעולה; ה-audit לא נמחק)."""
+        r = self.db.one("SELECT short_code FROM invoices WHERE id=?", (invoice_id,))
+        if not r or not r["short_code"]:
+            return {}
+        self.db.x("UPDATE invoices SET short_code=NULL WHERE id=?", (invoice_id,))
+        return {"old_code_sha": _sha(r["short_code"])}
 
     def _optout_lift_covers(self, cid: int, prev_cid: int) -> bool:
         """מנהל 407 (מבקר 241🟡): בעל העסק כבר הכריע «זה אדם אחר שלא ביקש הסרה» (`inherited_optout_lifted`) על
@@ -1223,10 +1235,12 @@ class CollectService:
                       "paused_reason=COALESCE(paused_reason, ?), legal_hold=COALESCE(legal_hold, ?) WHERE id=?",
                       (inherit, prev["disputed"], _inheritable_pause(prev["paused_reason"]), prev["legal_hold"],
                        cid))
+        rot = self._rotate_code_on_move(old["id"])
         self.db.x("UPDATE invoices SET customer_id=? WHERE id=?", (cid, old["id"]))
         self._cancel_invoice(old["id"], "contact_changed")
         self.audit("system", "csv_contact_changed", {"invoice": old["id"], "from": old["customer_id"], "to": cid,
-                                                     "api": True, "upto_reminder": self._last_reminder_id(old["id"])})
+                                                     "api": True, "upto_reminder": self._last_reminder_id(old["id"]),
+                                                     **rot})
 
     def moved_away_open(self, cid: int, after_audit_id: int = 0) -> list:
         """מנהל 395 (מבקר 231/232): חשבוניות פתוחות שקובץ CSV העביר **מ**-cid ללקוח אחר (audit csv_contact_changed,
@@ -1307,11 +1321,13 @@ class CollectService:
                     self.db.x("UPDATE customers SET opted_out=MAX(opted_out, ?), disputed=MAX(disputed, ?), "
                               "paused_reason=COALESCE(paused_reason, ?), legal_hold=COALESCE(legal_hold, ?) "
                               "WHERE id=?", (inherit, prev["disputed"], pause, prev["legal_hold"], to))
+                rot = self._rotate_code_on_move(row["id"])
                 self.db.x("UPDATE invoices SET customer_id=? WHERE id=?", (to, row["id"]))
                 self._cancel_invoice(row["id"], "contact_changed")
                 self.audit("system", "csv_contact_changed", {"invoice": row["id"], "from": from_cid, "to": to,
                                                              "deferred": True,
-                                                             "upto_reminder": self._last_reminder_id(row["id"])})
+                                                             "upto_reminder": self._last_reminder_id(row["id"]),
+                                                             **rot})
             self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (m["id"],))
             self.audit("system", "plan_card_resolved", {"message": m["id"], "card": "csv_contact_plan",
                                                         "why": "moved"})
@@ -3783,7 +3799,9 @@ class CollectService:
     # ---------- עמוד הקישור הקצר (/p/{code}) ----------
     def landing(self, code: str) -> dict:
         inv = self.db.one("SELECT * FROM invoices WHERE short_code=?", (code,))
-        if not inv or inv["purged_at"]:
+        if inv is None:
+            return self._moved_landing(code)
+        if inv["purged_at"]:
             raise KeyError(code)
         cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
         held = self._landing_held(cust)
@@ -3808,6 +3826,36 @@ class CollectService:
                 # קישור תשלום אחד לכולן (עמוד קבוע של העסק) ⇒ כפתור אחד; אחרת כפתור לכל חשבונית
                 "pay_shared": len(items) > 1 and len(links) == 1 and None not in links,
                 "_cust": cust}
+
+    def _moved_landing(self, code: str) -> dict:
+        """מבקר 280🟠: קישור /p/ שנשלח ללקוח קודם של חשבונית שעברה (CSV/API, 219א). העמוד לא מציע תשלום/פריסה
+        (החוב כבר לא רשום על שמו), «הפסיקו» מסיר את **הנמען** (מי שקיבל את הקישור ולחץ), ו«שילמתי»/פריסה ⇒
+        כרטיס לבעל העסק בלי השפעה על הלקוח הנוכחי של החשבונית. לא נמצא / הקודם נמחק ⇒ 404 כמו קוד לא קיים."""
+        a = self.db.one("SELECT detail FROM audit WHERE action='csv_contact_changed' "
+                        "AND json_extract(detail,'$.old_code_sha')=? ORDER BY id DESC LIMIT 1", (_sha(code),))
+        if a is None:
+            raise KeyError(code)
+        d = json.loads(a["detail"])
+        inv = self._invoice(d.get("invoice"))
+        cust = self.db.one("SELECT * FROM customers WHERE id=?", (d.get("from"),))
+        if inv is None or cust is None or inv["purged_at"]:
+            raise KeyError(code)
+        return {"code": code, "business": self.s.business_name, "number": inv["number"],
+                "amount": templates.fmt_amount(inv["amount_agorot"], inv["currency"]),
+                "due": None, "open": False, "opted_out": bool(cust["opted_out"]), "pay_url": None,
+                "held": False, "invoices": [], "count": 0, "total_agorot": 0,
+                "total": templates.fmt_amount(0, inv["currency"]), "pay_shared": False,
+                "moved": True, "_cust": cust}
+
+    def _moved_landing_card(self, info: dict, action: str) -> None:
+        cid = info["_cust"]["id"]
+        body = (f"לחיצה על «{self.LANDING_TEXT[action]}» בקישור ישן לחשבונית {info['number']}, שנשלח ללקוח/ה הזה/ו "
+                "לפני שהחשבונית עברה בקובץ ללקוח/ה אחר/ת. שום דבר לא שונה אצל הלקוח/ה הנוכחי/ת — בדקו מול שניהם.")
+        if not self.db.one("SELECT 1 FROM messages WHERE customer_id=? AND intent='landing_moved' AND needs_owner=1 "
+                           "AND body=?", (cid, body)):
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at) "
+                      "VALUES(?,'system','owner',?,'landing_moved',1,?)", (cid, body, _iso(self.clock())))
+        self.audit("customer", "landing_moved_link", {"customer": cid, "action": action})
 
     @staticmethod
     def _landing_held(cust) -> bool:
@@ -3845,6 +3893,9 @@ class CollectService:
             return {"action": "stop", "ok": True}
         if action not in self.LANDING_TEXT:
             raise ValueError("פעולה לא מוכרת")
+        if info.get("moved"):   # מבקר 280🟠: לא נוגעים בלקוח הנוכחי של החשבונית
+            self._moved_landing_card(info, action)
+            raise ValueError("החשבונית הזו כבר לא רשומה על שמכם — בעל העסק ייצור איתכם קשר")
         if info["held"]:
             self.audit("customer", "landing_held", {"customer": cust["id"], "action": action})
             raise ValueError("הפעולה אינה זמינה — בעל העסק ייצור איתכם קשר")
