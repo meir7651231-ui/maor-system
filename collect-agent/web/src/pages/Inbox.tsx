@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from '../store.tsx';
 import { api, type Draft } from '../api.ts';
 import { Button, Card } from '../components/ui.tsx';
@@ -9,6 +9,7 @@ import { fmtMoney } from '../lib/format.ts';
 import { ALREADY_DRAFT, ALREADY_DRAFT_CLOSED, alreadyDone, type Already } from '../lib/failure.ts';
 import { isPromiseOverLimit, promiseDecisionText, promiseUpdateAnchor } from '../lib/promiseRequest.ts';
 import { promiseDecisionLocked, OWNER_ONLY_TEXT } from '../lib/roles.ts';
+import { approveToast, queueReasonText, STALE_NOTE, type ApproveResult } from '../lib/draftQueue.ts';
 
 const INTENT: Record<string, string> = {
   how_to_pay: 'שאל/ה איך משלמים', paid_claim: 'טוען/ת ששילם/ה', plan_request: 'מבקש/ת פריסה', opt_out: 'ביקש/ה הסרה',
@@ -51,8 +52,32 @@ export function Inbox() {
       ) : (
         <ul className="space-y-4" data-testid="drafts">{drafts.map(d => <DraftCard key={d.id} d={d} />)}</ul>
       )}
+      {mode === 'live' && <QueuedDrafts />}
       <DsrRegister />
     </div>
+  );
+}
+
+/** מבקר 270🟡: תשובות שאושרו ועדיין לא יצאו — לא נעלמות בשקט מהמסך. */
+function QueuedDrafts() {
+  const { dataSeq } = useApp();
+  const [rows, setRows] = useState<Draft[]>([]);
+  useEffect(() => {
+    let alive = true;
+    api.queuedDrafts().then(r => { if (alive) setRows(r); }).catch(() => { /* שקט: תצוגה משנית */ });
+    return () => { alive = false; };
+  }, [dataSeq]);
+  if (rows.length === 0) return null;
+  return (
+    <Card className="p-4 space-y-2" data-testid="queued-drafts">
+      <h2 className="font-bold">⏳ אושרו וממתינות לשליחה ({rows.length})</h2>
+      <p className="text-sm text-ink-500">{STALE_NOTE}</p>
+      <ul className="space-y-1.5">{rows.map(d => (
+        <li key={d.id} className="text-sm" data-testid="queued-draft">
+          <span className="font-semibold">{d.customer}</span> · {queueReasonText(d.queued_reason)}
+        </li>
+      ))}</ul>
+    </Card>
   );
 }
 
@@ -68,11 +93,13 @@ function DraftCard({ d }: { d: Draft }) {
   const [esc, cls] = ESC[d.escalate] ?? ESC.none;
   const needsWrite = d.status === 'needs_owner';
   const seg = smsSegments(body);
-  const run = async (fn: () => Promise<unknown>, ok: string, already?: Already) => {
+  // מבקר 270🟡: ok יכול להיגזר מתשובת השרת (אושר ≠ נשלח — תשובה בתור לא מוצגת כ«נשלח»)
+  const run = async (fn: () => Promise<unknown>, okArg: string | ((r: unknown) => string), already?: Already) => {
     setBusy(true); setErr(null);
     // הפעלה 147: 409 «כבר אושר/נסגר» (ניסיון חוזר אחרי תשובה שאבדה) אינו כשל: מרעננים, הכרטיס יורד מהתור
     let was = false;
-    try { await fn(); } catch (e) {
+    let ok = typeof okArg === 'string' ? okArg : '';
+    try { const r = await fn(); if (typeof okArg !== 'string') ok = okArg(r); } catch (e) {
       if (!already || !alreadyDone(e, already.want)) { setErr(explainViolation((e as Error).message)); setBusy(false); return; }
       was = true;
     }
@@ -135,7 +162,7 @@ function DraftCard({ d }: { d: Draft }) {
             onClick={() => armOut ? run(() => api.optOut(d.customer_id), `${d.customer} הוסר/ה — לא יישלחו אליו/ה עוד תזכורות`) : setArmOut(true)}>
             {armOut ? '⚠ לחצו שוב להסרה סופית' : '⛔ הלקוח ביקש הסרה'}</Button>
           <Button variant="ghost" disabled={busy} onClick={() => run(() => api.rejectDraft(d.id), 'הכרטיס נסגר בלי מענה', { want: 'rejected', msg: ALREADY_DRAFT_CLOSED })}>✗ סגירה בלי מענה</Button>
-          <Button disabled={busy || !body.trim() || (odd.length > 0 && !confirmAmount)} onClick={() => run(() => api.approveDraft(d.id, body === d.body ? undefined : body, confirmAmount), '✓ המענה אושר ונשלח (dry-run)', { want: 'approved', msg: ALREADY_DRAFT })}>✓ אשר ושלח</Button>
+          <Button disabled={busy || !body.trim() || (odd.length > 0 && !confirmAmount)} onClick={() => run(() => api.approveDraft(d.id, body === d.body ? undefined : body, confirmAmount), r => approveToast(r as ApproveResult), { want: 'approved', msg: ALREADY_DRAFT })}>✓ אשר ושלח</Button>
         </div>
       </Card>
     </li>

@@ -1768,3 +1768,19 @@ test('מנהל 403: רענון בחזרה ללשונית רק אחרי ≥60 ש�
   assert.match(store, /visibilityState !== 'visible' \|\| !refreshOnReturn\(lastOk\.current, Date\.now\(\)\)/);
   assert.match(store, /lastOk\.current = Date\.now\(\); setStale\(false\)/);
 });
+
+test('מנהל 443 (מבקר 270🟡): טוסט «אשר ושלח» לפי הסטטוס — אושר ≠ נשלח', async () => {
+  const { approveToast, queueReasonText, QUEUE_REASON } = await import('../src/lib/draftQueue.ts');
+  assert.match(approveToast({ status: 'sent_dry_run' }), /ונשלח/);
+  for (const r of ['outside_window', 'trial_expired', 'restore_hold', 'retry'] as const) {
+    const t = approveToast({ status: 'approved', queued_reason: r });
+    assert.doesNotMatch(t, /ונשלח/);
+    assert.match(t, /עדיין לא נשלח/);
+    assert.ok(t.includes(QUEUE_REASON[r]));
+  }
+  assert.match(approveToast({ status: 'approved', queued_reason: 'trial_expired' }), /חידוש/);
+  assert.equal(queueReasonText('zzz'), QUEUE_REASON.retry);
+  assert.equal(queueReasonText(undefined), QUEUE_REASON.retry);
+  assert.match(approveToast({ status: 'rejected' }), /לא נשלח/);
+  assert.doesNotMatch(approveToast(null), /נשלח/);
+});

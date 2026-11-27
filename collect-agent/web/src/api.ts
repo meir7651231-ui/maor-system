@@ -150,6 +150,8 @@ export interface Draft {
   intent: string; status: 'pending_approval' | 'needs_owner' | string; escalate: 'urgent' | 'normal' | 'none' | string;
   owner_summary: string; owner_actions: string[]; plan_id: number | null; created_at: string;
   amount_check?: AmountCheck[];
+  /** status=approved בלבד: למה עוד לא נשלח (outside_window / trial_expired / restore_hold / retry) */
+  queued_reason?: string; decided_at?: string | null;
 }
 export interface InboundResult { intent: string; escalate?: boolean; escalation?: string; auto_reply?: string | null; draft_id?: number | null; owner_summary?: string; owner_actions?: string[] }
 export interface OutMsg { id: string; channel: 'sms' | 'email'; to: string; body: string }
@@ -213,8 +215,10 @@ export const api = {
   /** confirmAmount (critic סבב 49): הסדר על סכום חריג — אישור מפורש (השרת מחייב). */
   approvePlan: (pid: number, confirmAmount = false) => j<{ text: string }>(`/plans/${pid}/approve`, { method: 'POST', ...(confirmAmount ? { body: JSON.stringify({ confirm_amount: true }) } : {}) }),
   drafts: () => j<Draft[]>('/conversation/drafts'),
+  /** מבקר 270🟡: תשובות שאושרו וממתינות בתור (שירות עצור / חלון שליחה) — עם queued_reason */
+  queuedDrafts: () => j<Draft[]>('/conversation/drafts?status=approved'),
   /** confirmAmount (critic סבב 48): טיוטה עם כסף ללקוח עם סכום חריג — אישור מפורש (השרת מחייב). */
-  approveDraft: (id: number, body?: string, confirmAmount = false) => j<{ status: string }>(`/conversation/drafts/${id}/approve`, { method: 'POST', body: JSON.stringify({ ...(body === undefined ? {} : { body }), ...(confirmAmount ? { confirm_amount: true } : {}) }) }),
+  approveDraft: (id: number, body?: string, confirmAmount = false) => j<{ status: string; queued_reason?: string }>(`/conversation/drafts/${id}/approve`, { method: 'POST', body: JSON.stringify({ ...(body === undefined ? {} : { body }), ...(confirmAmount ? { confirm_amount: true } : {}) }) }),
   rejectDraft: (id: number) => j<unknown>(`/conversation/drafts/${id}/reject`, { method: 'POST' }),
   /** critic סבב 97: בעל העסק קרא בקשת הסרה שהמנוע לא זיהה ⇒ מסיר את הלקוח (סופי, כמו קישור ההסרה). */
   optOut: (cid: number) => j<unknown>(`/customers/${cid}/opt-out`, { method: 'POST' }),

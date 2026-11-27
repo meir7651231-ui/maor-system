@@ -858,8 +858,8 @@ class ConversationInbox:
         rows = self.db.q(sql + (" WHERE d.status=?" if status else "") +
                          " ORDER BY CASE d.escalate WHEN 'urgent' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END, d.id",
                          (status,) if status else ())
-        return [dict(r) | {"owner_actions": json.loads(r["owner_actions"] or "[]"),
-                           "amount_check": self._amount_check(r)} for r in rows]
+        return [self._with_queue_reason(dict(r) | {"owner_actions": json.loads(r["owner_actions"] or "[]"),
+                                                   "amount_check": self._amount_check(r)}) for r in rows]
 
     def _amount_check(self, dr) -> list[dict]:
         """critic סבב 48: כמו הפעלה 123 בתזכורות — טיוטה עם כסף ללקוח שיש לו חשבונית פתוחה בסכום חריג (פי 50
@@ -910,7 +910,18 @@ class ConversationInbox:
         self.svc.audit(actor, "draft_approved", {"draft": draft_id, "edited": bool(edited),
                                                  "body_sha": _body_sha(text)})
         self._try_send(draft_id)
-        return dict(self._get(draft_id))
+        return self._with_queue_reason(dict(self._get(draft_id)))
+
+    _QUEUE_GATES = ("outside_window", "trial_expired", "restore_hold")
+
+    def _with_queue_reason(self, d: dict) -> dict:
+        """מבקר 270🟡: טיוטה שאושרה ונשארה `approved` = ממתינה בתור (לא נשלחה). מחזירים את הסיבה כדי
+        שהממשק לא יציג «נשלח»: outside_window / trial_expired / restore_hold, אחרת retry (רענון נכשל וכו׳)."""
+        if d.get("status") != "approved":
+            return d
+        cust = self.db.one("SELECT * FROM customers WHERE id=?", (d["customer_id"],))
+        why = self._can_message(cust, d) if cust else None
+        return d | {"queued_reason": why if why in self._QUEUE_GATES else "retry"}
 
     def reject_draft(self, draft_id: int, actor: str = "owner") -> dict:
         dr = self._get(draft_id)

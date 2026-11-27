@@ -14,8 +14,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from app.channels import sent_mark, sent_since
 from tests.test_orbit_entitlement import _ent, _ingest, keys  # noqa: F401
 from tests.test_orbit_unlink_not_free import _link
@@ -42,7 +40,6 @@ def test_optout_recorded_and_nothing_sent_while_stopped_control(svc):
     assert [m for m in sent_since(svc.sender.sent, mark) if "972501234567" in str(m)] == []
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 270🟡: הטוסט «המענה אושר ונשלח» קבוע — גם כשהתשובה רק נכנסה לתור")
 def test_approve_toast_reflects_queued_status():
     src = INBOX_TSX.read_text(encoding="utf-8")
     assert "'✓ המענה אושר ונשלח (dry-run)'" not in src

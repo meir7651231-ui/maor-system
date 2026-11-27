@@ -216,6 +216,8 @@ jobs:
         run: TZ=UTC node e2e/app-plans-missed.mjs "$RUNNER_TEMP/shots"
       - name: "e2e /app/ — הצעת פריסה מהדשבורד ⇒ «מאשר» (202🟠/356): חימוש, plan_request יוצא מהתור, plan_accept על אותו הסדר, «ההסדר בתוקף» ⇒ אשר ושלח; 390px (מנהל 363)"
         run: TZ=UTC node e2e/app-plan-offer-accept.mjs "$RUNNER_TEMP/shots"
+      - name: "e2e /app/ — «אשר ושלח» בזמן שהשירות עצור: טוסט «עדיין לא נשלח» + כרטיס «ממתינות לשליחה» (queued_reason), אפס יציאות; 390px (מנהל 443, מבקר 270🟡)"
+        run: TZ=UTC node e2e/app-reply-queued.mjs "$RUNNER_TEMP/shots"
       - name: "e2e עצירת שליחה אחרי שחזור (critic 177) — באנר /app/ + כרטיס בלי «טופל» + שחרור מתועד ב-/ui ⇒ hold=null (מנהל 325)"
         run: TZ=UTC node e2e/ui-restore-hold.mjs "$RUNNER_TEMP/shots"
       - name: "e2e /ui — «סנכרון» כששער בטא 4 חוסם (טלפון אמיתי במקור): הודעה בעברית, לא נשמר דבר, audit בלי תוכן, 390px (מנהל 384)"
