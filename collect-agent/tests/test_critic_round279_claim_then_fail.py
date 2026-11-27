@@ -53,7 +53,6 @@ def test_runtime_error_compensated_control(svc, clock):
     assert svc.plan() == []
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 279א🟡: קריסה (BaseException) אחרי תפיסת כרטיס משותף — הפיצוי לא רץ")
 def test_crash_after_claim_keeps_card(svc, clock):
     card = _fail_assign(svc, Killed)
     assert svc.db.one("SELECT needs_owner FROM messages WHERE id=?", (card,))["needs_owner"] == 1
@@ -73,7 +72,6 @@ def test_decision_creates_update_control(svc):
     assert svc.decide_promise_request(cid, False)["customer_update"] is not None
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 279ב🟡: כשל אחרי רישום ההכרעה ⇒ «כבר הוכרעה», הלקוחה לא מעודכנת")
 @pytest.mark.parametrize("approve", [True, False])
 def test_failed_decision_can_be_retried(svc, approve):
     cid = _promise(svc)

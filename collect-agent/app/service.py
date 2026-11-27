@@ -2237,6 +2237,7 @@ class CollectService:
         # מנהל 427 (מבקר 257🟠): ר-10 (התממה 90 יום מסגירה) לפני שער הניסיון/המנוי — התממה אינה שליחה, ועסק
         # שהמנוי שלו נגמר (בדיוק כשהמידע כבר לא משמש לכלום) שמר PII לתמיד. זול, פעם בסבב.
         self.purge_closed()
+        self.inbox._recover_stuck_assigns()   # מנהל 455 (279א): שיוך שנקטע ⇒ ההשהיות חוזרות לפני התכנון
         # מנהל 428 (מבקר 258🟡): מועדי בקשות עיון/תיקון/מחיקה (30 יום, חוק הגנת הפרטיות) — חובה משפטית והתראה
         # פנימית לבעל העסק בלבד (לא שליחה ללקוח) ⇒ לפני שער הניסיון/המנוי, כמו ר-10.
         from . import dsr
@@ -3129,6 +3130,7 @@ class CollectService:
         self.inbox.flush()
         self._recover_stuck_sends(now)
         self._recover_stuck_plans(now)
+        self.inbox._recover_stuck_assigns()
         rows = self.db.q("SELECT * FROM reminders WHERE status='approved' AND scheduled_for<=? "
                          "ORDER BY scheduled_for", (_iso(now),))
         # critic סבב 66: מרווח 72 השעות לפי **כתובת**, לא רק לפי רשומת לקוח (כמו ההסרה וההחזקה). שני לקוחות על
@@ -4303,28 +4305,32 @@ class CollectService:
         until = (date.fromisoformat(info["requested"]) + timedelta(days=1)).isoformat() if approve else None
         # מבקר 276א🟡: ההכרעה נרשמת ביומן **לפני** ההשפעות, ב-INSERT מותנה (אטומי מול «כבר הוכרעה?»). היה: בדיקה
         # ביומן ואז רישום בלי תנאי ⇒ «אשר»‖«סרב» משני מכשירים — שתי ההכרעות ושתי טיוטות סותרות ללקוחה.
-        if not self.db.update(
-                "INSERT INTO audit(at,actor,action,detail) SELECT ?,?,?,? WHERE NOT EXISTS (" + decided_sql + ")",
-                (_iso(self.clock()), actor, "promise_request_approved" if approve else "promise_request_refused",
-                 json.dumps({"customer": cid, "requested": info["requested"]}, ensure_ascii=False),
-                 req["id"], cid)):
-            raise _already()
-        if approve:
-            self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (f"promise:until={until}", cid))
-            self.db.x("UPDATE conversations SET pause_until=? WHERE customer_id=?", (until, cid))
-            # מנהל 395 (מבקר 232🟡): החשבונית שעליה ההבטחה עברה בקובץ CSV ללקוח אחר אחרי הבקשה (219א), והוא ירש את
-            # השהיית ההבטחה **כפי שהייתה** (promise:until=<התקרה>). האישור הוא על החוב, לא על הטלפון ⇒ מאריכים גם
-            # אותו — רק כשההשהיה שלו היא בדיוק הירושה (השהיה אחרת/חזקה יותר לא נדרסת, הבטחה משלו לא משתנה).
-            inherited = f"promise:until={info['until']}"
-            for r in self.moved_away_open(cid, after_audit_id=req["id"]):
-                if r["paused_reason"] == inherited:
-                    self.db.x("UPDATE customers SET paused_reason=? WHERE id=? AND paused_reason=?",
-                              (f"promise:until={until}", r["customer_id"], inherited))
-                    self.db.x("UPDATE conversations SET pause_until=? WHERE customer_id=?",
-                              (until, r["customer_id"]))
-                    self.audit(actor, "promise_extended_moved_invoice",
-                               {"invoice": r["id"], "customer": r["customer_id"], "from": cid})
-        notice = self._promise_decision_notice(cid, req["id"], info, approve)
+        # מנהל 455 (מבקר 279ב🟡): הרישום, ההשפעות וטיוטת העדכון ללקוחה — טרנזקציה אחת. היה: ההכרעה נרשמה ואז
+        # כשל ב-_promise_decision_notice ⇒ «הבקשה כבר הוכרעה» בניסיון חוזר, והלקוחה לא עודכנה. עכשיו כשל ⇒ כלום לא
+        # נרשם, וניסיון חוזר מצליח. (אין כאן שליחה — רק טיוטה לאישור — ולכן rollback בטוח.)
+        with self.db.batch():
+            if not self.db.update(
+                    "INSERT INTO audit(at,actor,action,detail) SELECT ?,?,?,? WHERE NOT EXISTS (" + decided_sql + ")",
+                    (_iso(self.clock()), actor, "promise_request_approved" if approve else "promise_request_refused",
+                     json.dumps({"customer": cid, "requested": info["requested"]}, ensure_ascii=False),
+                     req["id"], cid)):
+                raise _already()
+            if approve:
+                self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (f"promise:until={until}", cid))
+                self.db.x("UPDATE conversations SET pause_until=? WHERE customer_id=?", (until, cid))
+                # מנהל 395 (מבקר 232🟡): החשבונית שעליה ההבטחה עברה בקובץ CSV ללקוח אחר אחרי הבקשה (219א), והוא ירש את
+                # השהיית ההבטחה **כפי שהייתה** (promise:until=<התקרה>). האישור הוא על החוב, לא על הטלפון ⇒ מאריכים גם
+                # אותו — רק כשההשהיה שלו היא בדיוק הירושה (השהיה אחרת/חזקה יותר לא נדרסת, הבטחה משלו לא משתנה).
+                inherited = f"promise:until={info['until']}"
+                for r in self.moved_away_open(cid, after_audit_id=req["id"]):
+                    if r["paused_reason"] == inherited:
+                        self.db.x("UPDATE customers SET paused_reason=? WHERE id=? AND paused_reason=?",
+                                  (f"promise:until={until}", r["customer_id"], inherited))
+                        self.db.x("UPDATE conversations SET pause_until=? WHERE customer_id=?",
+                                  (until, r["customer_id"]))
+                        self.audit(actor, "promise_extended_moved_invoice",
+                                   {"invoice": r["id"], "customer": r["customer_id"], "from": cid})
+            notice = self._promise_decision_notice(cid, req["id"], info, approve)
         return {"customer": cid, "requested": info["requested"], "approved": approve,
                 "paused_until": until if approve else info["until"], "customer_update": notice}
 

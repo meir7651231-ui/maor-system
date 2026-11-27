@@ -18,6 +18,8 @@
 from __future__ import annotations
 
 import json
+import threading
+import time
 
 import pytest
 
@@ -48,6 +50,26 @@ def _run_inside(svc, prefix, during):
     return undo
 
 
+def _in_thread(fn):
+    """מנהל 455: מאז שההכרעה/השיוך רצים בטרנזקציה אחת (db.batch), הפעולה השנייה כבר לא יכולה לרוץ «באמצע» באותו
+    חוט — היא הייתה נבלעת ב-rollback של הראשונה (קינון batch). לכן מרוץ אמיתי: חוט שני שמתחיל באמצע הראשונה,
+    נחסם על ה-lock של ה-DB עד ה-commit, ואז רואה «כבר הוכרעה/טופל». join() אחרי שהראשונה הסתיימה."""
+    out: dict = {}
+
+    def run():
+        try:
+            out["res"] = fn()
+        except ValueError as e:
+            out["err"] = e
+    t = threading.Thread(target=run)
+
+    def start():
+        t.start()
+        time.sleep(0.05)   # נותנים לחוט השני להגיע לנקודת ההתנגשות
+    start.join = lambda: (t.join(10), out)[1]
+    return start
+
+
 def _promise_pending(svc):
     svc.sync()
     did = svc.inbound("sms", DANA, "I'll pay on November 25")["draft_id"]
@@ -64,14 +86,15 @@ def test_second_promise_decision_rejected_control(svc):
 
 def test_concurrent_promise_decisions_one_wins(svc):
     cid = _promise_pending(svc)
-    undo = _run_inside(svc, "UPDATE customers SET paused_reason",
-                       lambda: svc.decide_promise_request(cid, False, actor="user:3"))
+    second = _in_thread(lambda: svc.decide_promise_request(cid, False, actor="user:3"))
+    undo = _run_inside(svc, "UPDATE customers SET paused_reason", second)
     try:
         svc.decide_promise_request(cid, True, actor="owner")
     except ValueError:
         pass   # «כבר הוכרעה» לשנייה = ההתנהגות הנכונה
     finally:
         undo()
+    assert "כבר הוכרעה" in str(second.join().get("err"))
     acts = [a["action"] for a in svc.db.q("SELECT action FROM audit WHERE action LIKE 'promise_request_%'")]
     updates = svc.db.q("SELECT id FROM drafts WHERE customer_id=? AND status='pending_approval' "
                        "AND body LIKE '%בעל העסק%'", (cid,))
@@ -96,14 +119,15 @@ def test_second_assign_rejected_control(svc):
 
 def test_concurrent_shared_assign_one_customer(svc):
     card, ids = _shared_paid_card(svc)
-    undo = _run_inside(svc, "UPDATE messages SET needs_owner=0 WHERE id=?",
-                       lambda: svc.inbox.assign_shared_card(card, ids[1], actor="user:3"))
+    second = _in_thread(lambda: svc.inbox.assign_shared_card(card, ids[1], actor="user:3"))
+    undo = _run_inside(svc, "UPDATE messages SET needs_owner=0 WHERE id=?", second)
     try:
         svc.inbox.assign_shared_card(card, ids[0], actor="user:2")
     except ValueError:
         pass   # «כבר טופל» לשנייה = ההתנהגות הנכונה
     finally:
         undo()
+    assert "כבר טופל" in str(second.join().get("err"))
     paused = [c["id"] for c in svc.db.q("SELECT id FROM customers WHERE phone='050-0000111' "
                                          "AND paused_reason='paid_claim'")]
     assert len(paused) == 1, paused
