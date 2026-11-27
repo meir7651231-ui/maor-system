@@ -144,7 +144,7 @@ export interface PendingRef { reminderId: number; block: string | null; count?: 
   /** הפעלה 171: תזכורת מאוחדת — מזהי כל החשבוניות שבה (כולל העוגן), לחיפוש בתור לפי כל מספר */
   ids?: string[] }
 export interface PendingRow { id: number; invoice_id: number; invoice_ids?: number[]; block_reason: string | null; invoice_count?: number; total_text?: string }
-export interface Plan { id: number; customer_id: number; invoice_id: number; status: string; installments: { n: number; due: string; amount_agorot: number }[]; amount_check?: AmountCheck[]; progress?: PlanProgress | null; currency?: string }
+export interface Plan { id: number; customer_id: number; invoice_id: number; status: string; installments: { n: number; due: string; amount_agorot: number }[]; amount_check?: AmountCheck[]; progress?: PlanProgress | null; currency?: string; offer_queued?: boolean; queued_reason?: string }
 export interface Draft {
   id: number; customer_id: number; customer: string; channel: 'sms' | 'email'; to_addr: string; body: string;
   intent: string; status: 'pending_approval' | 'needs_owner' | string; escalate: 'urgent' | 'normal' | 'none' | string;

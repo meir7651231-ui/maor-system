@@ -13,8 +13,6 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
-
 PHONE = "050-1234567"
 
 
@@ -37,7 +35,6 @@ def test_unapproved_offer_superseded_by_accept_control(svc):
     assert svc.db.one("SELECT status FROM drafts WHERE id=?", (did,))["status"] == "superseded"
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 273ב🟡: הצעה שבתור יוצאת אחרי שהלקוח כבר אישר")
 def test_queued_offer_not_sent_after_customer_accepted(svc):
     did = _accepted_while_queued(svc)
     assert svc.db.one("SELECT status FROM drafts WHERE id=?", (did,))["status"] != "sent_dry_run"

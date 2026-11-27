@@ -1,12 +1,17 @@
 /** מנהל 334: כרטיס «הסדרי תשלומים» — אחרי שבעל העסק אישר הסדר, הוא נעלם מהמסך (רק `proposed` הוצג), וגם הסדר
  *  שהוחמץ (332) נראה רק בכרטיס חד-פעמי. טהור: בלי React/רשת — נבדק ב-tests/lib.check.ts. */
+import { queueReasonText } from './draftQueue.ts';
 export type PlanProgress = {
   total_agorot: number; paid_agorot: number; open_agorot: number; done: number; count: number;
   next: { n: number; due: string; amount_agorot: number } | null;
   /** מבקר 185 🔴: מטבע ההסדר (חסר ⇒ ILS, תאימות לשרת ישן) */
   currency?: string;
 };
-export type PlanRow = { id: number; status: string; progress?: PlanProgress | null; currency?: string };
+export type PlanRow = {
+  id: number; status: string; progress?: PlanProgress | null; currency?: string;
+  /** מנהל 447 (מבקר 273🟡): ההסדר אושר אבל ההצעה עדיין בתור (שירות עצור / מחוץ לחלון / עצירת שחזור) */
+  offer_queued?: boolean; queued_reason?: string;
+};
 
 export type PlanTone = 'good' | 'warn' | 'done';
 /** תג מצב. רק המצבים שמוצגים בכרטיס; `proposed` (ב«דורש טיפול»), `superseded`/`rejected`/אחר ⇒ null. */
@@ -16,6 +21,17 @@ export const PLAN_BADGE: Record<string, { label: string; tone: PlanTone; hint: s
   completed: { label: 'הושלם', tone: 'done', hint: 'כל התשלומים בהסדר התקבלו' },
 };
 export const planBadge = (status: string) => PLAN_BADGE[status] ?? null;
+
+/** מנהל 447 (מבקר 273🟡): הסדר שההצעה שלו בתור — לא «פעיל»: ללקוח עוד לא נשלח דבר, ואם תחכה יותר מ-4 ימים
+ *  היא תבוטל (inbox._withdraw_if_stale) וההסדר ייעלם מהלוח. */
+export function planBadgeFor(p: Pick<PlanRow, 'status' | 'offer_queued' | 'queued_reason'>) {
+  if (p.status === 'approved' && p.offer_queued) {
+    return { label: '⏳ ההצעה טרם נשלחה', tone: 'warn' as PlanTone,
+      hint: `ללקוח עוד לא נשלח דבר. ההצעה ${queueReasonText(p.queued_reason)}. `
+        + 'אם תחכה יותר מ-4 ימים, היא תבוטל ותצטרכו לאשר הצעה חדשה.' };
+  }
+  return planBadge(p.status);
+}
 
 const ORDER: Record<string, number> = { missed: 0, approved: 1, completed: 2 };
 /** מה מוצג: הוחמצו ראשונים, אחריהם פעילים לפי מועד התשלום הבא, ובסוף עד `doneCap` שהושלמו (החדשים). */

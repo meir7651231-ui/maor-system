@@ -1803,3 +1803,20 @@ test('מנהל 444 (מבקר 271🟡+ℹ️): אישור הצעת פריסה / �
   assert.match(reminderQueuedText('outside_window'), /בחלון השליחה הבא/);
   assert.match(reminderQueuedText(null), /בחלון השליחה הבא/);
 });
+
+// מנהל 447 (מבקר 273🟡): הסדר שההצעה שלו בתור — לא «פעיל» בלוח ההסדרים
+import { planBadgeFor } from '../src/lib/plans.ts';
+test('הסדרים: הצעה בתור ⇒ «טרם נשלחה» עם הסיבה, לא «פעיל»', () => {
+  const q = planBadgeFor({ status: 'approved', offer_queued: true, queued_reason: 'trial_expired' })!;
+  assert.doesNotMatch(q.label, /פעיל/);
+  assert.match(q.label, /טרם נשלחה/);
+  assert.equal(q.tone, 'warn');
+  assert.match(q.hint, /עוד לא נשלח/);
+  assert.match(q.hint, /אחרי חידוש/);
+  assert.match(q.hint, /4 ימים/);
+  assert.doesNotMatch(q.hint, /כל עוד משלמים לפי הלוח/);
+  assert.match(planBadgeFor({ status: 'approved', offer_queued: true })!.hint, /ננסה שוב/);
+  assert.equal(planBadgeFor({ status: 'approved' })?.label, 'פעיל');
+  assert.equal(planBadgeFor({ status: 'missed', offer_queued: true })?.tone, 'warn');
+  assert.equal(planBadgeFor({ status: 'proposed' }), null);
+});

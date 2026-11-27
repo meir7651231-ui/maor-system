@@ -998,9 +998,21 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         # מנהל 336: `customer` = שם הלקוח לכרטיס ההסדרים ב-/ui (שאין לו רשימת לקוחות משלו); נמחק (§14) ⇒ ""
         names = {c["id"]: c["name"] or "" for c in svc.db.q(
             "SELECT id, name FROM customers WHERE id IN (SELECT customer_id FROM plans)")}
+        def queued(r):   # מנהל 447 (מבקר 273🟡): הסדר שאושר וההצעה שלו עדיין בתור — לא «פעיל» בלוח
+            if r["status"] != "approved":
+                return {}
+            try:
+                dr = svc.db.one("SELECT * FROM drafts WHERE plan_id=? AND status='approved' AND "
+                                "intent IN ('plan_offer','plan_request') ORDER BY id DESC LIMIT 1", (r["id"],))
+            except svc.db.OperationalError:   # טבלת הטיוטות נוצרת רק עם מנוע השיחה
+                return {}
+            if not dr:
+                return {}
+            return {"offer_queued": True,
+                    "queued_reason": svc.inbox._with_queue_reason(dict(dr))["queued_reason"]}
         return [{**dict(r), "installments": json.loads(r["installments"]), "amount_check": check(r),
                  "progress": progress(r), "currency": svc.plan_currency(r),
-                 "customer": names.get(r["customer_id"], "")}
+                 "customer": names.get(r["customer_id"], ""), **queued(r)}
                 for r in svc.db.q("SELECT * FROM plans ORDER BY id")]
 
     @app.post("/plans/{pid}/approve", dependencies=auth)

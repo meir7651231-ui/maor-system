@@ -13,7 +13,6 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import timedelta
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
@@ -36,7 +35,6 @@ def test_plan_listed_with_progress_control(svc):
     assert p["status"] == "approved" and p["progress"] is not None
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 273🟡: /plans לא מסמן הסדר שההצעה שלו בתור — הלוח מציג «פעיל»")
 def test_plan_board_marks_offer_not_sent(svc):
     _, p = _queued_plan(svc)
     assert p.get("offer_queued") or p.get("queued_reason") or p["status"] != "approved", p

@@ -596,6 +596,8 @@ class ConversationInbox:
             for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cid,)):
                 self.svc._cancel_invoice(inv["id"], d.intent.value)
         plan_id = None
+        if intents & {Intent.PLAN_ACCEPT.value, Intent.PLAN_REJECT.value}:
+            self._drop_queued_plan_offers(cid, d.intent.value)
         # מנהל 275 (qa16 q16-09): הלקוח ביקש **בדיוק** את מה שהוצע («אפשר ב-3 תשלומים?» אחרי הצעת 3) ⇒ התשובה
         # «זה בדיוק מה שהצענו… מתאים?» אבל ההצעה סומנה rejected ⇒ «מאשרת» אחר כך הוביל ל-plan_pending_owner בלי
         # הסדר לאישור. בקשה זהה (plan_same) היא לא דחייה — ההצעה נשארת בתוקף.
@@ -643,6 +645,21 @@ class ConversationInbox:
             plan_id = row["id"] if row else None
             self.svc.audit("customer", "plan_accepted_by_customer", {"plan": plan_id})
         return plan_id
+
+    def _drop_queued_plan_offers(self, cid: int, intent: str) -> None:
+        """מנהל 447 (מבקר 273ב🟡): הצעת פריסה מהשיחה שבעל העסק אישר והיא ממתינה בתור (`approved` — שירות עצור /
+        מחוץ לחלון / עצירת שחזור), והלקוח כבר השיב עליה («מאשר» / «לא מתאים») ⇒ ההצעה הישנה לא יוצאת אחר כך
+        («השיבו מאשר» אחרי שאישר). כמו טיוטה שעוד לא אושרה (`_draft` ⇒ superseded). ההסדר עצמו לא נוגע —
+        האישור נקשר אליו כרגיל ובעל העסק מכריע בכרטיס."""
+        rows = self.db.q("SELECT id FROM drafts WHERE customer_id=? AND status='approved' AND "
+                         "intent='plan_request'", (cid,))
+        if not rows:
+            return
+        ids = [r["id"] for r in rows]
+        for did in ids:
+            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:customer_replied' WHERE id=?",
+                      (did,))
+        self.svc.audit("system", "queued_plan_offer_dropped", {"customer": cid, "drafts": ids, "intent": intent})
 
     def _paid_claim_moved_note(self, cid: int, d: Decision) -> Decision:
         """מנהל 395 (מבקר 231🟡): «שילמתי» מטלפון שחשבונית עברה ממנו בקובץ CSV ללקוח אחר (219א) ⇒ ההשהיה חלה על

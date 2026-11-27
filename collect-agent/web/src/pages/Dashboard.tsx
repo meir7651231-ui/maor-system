@@ -12,7 +12,7 @@ import type { Invoice } from '../lib/domain.ts';
 import { HolidayBanner } from '../components/HolidayBanner.tsx';
 import { CsvFreshBanner } from '../components/CsvFreshBanner.tsx';
 import { DueEstimatedBadge } from '../components/DueEstimatedBadge.tsx';
-import { nextLine, paidPct, planBadge, plansVisible, type PlanTone } from '../lib/plans.ts';
+import { nextLine, paidPct, planBadgeFor, plansVisible, type PlanTone } from '../lib/plans.ts';
 import { RestoreHoldBanner } from '../components/RestoreHoldBanner.tsx';
 import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, REAPPROVE_LABEL } from '../api.ts';
 import { ALREADY_PLAN, alreadyDone, failPrefix, type Already } from '../lib/failure.ts';
@@ -226,9 +226,9 @@ function PlansCard() {
       <p className="text-xs text-ink-500 mb-3">הסדרים שאישרתם — כמה כבר שולם ומה התשלום הבא.</p>
       <ul className="space-y-2.5" data-testid="plans">
         {shown.map(p => {
-          const b = planBadge(p.status)!; const pr = p.progress!; const pct = paidPct(pr);
+          const b = planBadgeFor(p)!; const pr = p.progress!; const pct = paidPct(pr);
           return (
-            <li key={p.id} className="rounded-lg bg-ink-50 p-3 text-sm" data-testid="plan" data-status={p.status}>
+            <li key={p.id} className="rounded-lg bg-ink-50 p-3 text-sm" data-testid="plan" data-status={p.status} data-queued={p.offer_queued ? '1' : undefined}>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-bold">{nameOf(p.customer_id)}</span>
                 <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ring-1 ${PLAN_TONE[b.tone]}`} data-testid="plan-badge">{b.label}</span>
