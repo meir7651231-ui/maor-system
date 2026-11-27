@@ -129,3 +129,30 @@ export async function waitHealthy(base, srv, { tries = 80, ms = 250, name = 'ה�
   }
   throw new Error(`${name} לא עלה ב-${(tries * ms) / 1000} שניות: ${base}${path}`);
 }
+
+/** הפעלה 445 (מבקר 270ℹ️): ב-live.mjs לחיצה על «שמירה» נכשלה פעם ב-timeout (הכפתור disabled) והלוג לא אמר איזו מ-15
+ *  הלחיצות במסע, ולא למה. clickSave מחכה שהכפתור יהיה זמין; אם לא — זורק שגיאה עם שם השלב ומצב המסך: data-loaded,
+ *  «יש שינויים שלא נשמרו», שורת השגיאה, שדות לא תקינים (aria-invalid) וטקסט הכפתור. כך הכשל החולף הבא אומר מה קרה. */
+export async function saveDiag(page) {
+  return page.evaluate(() => {
+    const q = s => document.querySelector(s);
+    const t = s => (q(s)?.textContent || '').trim();
+    const btn = q('[data-testid="settings-save"]');
+    return JSON.stringify({
+      loaded: q('[data-testid="settings-live"]')?.getAttribute('data-loaded') ?? null,
+      button: btn ? { disabled: btn.disabled, text: btn.textContent.trim() } : null,
+      dirty: t('[data-testid="settings-dirty"]') || null,
+      error: t('[data-testid="settings-error"]') || null,
+      invalid: [...document.querySelectorAll('[aria-invalid="true"]')].map(e => e.getAttribute('aria-label') || e.id || e.name || e.tagName),
+    });
+  }).catch(e => `(אבחון נכשל: ${e.message})`);
+}
+export async function clickSave(page, stage, timeout = 10000) {
+  if (!stage) throw new Error('clickSave בלי שם שלב');
+  try {
+    await page.waitForFunction(() => { const b = document.querySelector('[data-testid="settings-save"]'); return !!b && !b.disabled; }, null, { timeout });
+  } catch (e) {
+    throw new Error(`שלב «${stage}»: «שמירה» לא זמינה ללחיצה אחרי ${timeout}ms · ${await saveDiag(page)}`);
+  }
+  await page.getByTestId('settings-save').click();
+}

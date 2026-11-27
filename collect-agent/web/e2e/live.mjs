@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { assertPortFree, tempDir, makeInject, smallTargets, srvStdio, srvLogLevel, waitHealthy, launchChromium, spawnServer } from './lib.mjs';
+import { assertPortFree, tempDir, makeInject, smallTargets, srvStdio, srvLogLevel, waitHealthy, launchChromium, spawnServer, clickSave } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8141, base = `http://127.0.0.1:${PORT}`;
@@ -387,7 +387,7 @@ try {
   // דומיין זר לקישור התשלום ⇒ השרת דוחה (422 צפוי ומאומת)
   await p.getByLabel('כתובת עמוד התשלום').fill('https://evil.example/pay');
   expect409 = { status: 422, method: 'PUT', url: /\/settings$/, reason: /קישור התשלום/ };
-  await p.getByTestId('settings-save').click();
+  await clickSave(p, 'דומיין זר לקישור תשלום (422)');
   await p.getByTestId('settings-error').waitFor();
   ok(/קישור התשלום/.test(await p.getByTestId('settings-error').textContent()) && expect409 === null, 'דחיית השרת לא הוצגה / לא אומתה');
   ok((await api('/settings')).pay.page_url === before.pay.page_url, 'השרת שמר קישור שנדחה');
@@ -395,7 +395,7 @@ try {
   await p.getByRole('button', { name: 'ביטול שינויים' }).click();
   await p.getByLabel('שם לחתימה').fill('נועה');
   await p.getByLabel('ע.מ. / ח.פ.').fill('123456782');
-  await p.getByTestId('settings-save').click();
+  await clickSave(p, 'שם לחתימה + ע.מ.');
   await p.getByText('✓ נשמר בשרת').waitFor();
   const after = await api('/settings');
   ok(after.owner_name === 'נועה' && after.vat_id === '123456782', 'השמירה לא הגיעה לשרת: ' + JSON.stringify(after));
@@ -673,7 +673,7 @@ print(json.dumps([landing_page(b), landing_page(dict(b, pay_shared=True)), landi
   await p.getByTestId('source-icount').click();
   ok(await p.getByTestId('source-icount').getAttribute('aria-checked') === 'true', 'iCount לא נבחר');
   ok((await p.getByTestId('source-status').textContent()).includes('יתעדכן אחרי שמירה'), 'סטטוס לפני שמירה');
-  await p.getByTestId('settings-save').click();
+  await clickSave(p, 'בחירת מקור iCount');
   await p.getByTestId('source-status').filter({ hasText: 'מחובר (סביבת בדיקה)' }).waitFor();
   const srcIc = (await api('/settings')).source;
   ok(srcIc.system === 'icount' && srcIc.api_connected === true && srcIc.system_label === 'iCount', 'השרת לא שמר iCount: ' + JSON.stringify(srcIc));
@@ -693,7 +693,7 @@ print(json.dumps([landing_page(b), landing_page(dict(b, pay_shared=True)), landi
   await p.goto(base + '/app/#/settings');
   await settingsLoaded();
   await p.getByTestId('source-greeninvoice').click();
-  await p.getByTestId('settings-save').click();
+  await clickSave(p, 'חזרה לחשבונית ירוקה');
   await p.getByTestId('source-status').filter({ hasText: 'מחובר (סביבת בדיקה)' }).waitFor();
   p.off('request', onReq);
   ok((await api('/settings')).source.system === 'greeninvoice', 'השחזור לחשבונית ירוקה לא נשמר');
@@ -892,12 +892,12 @@ print(json.dumps([landing_page(b), landing_page(dict(b, pay_shared=True)), landi
   const onPut = fn => route => route.request().method() === 'PUT' ? fn(route) : route.continue();
   await h.getByLabel('שם לחתימה').fill('נועה ב');
   await inject(h, '**/settings', onPut(route => route.abort()));
-  await h.getByTestId('settings-save').click();
+  await clickSave(h, 'כשל רשת בשמירה');
   await h.getByTestId('settings-error').filter({ hasText: 'אין חיבור לשרת גבי' }).waitFor();
   ok(!/fetch|TypeError/i.test(await h.getByTestId('settings-error').textContent()), 'כשל רשת מוצג באנגלית');
   await h.unroute('**/settings');
   await inject(h, '**/settings', onPut(route => route.fulfill({ status: 502, contentType: 'text/html', body: '<h1>Bad Gateway</h1>' })));
-  await h.getByTestId('settings-save').click();
+  await clickSave(h, '502 HTML בשמירה');
   await h.getByTestId('settings-error').filter({ hasText: 'השרת לא זמין כרגע' }).waitFor();
   ok(!/502|Bad Gateway/.test(await h.getByTestId('settings-error').textContent()), 'קוד HTTP גולמי מוצג למשתמש');
   ok((await api('/settings')).owner_name === signBefore, 'שמירה שנכשלה שינתה את השרת');
@@ -905,14 +905,14 @@ print(json.dumps([landing_page(b), landing_page(dict(b, pay_shared=True)), landi
   await h.unroute('**/settings');
   // השמירה מצליחה, הרענון שאחריה נכשל ⇒ «✓ נשמר בשרת» + הפס «הנתונים לא עודכנו», בלי «לא נשמר»
   await inject(h, '**/dashboard', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }));
-  await h.getByTestId('settings-save').click();
+  await clickSave(h, 'שמירה מצליחה, רענון נכשל');
   await h.getByText('✓ נשמר בשרת').waitFor();
   await h.getByTestId('stale-banner').waitFor();
   ok(await h.getByTestId('settings-error').count() === 0, 'שמירה שהצליחה הוצגה כ«לא נשמר» בגלל כשל ברענון');
   ok((await api('/settings')).owner_name === 'נועה ב', 'השמירה לא הגיעה לשרת');
   await h.unroute('**/dashboard');
   await h.getByLabel('שם לחתימה').fill(signBefore);
-  await h.getByTestId('settings-save').click();
+  await clickSave(h, 'החזרת שם החתימה');
   await h.getByTestId('stale-banner').waitFor({ state: 'detached' });
   ok((await api('/settings')).owner_name === signBefore, 'שם החתימה לא שוחזר');
   // הפעלה 144: בזמן שהפס מוצג הממשק מנסה לרענן לבד ⇒ ייתכן יותר מ-503 אחד על /dashboard
@@ -925,7 +925,7 @@ print(json.dumps([landing_page(b), landing_page(dict(b, pay_shared=True)), landi
   hFail.length = 0;
   await h.getByLabel('שם לחתימה').fill('רות ק');
   await inject(h, '**/settings', onPut(async route => { await route.fetch(); await route.abort(); }));
-  await h.getByTestId('settings-save').click();
+  await clickSave(h, 'נשמר בשרת, התשובה אבדה');
   await h.getByTestId('settings-error').filter({ hasText: 'לא ידוע אם הפעולה נרשמה' }).waitFor();
   ok(!(await h.getByTestId('settings-error').textContent()).includes('לא נשמר'), 'תוצאה לא ידועה הוצגה כ«לא נשמר»');
   await h.getByTestId('stale-banner').waitFor();
@@ -950,7 +950,7 @@ print(json.dumps([landing_page(b), landing_page(dict(b, pay_shared=True)), landi
   ok(await h.getByLabel('מייל לתשובות לקוחות').inputValue() === 'office@example.co.il', 'רענון מהשרת דרס שדה שהמשתמש ערך');
   let putBody = null;
   h.on('request', r => { if (r.method() === 'PUT' && r.url() === base + '/settings') putBody = r.postDataJSON(); });
-  await h.getByTestId('settings-save').click();
+  await clickSave(h, 'שמירה אחרי רענון אוטומטי');
   await h.getByText('✓ נשמר בשרת').waitFor();
   // הפעלה 145: בהגדרות ה-toast לא מכסה את סרגל השמירה (שם מוצגת שורת השגיאה)
   //     הפעלה 148: וגם לא את ראש המסך (כותרת, מצב חיבור, יציאה) — הוא בתחתית, צמוד מעל הסרגל
@@ -985,7 +985,7 @@ print(json.dumps([landing_page(b), landing_page(dict(b, pay_shared=True)), landi
   //     הרענון הבא. עכשיו: מיד מסך הכניסה עם הסבר, הסשן נמחק מהלשונית, ואין נתוני לקוחות על המסך.
   await h.getByLabel('שם לחתימה').fill('אחרי שפג');
   await inject(h, '**/settings', onPut(route => route.fulfill({ status: 401, contentType: 'application/json', body: '{"detail":"unauthorized"}' })));
-  await h.getByTestId('settings-save').click();
+  await clickSave(h, '401 באמצע שמירה');
   await h.getByTestId('staff-login').waitFor();
   ok((await h.locator('body').textContent()).includes('תוקף הכניסה פג'), 'מסך הכניסה אחרי 401 באמצע פעולה בלי הסבר');
   ok(await h.evaluate(() => sessionStorage.getItem('gabi_owner_token')) === null, '401 באמצע פעולה: הסשן נשאר בלשונית');
@@ -1013,7 +1013,7 @@ print(json.dumps([landing_page(b), landing_page(dict(b, pay_shared=True)), landi
   ok(await h.getByTestId('settings-save').isEnabled(), 'אחרי השחזור «שמירה» כבויה');
   if (out) await h.screenshot({ path: `${out}/live-20-draft-restored.png` });
   putBody = null;
-  await h.getByTestId('settings-save').click();
+  await clickSave(h, 'שמירה אחרי שחזור טיוטה');
   await h.getByText('✓ נשמר בשרת').waitFor();
   ok(JSON.stringify(putBody) === JSON.stringify({ owner_name: 'אחרי שפג' }), 'שמירה אחרי שחזור שלחה: ' + JSON.stringify(putBody));
   ok((await api('/settings')).owner_name === 'אחרי שפג', 'השמירה אחרי השחזור לא נרשמה בשרת');
@@ -1030,7 +1030,7 @@ print(json.dumps([landing_page(b), landing_page(dict(b, pay_shared=True)), landi
   //     (‎/auth/me מחזיר זהות אחרת) ⇒ הוא רואה את ערכי השרת, בלי «החזרנו את מה שהקלדתם».
   await h.getByLabel('שם לחתימה').fill('טיוטה של עובד קודם');
   await inject(h, '**/settings', onPut(route => route.fulfill({ status: 401, contentType: 'application/json', body: '{"detail":"unauthorized"}' })));
-  await h.getByTestId('settings-save').click();
+  await clickSave(h, '401 של עובד קודם');
   await h.getByTestId('staff-login').waitFor();
   await h.unroute('**/settings');
   await inject(h, '**/auth/me', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ actor: 'user:99', kind: 'user', name: 'עובד אחר' }) }));
@@ -1212,11 +1212,11 @@ print(json.dumps([landing_page(b), landing_page(dict(b, pay_shared=True)), landi
   ok(await toast151.count() === 1 && (await toast151.textContent()).includes(REFUSE151), 'שלב 25: מעבר מסך הסיר את הודעת הכשל לפני שנסגרה');
   const mail151 = h.getByLabel('מייל לתשובות לקוחות'), was151 = await mail151.inputValue();
   await mail151.fill('office151@example.co.il');
-  await h.getByTestId('settings-save').click();
+  await clickSave(h, 'שלב 25: מייל לתשובות');
   await toast151.filter({ hasText: '✓ נשמר בשרת' }).waitFor();
   ok(await close151.count() === 0 && await toast151.getAttribute('role') === null, 'שלב 25: הודעת הצלחה הוצגה כהודעת כשל');
   await toast151.waitFor({ state: 'detached', timeout: 8000 });
-  await mail151.fill(was151); await h.getByTestId('settings-save').click();
+  await mail151.fill(was151); await clickSave(h, 'שלב 25: החזרת המייל');
   await toast151.filter({ hasText: '✓ נשמר בשרת' }).waitFor();
   ok((await api('/settings')).reply_email === was151, 'שלב 25: ההגדרות לא הוחזרו');
   ok(hFail.length === 4 && hFail.every(x => x === '409 POST /inbound'), 'שלב 25: כשלים לא צפויים: ' + hFail.join(' | '));
