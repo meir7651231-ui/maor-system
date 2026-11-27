@@ -267,6 +267,21 @@ class ConversationInbox:
                 linked.append(rid)
         return linked
 
+    def _already_handled_he(self, card_id: int) -> str:
+        """מנהל 454 (מבקר 275/276ℹ️): «הכרטיס כבר טופל» + מי שייך ולמי, ומתי — מהשיוך האחרון ביומן."""
+        row = self.db.one("SELECT at, actor, detail FROM audit WHERE action='shared_contact_assigned' "
+                          "AND json_extract(detail,'$.card')=? ORDER BY id DESC LIMIT 1", (card_id,))
+        base = "הכרטיס כבר טופל"
+        if row:
+            cid = json.loads(row["detail"] or "{}").get("customer")
+            if cid is None:
+                base += " («אף אחד מהם»)"
+            else:
+                c = self.db.one("SELECT name FROM customers WHERE id=?", (cid,))
+                if c and (c["name"] or "").strip():
+                    base += f" (שויך ל{c['name'].strip()})"
+        return self.svc.already_decided_he(base, row)
+
     def assign_shared_card(self, card_id: int, customer_id: int | None, actor: str = "owner") -> dict:
         """בעל העסק בחר למי ההודעה שייכת (או None = «אף אחד מהם»). רק אז המנוע מטפל בה כרגיל עבור הלקוח
         הנבחר (השפעות + טיוטה לאישור); שאר הלקוחות המקושרים משתחררים מההשהיה של הכרטיס הזה."""
@@ -275,7 +290,7 @@ class ConversationInbox:
         if m is None:
             raise KeyError(card_id)
         if not m["needs_owner"]:
-            raise ValueError("הכרטיס כבר טופל")
+            raise ValueError(self._already_handled_he(card_id))
         info = json.loads(m["payload"] or "{}")
         ids = [x["id"] for x in info.get("linked_customers", [])]
         if customer_id is not None and customer_id not in ids:
@@ -288,7 +303,7 @@ class ConversationInbox:
         # שני השיוכים הצליחו, «שילמתי» נרשם לשני הלקוחות (שניהם מושהים) ושתי טיוטות לאותו טלפון.
         marker = (self.db.one("SELECT MAX(id) AS m FROM messages") or {"m": 0})["m"] or 0
         if not self.db.update("UPDATE messages SET needs_owner=0 WHERE id=? AND needs_owner=1", (card_id,)):
-            raise ValueError("הכרטיס כבר טופל")
+            raise ValueError(self._already_handled_he(card_id))
         released = [cid for cid in ids
                     if self.db.update("UPDATE customers SET paused_reason=NULL WHERE id=? AND paused_reason=?",
                                       (cid, m["intent"]))]

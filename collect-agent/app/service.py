@@ -4254,6 +4254,28 @@ class CollectService:
         self.audit(actor, "restore_hold_released", {"restored_at": out["restored_at"]})
         return out
 
+    def actor_label_he(self, actor: str | None) -> str:
+        """מנהל 454 (מבקר 275/276ℹ️): שם אנושי למבצע פעולה — «user:N» ⇒ שם העובד/ת; אחר ⇒ «בעל העסק»."""
+        a = actor or ""
+        if a.startswith("user:"):
+            try:
+                r = self.db.one("SELECT name FROM users WHERE id=?", (int(a.split(":", 1)[1].split(":")[0]),))
+            except Exception:  # noqa: BLE001 — בלי טבלת users (דמו) / מזהה פגום
+                r = None
+            return (r["name"] or "").strip() if r and (r["name"] or "").strip() else "עובד/ת"
+        return "בעל העסק"
+
+    def already_decided_he(self, base: str, row) -> str:
+        """מנהל 454: «כבר הוכרעה/טופל» + מי ומתי (מתוך שורת היומן), כדי שהעובדת השנייה תדע מה קרה בלי לחפש."""
+        if not row:
+            return base
+        try:
+            dt = datetime.fromisoformat(str(row["at"]))
+            when = f" ב-{dt.day}.{dt.month} {dt:%H:%M}"
+        except (TypeError, ValueError):  # חותמת פגומה ⇒ בלי זמן
+            when = ""
+        return f"{base} — על ידי {self.actor_label_he(row['actor'])}{when}"
+
     def decide_promise_request(self, cid: int, approve: bool, actor: str = "owner") -> dict:
         """הכרעת ראש צוות q21-19: הלקוח הבטיח לשלם במועד שמעבר ל-max_defer_days ⇒ ההבטחה התקבלה עד max_defer_days,
         ובעל העסק מכריע על המועד המבוקש. מאשר ⇒ ההשהיה (promise:until) נמשכת עד יום אחרי המועד המבוקש. מסרב ⇒ נשאר
@@ -4264,8 +4286,16 @@ class CollectService:
             raise KeyError(cid)
         decided_sql = ("SELECT 1 FROM audit WHERE action IN ('promise_request_approved','promise_request_refused') "
                        "AND id>? AND json_extract(detail,'$.customer')=?")
+        def _already() -> ValueError:
+            row = self.db.one("SELECT at, actor, action FROM audit WHERE action IN "
+                              "('promise_request_approved','promise_request_refused') AND id>? "
+                              "AND json_extract(detail,'$.customer')=? ORDER BY id LIMIT 1", (req["id"], cid))
+            base = "הבקשה כבר הוכרעה" + (
+                "" if not row else " (אושרה)" if row["action"] == "promise_request_approved" else " (נדחתה)")
+            return ValueError(self.already_decided_he(base, row))
+
         if self.db.one(decided_sql, (req["id"], cid)):
-            raise ValueError("הבקשה כבר הוכרעה")
+            raise _already()
         info = json.loads(req["detail"])
         c = self.db.one("SELECT paused_reason FROM customers WHERE id=?", (cid,))
         if approve and not (c and (c["paused_reason"] or "").startswith("promise:until=")):
@@ -4278,7 +4308,7 @@ class CollectService:
                 (_iso(self.clock()), actor, "promise_request_approved" if approve else "promise_request_refused",
                  json.dumps({"customer": cid, "requested": info["requested"]}, ensure_ascii=False),
                  req["id"], cid)):
-            raise ValueError("הבקשה כבר הוכרעה")
+            raise _already()
         if approve:
             self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (f"promise:until={until}", cid))
             self.db.x("UPDATE conversations SET pause_until=? WHERE customer_id=?", (until, cid))
