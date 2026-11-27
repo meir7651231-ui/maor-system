@@ -17,7 +17,6 @@ from __future__ import annotations
 import re
 from datetime import timedelta
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
@@ -51,7 +50,7 @@ def test_unsub_without_change_blocks_current_control(svc):
     assert svc.suppressed("email", OLD_MAIL) and svc.db.one("SELECT opted_out FROM customers WHERE id=1")["opted_out"]
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 281🟠: /u/ ישן אחרי החלפת מייל — חוסם את החדש ומסיר, הישן לא נחסם")
+
 def test_old_unsub_link_blocks_old_address_only(svc, clock, fake_gi):
     api, tok, _ = _sent_then_contact_changed(svc, clock, fake_gi)
     api.post(f"/u/{tok}")
@@ -60,7 +59,7 @@ def test_old_unsub_link_blocks_old_address_only(svc, clock, fake_gi):
     assert svc.db.one("SELECT opted_out FROM customers WHERE id=1")["opted_out"] == 0
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 281🟠: «הפסיקו» ב-/p/ ישן אחרי החלפת טלפון — חוסם את החדש ומסיר")
+
 def test_old_paylink_stop_blocks_old_phone_only(svc, clock, fake_gi):
     api, _, code = _sent_then_contact_changed(svc, clock, fake_gi)
     api.post(f"/p/{code}/stop", data={}, follow_redirects=False)

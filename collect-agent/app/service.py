@@ -1849,15 +1849,81 @@ class CollectService:
         """טוקן חדש (128 ביט, ממצא 2.3.1) לכל הודעה. ב-DB נשמר רק ה-sha256 ⇒ הקישורים הישנים
         ממשיכים לעבוד, ודליפת הטבלאות לא מאפשרת להסיר לקוחות בשמם."""
         tok = secrets.token_urlsafe(16)
-        self.db.x("INSERT INTO link_tokens(token_hash,customer_id,kind,created_at) "
-                  "VALUES(?,?, 'unsub', ?)", (token_hash(tok), customer_id, _iso(self.clock())))
+        c = self.db.one("SELECT phone, email FROM customers WHERE id=?", (customer_id,))
+        sent = self._contact_hashes(c) if c else []
+        self.db.x("INSERT INTO link_tokens(token_hash,customer_id,kind,created_at,sent_to) "
+                  "VALUES(?,?, 'unsub', ?, ?)", (token_hash(tok), customer_id, _iso(self.clock()),
+                                                 json.dumps(sent) if sent else None))
         return tok
 
     def _unsub_customer(self, token: str):
         if not token or len(token) > 64:
             return None
-        return self.db.one("SELECT customer_id id FROM link_tokens WHERE token_hash=? "
+        return self.db.one("SELECT customer_id id, sent_to FROM link_tokens WHERE token_hash=? "
                            "AND kind='unsub'", (token_hash(token),))
+
+    def _contact_hashes(self, c) -> list[list[str]]:
+        """מנהל 457: [[ערוץ, addr_hash]] של הכתובות הנוכחיות של לקוח (טלפון תקין / מייל)."""
+        out = []
+        if c["phone"] and normalize_il_phone(c["phone"]):
+            out.append(["sms", self.addr_hash("sms", c["phone"])])
+        if (c["email"] or "").strip():
+            out.append(["email", self.addr_hash("email", c["email"])])
+        return out
+
+    def _stale_link_targets(self, cust, sent) -> list[tuple[str, str]] | None:
+        """מנהל 457 (מבקר 281🟠, משפחת 265): קישור הסרה (/u/) או «הפסיקו» (/p/) שנשלח לכתובות **שכבר אינן**
+        של הלקוח (המקור החליף טלפון ומייל). מחזיר את (ערוץ, גיבוב) של הכתובות שאליהן נשלח — רק כשאף אחת מהן אינה
+        כתובת נוכחית של הלקוח. לא ידוע לאן נשלח (טוקן/הודעה ישנים) או שאחת מהן עדיין שלו ⇒ None (הסרת הלקוח,
+        כמו קודם — שמרני: ייתכן שזה הוא)."""
+        targets = {(str(ch), str(h)) for ch, h in (sent or []) if ch in ("sms", "email") and h}
+        if not targets:
+            return None
+        if targets & {(ch, h) for ch, h in self._contact_hashes(cust)}:
+            return None
+        return sorted(targets)
+
+    def _code_sent_hashes(self, cid: int, code: str) -> list[tuple[str, str]]:
+        """מנהל 457: לאן נשלח קישור /p/<code> ללקוח — `to` מרשומות השליחה שגוף ההודעה מכיל את הקוד."""
+        if not code or not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", code):
+            return []
+        out = set()
+        for m in self.db.q("SELECT channel, payload FROM messages WHERE customer_id=? AND direction='out' "
+                           "AND instr(body, ?) > 0", (cid, f"/p/{code}")):
+            try:
+                to = str(json.loads(m["payload"] or "{}").get("to") or "")
+            except (ValueError, AttributeError):
+                to = ""
+            if to and m["channel"] in ("sms", "email"):
+                out.add((m["channel"], self.addr_hash(m["channel"], to)))
+        return sorted(out)
+
+    def _stale_link_opt_out(self, cust, targets: list[tuple[str, str]], how: str) -> None:
+        """מנהל 457: «הסירו אותי» מקישור שנשלח לכתובת קודמת ⇒ חוסמים את הכתובת **שאליה נשלח** (היא שביקשה);
+        לקוחות שזו עדיין הכתובת שלהם — מוסרים (כתובת משותפת); הלקוח עצמו לא מוסר והכתובות החדשות שלו לא נחסמות
+        ⇒ כרטיס לבעל העסק. אותו עיקרון כמו DLR 201 (265)."""
+        hit = set()
+        for ch, h in targets:
+            self._suppress_hash(ch, h, how)
+            for o in self.db.q("SELECT id, phone, email FROM customers WHERE opted_out=0 AND id!=?", (cust["id"],)):
+                if [ch, h] in self._contact_hashes(o):
+                    hit.add(o["id"])
+        for oid in sorted(hit):
+            self._opt_out(oid, how)
+        body = ("קישור הסרה מהודעה ישנה נלחץ — ההודעה נשלחה לטלפון/מייל הקודם של הלקוח/ה. הכתובת הקודמת נחסמה; "
+                "הטלפון/המייל הנוכחי לא נחסם והתזכורות ממשיכות אליו. אם זה אותו אדם — הסירו ידנית.")
+        if not self.db.one("SELECT 1 FROM messages WHERE customer_id=? AND intent='optout_old_address' "
+                           "AND needs_owner=1", (cust["id"],)):
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at)"
+                      " VALUES(?,'system','owner',?, 'optout_old_address', 1, ?)",
+                      (cust["id"], body, _iso(self.clock())))
+        self.audit("customer", "optout_old_address", {"customer": cust["id"], "via": how,
+                                                      "channels": sorted({ch for ch, _ in targets}),
+                                                      "shared": sorted(hit)})
+
+    def _targets_suppressed(self, targets) -> bool:
+        return bool(targets) and all(self.db.one("SELECT 1 FROM suppressions WHERE hash=?", (h,))
+                                     for _, h in targets)
 
     def unsub_url(self, token: str) -> str:
         return f"{self.s.public_base_url}/u/{token}"
@@ -1926,14 +1992,17 @@ class CollectService:
     def suppress(self, channel: str, addr: str, reason: str) -> None:
         if not addr:
             return
+        self._suppress_hash(channel, self.addr_hash(channel, addr), reason)
+
+    def _suppress_hash(self, channel: str, h: str, reason: str) -> None:
+        """מנהל 457: חסימה לפי גיבוב (קישור שנשלח לכתובת קודמת — הכתובת הגלויה לא נשמרה)."""
         self.db.x("INSERT OR IGNORE INTO suppressions(hash,channel,reason,created_at) "
-                  "VALUES(?,?,?,?)", (self.addr_hash(channel, addr), channel, reason,
-                                      _iso(self.clock())))
+                  "VALUES(?,?,?,?)", (h, channel, reason, _iso(self.clock())))
         if self.s.optout_ledger:
             # critic 175: גם מחוץ ל-DB, כדי ששחזור גיבוי לא יבטל את ההסרה. כשל בכתיבה ליומן לא מבטל את
             # ההסרה ב-DB (היא כבר נרשמה) — רק נרשם ב-audit
             try:
-                restore_guard.ledger_append(self.s.optout_ledger, self.addr_hash(channel, addr), channel, reason,
+                restore_guard.ledger_append(self.s.optout_ledger, h, channel, reason,
                                             _iso(self.clock()))
             except OSError as e:
                 self.audit("system", "optout_ledger_failed", {"error": str(e)[:200]})
@@ -1942,7 +2011,6 @@ class CollectService:
         # קודם לאותה כתובת. בכוונות שמותרות אחרי הסרה (איך משלמים / עותק / חזרו אליי) השער מדלג על בדיקת
         # הכתובת ⇒ הטיוטה הייתה יוצאת לכתובת שביקשה הסרה. עכשיו: כל טיוטה ממתינה לכתובת הזו נעצרת.
         if self._table_exists("drafts"):
-            h = self.addr_hash(channel, addr)
             hit = []
             for d in self.db.q("SELECT d.id, d.customer_id, d.status, d.to_addr, c.phone, c.email FROM drafts d "
                                "JOIN customers c ON c.id=d.customer_id WHERE d.channel=? AND d.status IN "
@@ -3835,7 +3903,9 @@ class CollectService:
                 # גבי משפט (הגנת הצרכן §2): מועד **מוערך** (אין מועד במסמך; הנפקה+30) לא מוצג לחייב כמועד התשלום —
                 # הוא כלי פנימי של בעל העסק. מועד מהמסמך או שבעל העסק קבע ⇒ מוצג כרגיל.
                 "due": None if _estimated(inv) else inv["due"], "open": bool(items),
-                "opted_out": bool(cust["opted_out"]),
+                # מנהל 457: קישור שנשלח לכתובת קודמת שכבר נחסמה ⇒ «הופסקו» עבור מי שלחץ
+                "opted_out": bool(cust["opted_out"]) or self._targets_suppressed(
+                    self._stale_link_targets(cust, self._code_sent_hashes(cust["id"], code))),
                 "pay_url": self._payment_link(inv) if inv["status"] == "open" and not held else None,
                 "held": held,
                 # critic 15.1/2.12: הודעה מאוחדת ⇒ העמוד מפרט את כל החשבוניות שבה, עם סה״כ
@@ -3909,6 +3979,11 @@ class CollectService:
         info = self.landing(code)
         cust = info["_cust"]
         if action == "stop":
+            stale = None if info.get("moved") or cust["opted_out"] else \
+                self._stale_link_targets(cust, self._code_sent_hashes(cust["id"], code))
+            if stale:   # מנהל 457 (מבקר 281🟠): /p/ שנשלח לטלפון/מייל קודם ⇒ חוסמים אותו, לא את הלקוח
+                self._stale_link_opt_out(cust, stale, "landing")
+                return {"action": "stop", "ok": True}
             self._opt_out(cust["id"], "landing")
             return {"action": "stop", "ok": True}
         if action not in self.LANDING_TEXT:
@@ -4296,13 +4371,29 @@ class CollectService:
         c = self._unsub_customer(token)
         if not c:
             return None
-        row = self.db.one("SELECT opted_out FROM customers WHERE id=?", (c["id"],))
-        return bool(row and row["opted_out"])
+        row = self.db.one("SELECT opted_out, phone, email FROM customers WHERE id=?", (c["id"],))
+        if row is None:
+            return False
+        if row["opted_out"]:
+            return True
+        return self._targets_suppressed(self._stale_link_targets(row, self._token_sent(c)))
+
+    @staticmethod
+    def _token_sent(c) -> list:
+        try:
+            return json.loads(c["sent_to"] or "[]")
+        except (ValueError, TypeError, IndexError, KeyError):
+            return []
 
     def unsubscribe(self, token: str) -> bool:
         c = self._unsub_customer(token)
         if not c:
             return False
+        cust = self.db.one("SELECT id, phone, email, opted_out FROM customers WHERE id=?", (c["id"],))
+        stale = self._stale_link_targets(cust, self._token_sent(c)) if cust and not cust["opted_out"] else None
+        if stale:   # מנהל 457 (מבקר 281🟠): נשלח לכתובת קודמת ⇒ חוסמים אותה, לא את הלקוח
+            self._stale_link_opt_out(cust, stale, "link")
+            return True
         self._opt_out(c["id"], "link")
         return True
 

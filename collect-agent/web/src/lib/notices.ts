@@ -50,6 +50,7 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   sms_undelivered: { icon: '📵', title: 'SMS לא נמסר', tone: 'warn' },
   // מנהל 437 (מבקר 265🟠): DLR 201 על מספר שהלקוח כבר לא משתמש בו — המספר הישן נחסם, החדש ממשיך
   carrier_blacklist_old_phone: { icon: '📵', title: 'המספר הקודם של לקוח חסם הודעות — נחסם רק הוא, המספר הנוכחי ממשיך', tone: 'info' },
+  optout_old_address: { icon: '🔕', title: 'הסרה מקישור שנשלח לטלפון/מייל הקודם — נחסם רק הקודם, הנוכחי ממשיך', tone: 'info' },
   // q22-04 + critic סבב 192: DSN שלא אומת ⇒ מיילים ללקוח מושהים עד הכרעה (POST /customers/{cid}/email-bounce)
   email_bounce_review: { icon: '📭', title: 'ייתכן שהמייל של לקוח לא תקין — המיילים אליו מושהים, הכריעו', tone: 'warn' },
   credit_review: { icon: '🧾', title: 'זיכוי שלא שויך לחשבונית — לבדיקתך', tone: 'warn' },

@@ -285,9 +285,13 @@ class DB:
         # מיגרציה: טוקנים ישנים (plaintext ב-customers.unsub_token) ⇒ hash, והעמודה מתרוקנת
         for cid, tok in self.conn.execute(
                 "SELECT id, unsub_token FROM customers WHERE unsub_token IS NOT NULL").fetchall():
-            self.conn.execute("INSERT OR IGNORE INTO link_tokens VALUES(?,?, 'unsub', '')",
-                              (token_hash(tok), cid))
+            self.conn.execute("INSERT OR IGNORE INTO link_tokens(token_hash,customer_id,kind,created_at) "
+                              "VALUES(?,?, 'unsub', '')", (token_hash(tok), cid))
         self.conn.execute("UPDATE customers SET unsub_token=NULL WHERE unsub_token IS NOT NULL")
+        # מנהל 457 (מבקר 281🟠): לאן נשלח הקישור — גיבובי הכתובות (addr_hash, בלי PII גלוי) של הלקוח ברגע יצירת
+        # הטוקן. NULL (טוקן ישן) ⇒ ההתנהגות הקודמת.
+        if "sent_to" not in {r[1] for r in self.conn.execute("PRAGMA table_info(link_tokens)")}:
+            self.conn.execute("ALTER TABLE link_tokens ADD COLUMN sent_to TEXT")
         self.conn.commit()
         if enc and on_disk:   # אימות אמיתי: הקובץ שנכתב אינו SQLite גלוי
             dbcrypt.assert_encrypted_file(path)
