@@ -1869,3 +1869,18 @@ test('חשבוניות: תזכורת בתור ⇒ «בתור מאז 20.11 · ע�
   const m = fromDashboard(d, []);
   assert.equal(m.invoices[0].queued, true); assert.match(m.invoices[0].note!, /שחזור.*בתור מאז 20\.11 · עוד 3 ימים/);
 });
+
+// מנהל 450 (STATUS 449 «הבא» עיצוב): אותה ספירה לאחור לתשובה / הצעת פריסה שבתור (inbox._queued_age)
+import { draftQueuedAge } from '../src/lib/draftQueue.ts';
+test('תור: תשובה/הצעת פריסה ⇒ «בתור מאז · עוד N ימים עד שתחזור / תבוטל»', () => {
+  const q = { queued_reason: 'trial_expired', queued_since: '2026-11-20', queued_days_left: 3 };
+  assert.equal(draftQueuedAge(q), 'בתור מאז 20.11 · עוד 3 ימים עד שתחזור אליכם לאישור מחדש.');
+  assert.equal(draftQueuedAge(q, 'plan'), 'בתור מאז 20.11 · עוד 3 ימים עד שתבוטל ותצטרכו לאשר הצעה חדשה.');
+  assert.match(draftQueuedAge({ ...q, queued_days_left: 0 }, 'plan')!, /תבוטל בסבב הבא/);
+  assert.match(draftQueuedAge({ ...q, queued_days_left: 1 })!, /עוד יום אחד/);
+  assert.equal(draftQueuedAge({ ...q, queued_reason: 'outside_window' }), undefined);   // קצר — לא מבהילים
+  assert.equal(draftQueuedAge({ queued_reason: 'trial_expired' }), undefined);           // שרת ישן
+  const b = planBadgeFor({ status: 'approved', offer_queued: true, ...q })!;
+  assert.match(b.hint, /בתור מאז 20\.11 · עוד 3 ימים עד שתבוטל/); assert.doesNotMatch(b.hint, /יותר מ-4 ימים/);
+  assert.match(planBadgeFor({ status: 'approved', offer_queued: true, queued_reason: 'trial_expired' })!.hint, /יותר מ-4 ימים/);
+});

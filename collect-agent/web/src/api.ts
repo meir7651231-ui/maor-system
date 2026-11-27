@@ -148,7 +148,7 @@ export interface PendingRef { reminderId: number; block: string | null; count?: 
   /** הפעלה 171: תזכורת מאוחדת — מזהי כל החשבוניות שבה (כולל העוגן), לחיפוש בתור לפי כל מספר */
   ids?: string[] }
 export interface PendingRow { id: number; invoice_id: number; invoice_ids?: number[]; block_reason: string | null; invoice_count?: number; total_text?: string }
-export interface Plan { id: number; customer_id: number; invoice_id: number; status: string; installments: { n: number; due: string; amount_agorot: number }[]; amount_check?: AmountCheck[]; progress?: PlanProgress | null; currency?: string; offer_queued?: boolean; queued_reason?: string }
+export interface Plan { id: number; customer_id: number; invoice_id: number; status: string; installments: { n: number; due: string; amount_agorot: number }[]; amount_check?: AmountCheck[]; progress?: PlanProgress | null; currency?: string; offer_queued?: boolean; queued_reason?: string; queued_since?: string | null; queued_days_left?: number | null }
 export interface Draft {
   id: number; customer_id: number; customer: string; channel: 'sms' | 'email'; to_addr: string; body: string;
   intent: string; status: 'pending_approval' | 'needs_owner' | string; escalate: 'urgent' | 'normal' | 'none' | string;
@@ -156,6 +156,8 @@ export interface Draft {
   amount_check?: AmountCheck[];
   /** status=approved בלבד: למה עוד לא נשלח (outside_window / trial_expired / restore_hold / retry) */
   queued_reason?: string; decided_at?: string | null;
+  /** מנהל 450: בתור מאז + ימים שלמים עד חזרה לאישור / ביטול (inbox._queued_age). חסר בשרת ישן. */
+  queued_since?: string | null; queued_days_left?: number | null;
 }
 export interface InboundResult { intent: string; escalate?: boolean; escalation?: string; auto_reply?: string | null; draft_id?: number | null; owner_summary?: string; owner_actions?: string[] }
 export interface OutMsg { id: string; channel: 'sms' | 'email'; to: string; body: string }

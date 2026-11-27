@@ -942,7 +942,25 @@ class ConversationInbox:
             return d
         cust = self.db.one("SELECT * FROM customers WHERE id=?", (d["customer_id"],))
         why = self._can_message(cust, d) if cust else None
-        return d | {"queued_reason": why if why in self._QUEUE_GATES else "retry"}
+        return d | {"queued_reason": why if why in self._QUEUE_GATES else "retry"} | self._queued_age(d)
+
+    def _queued_age(self, d: dict) -> dict:
+        """מנהל 450 (STATUS 449 «הבא» עיצוב): טיוטה מאושרת בתור ⇒ מאז מתי, וכמה ימים שלמים נותרו עד ש-
+        `_withdraw_if_stale` מחזירה אותה לאישור (תשובה) או מבטלת אותה (הצעת פריסה). אותו עוגן ואותו מועד:
+        decided_at (או created_at) + STALE_DRAFT_HOURS, ובהצעה — מוקדם יותר אם מועד תשלום בה יעבור (חצות שאחריו)."""
+        since = _parse_iso(d.get("decided_at") or d.get("created_at"))
+        if since is None:
+            return {"queued_since": None, "queued_days_left": None}
+        now = self.svc.clock()
+        deadline = since + timedelta(hours=STALE_DRAFT_HOURS)
+        if d.get("plan_id"):
+            row = self.db.one("SELECT installments FROM plans WHERE id=?", (d["plan_id"],))
+            dues = [date.fromisoformat(i["due"]) for i in json.loads(row["installments"] or "[]")] if row else []
+            if dues:   # past_due = due < now.date() ⇒ מתחיל בחצות שאחרי המועד
+                deadline = min(deadline, datetime.combine(min(dues) + timedelta(days=1), datetime.min.time(),
+                                                          tzinfo=now.tzinfo))
+        days = max(0, -(-int((deadline - now).total_seconds()) // 86400))
+        return {"queued_since": since.astimezone(TZ).date().isoformat(), "queued_days_left": days}
 
     def reject_draft(self, draft_id: int, actor: str = "owner") -> dict:
         dr = self._get(draft_id)

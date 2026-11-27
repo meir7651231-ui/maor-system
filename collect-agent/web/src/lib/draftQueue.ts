@@ -62,13 +62,27 @@ export const REMINDER_STALE_NOTE = 'אם תחכה יותר מ-7 ימים, היא
 // (/dashboard → last_reminder.queued_since + queued_days_left; אותו עוגן כמו dispatch → approval_expired).
 /** «2026-11-20» ⇒ «20.11» */
 const dm = (iso: string) => { const [, m, d] = iso.split('-'); return `${Number(d)}.${Number(m)}`; };
-/** «בתור מאז 20.11 · עוד 3 ימים עד שתחזור לאישור»; undefined ⇒ שרת ישן (אז ההערה הכללית) */
-export function reminderQueuedAge(since?: string | null, daysLeft?: number | null): string | undefined {
+/** ספירה לאחור משותפת: «בתור מאז 20.11 · עוד 3 ימים <what>»; undefined ⇒ שרת ישן (אז ההערה הכללית) */
+function queuedAge(since: string | null | undefined, daysLeft: number | null | undefined, what: string, next: string): string | undefined {
   if (!since || !/^\d{4}-\d{2}-\d{2}$/.test(since) || daysLeft == null || !Number.isFinite(daysLeft) || daysLeft < 0) return undefined;
-  const left = daysLeft === 0 ? 'תחזור אליכם לאישור מחדש בסבב הבא'
-    : daysLeft === 1 ? 'עוד יום אחד עד שתחזור אליכם לאישור מחדש'
-    : `עוד ${daysLeft} ימים עד שתחזור אליכם לאישור מחדש`;
+  const left = daysLeft === 0 ? next
+    : daysLeft === 1 ? `עוד יום אחד ${what}`
+    : `עוד ${daysLeft} ימים ${what}`;
   return `בתור מאז ${dm(since)} · ${left}.`;
+}
+/** «בתור מאז 20.11 · עוד 3 ימים עד שתחזור לאישור»; undefined ⇒ שרת ישן (אז ההערה הכללית) */
+export const reminderQueuedAge = (since?: string | null, daysLeft?: number | null) =>
+  queuedAge(since, daysLeft, 'עד שתחזור אליכם לאישור מחדש', 'תחזור אליכם לאישור מחדש בסבב הבא');
+
+// מנהל 450 (STATUS 449 «הבא» עיצוב): אותה ספירה לאחור לתשובה / הצעת פריסה שבתור. השרת: drafts?status=approved
+// ו-/plans (offer_queued) → queued_since + queued_days_left (inbox._queued_age — אותו מועד כמו _withdraw_if_stale).
+/** תשובה ⇒ «עד שתחזור לאישור»; הצעת פריסה ⇒ «עד שתבוטל». undefined ⇒ שרת ישן / מחוץ לחלון (קצר) */
+export function draftQueuedAge(d: { queued_reason?: string | null; queued_since?: string | null; queued_days_left?: number | null },
+  kind: 'reply' | 'plan' = 'reply'): string | undefined {
+  if (d.queued_reason === 'outside_window') return undefined;
+  return kind === 'plan'
+    ? queuedAge(d.queued_since, d.queued_days_left, 'עד שתבוטל ותצטרכו לאשר הצעה חדשה', 'תבוטל בסבב הבא — אם עדיין רלוונטית, אשרו הצעה חדשה')
+    : queuedAge(d.queued_since, d.queued_days_left, 'עד שתחזור אליכם לאישור מחדש', 'תחזור אליכם לאישור מחדש בסבב הבא');
 }
 
 /** הערה לשורת החשבונית; undefined ⇒ אין המתנה ידועה (שרת ישן / יצאה / לא מאושרת) */

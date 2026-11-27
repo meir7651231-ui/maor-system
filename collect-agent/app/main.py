@@ -1008,8 +1008,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                 return {}
             if not dr:
                 return {}
-            return {"offer_queued": True,
-                    "queued_reason": svc.inbox._with_queue_reason(dict(dr))["queued_reason"]}
+            q = svc.inbox._with_queue_reason(dict(dr))   # מנהל 450: + queued_since/queued_days_left (ספירה לאחור)
+            return {"offer_queued": True, "queued_reason": q["queued_reason"],
+                    "queued_since": q["queued_since"], "queued_days_left": q["queued_days_left"]}
         return [{**dict(r), "installments": json.loads(r["installments"]), "amount_check": check(r),
                  "progress": progress(r), "currency": svc.plan_currency(r),
                  "customer": names.get(r["customer_id"], ""), **queued(r)}

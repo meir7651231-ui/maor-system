@@ -9,7 +9,7 @@ import { fmtMoney } from '../lib/format.ts';
 import { ALREADY_DRAFT, ALREADY_DRAFT_CLOSED, alreadyDone, type Already } from '../lib/failure.ts';
 import { isPromiseOverLimit, promiseDecisionText, promiseUpdateAnchor } from '../lib/promiseRequest.ts';
 import { promiseDecisionLocked, OWNER_ONLY_TEXT } from '../lib/roles.ts';
-import { approveToast, queueReasonText, STALE_NOTE, type ApproveResult } from '../lib/draftQueue.ts';
+import { approveToast, draftQueuedAge, queueReasonText, STALE_NOTE, type ApproveResult } from '../lib/draftQueue.ts';
 
 const INTENT: Record<string, string> = {
   how_to_pay: 'שאל/ה איך משלמים', paid_claim: 'טוען/ת ששילם/ה', plan_request: 'מבקש/ת פריסה', opt_out: 'ביקש/ה הסרה',
@@ -75,6 +75,8 @@ function QueuedDrafts() {
       <ul className="space-y-1.5">{rows.map(d => (
         <li key={d.id} className="text-sm" data-testid="queued-draft">
           <span className="font-semibold">{d.customer}</span> · {queueReasonText(d.queued_reason)}
+          {draftQueuedAge(d, d.plan_id ? 'plan' : 'reply') && (
+            <span className="block text-xs font-medium text-amber-800" data-testid="queued-draft-age">{draftQueuedAge(d, d.plan_id ? 'plan' : 'reply')}</span>)}
         </li>
       ))}</ul>
     </Card>
