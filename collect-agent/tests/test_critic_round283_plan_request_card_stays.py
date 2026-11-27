@@ -15,7 +15,6 @@
 """
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
@@ -45,7 +44,6 @@ def test_request_card_open_before_offer_control(svc, fake_gi):
     assert svc.db.one("SELECT needs_owner FROM messages WHERE intent='plan_request'")["needs_owner"] == 1
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 283🟡: בקשת פריסה נשארת «דורש טיפול» אחרי שההסדר בתוקף")
 def test_request_card_resolved_when_plan_in_force(svc, fake_gi):
     api = _plan_in_force(svc, fake_gi)
     assert api.get("/dashboard").json()["totals"]["owner_inbox"] == 0

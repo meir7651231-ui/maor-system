@@ -103,7 +103,8 @@ def test_full_journey_over_http():
     assert api.post("/dispatch").json()["sent"] == []
 
     inbox = api.get("/owner/inbox").json()
-    assert any(m["intent"] == "plan_request" for m in inbox)
+    # מנהל 460 (מבקר 283🟡): ההסדר אושר ויצא ⇒ בקשת הפריסה כבר לא «דורשת טיפול» (היה: נשארה לנצח)
+    assert not any(m["intent"] == "plan_request" for m in inbox)
     actions = [a["action"] for a in api.get("/audit").json()]
     # "conversation" = רישום התשובה הנכנסת במנוע השיחה (היה "inbound" לפני החיבור)
     for a in ("sync", "plan", "approve", "dispatch_dry_run", "conversation", "plan_proposed",

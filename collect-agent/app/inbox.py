@@ -1202,6 +1202,7 @@ class ConversationInbox:
             # שלח ללקוח הצעה שנייה (בנוסח ובתאריכים אחרים).
             self.db.x("UPDATE plans SET status='approved' WHERE id=? AND status='proposed'",
                       (dr["plan_id"],))
+            self.svc._resolve_plan_request_cards(cust["id"])   # מנהל 460 (מבקר 283🟡)
             if dr["intent"] == "plan_offer":
                 # מנהל 446 (מבקר 272א🟠): הצעה מהדשבורד שחיכתה בתור יצאה עכשיו ⇒ רק עכשיו השיחה «הציעה» אותה
                 prow = self.db.one("SELECT installments FROM plans WHERE id=?", (dr["plan_id"],))

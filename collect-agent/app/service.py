@@ -1710,6 +1710,26 @@ class CollectService:
             self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (m["id"],))
             self.audit("system", "plan_card_resolved", {"message": m["id"], "card": m["intent"], "why": why})
             n += 1
+        return n + self._resolve_plan_request_cards()
+
+    def _resolve_plan_request_cards(self, customer_id: int | None = None) -> int:
+        """מנהל 460 (מבקר 283🟡): «אפשר לשלם ב-3 תשלומים?» (`plan_request`, needs_owner=1) נשאר «דורש טיפול שלך»
+        לנצח אחרי שהצעת הפריסה אושרה ויצאה, הלקוחה «מאשר» וההסדר בתוקף. עכשיו: הסדר של אותו לקוח שנוצר **אחרי**
+        הבקשה ונמצא ב-approved/completed (בעל העסק כבר אישר ושלח) ⇒ הכרטיס יורד. הסדר שנדחה/הוצע-בלבד ⇒ נשאר.
+        מותנה (`AND needs_owner=1`) ⇒ אין שורת יומן כפולה במקביל. audit `plan_request_resolved` (בלי PII; פעולה
+        נפרדת מ-`plan_card_resolved` כדי לא לערבב עם כרטיסי ההסדר של 237/402/409)."""
+        sql = ("SELECT m.id FROM messages m WHERE m.needs_owner=1 AND m.intent='plan_request' "
+               "AND m.customer_id IS NOT NULL AND EXISTS (SELECT 1 FROM plans p WHERE p.customer_id=m.customer_id "
+               "AND p.status IN ('approved','completed') AND p.created_at >= m.created_at)")
+        args: tuple = ()
+        if customer_id is not None:
+            sql += " AND m.customer_id=?"
+            args = (customer_id,)
+        n = 0
+        for m in self.db.q(sql, args):
+            if self.db.update("UPDATE messages SET needs_owner=0 WHERE id=? AND needs_owner=1", (m["id"],)):
+                self.audit("system", "plan_request_resolved", {"message": m["id"], "why": "plan_in_force"})
+                n += 1
         return n
 
     def _complete_missed_plans(self) -> list[int]:
