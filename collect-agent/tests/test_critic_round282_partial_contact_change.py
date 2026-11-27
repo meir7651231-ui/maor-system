@@ -8,14 +8,13 @@
 הסרת הלקוח (שמרני — בסדר), אבל החסימה חלה על הכתובות **הנוכחיות** (new@ + הטלפון), ו-`suppressed(c1@example.com)`
 = False: הכתובת שממנה ביקשו הסרה לא חסומה, ואם תשויך ללקוח אחר — תקבל מיילים.
 מצופה: `sent_to` = הכתובת שבה הקישור נשלח בפועל (מייל ⇒ רק המייל), והיא נחסמת בכל מקרה.
-רכיב: app/service.py → new_unsub_token (sent_to) / unsubscribe.
+רכיב: app/service.py → new_unsub_token (sent_to) / unsubscribe. ✓ מנהל 458: xfail הוסר (ראו test_mgr458_delivered_target.py).
 """
 from __future__ import annotations
 
 import re
 from datetime import timedelta
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
@@ -42,7 +41,7 @@ def test_customer_still_opted_out_conservatively_control(svc, clock, fake_gi):
     assert svc.db.one("SELECT opted_out FROM customers WHERE id=1")["opted_out"] == 1
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 282🟡: המייל הישן שביקש הסרה לא נחסם (sent_to = כל הכתובות בהנפקה)")
+
 def test_old_email_that_unsubscribed_is_suppressed(svc, clock, fake_gi):
     _email_changed_only(svc, clock, fake_gi)
     assert svc.suppressed("email", "c1@example.com")

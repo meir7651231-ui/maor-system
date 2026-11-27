@@ -904,9 +904,9 @@ class ConversationInbox:
         return self.db.one("SELECT COALESCE(SUM(amount_agorot),0) t FROM invoices "
                            "WHERE customer_id=? AND status='open'", (cid,))["t"]
 
-    def _footer_url(self, cust) -> str:
+    def _footer_url(self, cust, channel: str | None = None) -> str:
         if cust["id"]:
-            return self.svc.unsub_url(self.svc.new_unsub_token(cust["id"]))
+            return self.svc.unsub_url(self.svc.new_unsub_token(cust["id"], channel))
         inv = self.db.one("SELECT * FROM invoices WHERE customer_id=? AND status='open' "
                           "ORDER BY due LIMIT 1", (cust["id"],))
         return self.svc.short_url(inv) if inv else ""
@@ -925,7 +925,7 @@ class ConversationInbox:
         """אפשרות הסרה בכל הודעה — חוץ מאישור ההסרה עצמו ומהתנצלות למספר שגוי."""
         if intent in (Intent.OPT_OUT.value, Intent.WRONG_PERSON.value):
             return body
-        url = url if url is not None else self._footer_url(cust)
+        url = url if url is not None else self._footer_url(cust, channel)
         if channel == "email":
             return body + (f"\n\nלהפסקת הודעות: {url}" if url else "\n\nלהפסקת הודעות השיבו \"הסר\".")
         return body + (f"\nלהפסקה: {url}" if url else " להפסקה השיבו הסר")
@@ -1001,7 +1001,7 @@ class ConversationInbox:
             if not text.startswith(self.svc.s.business_name):
                 text = frame(text, replace(self._context(cust, dr["channel"]), channel=dr["channel"]))
             ctx = self._context(cust, dr["channel"])
-            url = self._existing_unsub_url(cust, text) or self._footer_url(cust)
+            url = self._existing_unsub_url(cust, text) or self._footer_url(cust, dr["channel"])
             if (url and url not in text) or (not url and "הסר" not in text):
                 text = self._with_footer(cust, dr["channel"], text, dr["intent"],
                                          url=url)  # הסרה בכל הודעה
@@ -1235,7 +1235,7 @@ class ConversationInbox:
             return None
         if dr["channel"] == "sms":
             return Message("sms", to, dr["body"])
-        unsub = self.svc.unsub_url(self.svc.new_unsub_token(cust["id"]))
+        unsub = self.svc.unsub_url(self.svc.new_unsub_token(cust["id"], "email", to))
         return Message("email", to, dr["body"],
                        subject=f"תשובה מ-{self.svc.s.business_name}", unsubscribe_url=unsub)
 

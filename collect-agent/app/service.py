@@ -1845,12 +1845,19 @@ class CollectService:
     def short_url(self, inv_row) -> str:
         return f"{self.s.public_base_url}/p/{self._short_code(inv_row)}"
 
-    def new_unsub_token(self, customer_id: int) -> str:
+    def new_unsub_token(self, customer_id: int, channel: str | None = None, addr: str | None = None) -> str:
         """טוקן חדש (128 ביט, ממצא 2.3.1) לכל הודעה. ב-DB נשמר רק ה-sha256 ⇒ הקישורים הישנים
-        ממשיכים לעבוד, ודליפת הטבלאות לא מאפשרת להסיר לקוחות בשמם."""
+        ממשיכים לעבוד, ודליפת הטבלאות לא מאפשרת להסיר לקוחות בשמם.
+        מנהל 458 (מבקר 282🟡): `channel`/`addr` = לאן ההודעה עם הקישור יוצאת בפועל ⇒ נרשם ב-sent_to כרשומה
+        מסומנת [ערוץ, גיבוב, "to"] (לצד כתובות הלקוח בהנפקה — לזיהוי) ⇒ בלחיצה הכתובת הזו נחסמת תמיד."""
         tok = secrets.token_urlsafe(16)
         c = self.db.one("SELECT phone, email FROM customers WHERE id=?", (customer_id,))
-        sent = self._contact_hashes(c) if c else []
+        sent: list[list[str]] = self._contact_hashes(c) if c else []
+        if channel in ("sms", "email"):
+            a = addr if addr is not None else (c[{"sms": "phone", "email": "email"}[channel]] if c else "")
+            if (a or "").strip() and (channel == "email" or normalize_il_phone(a)):
+                h = self.addr_hash(channel, a)
+                sent = [e for e in sent if e != [channel, h]] + [[channel, h, "to"]]
         self.db.x("INSERT INTO link_tokens(token_hash,customer_id,kind,created_at,sent_to) "
                   "VALUES(?,?, 'unsub', ?, ?)", (token_hash(tok), customer_id, _iso(self.clock()),
                                                  json.dumps(sent) if sent else None))
@@ -1876,12 +1883,31 @@ class CollectService:
         של הלקוח (המקור החליף טלפון ומייל). מחזיר את (ערוץ, גיבוב) של הכתובות שאליהן נשלח — רק כשאף אחת מהן אינה
         כתובת נוכחית של הלקוח. לא ידוע לאן נשלח (טוקן/הודעה ישנים) או שאחת מהן עדיין שלו ⇒ None (הסרת הלקוח,
         כמו קודם — שמרני: ייתכן שזה הוא)."""
-        targets = {(str(ch), str(h)) for ch, h in (sent or []) if ch in ("sms", "email") and h}
+        targets = {(str(e[0]), str(e[1])) for e in (sent or [])
+                   if isinstance(e, (list, tuple)) and len(e) >= 2 and e[0] in ("sms", "email") and e[1]}
         if not targets:
             return None
         if targets & {(ch, h) for ch, h in self._contact_hashes(cust)}:
             return None
-        return sorted(targets)
+        return self._delivered_targets(sent) or sorted(targets)
+
+    @staticmethod
+    def _delivered_targets(sent) -> list[tuple[str, str]]:
+        """מנהל 458 (מבקר 282🟡): הכתובות שאליהן ההודעה עם הקישור יצאה בפועל (רשומות מסומנות "to").
+        טוקן ישן (457 ולפני) בלי סימון ⇒ [] (לא יודעים — לא חוסמים מעבר למה שחסמנו קודם)."""
+        return sorted({(str(e[0]), str(e[1])) for e in (sent or [])
+                       if isinstance(e, (list, tuple)) and len(e) >= 3 and e[2] == "to"
+                       and e[0] in ("sms", "email") and e[1]})
+
+    def _suppress_delivered(self, cid: int, targets, how: str) -> None:
+        """מנהל 458 (מבקר 282🟡): בהסרה מלאה של הלקוח — גם הכתובת שאליה נשלח הקישור נחסמת, גם אם כבר אינה
+        שלו (הוחלף רק המייל ⇒ המייל הישן שביקש הסרה לא נשאר פתוח לשיוך עתידי). כתובת נוכחית — `_opt_out` כבר
+        חסם (ולא נכתוב שורה כפולה ליומן ההסרה החיצוני)."""
+        c = self.db.one("SELECT phone, email FROM customers WHERE id=?", (cid,))
+        cur = {(ch, h) for ch, h in self._contact_hashes(c)} if c else set()
+        for ch, h in targets or []:
+            if (ch, h) not in cur and not self.db.one("SELECT 1 FROM suppressions WHERE hash=?", (h,)):
+                self._suppress_hash(ch, h, how)
 
     def _code_sent_hashes(self, cid: int, code: str) -> list[tuple[str, str]]:
         """מנהל 457: לאן נשלח קישור /p/<code> ללקוח — `to` מרשומות השליחה שגוף ההודעה מכיל את הקוד."""
@@ -1937,7 +1963,8 @@ class CollectService:
         if not isinstance(invs, (list, tuple)):
             invs = [invs]
         inv_row = invs[0]
-        unsub = self.unsub_url(self.new_unsub_token(cust["id"]))
+        # קישור ההסרה נכנס רק במייל (templates.render_email) ⇒ sent_to מסמן את המייל (מנהל 458)
+        unsub = self.unsub_url(self.new_unsub_token(cust["id"], "email", cust["email"]))
         short = self.short_url(inv_row)
         step: templates.Step | templates.MultiStep
         if len(invs) == 1:
@@ -3985,6 +4012,8 @@ class CollectService:
                 self._stale_link_opt_out(cust, stale, "landing")
                 return {"action": "stop", "ok": True}
             self._opt_out(cust["id"], "landing")
+            if not info.get("moved"):   # מנהל 458: /p/ — `to` מרשומות השליחה = הכתובות שאליהן יצא בפועל
+                self._suppress_delivered(cust["id"], self._code_sent_hashes(cust["id"], code), "landing")
             return {"action": "stop", "ok": True}
         if action not in self.LANDING_TEXT:
             raise ValueError("פעולה לא מוכרת")
@@ -4395,6 +4424,7 @@ class CollectService:
             self._stale_link_opt_out(cust, stale, "link")
             return True
         self._opt_out(c["id"], "link")
+        self._suppress_delivered(c["id"], self._delivered_targets(self._token_sent(c)), "link")
         return True
 
     def owner_opt_out(self, customer_id: int, actor: str = "owner") -> dict:
@@ -4699,7 +4729,7 @@ class CollectService:
     def _reply(self, cust, channel: str, text: str, now: datetime) -> str | None:
         """שליחה ביוזמת בעל העסק (למשל אישור פריסה). עוברת בשער ונושאת קישור הסרה (ממצא 2.3.5).
         מחוץ לחלון ⇒ לא נשלחת עכשיו (None); המתקשר אחראי לתור."""
-        unsub = self.unsub_url(self.new_unsub_token(cust["id"]))
+        unsub = self.unsub_url(self.new_unsub_token(cust["id"], channel))
         if channel == "sms":
             to = normalize_il_phone(cust["phone"])
             if not is_il_mobile(to):
@@ -5141,7 +5171,7 @@ class CollectService:
         text = (f"שלום {cust['name']}, הצעת פריסה {what} ללא תוספת:\n{lines}\n"
                 "השיבו \"מאשר\" ובעל העסק יאשר סופית.")
         channel = "sms" if is_il_mobile(normalize_il_phone(cust["phone"])) else "email"
-        unsub = self.unsub_url(self.new_unsub_token(cust["id"]))
+        unsub = self.unsub_url(self.new_unsub_token(cust["id"], channel))
         if channel == "sms":
             # מבקר סבב 3 (🔴): לוח מלא של 6 תשלומים = 4+ חלקי SMS ⇒ קריסה. ב-SMS נוסח מקוצר
             first, rest = items[0]["amount_agorot"], items[-1]["amount_agorot"]

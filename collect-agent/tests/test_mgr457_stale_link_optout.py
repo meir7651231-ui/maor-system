@@ -67,15 +67,28 @@ def test_legacy_token_without_sent_to_keeps_old_behavior(svc, clock, fake_gi):
 
 
 def test_old_address_now_belongs_to_other_customer_is_opted_out(svc, clock, fake_gi):
-    """הכתובת הישנה עברה ללקוח אחר (משק בית) ⇒ הוא מוסר — הכתובת שלו ביקשה."""
+    """הכתובת הישנה עברה ללקוח אחר (משק בית) ⇒ הוא מוסר — הכתובת שלו ביקשה.
+    מנהל 458: קישור /u/ בתזכורת יוצא במייל בלבד ⇒ «הכתובת שביקשה» = המייל הישן (היה: הטלפון — הנחה שגויה)."""
     api, tok, _ = _sent_then_contact_changed(svc, clock, fake_gi)
-    fake_gi.docs[1] = gi_doc(2, phone="050-1234567", name="יוסי לוי")
+    fake_gi.docs[1] = gi_doc(2, phone="050-2222222", name="יוסי לוי")
+    fake_gi.docs[1]["client"]["emails"] = [OLD_MAIL]
     svc.sync()
     assert svc.db.one("SELECT opted_out FROM customers WHERE id=2")["opted_out"] == 0
     api.post(f"/u/{tok}")
     assert svc.db.one("SELECT opted_out FROM customers WHERE id=2")["opted_out"] == 1
     assert svc.db.one("SELECT opted_out FROM customers WHERE id=1")["opted_out"] == 0
     assert not svc.suppressed("sms", NEW_SMS)
+
+
+def test_old_phone_holder_not_touched_by_email_only_unsub(svc, clock, fake_gi):
+    """מנהל 458 (מבקר 282): הקישור יצא במייל ⇒ מי שמחזיק עכשיו בטלפון הישן לא ביקש — לא מוסר ולא נחסם."""
+    api, tok, _ = _sent_then_contact_changed(svc, clock, fake_gi)
+    fake_gi.docs[1] = gi_doc(2, phone="050-1234567", name="יוסי לוי")
+    svc.sync()
+    api.post(f"/u/{tok}")
+    assert svc.suppressed("email", OLD_MAIL)
+    assert svc.db.one("SELECT opted_out FROM customers WHERE id=2")["opted_out"] == 0
+    assert not svc.suppressed("sms", OLD_SMS)
 
 
 def test_new_link_after_change_opts_out_normally(svc, clock, fake_gi):
