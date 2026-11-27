@@ -11,8 +11,6 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-import pytest
-
 from tests.test_orbit_entitlement import _ent, _ingest, _link, keys  # noqa: F401
 
 
@@ -36,7 +34,6 @@ def test_subscribed_service_active_control(svc, clock):
     assert svc.trial()["state"] == "active" and svc.trial()["active"] is True
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 269🟡: כרטיס «הניסיון מסתיים» נשאר אחרי הצטרפות (active)")
 def test_trial_ending_card_resolves_after_subscribe(svc, clock):
     _trial_then_subscribe(svc, clock)
     assert [r["needs_owner"] for r in _trial_card(svc)] == [0]

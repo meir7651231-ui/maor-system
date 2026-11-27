@@ -2091,6 +2091,9 @@ class CollectService:
     def _notify_trial_ending(self) -> None:
         """הכרעת מאיר: תזכורת לבעל העסק {TRIAL_WARN_DAYS} ימים לפני סוף הניסיון. פעם אחת."""
         t = self.trial()
+        if t.get("active") and not t.get("on_trial"):
+            self._resolve_trial_ending_cards(t)
+            return
         if not t.get("ending_soon"):
             return
         key = f"trial_end:{t['ends']}"
@@ -2104,6 +2107,20 @@ class CollectService:
                    "לא יבוצע חיוב אוטומטי." + _orbit_join(t), key,
                    _iso(self.clock())))
         self.audit("system", "trial_ending", {"ends": t["ends"]})
+
+    def _resolve_trial_ending_cards(self, t: dict) -> int:
+        """מנהל 442 (מבקר 269🟡): בעל העסק הצטרף (מנוי פעיל, לא ניסיון) ⇒ כרטיס «תקופת הניסיון מסתיימת… עד
+        שתבחרו להצטרף» יורד מ«דורש טיפול». ההודעה עצמה נשארת בהיסטוריה; המפתח (`trial_end:{ends}`) לא משתנה ⇒
+        ניסיון חדש עם תאריך סיום אחר עדיין מייצר תזכורת חדשה, ואותו ניסיון לא מתריע פעמיים."""
+        rows = self.db.q("SELECT id FROM messages WHERE intent='trial_ending' AND needs_owner=1")
+        if not rows:
+            return 0
+        ids = [r["id"] for r in rows]
+        with self.db.batch():
+            for i in ids:
+                self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (i,))
+        self.audit("system", "trial_ending_resolved", {"state": t.get("state"), "cards": ids})
+        return len(ids)
 
     def _notify_orbit_billing(self, t: dict) -> None:
         """חיוב דרך אורביט: חסד / סיום / ביטול ⇒ הודעה אחת לבעל העסק (עם קישור לחיוב באורביט)."""
