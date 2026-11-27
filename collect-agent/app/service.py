@@ -4566,7 +4566,21 @@ class CollectService:
                          "reminders_sent",
                          "last_sent", "last_reminder", "customer_block", "email_state",
                          "hold_with")   # סט #26 q26-10
-    DASH_LIST_LAST = ("id", "step", "status", "block_reason", "amount_drift", "queued_reason")
+    DASH_LIST_LAST = ("id", "step", "status", "block_reason", "amount_drift", "queued_reason",
+                      "queued_since", "queued_days_left")
+
+    @staticmethod
+    def _queued_age(rem, now: datetime) -> dict:
+        """מנהל 449: גיל תזכורת מאושרת שבתור ⇒ מאז מתי, וכמה ימים שלמים נותרו עד approval_expired.
+        העוגן זהה ל-dispatch: max(decided_at, scheduled_for); תקף APPROVAL_VALID_DAYS ממנו."""
+        anchors = [d for d in (_dt(rem["decided_at"]), _dt(rem["scheduled_for"])) if d is not None]
+        if not anchors:
+            return {"queued_since": None, "queued_days_left": None}
+        anchor = max(anchors)
+        left = anchor + timedelta(days=APPROVAL_VALID_DAYS) - now
+        # תקרה של ימים שלמים (גם 0.2 יום = «עוד יום»); עבר הזמן ⇒ 0 (יחזור לאישור בסבב הבא)
+        days = max(0, -(-int(left.total_seconds()) // 86400))
+        return {"queued_since": anchor.astimezone(TZ).date().isoformat(), "queued_days_left": days}
 
     def dashboard(self, view: str | None = None) -> dict:
         """תמונת מצב לבעל העסק: כל החובות הפתוחים + סטטוס התזכורת האחרונה לכל אחד."""
@@ -4611,6 +4625,7 @@ class CollectService:
         # מנהל 448 (מבקר 274ℹ️): תזכורת שאושרה ונשארה בתור (שירות עצור / שבת-לילה / עצירת שחזור) — למה לא יצאה.
         # אותו dispatch_hold כמו /dispatch → held (444). פעם אחת לכל הטבלה.
         held = self.dispatch_hold()
+        now_dt = self.clock()
         for r in self.db.q("SELECT i.*, c.name cname, c.phone cphone, c.email cemail, "
                            "c.opted_out, c.disputed, c.paused_reason FROM invoices i "
                            "JOIN customers c ON c.id=i.customer_id ORDER BY i.due, i.id"):
@@ -4649,8 +4664,11 @@ class CollectService:
                     # הפעלה 159: טבלת החובות הציגה «מאושרת» לתזכורת שהסכום שלה השתנה במקור, בזמן שהתור
                     # (157) כבר סימן אותה כמי שתחזור לאישור. אותו חישוב כמו ב-/preview וב-/reminders.
                     "amount_drift": self.reminder_amount_drift(last),
-                    "queued_reason": held if last["status"] == "approved" and not last["block_reason"]
-                    and r["status"] == "open" else None},
+                    "queued_reason": (q := held if last["status"] == "approved" and not last["block_reason"]
+                                      and r["status"] == "open" else None),
+                    # מנהל 449 (STATUS 448 «הבא» עיצוב): «בתור מאז <תאריך> · עוד N ימים עד שתחזור לאישור».
+                    # אותו עוגן כמו dispatch (המאוחר מבין האישור והמועד) — כך הספירה לאחור = הפקיעה בפועל.
+                    **(self._queued_age(last, now_dt) if q else {"queued_since": None, "queued_days_left": None})},
                 "customer_block": block,
                 # גבי עיצוב: «המייל חזר» / «סימן ספאם» בטבלה + פעולת תיקון (רק מצב, בלי הכתובת ב-view=list)
                 "email_state": estate(r["cemail"])})

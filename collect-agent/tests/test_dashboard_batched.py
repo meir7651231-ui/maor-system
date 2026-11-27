@@ -41,8 +41,11 @@ def _reference(svc, iid: int, cid: int) -> dict:
             "template_key": last["template_key"], "sent_at": last["sent_at"],
             "block_reason": last["block_reason"], "amount_drift": svc.reminder_amount_drift(last),
             # מנהל 448: מאושרת וממתינה בחשבונית פתוחה ⇒ סיבת ההמתנה של dispatch
-            "queued_reason": svc.dispatch_hold() if last["status"] == "approved" and not last["block_reason"]
-            and db.one("SELECT status FROM invoices WHERE id=?", (iid,))["status"] == "open" else None},
+            "queued_reason": (q := svc.dispatch_hold() if last["status"] == "approved" and not last["block_reason"]
+                              and db.one("SELECT status FROM invoices WHERE id=?", (iid,))["status"] == "open"
+                              else None),
+            # מנהל 449: ספירה לאחור עד approval_expired (אותו עוגן כמו dispatch)
+            **(svc._queued_age(last, svc.clock()) if q else {"queued_since": None, "queued_days_left": None})},
         "customer_block": svc._customer_block(cid)}
 
 

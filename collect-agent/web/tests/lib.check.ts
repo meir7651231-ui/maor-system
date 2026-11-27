@@ -1847,3 +1847,25 @@ test('חשבוניות: תזכורת מאושרת בתור ⇒ «⏳ אושרה,
   assert.equal(m.invoices[2].queued, undefined); assert.equal(m.invoices[2].note, undefined);
   assert.equal(m.invoices[3].queued, undefined);
 });
+
+// מנהל 449 (STATUS 448 «הבא» עיצוב): ספירה לאחור עד שהתזכורת שבתור תחזור לאישור
+import { reminderQueuedAge } from '../src/lib/draftQueue.ts';
+test('חשבוניות: תזכורת בתור ⇒ «בתור מאז 20.11 · עוד N ימים» במקום ההערה הכללית', () => {
+  assert.equal(reminderQueuedAge('2026-11-20', 3), 'בתור מאז 20.11 · עוד 3 ימים עד שתחזור אליכם לאישור מחדש.');
+  assert.match(reminderQueuedAge('2026-11-02', 1)!, /^בתור מאז 2\.11 · עוד יום אחד/);
+  assert.match(reminderQueuedAge('2026-11-02', 0)!, /בסבב הבא/);
+  for (const [s, n] of [[null, 3], ['2026-11-20', null], ['20.11', 3], ['2026-11-20', -1], ['2026-11-20', Number.NaN]] as const)
+    assert.equal(reminderQueuedAge(s, n), undefined);
+  const lr = (o: Record<string, unknown>) => ({ status: 'approved', block_reason: null, queued_reason: 'trial_expired', ...o });
+  const t = reminderHeldNote(lr({ queued_since: '2026-11-20', queued_days_left: 4 }))!;
+  assert.match(t, /אחרי חידוש/); assert.match(t, /בתור מאז 20\.11 · עוד 4 ימים/); assert.doesNotMatch(t, /יותר מ-7 ימים/);
+  assert.match(reminderHeldNote(lr({}))!, /יותר מ-7 ימים/);                                 // שרת ישן ⇒ ההערה הכללית
+  assert.doesNotMatch(reminderHeldNote(lr({ queued_reason: 'outside_window', queued_since: '2026-11-20', queued_days_left: 4 }))!, /בתור מאז/);
+  const d: Dashboard = { today: '2026-11-24', totals: {} as Dashboard['totals'], invoices: [{
+    invoice_id: 1, number: '2001', customer: 'דנה', phone: '050-0000001', email: '', amount_agorot: 100, currency: 'ILS',
+    due: '2026-10-01', status: 'open', days_overdue: 38, reminders_sent: 0, customer_block: null,
+    last_reminder: { id: 9, step: 0, status: 'approved', template_key: 'friendly', sent_at: null, block_reason: null,
+      queued_reason: 'restore_hold', queued_since: '2026-11-20', queued_days_left: 3 } }] };
+  const m = fromDashboard(d, []);
+  assert.equal(m.invoices[0].queued, true); assert.match(m.invoices[0].note!, /שחזור.*בתור מאז 20\.11 · עוד 3 ימים/);
+});

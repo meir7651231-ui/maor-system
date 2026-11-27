@@ -102,7 +102,9 @@ export interface DashRow {
   last_sent?: null | { sent_at: string | null; channels: string[]; unknown?: boolean };
   last_reminder: null | { id: number; step: number; status: string; template_key: string; sent_at: string | null; block_reason: string | null;
     /** הפעלה 159: תזכורת מאושרת שהסכום שלה השתנה במקור. חסר בשרת ישן. */ amount_drift?: { was_text: string | null; now_text: string } | null;
-    /** מנהל 448: מאושרת וממתינה — למה לא יצאה (trial_expired / restore_hold / outside_window). חסר בשרת ישן. */ queued_reason?: string | null };
+    /** מנהל 448: מאושרת וממתינה — למה לא יצאה (trial_expired / restore_hold / outside_window). חסר בשרת ישן. */ queued_reason?: string | null;
+    /** מנהל 449: בתור מאז (YYYY-MM-DD) + ימים שלמים עד approval_expired. null כשאין queued_reason; חסר בשרת ישן. */
+    queued_since?: string | null; queued_days_left?: number | null };
   customer_block: string | null;
   hold_with?: string | null;   // q26-10: מי כתב/ה מאותה כתובת (כש-customer_block = shared_contact_hold)
 }

@@ -49,7 +49,7 @@ try {
   const mark = p.getByTestId('inv-queued');
   await mark.first().waitFor({ timeout: 10000 });
   const t = await mark.first().textContent();
-  ok(/טרם נשלחה/.test(t) && /אחרי חידוש/.test(t) && /7 ימים/.test(t), 'הסימן: ' + t);
+  ok(/טרם נשלחה/.test(t) && /אחרי חידוש/.test(t) && /בתור מאז \d{1,2}\.\d{1,2} · עוד \d+ ימים/.test(t), 'הסימן (ספירה לאחור, מנהל 449): ' + t);
   ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'גלילה רוחבית ב-390px');
   if (out) { await mark.first().scrollIntoViewIfNeeded(); await p.screenshot({ path: `${out}/app-reminder-queued-390.png` }); }
   ok(errors.length === 0, 'שגיאות:\n' + errors.join('\n'));

@@ -207,7 +207,10 @@ const sharedWarn=w=>{if(!w||!SHWHO[w.urgent])return "";const d=/^\d{4}-\d{2}-\d{
 const HELD={trial_expired:"⏳ אושרה, טרם נשלחה: השירות עצור (המנוי לא פעיל), תישלח אחרי חידוש",
   restore_hold:"⏳ אושרה, טרם נשלחה: השליחה עצורה עד שתאשרו את השחזור מגיבוי",
   outside_window:"⏳ אושרה, תישלח בחלון השליחה הבא (לא בלילה, בשבת או בחג)"};
-const chipOf=r=>r.amount_drift?DRIFT:r.block_reason&&!(REAPPROVE[r.block_reason]&&r.status!=="pending_approval")?why(r.block_reason):(r.status==="approved"&&HELD[r.queued_reason])||STATUS[r.status]||r.status;
+// מנהל 449: ספירה לאחור עד שתחזור לאישור (queued_since/queued_days_left) — זהה ל-reminderQueuedAge ב-/app/. לא בחלון-שליחה.
+const heldAge=r=>{const s=r.queued_since,n=r.queued_days_left;if(r.queued_reason==="outside_window"||!/^\d{4}-\d{2}-\d{2}$/.test(s||"")||typeof n!=="number"||n<0)return "";
+  return ` · בתור מאז ${+s.slice(8,10)}.${+s.slice(5,7)} · ${n===0?"תחזור לאישור בסבב הבא":n===1?"עוד יום אחד עד שתחזור לאישור":`עוד ${n} ימים עד שתחזור לאישור`}`};
+const chipOf=r=>r.amount_drift?DRIFT:r.block_reason&&!(REAPPROVE[r.block_reason]&&r.status!=="pending_approval")?why(r.block_reason):(r.status==="approved"&&HELD[r.queued_reason]&&HELD[r.queued_reason]+heldAge(r))||STATUS[r.status]||r.status;
 let sel=null,shown=null,pvHash=null;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));

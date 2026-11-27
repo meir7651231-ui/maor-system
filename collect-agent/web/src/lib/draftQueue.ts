@@ -58,10 +58,25 @@ export const REMINDER_HELD: Record<string, string> = {
 /** אישור תזכורת תקף 7 ימים (policy.APPROVAL_VALID_DAYS) — אחר כך היא חוזרת לאישור */
 export const REMINDER_STALE_NOTE = 'אם תחכה יותר מ-7 ימים, היא תחזור אליכם לאישור מחדש.';
 
+// מנהל 449 (STATUS 448 «הבא» עיצוב): במקום «אם תחכה יותר מ-7 ימים» כללי — ספירה לאחור אמיתית מהשרת
+// (/dashboard → last_reminder.queued_since + queued_days_left; אותו עוגן כמו dispatch → approval_expired).
+/** «2026-11-20» ⇒ «20.11» */
+const dm = (iso: string) => { const [, m, d] = iso.split('-'); return `${Number(d)}.${Number(m)}`; };
+/** «בתור מאז 20.11 · עוד 3 ימים עד שתחזור לאישור»; undefined ⇒ שרת ישן (אז ההערה הכללית) */
+export function reminderQueuedAge(since?: string | null, daysLeft?: number | null): string | undefined {
+  if (!since || !/^\d{4}-\d{2}-\d{2}$/.test(since) || daysLeft == null || !Number.isFinite(daysLeft) || daysLeft < 0) return undefined;
+  const left = daysLeft === 0 ? 'תחזור אליכם לאישור מחדש בסבב הבא'
+    : daysLeft === 1 ? 'עוד יום אחד עד שתחזור אליכם לאישור מחדש'
+    : `עוד ${daysLeft} ימים עד שתחזור אליכם לאישור מחדש`;
+  return `בתור מאז ${dm(since)} · ${left}.`;
+}
+
 /** הערה לשורת החשבונית; undefined ⇒ אין המתנה ידועה (שרת ישן / יצאה / לא מאושרת) */
-export function reminderHeldNote(lr: { status: string; block_reason: string | null; queued_reason?: string | null } | null | undefined): string | undefined {
+export function reminderHeldNote(lr: { status: string; block_reason: string | null; queued_reason?: string | null;
+  queued_since?: string | null; queued_days_left?: number | null } | null | undefined): string | undefined {
   if (!lr || lr.status !== 'approved' || lr.block_reason || !lr.queued_reason) return undefined;
   const t = REMINDER_HELD[lr.queued_reason];
   if (!t) return undefined;
-  return lr.queued_reason === 'outside_window' ? t : `${t}. ${REMINDER_STALE_NOTE}`;
+  if (lr.queued_reason === 'outside_window') return t;
+  return `${t}. ${reminderQueuedAge(lr.queued_since, lr.queued_days_left) ?? REMINDER_STALE_NOTE}`;
 }
