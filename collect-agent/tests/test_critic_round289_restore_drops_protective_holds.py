@@ -59,14 +59,14 @@ def test_wrong_number_survives_via_ledger_control(svc, clock, tmp_path):
     assert s2.db.one("SELECT opted_out FROM customers WHERE id=1")["opted_out"] == 1 and not _reminders_to_1(s2)
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 289🟠: השהיה מגנה (קטין/פטירה/מחלוקת) שהוצבה אחרי הגיבוי נמחקת בשחזור")
+
 @pytest.mark.parametrize("act", ["minor", "deceased", "dispute"])
 def test_protective_hold_survives_restore(svc, clock, tmp_path, act):
     s2 = _restored_after(svc, clock, tmp_path, ACTS[act])
     assert not _reminders_to_1(s2)
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 289🟡: עצירה משפטית שהוצבה אחרי הגיבוי נמחקת בשחזור (התממה לא חסומה)")
+
 def test_legal_hold_survives_restore(svc, clock, tmp_path):
     s2 = _restored_after(svc, clock, tmp_path, ACTS["legal"])
     assert s2.db.one("SELECT legal_hold FROM customers WHERE id=1")["legal_hold"]

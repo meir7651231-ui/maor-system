@@ -677,6 +677,7 @@ class ConversationInbox:
                 self.svc._opt_out(cid, "reply")
         if intents & {Intent.DISPUTE.value, Intent.LEGAL.value}:
             self.db.x("UPDATE customers SET disputed=1 WHERE id=?", (cid,))
+            self.svc._ledger_hold(cid, "customer", disputed=True)   # מבקר 289: שורד שחזור מגיבוי
         if d.stop == Stop.PAUSE:
             # רק הבטחה משתחררת לבד ⇒ רק לה יש תאריך בסיבה; השאר נקי לדשבורד ("paid_claim")
             auto_release = d.intent == Intent.PROMISE and d.pause_until
@@ -687,6 +688,7 @@ class ConversationInbox:
                    or "")
             if not _keeps_old_pause(old, reason):
                 self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (reason, cid))
+                self.svc._ledger_hold(cid, "customer", pause=reason)
             if "promise_over_limit" in d.tags and d.requested_date and d.pause_until:
                 # הכרעת ראש צוות q21-19: ההבטחה התקבלה עד max_defer_days; המועד המבוקש ממתין ל«בדוק ואשר» של בעל העסק
                 self.svc.audit("customer", "promise_over_limit", {

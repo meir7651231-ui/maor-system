@@ -2787,6 +2787,7 @@ class CollectService:
         if not c:
             raise KeyError(customer_id)
         self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (reason, customer_id))
+        self._ledger_hold(customer_id, actor, pause=reason)   # מבקר 289: שורד שחזור מגיבוי
         for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (customer_id,)):
             self._cancel_invoice(inv["id"], reason)
         # מנהל 359 (מבקר 205🔴): גם תשובות שכבר נוסחו וממתינות (לאישור או לחלון) לא יוצאות אחרי הסימון —
@@ -2797,6 +2798,18 @@ class CollectService:
                                             "note_id": note_id, "drafts_stopped": stopped})
         return dict(self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)))
 
+    def _ledger_hold(self, customer_id: int, actor: str = "system", **fields) -> None:
+        """מבקר 289: השהיה מגנה (קטין/פטירה/חדלות/מחלוקת/הבטחה/עצירה משפטית) ושחרורה נרשמים גם ביומן השלילות מחוץ
+        ל-DB — שחזור מגיבוי מחיל אותם מחדש (restore_guard.holds_apply). גיבוב מזהה הלקוח בלבד, בלי הערה. כשל כתיבה
+        לא מבטל את ההשהיה ב-DB (כבר בוצעה) — רק audit."""
+        c = self.db.one("SELECT external_id FROM customers WHERE id=?", (customer_id,))
+        if c is None:
+            return
+        st = restore_guard.revoke("cust_hold", restore_guard.customer_key(c["external_id"], customer_id),
+                                  at=_iso(self.clock()), **fields)
+        if st == "failed":
+            self.audit(actor, "revocation_ledger_failed", {"customer": customer_id, "kind": "cust_hold"})
+
     # ---------- ר-10: legal hold + מחיקה/התממה אחרי 90 יום ----------
     def set_legal_hold(self, customer_id: int, note: str | None, actor: str = "owner") -> dict:
         """note מתועד ⇒ פטור ממחיקה; None/"" ⇒ ביטול. שניהם נרשמים ב-audit."""
@@ -2806,6 +2819,7 @@ class CollectService:
         if val is not None and len(val) < 10:
             raise ValueError("legal hold דורש סיבה מתועדת (תיק, בקשת עו״ד, חובה חוקית)")
         self.db.x("UPDATE customers SET legal_hold=? WHERE id=?", (val, customer_id))
+        self._ledger_hold(customer_id, actor, legal=val is not None)   # מבקר 289🟡: הסיבה עצמה לא ביומן
         # הסיבה עצמה נשמרת ב-customers.legal_hold (מתרוקן בשחרור); ב-audit רק עובדה + מזהה הערה
         note_id = self._owner_note(customer_id, "legal_hold_note", val or "")
         self.audit(actor, "legal_hold", {"customer": customer_id, "on": val is not None,
@@ -4558,6 +4572,7 @@ class CollectService:
                 raise _already()
             if approve:
                 self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (f"promise:until={until}", cid))
+                self._ledger_hold(cid, actor, pause=f"promise:until={until}")
                 self.db.x("UPDATE conversations SET pause_until=? WHERE customer_id=?", (until, cid))
                 # מנהל 395 (מבקר 232🟡): החשבונית שעליה ההבטחה עברה בקובץ CSV ללקוח אחר אחרי הבקשה (219א), והוא ירש את
                 # השהיית ההבטחה **כפי שהייתה** (promise:until=<התקרה>). האישור הוא על החוב, לא על הטלפון ⇒ מאריכים גם
@@ -4838,6 +4853,7 @@ class CollectService:
         # critic סבב 66: מחלוקת מסמנת גם disputed=1, ושום מסלול לא ניקה אותו ⇒ «חודשו» ב-200 והלקוח נשאר חסום
         # לתמיד. «חידוש» = בעל העסק סגר את העניין ⇒ משחרר גם את המחלוקת.
         self.db.x("UPDATE customers SET paused_reason=NULL, disputed=0 WHERE id=?", (customer_id,))
+        self._ledger_hold(customer_id, actor, pause=None, disputed=False)   # «חידוש» גובר על השהיה קודמת ביומן
         # critic סבב 64: «חידוש תזכורות» = בעל העסק טיפל בעניין ⇒ הכרטיסים הפתוחים של הלקוח נסגרים (אחרת
         # AWAITING_OWNER היה ממשיך לעצור את התזכורות שהוא ביקש לחדש)
         if self._table_exists("drafts"):

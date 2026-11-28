@@ -115,8 +115,12 @@ def restore_backup(src: str | Path, dest: str | Path, box: SecretBox, *, env=Non
             rows = restore_guard.ledger_read(ledger) if ledger else []
             applied = restore_guard.ledger_apply(out, rows)
             # מבקר 288א: השבתות/הורדות הרשאה מאז הגיבוי חוזרות מיומן השלילות (מחוץ ל-DB)
-            rev = (restore_guard.revocations_apply(out, restore_guard.revocations_read(e))
-                   if restore_guard.revocation_path(e) else None)
+            # מבקר 289: + השהיות מגנות (קטין/פטירה/מחלוקת/עצירה משפטית) מאז הגיבוי — מאותו יומן
+            if restore_guard.revocation_path(e):
+                rev_rows = restore_guard.revocations_read(e)
+                rev = {**restore_guard.revocations_apply(out, rev_rows), **restore_guard.holds_apply(out, rev_rows)}
+            else:
+                rev = None
             restore_guard.mark_restored(out, at=datetime.now(UTC).isoformat(timespec="seconds"), source=str(src),
                                         ledger_rows=len(rows), applied=applied, revocations=rev)
             if report is not None:
@@ -257,9 +261,11 @@ def main(argv: list[str]) -> int:
               "  ⚠️ אין OPTOUT_LEDGER — הסרות שהתבקשו אחרי הגיבוי לא הוחזרו. יש להחיל אותן ידנית לפני החידוש.",
               file=sys.stdout if rep.get("ledger") else sys.stderr)
         rv = rep.get("revocations")   # מבקר 288א
-        print(f"  יומן שלילות: {rv['users_off']} השבתות ו-{rv['users_demoted']} הורדות מבעלים הוחזרו"
+        print(f"  יומן שלילות: {rv['users_off']} השבתות ו-{rv['users_demoted']} הורדות מבעלים הוחזרו, "
+              f"{rv.get('holds', 0)} השהיות מגנות ו-{rv.get('legal', 0)} עצירות משפטיות"   # מבקר 289
               + (f", {rv['skipped']} לא הוחלו (בעל העסק האחרון)." if rv["skipped"] else ".") if rv is not None else
-              "  ⚠️ אין REVOCATION_LEDGER — עובדות שהושבתו וסודות-מסירה שהוחלפו אחרי הגיבוי חזרו. בדקו ידנית.",
+              "  ⚠️ אין REVOCATION_LEDGER — עובדות שהושבתו, סודות-מסירה שהוחלפו והשהיות קטין/פטירה/מחלוקת/משפטיות "
+              "שהוצבו אחרי הגיבוי חזרו. בדקו ידנית.",
               file=sys.stdout if rv is not None else sys.stderr)
         return 0
     print("ok")

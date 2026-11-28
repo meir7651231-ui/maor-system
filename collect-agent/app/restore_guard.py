@@ -81,9 +81,11 @@ def ledger_apply(conn, rows: list[dict]) -> int:
 #   user_demote / user_promote הורדה מבעלים / מינוי לבעלים
 #   handoff_secret            סוד-מסירה שבוטל (רוטציה/ניתוק; מפתח = גיבוב הסוד — לא הסוד)
 #   ent_iat                   iat של זכאות שבה השתנה המצב (מונוטוניות מחוץ ל-DB)
+#   cust_hold                 מבקר 289: השהיה מגנה ללקוח (קטין/פטירה/חדלות/מחלוקת/הבטחה/עצירה משפטית) או שחרורה
+#                             (מפתח = גיבוב מזהה הלקוח; שדות pause/disputed/legal — בלי הערה ובלי PII)
 # בשחזור — השבתות/הורדות מוחלות מחדש; סודות וזכאויות נבדקים מול היומן בזמן ריצה (verify / ingest).
 REVOCATION_ENV = "REVOCATION_LEDGER"
-_REV_KINDS = ("user_off", "user_on", "user_demote", "user_promote", "handoff_secret", "ent_iat")
+_REV_KINDS = ("user_off", "user_on", "user_demote", "user_promote", "handoff_secret", "ent_iat", "cust_hold")
 
 
 def revocation_path(env=None) -> str | None:
@@ -99,6 +101,12 @@ def revocation_path(env=None) -> str | None:
 
 def user_key(email: str) -> str:
     return hashlib.sha256(f"user:{(email or '').strip().lower()}".encode()).hexdigest()
+
+
+def customer_key(external_id: str | None, cid: int) -> str:
+    """מזהה יציב בין גיבוי לשחזור: external_id (ממערכת החשבוניות), ובלעדיו המזהה הפנימי. גיבוב בלבד."""
+    base = f"ext:{external_id}" if external_id else f"id:{cid}"
+    return hashlib.sha256(f"cust:{base}".encode()).hexdigest()
 
 
 def secret_key(secret: str) -> str:
@@ -192,6 +200,71 @@ def revocations_apply(conn, rows: list[dict]) -> dict:
     return res
 
 
+# ---------- השהיות מגנות (מבקר 289) ----------
+LEGAL_RESTORED = "עצירה משפטית שהוצבה אחרי הגיבוי — הוחזרה מיומן השלילות; הסיבה המקורית לא נשמרה ביומן"
+
+
+_HOLD_SEL = {True: "SELECT id, external_id, paused_reason, disputed, legal_hold FROM customers",
+             False: "SELECT id, external_id, paused_reason, disputed FROM customers"}
+
+
+def holds_apply(conn, rows: list[dict]) -> dict:
+    """מבקר 289🟠/🟡: השהיה מגנה שהוצבה אחרי הגיבוי (קטין/פטירה/מחלוקת/עצירה משפטית/הבטחה) נמחקה בשחזור ⇒ אחרי
+    שחרור העצירה נבנתה תזכורת ללקוחה, והתממה של תיק משפטי לא נחסמה. מחיל מחדש לפי **המצב האחרון** ביומן לכל לקוח
+    (שחרור/«חידוש» אחרי ההשהיה מבטל אותה). רק מחזק — לא מנקה השהיה שקיימת ב-DB המשוחזר; לא דורס השהיה קשה
+    בהשהיה רכה. תזכורות פעילות של לקוח שהושהה מחדש מבוטלות. מחזיר {holds, legal}."""
+    res = {"holds": 0, "legal": 0}
+    if not rows or not conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='customers'").fetchone():
+        return res
+    state: dict[str, dict] = {}
+    for r in rows:
+        if r["kind"] != "cust_hold":
+            continue
+        st = state.setdefault(r["key"], {})
+        for f in ("pause", "disputed", "legal"):
+            if f in r:
+                st[f] = r[f]
+    if not state:
+        return res
+    from .inbox import _keeps_old_pause
+    from .service import ACTIVE
+    has_legal = "legal_hold" in _cols(conn, "customers")
+    held: list[int] = []
+    today = datetime.now().date().isoformat()
+    for row in conn.execute(_HOLD_SEL[has_legal]).fetchall():
+        st = state.get(customer_key(row[1], row[0]))
+        if not st:
+            continue
+        cid, cur_pause, cur_disp = row[0], row[2] or "", row[3]
+        changed = False
+        p = st.get("pause")
+        if isinstance(p, str) and ":until=" in p and p.split(":until=", 1)[1] <= today:
+            p = None   # הבטחה שמועדה עבר — release_expired_pauses היה משחרר אותה ממילא
+        if isinstance(p, str) and p and p != cur_pause and not _keeps_old_pause(cur_pause, p):
+            conn.execute("UPDATE customers SET paused_reason=? WHERE id=?", (p, cid))
+            changed = True
+        if st.get("disputed") is True and not cur_disp:
+            conn.execute("UPDATE customers SET disputed=1 WHERE id=?", (cid,))
+            changed = True
+        if has_legal and st.get("legal") is True and not row[4]:
+            conn.execute("UPDATE customers SET legal_hold=? WHERE id=?", (LEGAL_RESTORED, cid))
+            res["legal"] += 1
+        if changed:
+            held.append(cid)
+    if held and _cols(conn, "reminders"):
+        for cid in held:   # כמו _cancel_invoice: גם תזכורת מאוחדת שכוללת חשבונית של הלקוח
+            conn.execute("UPDATE reminders SET status='cancelled', block_reason='restored_hold' WHERE status IN (?,?) "
+                         "AND (invoice_id IN (SELECT id FROM invoices WHERE customer_id=?) OR id IN "
+                         "(SELECT reminder_id FROM reminder_invoices WHERE invoice_id IN "
+                         "(SELECT id FROM invoices WHERE customer_id=?)))", (*ACTIVE, cid, cid))
+    res["holds"] = len(held)
+    if (res["holds"] or res["legal"]) and _cols(conn, "audit"):
+        conn.execute("INSERT INTO audit(at,actor,action,detail) VALUES(?,?,?,?)",
+                     (datetime.now().isoformat(timespec="seconds"), "system", "restore_holds", json.dumps(res)))
+    conn.commit()
+    return res
+
+
 # ---------- עצירה אחרי שחזור ----------
 def mark_restored(conn, *, at: str, source: str, ledger_rows: int, applied: int,
                   revocations: dict | None = None) -> None:
@@ -211,10 +284,15 @@ def mark_restored(conn, *, at: str, source: str, ledger_rows: int, applied: int,
         if revocations is None:
             rev = ("⚠️ אין יומן שלילות (REVOCATION_LEDGER) — עובדות שהושבתו או הורדו מבעלים אחרי הגיבוי חזרו "
                    "להרשאה הקודמת, וסוד-מסירה של אורביט שהוחלף אחריו עובד שוב: בדקו במסך «צוות ותפקידים» "
-                   "והנפיקו סוד-מסירה חדש. ")
+                   "והנפיקו סוד-מסירה חדש. השהיות קטין/פטירה/מחלוקת ועצירות משפטיות שהוצבו אחרי הגיבוי נמחקו — "
+                   "סמנו אותן מחדש לפני החידוש. ")
         else:
             n_u = revocations.get("users_off", 0) + revocations.get("users_demoted", 0)
             rev = (f"יומן השלילות הוחל: {n_u} השבתות/הורדות הרשאה מאז הגיבוי הוחזרו. " if n_u else "")
+            n_h, n_l = revocations.get("holds", 0), revocations.get("legal", 0)
+            if n_h or n_l:
+                rev += (f"השהיות מגנות מאז הגיבוי הוחזרו: {n_h} השהיות (קטין/פטירה/מחלוקת/הבטחה) ו-{n_l} עצירות "
+                        "משפטיות. ")
             if revocations.get("skipped"):
                 rev += (f"⚠️ {revocations['skipped']} לא הוחלו כי אחרת לא היה נשאר בעל עסק פעיל — "
                         "בדקו במסך «צוות ותפקידים». ")
@@ -226,7 +304,7 @@ def mark_restored(conn, *, at: str, source: str, ledger_rows: int, applied: int,
     conn.commit()
 
 
-_PRAGMA = {t: f"PRAGMA table_info({t})" for t in ("reminders", "drafts", "audit")}   # רשימה סגורה, בלי קלט
+_PRAGMA = {t: f"PRAGMA table_info({t})" for t in ("reminders", "drafts", "audit", "customers")}   # רשימה סגורה, בלי קלט
 
 
 def _cols(conn, table: str) -> set[str]:
