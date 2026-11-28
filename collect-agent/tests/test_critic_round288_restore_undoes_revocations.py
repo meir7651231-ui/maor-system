@@ -61,12 +61,12 @@ def test_active_staff_can_login_after_restore_control(svc, clock, tmp_path, monk
     assert _staff_login_after_restore(svc, clock, tmp_path, monkeypatch, deactivate=False) == 200
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 288א🟠: עובדת שהושבתה אחרי הגיבוי נכנסת שוב אחרי שחזור")
+
 def test_deactivated_staff_stays_out_after_restore(svc, clock, tmp_path, monkeypatch):
     assert _staff_login_after_restore(svc, clock, tmp_path, monkeypatch, deactivate=True) != 200
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 288א🟠: סוד-מסירה שהוחלף אחרי הגיבוי מתקבל שוב אחרי שחזור")
+
 def test_rotated_handoff_secret_stays_revoked(svc, clock, tmp_path):
     box = SecretBox.from_spec(f"k1:{generate_key()}")
     old = OrbitConnect(svc.db).issue_secret(ORG, at=clock().isoformat())
@@ -81,7 +81,7 @@ def test_rotated_handoff_secret_stays_revoked(svc, clock, tmp_path):
         OrbitConnect(s2.db).verify(tok, now)
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 288ב🟡: טוקן זכאות active שנלכד לפני הביטול מתקבל אחרי שחזור")
+
 def test_captured_entitlement_rejected_after_restore(svc, clock, tmp_path):
     box = SecretBox.from_spec(f"k1:{generate_key()}")
     svc.sync()

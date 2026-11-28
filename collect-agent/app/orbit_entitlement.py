@@ -42,6 +42,8 @@ from collections.abc import Callable
 from datetime import date, timedelta
 from urllib.parse import urlsplit
 
+from . import restore_guard
+
 VERSION = 1
 SIG_CONTEXT = "gabi-entitlement-v1."
 TYP = "entitlement"
@@ -240,6 +242,12 @@ class OrbitEntitlements:
             # לא נאכפת — אחרת העסק נתקע לתמיד.
             if cur is not None and cur[1] is not None and cur[1] <= now and c["iat"] < cur[1]:
                 raise EntitlementRejected("stale")
+            # מבקר 288ב: המונוטוניות גם מחוץ ל-DB — טוקן שנלכד לפני שינוי מצב (למשל ביטול) לא מתקבל אחרי שחזור
+            hw = restore_guard.max_entitlement_iat()
+            if hw is not None and c["iat"] <= hw:
+                raise EntitlementRejected("stale")
+            prev = self.db.conn.execute("SELECT plan, status, paid_until FROM orbit_entitlements "
+                                        "WHERE business_id=?", (BUSINESS_ID,)).fetchone()
             self.db.conn.execute(
                 "INSERT INTO orbit_entitlements(business_id,org,plan,status,trial_start,paid_until,"
                 "billing_url,iat,received_at) VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(business_id) "
@@ -250,6 +258,8 @@ class OrbitEntitlements:
                 (BUSINESS_ID, c["org"], c["plan"], c["status"], c["trial_start"], c["paid_until"],
                  c["billing_url"], c["iat"], at))
             self.db.conn.commit()
+        if prev is None or tuple(prev) != (c["plan"], c["status"], c["paid_until"]):
+            restore_guard.revoke("ent_iat", "orbit", at=at, iat=c["iat"])   # רק בשינוי מצב — היומן לא גדל בכל מסירה
         return current(self.db) or {}
 
     def delete(self) -> None:

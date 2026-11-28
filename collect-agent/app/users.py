@@ -11,7 +11,7 @@ import os
 import secrets
 from datetime import datetime, timedelta
 
-from . import totp
+from . import restore_guard, totp
 from .db import DB, token_hash
 from .policy import TZ
 from .secretbox import ENV_VAR, VERSION, SecretBox
@@ -105,6 +105,14 @@ class Users:
     def _now(self) -> datetime:
         return self.clock()
 
+    def _revoke(self, kind: str, email: str, actor: str, uid: int) -> None:
+        """מבקר 288א: שלילת הרשאה נרשמת גם ביומן השלילות מחוץ ל-DB — שחזור גיבוי לא מחזיר אותה. כשל כתיבה לא
+        מבטל את השלילה ב-DB (כבר בוצעה) — רק audit."""
+        st = restore_guard.revoke(kind, restore_guard.user_key(email),
+                                  at=self._now().astimezone(TZ).isoformat(timespec="seconds"))
+        if st == "failed":
+            self._audit(actor, "revocation_ledger_failed", {"user": uid, "kind": kind})
+
     def count(self) -> int:
         return self.db.one("SELECT COUNT(*) c FROM users")["c"]
 
@@ -143,6 +151,7 @@ class Users:
         self.db.x("UPDATE users SET role=? WHERE id=?", (role, u["id"]))
         if u["role"] != role:   # critic 180: audit לכל שינוי תפקיד, גם מ-CLI
             self._audit(actor, "team_role_changed", {"user": u["id"], "from": u["role"], "to": role})
+            self._revoke("user_demote" if u["role"] == "owner" else "user_promote", email, actor, u["id"])
 
     # ---------- מסך «צוות ותפקידים» (מנהל 328): בעל העסק מנהל תפקידים בלי CLI ----------
     def listing(self) -> list[dict]:
@@ -188,6 +197,7 @@ class Users:
             return {"name": u["name"], "was_active": True}
         self.db.x("UPDATE users SET active=1, role='staff' WHERE id=?", (u["id"],))
         self._audit(actor, "team_reactivated", {"user": u["id"], "role": "staff"})
+        self._revoke("user_on", u["email"], actor, u["id"])
         return {"name": u["name"], "was_active": False}
 
     def is_owner(self, token: str) -> bool:
@@ -294,6 +304,8 @@ class Users:
         self.db.x("UPDATE users SET active=0 WHERE email=?", (email.strip().lower(),))
         self.db.x("DELETE FROM sessions WHERE user_id IN (SELECT id FROM users WHERE email=?)",
                   (email.strip().lower(),))
+        if u is not None:
+            self._revoke("user_off", email, actor, u["id"])
 
 
 if __name__ == "__main__":

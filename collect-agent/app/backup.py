@@ -114,10 +114,14 @@ def restore_backup(src: str | Path, dest: str | Path, box: SecretBox, *, env=Non
                     raise SecretError("שחזור מוצפן לא תואם לגיבוי")
             rows = restore_guard.ledger_read(ledger) if ledger else []
             applied = restore_guard.ledger_apply(out, rows)
+            # מבקר 288א: השבתות/הורדות הרשאה מאז הגיבוי חוזרות מיומן השלילות (מחוץ ל-DB)
+            rev = (restore_guard.revocations_apply(out, restore_guard.revocations_read(e))
+                   if restore_guard.revocation_path(e) else None)
             restore_guard.mark_restored(out, at=datetime.now(UTC).isoformat(timespec="seconds"), source=str(src),
-                                        ledger_rows=len(rows), applied=applied)
+                                        ledger_rows=len(rows), applied=applied, revocations=rev)
             if report is not None:
-                report.update(ledger=bool(ledger), ledger_rows=len(rows), reapplied=applied)
+                report.update(ledger=bool(ledger), ledger_rows=len(rows), reapplied=applied,
+                              revocations=rev)
         finally:
             out.close()
         if enc:
@@ -252,6 +256,11 @@ def main(argv: list[str]) -> int:
         print(f"  יומן הסרות: {rep['ledger_rows']} שורות, {rep['reapplied']} הסרות הוחזרו." if rep.get("ledger") else
               "  ⚠️ אין OPTOUT_LEDGER — הסרות שהתבקשו אחרי הגיבוי לא הוחזרו. יש להחיל אותן ידנית לפני החידוש.",
               file=sys.stdout if rep.get("ledger") else sys.stderr)
+        rv = rep.get("revocations")   # מבקר 288א
+        print(f"  יומן שלילות: {rv['users_off']} השבתות ו-{rv['users_demoted']} הורדות מבעלים הוחזרו"
+              + (f", {rv['skipped']} לא הוחלו (בעל העסק האחרון)." if rv["skipped"] else ".") if rv is not None else
+              "  ⚠️ אין REVOCATION_LEDGER — עובדות שהושבתו וסודות-מסירה שהוחלפו אחרי הגיבוי חזרו. בדקו ידנית.",
+              file=sys.stdout if rv is not None else sys.stderr)
         return 0
     print("ok")
     return 0

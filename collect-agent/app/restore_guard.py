@@ -11,6 +11,7 @@
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from datetime import datetime
@@ -24,15 +25,20 @@ _SCHEMA = ("CREATE TABLE IF NOT EXISTS restore_hold (id INTEGER PRIMARY KEY, res
 
 
 # ---------- יומן ההסרות ----------
-def ledger_append(path: str | Path, h: str, channel: str, reason: str, at: str) -> None:
-    """שורת JSON אחת לכל הסרה. O_APPEND (לא דורס), 0600, בלי ללכת אחרי symlink. גיבוב בלבד — אין כתובת גלויה."""
-    line = json.dumps({"hash": h, "channel": channel, "reason": reason, "at": at}, ensure_ascii=False) + "\n"
+def _append_line(path: str | Path, row: dict) -> None:
+    """שורת JSON אחת. O_APPEND (לא דורס), 0600, בלי ללכת אחרי symlink."""
+    line = json.dumps(row, ensure_ascii=False) + "\n"
     fd = os.open(path, os.O_CREAT | os.O_APPEND | os.O_WRONLY | getattr(os, "O_NOFOLLOW", 0), 0o600)
     try:
         os.write(fd, line.encode())
         os.fsync(fd)
     finally:
         os.close(fd)
+
+
+def ledger_append(path: str | Path, h: str, channel: str, reason: str, at: str) -> None:
+    """שורת JSON אחת לכל הסרה. גיבוב בלבד — אין כתובת גלויה."""
+    _append_line(path, {"hash": h, "channel": channel, "reason": reason, "at": at})
 
 
 def ledger_read(path: str | Path) -> list[dict]:
@@ -67,8 +73,128 @@ def ledger_apply(conn, rows: list[dict]) -> int:
     return conn.execute("SELECT COUNT(*) FROM suppressions").fetchone()[0] - before
 
 
+# ---------- יומן השלילות (מבקר 288) ----------
+# שחזור מחזיר את ה-DB כולו לרגע הגיבוי — גם **שלילות הרשאה** שנעשו אחריו: עובדת שהושבתה נכנסת שוב, בעלים שהורד
+# חוזר לבעלים, סוד-מסירה שהוחלף (רוטציה = דליפה) מתקבל שוב, וטוקן זכאות שנלכד לפני ביטול המנוי מחזיר אותו ל-active.
+# לכן כל שלילה נרשמת גם ביומן append-only **מחוץ ל-DB** (כמו OPTOUT_LEDGER; לא נכלל בגיבוי ושורד אותו):
+#   user_off / user_on        השבתה / הפעלה-מחדש של משתמש (מפתח = גיבוב המייל)
+#   user_demote / user_promote הורדה מבעלים / מינוי לבעלים
+#   handoff_secret            סוד-מסירה שבוטל (רוטציה/ניתוק; מפתח = גיבוב הסוד — לא הסוד)
+#   ent_iat                   iat של זכאות שבה השתנה המצב (מונוטוניות מחוץ ל-DB)
+# בשחזור — השבתות/הורדות מוחלות מחדש; סודות וזכאויות נבדקים מול היומן בזמן ריצה (verify / ingest).
+REVOCATION_ENV = "REVOCATION_LEDGER"
+_REV_KINDS = ("user_off", "user_on", "user_demote", "user_promote", "handoff_secret", "ent_iat")
+
+
+def revocation_path(env=None) -> str | None:
+    """``REVOCATION_LEDGER``; בלעדיו — ליד ``OPTOUT_LEDGER`` (``<optout>.revocations``), כדי שפריסה שכבר מגדירה את
+    יומן ההסרות (חובה בנתונים אמיתיים) מקבלת גם את יומן השלילות בלי הגדרה נוספת. בלי שניהם ⇒ None."""
+    e = os.environ if env is None else env
+    p = (e.get(REVOCATION_ENV) or "").strip()
+    if p:
+        return p
+    o = (e.get("OPTOUT_LEDGER") or "").strip()
+    return f"{o}.revocations" if o else None
+
+
+def user_key(email: str) -> str:
+    return hashlib.sha256(f"user:{(email or '').strip().lower()}".encode()).hexdigest()
+
+
+def secret_key(secret: str) -> str:
+    return hashlib.sha256(f"handoff:{secret}".encode()).hexdigest()
+
+
+def revoke(kind: str, key: str, *, at: str, env=None, **extra) -> str:
+    """רושם שלילה. מחזיר ``ok`` / ``off`` (אין יומן מוגדר) / ``failed`` (כשל כתיבה — השלילה ב-DB כבר בוצעה;
+    הקורא רושם audit). גיבובים בלבד."""
+    if kind not in _REV_KINDS:
+        raise ValueError(kind)
+    path = revocation_path(env)
+    if not path:
+        return "off"
+    try:
+        _append_line(path, {"kind": kind, "key": key, "at": at, **extra})
+    except OSError:
+        return "failed"
+    return "ok"
+
+
+def revocations_read(env=None) -> list[dict]:
+    path = revocation_path(env)
+    if not path or not Path(path).exists():
+        return []
+    out = []
+    for line in Path(path).read_text(encoding="utf-8").splitlines():
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue   # שורה חלקית — מדלגים
+        if isinstance(row, dict) and row.get("kind") in _REV_KINDS and isinstance(row.get("key"), str):
+            out.append(row)
+    return out
+
+
+def secret_revoked(secret: str, env=None) -> bool:
+    k = secret_key(secret)
+    return any(r["kind"] == "handoff_secret" and r["key"] == k for r in revocations_read(env))
+
+
+def max_entitlement_iat(env=None) -> int | None:
+    vals = [r.get("iat") for r in revocations_read(env) if r["kind"] == "ent_iat"]
+    vals = [v for v in vals if isinstance(v, int) and not isinstance(v, bool)]
+    return max(vals) if vals else None
+
+
+def revocations_apply(conn, rows: list[dict]) -> dict:
+    """מחיל השבתות/הורדות על DB משוחזר — לפי **המצב האחרון** ביומן לכל משתמש (הפעלה-מחדש אחרי השבתה מבטלת אותה).
+    לא משבית/מוריד את בעל העסק הפעיל האחרון (אף אחד לא ישחרר את העצירה) — נספר ב-``skipped``.
+    מחזיר {users_off, users_demoted, skipped, secrets}."""
+    res = {"users_off": 0, "users_demoted": 0, "skipped": 0,
+           "secrets": sum(1 for r in rows if r["kind"] == "handoff_secret")}
+    if not conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='users'").fetchone():
+        return res
+    off: dict[str, bool] = {}
+    demote: dict[str, bool] = {}
+    for r in rows:
+        if r["kind"] in ("user_off", "user_on"):
+            off[r["key"]] = r["kind"] == "user_off"
+        elif r["kind"] in ("user_demote", "user_promote"):
+            demote[r["key"]] = r["kind"] == "user_demote"
+    if not any(off.values()) and not any(demote.values()):
+        return res
+
+    def last_owner(uid: int) -> bool:
+        return conn.execute("SELECT COUNT(*) FROM users WHERE role='owner' AND active=1 AND id<>?",
+                            (uid,)).fetchone()[0] == 0
+
+    for uid, email, role, act in conn.execute("SELECT id, email, role, active FROM users ORDER BY id").fetchall():
+        k = user_key(email)
+        if act and off.get(k):
+            if role == "owner" and last_owner(uid):
+                res["skipped"] += 1
+                continue
+            conn.execute("UPDATE users SET active=0 WHERE id=?", (uid,))
+            conn.execute("DELETE FROM sessions WHERE user_id=?", (uid,))
+            res["users_off"] += 1
+        elif act and role == "owner" and demote.get(k):
+            if last_owner(uid):
+                res["skipped"] += 1
+                continue
+            conn.execute("UPDATE users SET role='staff' WHERE id=?", (uid,))
+            conn.execute("DELETE FROM sessions WHERE user_id=?", (uid,))
+            res["users_demoted"] += 1
+    if (res["users_off"] or res["users_demoted"] or res["skipped"]) and _cols(conn, "audit"):
+        conn.execute("INSERT INTO audit(at,actor,action,detail) VALUES(?,?,?,?)",
+                     (datetime.now().isoformat(timespec="seconds"), "system", "restore_revocations",
+                      json.dumps(res)))
+    conn.commit()
+    return res
+
+
 # ---------- עצירה אחרי שחזור ----------
-def mark_restored(conn, *, at: str, source: str, ledger_rows: int, applied: int) -> None:
+def mark_restored(conn, *, at: str, source: str, ledger_rows: int, applied: int,
+                  revocations: dict | None = None) -> None:
     conn.execute(_SCHEMA)
     conn.execute("INSERT INTO restore_hold(restored_at, source, ledger_applied) VALUES(?,?,?)",
                  (at, Path(source).name, applied))
@@ -82,9 +208,19 @@ def mark_restored(conn, *, at: str, source: str, ledger_rows: int, applied: int)
                "אחרי הגיבוי; בדקו ביומן היוצאים לפני שמאשרים שוב. " if n_rem or n_dr else "")
         orb = ("מצב המנוי לגבי באורביט יאומת מחדש — אחרי החידוש פתחו את גבי מתוך אורביט פעם אחת, אחרת התזכורות "
                "יישארו עצורות. " if orbit else "")
+        if revocations is None:
+            rev = ("⚠️ אין יומן שלילות (REVOCATION_LEDGER) — עובדות שהושבתו או הורדו מבעלים אחרי הגיבוי חזרו "
+                   "להרשאה הקודמת, וסוד-מסירה של אורביט שהוחלף אחריו עובד שוב: בדקו במסך «צוות ותפקידים» "
+                   "והנפיקו סוד-מסירה חדש. ")
+        else:
+            n_u = revocations.get("users_off", 0) + revocations.get("users_demoted", 0)
+            rev = (f"יומן השלילות הוחל: {n_u} השבתות/הורדות הרשאה מאז הגיבוי הוחזרו. " if n_u else "")
+            if revocations.get("skipped"):
+                rev += (f"⚠️ {revocations['skipped']} לא הוחלו כי אחרת לא היה נשאר בעל עסק פעיל — "
+                        "בדקו במסך «צוות ותפקידים». ")
         conn.execute("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
                      "created_at) VALUES(NULL,'system','owner',?,?,1,?,?)",
-                     ("🛑 המערכת שוחזרה מגיבוי — כל השליחה ללקוחות עצורה. " + led + req + orb +
+                     ("🛑 המערכת שוחזרה מגיבוי — כל השליחה ללקוחות עצורה. " + led + req + orb + rev +
                       "לפני חידוש: החילו מחדש כל בקשת הסרה, מחיקה או התממה שהתקבלה מאז הגיבוי, ואז אשרו את החידוש "
                       "עם תיעוד של מה שבדקתם.", HOLD_INTENT, f"{HOLD_INTENT}:{at}", at))
     conn.commit()

@@ -31,7 +31,9 @@ import json
 import re
 import secrets
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
+from . import restore_guard
 from .business_secrets import BusinessSecrets
 from .db import DB
 from .secretbox import SecretBox
@@ -167,6 +169,7 @@ class OrbitConnect:
         if cur and cur["org"] != org:
             raise ValueError("העסק כבר מקושר לארגון אחר — יש לבטל את הקישור קודם")
         secret = secrets.token_urlsafe(32)      # 43 תווים ≥ MIN_SECRET_LEN
+        self._revoke_current(at)
         self._secrets().put(BUSINESS_ID, SECRET_FIELD, secret, at=at)
         if cur:
             self.db.x("UPDATE orbit_links SET rotated_at=? WHERE business_id=?", (at, BUSINESS_ID))
@@ -183,9 +186,17 @@ class OrbitConnect:
         cur = self.link()
         if not cur:
             return False
+        self._revoke_current(datetime.now(UTC).isoformat(timespec="seconds"))
         self._secrets().delete(BUSINESS_ID, SECRET_FIELD)
         self.db.x("DELETE FROM orbit_links WHERE business_id=?", (BUSINESS_ID,))
         return True
+
+    def _revoke_current(self, at: str) -> None:
+        """מבקר 288א: סוד שמוחלף/מנותק נרשם (כגיבוב) ביומן השלילות מחוץ ל-DB — שחזור גיבוי שמחזיר אותו לכספת
+        לא מחזיר אותו לתוקף (``verify`` בודק מול היומן)."""
+        stored = self._secrets().get(BUSINESS_ID, SECRET_FIELD)
+        if stored is not None:
+            restore_guard.revoke("handoff_secret", restore_guard.secret_key(stored.reveal()), at=at)
 
     # ---------- צד-הכניסה: אימות ----------
     def verify(self, token: str, now: int) -> HandoffClaims:
@@ -205,6 +216,8 @@ class OrbitConnect:
         secret = stored.reveal() if stored else secrets.token_urlsafe(32)
         ok = hmac.compare_digest(sign(payload, secret).encode("ascii"), sig.encode("ascii"))
         if not ok or not stored or len(secret) < MIN_SECRET_LEN:
+            raise HandoffRejected("signature")
+        if restore_guard.secret_revoked(secret):   # מבקר 288א: סוד שבוטל ושוחזר מגיבוי
             raise HandoffRejected("signature")
         if c["v"] != VERSION or c["iss"] != "orbit" or c["aud"] != "gabi":
             raise HandoffRejected("claims")

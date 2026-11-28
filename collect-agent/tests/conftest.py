@@ -133,6 +133,13 @@ def svc(gi_client, clock):
 
 
 @pytest.fixture(autouse=True)
+def _revocation_ledger(monkeypatch, tmp_path_factory):
+    """מבקר 288: יומן השלילות (מחוץ ל-DB) — כמו בפריסה אמיתית (נגזר מ-OPTOUT_LEDGER שחובה בנתונים אמיתיים).
+    קובץ נפרד לכל בדיקה, בתיקייה משלו."""
+    monkeypatch.setenv("REVOCATION_LEDGER", str(tmp_path_factory.mktemp("rev") / "revocations.jsonl"))
+
+
+@pytest.fixture(autouse=True)
 def no_real_network(monkeypatch):
     """כל ניסיון לפתוח חיבור רשת אמיתי בבדיקות ⇒ כישלון."""
     import socket
