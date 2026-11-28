@@ -16,8 +16,6 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-import pytest
-
 from app import restore_guard
 from app.backup import create_backup, restore_backup
 from app.db import DB
@@ -49,7 +47,6 @@ def test_restore_hold_blocks_before_release_control(svc, clock, tmp_path):
     assert restore_guard.active(s2.db) and s2.dispatch() == []
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 287🟠: שחזור מחזיר זכאות active ישנה — מנוי שבוטל חוזר לשלוח")
 def test_cancelled_after_backup_stays_stopped(svc, clock, tmp_path):
     s2 = _restored_after_cancel(svc, clock, tmp_path)
     assert s2.trial()["active"] is False

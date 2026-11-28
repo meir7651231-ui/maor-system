@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import datetime
 from pathlib import Path
 
 HOLD_INTENT = "restore_hold"
@@ -72,15 +73,18 @@ def mark_restored(conn, *, at: str, source: str, ledger_rows: int, applied: int)
     conn.execute("INSERT INTO restore_hold(restored_at, source, ledger_applied) VALUES(?,?,?)",
                  (at, Path(source).name, applied))
     n_rem, n_dr = _reapprove_queued(conn, at)
+    orbit = _unverify_orbit(conn, at)
     has_msgs = conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='messages'").fetchone()
     if has_msgs:
         led = (f"יומן ההסרות הוחל: {applied} הסרות שנוספו אחרי הגיבוי הוחזרו. " if ledger_rows else
                "⚠️ אין יומן הסרות (OPTOUT_LEDGER) — הסרות שהתבקשו אחרי הגיבוי לא הוחזרו אוטומטית. ")
         req = (f"{n_rem} תזכורות ו-{n_dr} תשובות שאושרו לפני הגיבוי חזרו לאישור — ייתכן שחלקן כבר יצאו ללקוחות "
                "אחרי הגיבוי; בדקו ביומן היוצאים לפני שמאשרים שוב. " if n_rem or n_dr else "")
+        orb = ("מצב המנוי לגבי באורביט יאומת מחדש — אחרי החידוש פתחו את גבי מתוך אורביט פעם אחת, אחרת התזכורות "
+               "יישארו עצורות. " if orbit else "")
         conn.execute("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
                      "created_at) VALUES(NULL,'system','owner',?,?,1,?,?)",
-                     ("🛑 המערכת שוחזרה מגיבוי — כל השליחה ללקוחות עצורה. " + led + req +
+                     ("🛑 המערכת שוחזרה מגיבוי — כל השליחה ללקוחות עצורה. " + led + req + orb +
                       "לפני חידוש: החילו מחדש כל בקשת הסרה, מחיקה או התממה שהתקבלה מאז הגיבוי, ואז אשרו את החידוש "
                       "עם תיעוד של מה שבדקתם.", HOLD_INTENT, f"{HOLD_INTENT}:{at}", at))
     conn.commit()
@@ -115,6 +119,22 @@ def _reapprove_queued(conn, at: str) -> tuple[int, int]:
                      (at, "system", "restore_reapproval",
                       json.dumps({"reminders": n_rem, "drafts": n_dr})))
     return n_rem, n_dr
+
+
+def _unverify_orbit(conn, at: str) -> bool:
+    """מבקר 287🟠: הזכאות מאורביט שוחזרה למצב רגע הגיבוי (מנוי שבוטל אחריו חוזר ל-active) ⇒ מסמנים «לא מאומתת
+    מאז השחזור»; רק זכאות שנחתמה אחרי השחזור מחזירה שליחה. audit בלי PII."""
+    from . import orbit_entitlement
+    try:
+        floor = int(datetime.fromisoformat(at).timestamp())
+    except ValueError:
+        floor = int(datetime.now().timestamp())
+    if not orbit_entitlement.mark_restored(conn, floor):
+        return False
+    if _cols(conn, "audit"):
+        conn.execute("INSERT INTO audit(at,actor,action,detail) VALUES(?,?,?,?)",
+                     (at, "system", "restore_orbit_unverified", json.dumps({"floor": floor})))
+    return True
 
 
 def active(db) -> dict | None:

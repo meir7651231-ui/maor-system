@@ -282,7 +282,8 @@ def test_unlinked_business_keeps_local_trial(gi_client, clock):
     assert "source" not in t and t["active"] is False      # הניסיון המקומי הסתיים 8.11
     # גם זכאות שמורה בלי קישור — מתעלמים (התנהגות של היום)
     oe.ensure_schema(svc.db)
-    svc.db.x("INSERT INTO orbit_entitlements VALUES(1,?,?,?,?,?,?,?,?)",
+    svc.db.x("INSERT INTO orbit_entitlements(business_id,org,plan,status,trial_start,paid_until,billing_url,iat,"
+             "received_at) VALUES(1,?,?,?,?,?,?,?,?)",
              (ORG, "monthly", "active", "", "2099-01-01", "", 1, "t"))
     assert svc.trial()["active"] is False and "source" not in svc.trial()
 

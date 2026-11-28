@@ -72,9 +72,15 @@ CREATE TABLE IF NOT EXISTS orbit_entitlements (
   paid_until TEXT NOT NULL,
   billing_url TEXT NOT NULL,
   iat INTEGER NOT NULL,
-  received_at TEXT NOT NULL
+  received_at TEXT NOT NULL,
+  restore_floor INTEGER
 );
 """
+
+# מבקר 287🟠: שחזור מגיבוי מחזיר את השורה הישנה (למשל active, כשהמנוי בוטל אחרי הגיבוי). ``restore_floor`` = רגע
+# השחזור (epoch); כל עוד הוא לא NULL הזכאות «לא מאומתת מאז השחזור» ⇒ שמרני: עצירה עד זכאות טרייה, וזכאות נקלטת
+# רק אם נחתמה **אחרי** השחזור (טוקן ישן שנלכד בחלון ה-300 שנ׳ לפני השחזור לא מחזיר מצב קודם).
+RESTORE_COL = "restore_floor"
 
 
 class EntitlementRejected(Exception):
@@ -86,7 +92,25 @@ class EntitlementRejected(Exception):
 def ensure_schema(db) -> None:
     with db.lock:
         db.conn.executescript(SCHEMA)
+        _add_floor_col(db.conn)
         db.conn.commit()
+
+
+def _add_floor_col(conn) -> bool:
+    """מוסיף את ``restore_floor`` לטבלה קיימת (DB לפני 465). מחזיר האם הטבלה קיימת."""
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(orbit_entitlements)").fetchall()}
+    if not cols:
+        return False
+    if RESTORE_COL not in cols:
+        conn.execute("ALTER TABLE orbit_entitlements ADD COLUMN restore_floor INTEGER")
+    return True
+
+
+def mark_restored(conn, floor: int) -> bool:
+    """נקרא מ-``restore_guard.mark_restored`` על ה-DB המשוחזר. מחזיר האם הייתה זכאות שסומנה."""
+    if not _add_floor_col(conn):
+        return False
+    return conn.execute("UPDATE orbit_entitlements SET restore_floor=?", (int(floor),)).rowcount > 0
 
 
 def _b64e(b: bytes) -> str:
@@ -208,16 +232,21 @@ class OrbitEntitlements:
         """אימות + שמירה מונוטונית. זורק ``EntitlementRejected`` (כולל ``stale``)."""
         c = verify(token, self._key(), now, org=org)
         with self.db.lock:
-            cur = self.db.conn.execute("SELECT iat FROM orbit_entitlements WHERE business_id=?",
+            cur = self.db.conn.execute("SELECT iat, restore_floor FROM orbit_entitlements WHERE business_id=?",
                                        (BUSINESS_ID,)).fetchone()
             if cur is not None and c["iat"] <= cur[0]:
+                raise EntitlementRejected("stale")
+            # אחרי שחזור: רק זכאות שנחתמה אחרי רגע השחזור. רצפה «בעתיד» ביחס לשעון הקליטה (שעונים לא עקביים)
+            # לא נאכפת — אחרת העסק נתקע לתמיד.
+            if cur is not None and cur[1] is not None and cur[1] <= now and c["iat"] < cur[1]:
                 raise EntitlementRejected("stale")
             self.db.conn.execute(
                 "INSERT INTO orbit_entitlements(business_id,org,plan,status,trial_start,paid_until,"
                 "billing_url,iat,received_at) VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(business_id) "
                 "DO UPDATE SET org=excluded.org, plan=excluded.plan, status=excluded.status, "
                 "trial_start=excluded.trial_start, paid_until=excluded.paid_until, "
-                "billing_url=excluded.billing_url, iat=excluded.iat, received_at=excluded.received_at",
+                "billing_url=excluded.billing_url, iat=excluded.iat, received_at=excluded.received_at, "
+                "restore_floor=NULL",
                 (BUSINESS_ID, c["org"], c["plan"], c["status"], c["trial_start"], c["paid_until"],
                  c["billing_url"], c["iat"], at))
             self.db.conn.commit()
@@ -245,6 +274,10 @@ def evaluate(ent: dict, today: date, *, trial_days: int, price_ils_month: int) -
             "trial_start": ent["trial_start"] or None, "billing_url": ent["billing_url"] or None,
             "received_at": ent.get("received_at"), "on_trial": False, "ending_soon": False,
             "days_left": None, "grace_until": None}
+    if ent.get(RESTORE_COL) is not None:
+        # מבקר 287🟠: שוחזר מגיבוי — המצב השמור אולי ישן (מנוי שבוטל אחרי הגיבוי) ⇒ עצירה עד זכאות טרייה
+        return {**base, "active": False, "state": "unverified", "status": "unverified",
+                "restored_status": ent["status"], "ends": None}
     st = ent["status"]
     if st == "trial":
         start = date.fromisoformat(ent["trial_start"])
@@ -279,6 +312,11 @@ def notice(t: dict) -> tuple[str, str] | None:
         return (f"orbit_billing:grace:{t['ends']}",
                 "התשלום על המנוי לגבי באורביט טרם התקבל. התזכורות ממשיכות עד "
                 f"{t['grace_until']}, ולאחר מכן ייעצרו (הנתונים נשמרים)." + link)
+    if st == "unverified":
+        return (f"orbit_billing:unverified:{t.get('received_at') or ''}",
+                "המערכת שוחזרה מגיבוי ולכן מצב המנוי לגבי באורביט צריך אימות מחדש. עד אז תזכורות חדשות לא "
+                "מתוכננות ולא נשלחות (הנתונים נשמרים). כדי לאמת: פתחו את גבי מתוך אורביט פעם אחת." +
+                (f" אם המנוי לא פעיל: {url}" if url else ""))
     if st in ("expired", "cancelled", "trial_expired"):
         what = {"expired": "המנוי לגבי דרך אורביט הסתיים",
                 "cancelled": "המנוי לגבי דרך אורביט בוטל",
