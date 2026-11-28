@@ -22,7 +22,11 @@ class Rule:
 # (קבוצה) ⇒ כלל. פר-IP אלא אם צוין global.
 DEFAULT_RULES: dict[str, Rule] = {
     "public_link": Rule(60, 60),      # /p/ /u/ /pay/ /api/pay/ — עמוד = כמה בקשות, לא מאות
-    "webhook": Rule(120, 60),         # 019 / מייל / inbound חתום
+    "webhook": Rule(120, 60),         # 019 / מייל / inbound חתום — בלי מפתח תקין (ניחוש)
+    # מבקר 293א: webhook עם מפתח תקין = הספק עצמו. כל ה-push-ים של 019 (dlr/incoming_sms/blacklist) באים
+    # מאותם שרתים ⇒ אחרי שליחת בוקר 120 דיווחי מסירה מילאו את הדלי ו«הסר» באותה דקה קיבל 429. דלי נפרד וגבוה
+    # (הגנת עומס בלבד אם המפתח דלף) — לא חולק עם ניסיונות ללא מפתח.
+    "webhook_auth": Rule(3000, 60),
     "gi_webhook_global": Rule(6, 60),  # כל קריאה = sync מלא מול חשבונית ירוקה
     "auth_fail": Rule(30, 300),       # כשלי אימות לבעלים מאותו IP
     "orbit_connect": Rule(20, 60),    # /connect/orbit + אימות טוקן-המסירה מאורביט (טוקן = ניחוש חתימה)

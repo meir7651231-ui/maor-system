@@ -221,10 +221,37 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return JSONResponse({"detail": "יותר מדי בקשות, נסו שוב בעוד רגע"}, status_code=429,
                             headers={"Retry-After": str(int(retry) + 1)})
 
+    def _webhook_key_ok(request: Request) -> bool:
+        """מבקר 293א: האם ה-webhook מגיע עם המפתח הנכון של הספק (אותה בדיקה כמו בנתיב עצמו)."""
+        path = request.url.path
+        if path in ("/webhooks/sms/019", "/webhooks/sms/inforu"):
+            secret = svc.s.sms_webhook_key
+        elif path == "/webhooks/email":
+            secret = svc.s.email_webhook_key
+        elif path == "/webhooks/greeninvoice":
+            secret = svc.s.gi_webhook_key
+        elif path.startswith("/webhooks/source/"):
+            secret = svc.s.source_webhook_key
+        else:
+            return False
+        k = request.query_params.get("k", "")
+        return bool(secret) and hmac.compare_digest(k.encode("utf-8"), secret.encode("utf-8"))
+
+    def _bearer_ok(request: Request) -> bool:
+        """מבקר 293ב: טוקן תקין (עובד מחובר / הטוקן המשותף כשמותר) — אותה בדיקה כמו ב-owner(), בלי תופעות לוואי."""
+        presented = security.bearer(request.headers.get("authorization"))
+        if not presented:
+            return False
+        if users.actor(presented) is not None:
+            return True
+        return not require_login and security.token_ok(presented, token)
+
     @app.middleware("http")
     async def rate_limit(request: Request, call_next):
         ip = client_ip(request)
         group = group_for(request.url.path)
+        if group == "webhook" and _webhook_key_ok(request):
+            group = "webhook_auth"  # מבקר 293א: הספק המאומת לא חולק דלי עם ניסיונות ניחוש
         if group:
             retry = rl.check(group, ip)
             if retry is not None:
@@ -236,7 +263,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                 return too_many(retry)
         if group is None and request.url.path not in ("/health",):
             retry = rl.blocked("auth_fail", ip)
-            if retry is not None:
+            # מבקר 293ב: החסימה היא נגד ניחוש — בקשה עם טוקן תקין עוברת (NAT/CGNAT משותף: מי שמנחש מאותה
+            # כתובת לא נועל את בעל העסק והעובדות). ניחוש בטוקן שגוי ממשיך לקבל 429 בלי להגיע לאימות.
+            if retry is not None and not _bearer_ok(request):
                 return too_many(retry)
         resp = await call_next(request)
         if resp.status_code == 401:

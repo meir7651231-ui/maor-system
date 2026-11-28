@@ -184,12 +184,14 @@ def test_ratelimit_public_links_429(svc):
 
 
 def test_ratelimit_auth_failures_lock_ip(svc):
-    """ניחוש טוקן: אחרי N כשלים מאותו IP — גם טוקן נכון נחסם זמנית (429)."""
+    """ניחוש טוקן: אחרי N כשלים מאותו IP — ניחוש נוסף נחסם זמנית (429).
+    מנהל 472 (מבקר 293ב): טוקן נכון כבר **לא** נחסם — מאחורי NAT משותף זה נעל את בעל העסק."""
     rl = RateLimiter(rules={"auth_fail": Rule(3, 300)})
     api = TestClient(create_app(svc, owner_token=OWNER_TOKEN, limiter=rl))
     for _ in range(3):
         assert api.get("/audit", headers={"Authorization": "Bearer wrong"}).status_code == 401
-    assert api.get("/audit", headers=AUTH).status_code == 429
+    assert api.get("/audit", headers={"Authorization": "Bearer wrong"}).status_code == 429
+    assert api.get("/audit", headers=AUTH).status_code == 200
     assert api.get("/health").status_code == 200  # בריאות לא נחסמת
 
 

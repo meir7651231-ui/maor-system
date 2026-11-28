@@ -13,7 +13,6 @@
 """
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
@@ -33,7 +32,6 @@ def test_guessing_is_throttled_control(svc):
     assert codes[-1] == 429
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 293ב🟡: ניחוש טוקנים מאותה כתובת נועל גם את בעל העסק עם טוקן תקין")
 def test_valid_owner_not_locked_out_by_guessing_on_same_ip(svc):
     api = TestClient(create_app(svc, owner_token=OWNER_TOKEN))
     for _ in range(31):
@@ -41,7 +39,6 @@ def test_valid_owner_not_locked_out_by_guessing_on_same_ip(svc):
     assert api.get("/dashboard", headers=AUTH).status_code == 200
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 293א🟡: «הסר» מ-019 נחסם ב-429 אחרי 120 דיווחי מסירה בדקה")
 def test_optout_webhook_not_throttled_after_dlr_burst(svc):
     api = TestClient(create_app(svc, owner_token=OWNER_TOKEN))
     for i in range(120):
