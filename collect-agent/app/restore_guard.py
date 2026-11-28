@@ -71,16 +71,50 @@ def mark_restored(conn, *, at: str, source: str, ledger_rows: int, applied: int)
     conn.execute(_SCHEMA)
     conn.execute("INSERT INTO restore_hold(restored_at, source, ledger_applied) VALUES(?,?,?)",
                  (at, Path(source).name, applied))
+    n_rem, n_dr = _reapprove_queued(conn, at)
     has_msgs = conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='messages'").fetchone()
     if has_msgs:
         led = (f"יומן ההסרות הוחל: {applied} הסרות שנוספו אחרי הגיבוי הוחזרו. " if ledger_rows else
                "⚠️ אין יומן הסרות (OPTOUT_LEDGER) — הסרות שהתבקשו אחרי הגיבוי לא הוחזרו אוטומטית. ")
+        req = (f"{n_rem} תזכורות ו-{n_dr} תשובות שאושרו לפני הגיבוי חזרו לאישור — ייתכן שחלקן כבר יצאו ללקוחות "
+               "אחרי הגיבוי; בדקו ביומן היוצאים לפני שמאשרים שוב. " if n_rem or n_dr else "")
         conn.execute("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
                      "created_at) VALUES(NULL,'system','owner',?,?,1,?,?)",
-                     ("🛑 המערכת שוחזרה מגיבוי — כל השליחה ללקוחות עצורה. " + led +
+                     ("🛑 המערכת שוחזרה מגיבוי — כל השליחה ללקוחות עצורה. " + led + req +
                       "לפני חידוש: החילו מחדש כל בקשת הסרה, מחיקה או התממה שהתקבלה מאז הגיבוי, ואז אשרו את החידוש "
                       "עם תיעוד של מה שבדקתם.", HOLD_INTENT, f"{HOLD_INTENT}:{at}", at))
     conn.commit()
+
+
+_PRAGMA = {t: f"PRAGMA table_info({t})" for t in ("reminders", "drafts", "audit")}   # רשימה סגורה, בלי קלט
+
+
+def _cols(conn, table: str) -> set[str]:
+    sql = _PRAGMA[table]
+    return {r[1] for r in conn.execute(sql).fetchall()}
+
+
+def _reapprove_queued(conn, at: str) -> tuple[int, int]:
+    """מבקר 286🟠: הגיבוי לא יודע מה יצא אחריו. תזכורת/תשובה שהייתה `approved`/`sending` ברגע הגיבוי ויצאה אחריו
+    חוזרת בשחזור ל-`approved` (ו-`last_sent_at` ריק ⇒ גם מרווח 72 השעות לא עוצר) ⇒ אחרי שחרור העצירה נשלחה **שוב**.
+    לכן בשחזור כל מה שבתור חוזר לאישור מחדש (כמו approval_expired) — בעל העסק מחליט, מול יומן היוצאים, מה לשלוח.
+    מחזיר (תזכורות, טיוטות) שהוחזרו. בלי הטבלאות (DB ישן/ריק) ⇒ (0, 0)."""
+    n_rem = n_dr = 0
+    rc = _cols(conn, "reminders")
+    if rc:
+        n_rem = conn.execute("UPDATE reminders SET status='pending_approval', block_reason='restored_reapproval' "
+                             "WHERE status IN ('approved','sending')").rowcount
+        if {"approved_hash", "approved_version", "approved_by"} <= rc:   # DB לפני ר-12 ⇒ אין עמודות אישור
+            conn.execute("UPDATE reminders SET approved_hash=NULL, approved_version=NULL, approved_by=NULL "
+                         "WHERE block_reason='restored_reapproval' AND status='pending_approval'")
+    if _cols(conn, "drafts"):
+        n_dr = conn.execute("UPDATE drafts SET status='pending_approval' "
+                            "WHERE status IN ('approved','sending')").rowcount
+    if (n_rem or n_dr) and _cols(conn, "audit"):
+        conn.execute("INSERT INTO audit(at,actor,action,detail) VALUES(?,?,?,?)",
+                     (at, "system", "restore_reapproval",
+                      json.dumps({"reminders": n_rem, "drafts": n_dr})))
+    return n_rem, n_dr
 
 
 def active(db) -> dict | None:

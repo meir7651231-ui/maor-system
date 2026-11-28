@@ -8,13 +8,12 @@
 הסרה, מחיקה או התממה») — לא על שליחות שכבר יצאו.
 מצופה: בשחזור, תזכורות/טיוטות `approved`/`sending` ⇒ חזרה לאישור מחדש (או send_unknown + כרטיס), כמו approval_expired.
 רכיב: app/backup.py → restore_backup · app/restore_guard.py → mark_restored / release.
+✓ מנהל 463: `restore_guard._reapprove_queued` — בשחזור approved/sending ⇒ pending_approval (xfail הוסרו).
 """
 from __future__ import annotations
 
 from dataclasses import replace
 from datetime import timedelta
-
-import pytest
 
 from app import restore_guard
 from app.backup import create_backup, restore_backup
@@ -42,7 +41,6 @@ def test_hold_blocks_until_release_control(svc, clock, tmp_path):
     assert s2.dispatch() == []
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 286🟠: תזכורת שיצאה אחרי הגיבוי נשלחת שוב אחרי שחזור+שחרור")
 def test_reminder_sent_after_backup_not_resent(svc, clock, tmp_path):
     box = SecretBox.from_spec(f"k1:{generate_key()}")
     svc.sync()
@@ -56,7 +54,6 @@ def test_reminder_sent_after_backup_not_resent(svc, clock, tmp_path):
     assert [m for m in s2.sender.sent if m["to"] in DANA] == []
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 286🟠: תשובה שאושרה ויצאה אחרי הגיבוי נשלחת שוב אחרי שחזור+שחרור")
 def test_draft_sent_after_backup_not_resent(svc, clock, tmp_path):
     box = SecretBox.from_spec(f"k1:{generate_key()}")
     svc.sync()
