@@ -1620,13 +1620,15 @@ class CollectService:
                 "closed": closed, "date_order": res.date_order,
                 "amount_check": self._csv_amount_check(res.invoices)}
 
-    def _resolve_paid_claims_closed_at_source(self) -> int:
+    def _resolve_paid_claims_closed_at_source(self, customer_id: int | None = None,
+                                              action: str = "paid_claim_confirmed_by_source") -> int:
         """מבקר סבב 224: «שילמתי» ⇒ כרטיס «לבדוק מול הרישומים». כשהמקור (סנכרון API / קובץ CSV) כבר סגר את כל
         החשבוניות הפתוחות של הלקוח — וחשבונית נסגרה **אחרי** הכרטיס — הבדיקה נעשתה: הכרטיס יורד מ«דורש טיפול»
         (audit `paid_claim_confirmed_by_source`). לקוח שעוד יש לו חשבונית פתוחה / שום דבר לא נסגר מאז ⇒ נשאר."""
         n = 0
         for m in self.db.q("SELECT id, customer_id, created_at FROM messages WHERE needs_owner=1 "
-                           "AND intent='paid_claim' AND customer_id IS NOT NULL"):
+                           "AND intent='paid_claim' AND customer_id IS NOT NULL AND (? IS NULL OR customer_id=?)",
+                           (customer_id, customer_id)):
             cid = m["customer_id"]
             if self.db.one("SELECT 1 FROM invoices WHERE customer_id=? AND status='open'", (cid,)):
                 continue
@@ -1634,7 +1636,7 @@ class CollectService:
                                "AND closed_at >= ?", (cid, m["created_at"])):
                 continue
             self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (m["id"],))
-            self.audit("system", "paid_claim_confirmed_by_source", {"message": m["id"], "customer": cid})
+            self.audit("system", action, {"message": m["id"], "customer": cid})
             n += 1
         return n
 
@@ -2379,6 +2381,9 @@ class CollectService:
         self._cancel_invoice(iid, "owner_marked_paid")
         self.audit(actor, "invoice_marked_paid", {"invoice": iid, "number": inv["number"],
                                                   "amount_agorot": inv["amount_agorot"]})
+        # מבקר 284ℹ️: בעל העסק סימן «שולם» בעצמו = הבדיקה של «שילמתי» נעשתה ⇒ הכרטיס יורד מיד (אותו כלל של 224:
+        # רק כשאין ללקוח עוד חשבונית פתוחה). היה: יורד רק בסנכרון/ייבוא הבא — בעסק CSV עד הקובץ הבא.
+        self._resolve_paid_claims_closed_at_source(inv["customer_id"], "paid_claim_confirmed_by_owner")
         return dict(self._invoice(iid))
 
     def plan(self) -> list[int]:

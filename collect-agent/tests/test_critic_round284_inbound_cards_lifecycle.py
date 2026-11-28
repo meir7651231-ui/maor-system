@@ -18,7 +18,7 @@ from fastapi.testclient import TestClient
 
 from app.main import create_app
 from app.ratelimit import RateLimiter
-from tests.conftest import AUTH, OWNER_TOKEN
+from tests.conftest import AUTH, OWNER_TOKEN, gi_doc
 
 GONE = {"promise": "אשלם ביום חמישי", "how_to_pay": "איך אפשר לשלם?", "thanks": "תודה רבה",
         "opt_out": "הסר אותי", "plan_request": "אפשר לשלם ב-3 תשלומים?"}
@@ -57,7 +57,22 @@ def test_paid_claim_resolves_on_next_sync(svc, clock):
     svc.inbox.approve_draft(r["draft_id"])
     clock.now += timedelta(minutes=5)
     svc.mark_paid_outside(1)
-    assert svc.db.one("SELECT needs_owner FROM messages WHERE intent='paid_claim'")["needs_owner"] == 1
+    # גבי מנוע (284ℹ️): בעל העסק סימן «שולם» בעצמו = הבדיקה נעשתה ⇒ יורד מיד, לא רק בסנכרון הבא
+    assert svc.db.one("SELECT needs_owner FROM messages WHERE intent='paid_claim'")["needs_owner"] == 0
+    assert svc.db.q("SELECT 1 FROM audit WHERE action='paid_claim_confirmed_by_owner'")
     clock.now += timedelta(hours=1)
     svc.sync()
     assert svc.db.one("SELECT needs_owner FROM messages WHERE intent='paid_claim'")["needs_owner"] == 0
+
+
+def test_paid_claim_stays_while_other_invoice_open(svc, clock, fake_gi):
+    """בקרה (גבי מנוע 284ℹ️): ללקוח עוד חשבונית פתוחה ⇒ «שילמתי» לא נבדק במלואו — הכרטיס נשאר."""
+    fake_gi.docs.append(gi_doc(4, amount="600.00", client_id="cl1"))
+    svc.sync()
+    cid = svc.db.one("SELECT customer_id FROM invoices WHERE id=1")["customer_id"]
+    assert svc.db.one("SELECT COUNT(*) n FROM invoices WHERE customer_id=? AND status='open'", (cid,))["n"] == 2
+    r = svc.inbound("sms", "050-1234567", "שילמתי אתמול בהעברה")
+    svc.inbox.approve_draft(r["draft_id"])
+    clock.now += timedelta(minutes=5)
+    svc.mark_paid_outside(1)
+    assert svc.db.one("SELECT needs_owner FROM messages WHERE intent='paid_claim'")["needs_owner"] == 1
