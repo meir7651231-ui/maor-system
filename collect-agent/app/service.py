@@ -3403,8 +3403,15 @@ class CollectService:
                     ids.append(mid)
                     self._log_out(cust["id"], msg, mid, now)
                 if failed and not ids:
-                    # שום הודעה לא יצאה ⇒ משחררים את התפיסה, וננסה בסבב הבא
-                    self.db.x("UPDATE reminders SET status='approved', claimed_at=NULL WHERE id=?", (r["id"],))
+                    # שום הודעה לא יצאה ⇒ משחררים את התפיסה, וננסה בסבב הבא.
+                    # מנהל 471: מותנה ב-sending. אם בינתיים _recover_stuck_sends סימן send_unknown ופתח לבעל העסק
+                    # כרטיס «לא תישלח שוב אוטומטית, בדקו לפני שליחה ידנית» — לא מחזירים ל-approved (אחרת הסבב הבא
+                    # שולח אוטומטית בזמן שבעל העסק אולי כבר שלח ידנית ⇒ כפילות ללקוח). ההבטחה בכרטיס נשמרת.
+                    if not self.db.update("UPDATE reminders SET status='approved', claimed_at=NULL "
+                                          "WHERE id=? AND status='sending'", (r["id"],)):
+                        cur = self.db.one("SELECT status FROM reminders WHERE id=?", (r["id"],))
+                        self.audit("system", "send_release_skipped",
+                                   {"reminder": r["id"], "status": cur["status"] if cur else None})
                     continue
                 if stopped and ids:
                     self.audit("system", "dispatch_stopped_midway", {"reminder": r["id"], "reason": stopped,
@@ -3412,8 +3419,14 @@ class CollectService:
                 if not ids:
                     # critic 188: כל הערוצים נחסמו רק בגלל מייל שחזר ⇒ סיבה מדויקת (לא «ביקש הסרה»)
                     why = "email_bounced" if gated == {"email_bounced"} else (stopped or "opted_out")
+                    was_unknown = self.db.one("SELECT 1 FROM reminders WHERE id=? AND status='send_unknown'",
+                                              (r["id"],)) is not None
                     self.db.x("UPDATE reminders SET status='cancelled', block_reason=? "
                               "WHERE id=?", (why, r["id"]))
+                    if was_unknown:
+                        # מנהל 471: שום הודעה לא יצאה והתזכורת בוטלה (הסרה/השהיה/מייל חוזר) ⇒ כרטיס «נקטעה… לפני
+                        # שליחה ידנית» מזמין את בעל העסק לשלוח ידנית ללקוח שביקש הסרה. הכרטיס יורד.
+                        self._resolve_send_unknown_card(f"sendunk:{r['id']}", {"reminder": r["id"]})
                     continue
                 was_unknown = self.db.one("SELECT 1 FROM reminders WHERE id=? AND status='send_unknown'",
                                           (r["id"],)) is not None
