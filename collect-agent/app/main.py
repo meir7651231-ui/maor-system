@@ -282,7 +282,11 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             # מבקר 293ב: החסימה היא נגד ניחוש — בקשה עם טוקן תקין עוברת (NAT/CGNAT משותף: מי שמנחש מאותה
             # כתובת לא נועל את בעל העסק והעובדות). ניחוש בטוקן שגוי ממשיך לקבל 429 בלי להגיע לאימות.
             if retry is not None and not _bearer_ok(request):
-                return too_many(retry)
+                # מנהל 475: אותו דפוס בכניסה בסיסמה — /auth/login לא נושא טוקן, ולכן עובדת מאחורי אותה כתובת
+                # נחסמה גם עם סיסמה+קוד נכונים. עכשיו: דלי קטן נפרד; כשל עדיין נרשם כ-auth_fail (למטה).
+                if not (request.url.path == "/auth/login" and request.method == "POST"
+                        and rl.check("login_while_blocked", ip) is None):
+                    return too_many(retry)
         resp = await call_next(request)
         if resp.status_code == 401:
             rl.check("auth_fail", ip)  # רושמים כשל אימות (ניחוש טוקן)
