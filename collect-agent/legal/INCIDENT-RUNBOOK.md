@@ -29,7 +29,7 @@
 
 ## 4. בלימה (מיידי)
 1. **סגירת גישה:** לבטל סשנים (`users.py` — מחיקת שורות session), להחליף `OWNER_TOKEN`, להפעיל `REQUIRE_USER_LOGIN=1` אם לא פעיל.
-2. **סודות:** לסובב `SECRET_KEY` (מפתח `secretbox` — דורש הצפנה מחדש של `business_secrets`), סיסמאות עובדים, ומפתחות ספקים (019/InforU/חשבונית ירוקה/SMTP) — אצל הספק.
+2. **סודות:** לסובב `SECRET_KEY` (מפתח `secretbox`: (א) להוסיף מפתח חדש **ראשון** ב-`COLLECT_MASTER_KEYS` ולהשאיר את הישן; (ב) לעלות מחדש — העלייה מצפינה מחדש את `business_secrets` ואת סודות ה-TOTP למפתח החדש (audit `secretbox_rotated`), או `python -m app.secret_rotation`; (ג) רק כשאין `failed` — להוציא את המפתח הישן. מפתח ה-DB: `db_encrypt --rekey`), סיסמאות עובדים, ומפתחות ספקים (019/InforU/חשבונית ירוקה/SMTP) — אצל הספק.
 3. **שליחה:** להחזיר `SEND_MODE=dry_run`; להשהות עסק: `POST /customers/{id}/hold` או השבתת השליחה בהגדרות.
 4. **לא למחוק ראיות.** `audit` ו-`access_log` הם append-only — לייצא עותק (`GET /access-log`) לפני כל שינוי. קובץ ה-DB: צילום (קריאה-בלבד) לפני תיקון.
 

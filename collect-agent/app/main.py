@@ -176,6 +176,22 @@ class LoginIn(BaseModel):
     password: str = Field(max_length=200)
     code: str = Field(max_length=12)
 
+def _rotate_secrets_on_boot(svc) -> None:
+    """מבקר 295🟠: בעלייה עם `COLLECT_MASTER_KEYS` — הצפנה מחדש של סודות-השדה (business_secrets + TOTP) למפתח
+    הפעיל. אידמפוטנטי וזול כשאין מה לסובב. כשל לא מפיל את העלייה (הסודות עדיין נקראים במפתח הישן) — נרשם ביומן."""
+    if not os.environ.get("COLLECT_MASTER_KEYS"):
+        return
+    from .secret_rotation import rotate_secretbox_tokens
+    from .secretbox import SecretBox, SecretError
+    try:
+        res = rotate_secretbox_tokens(svc.db, SecretBox.from_env(), at=svc.clock().isoformat())
+    except SecretError as e:
+        svc.audit("system", "secretbox_rotation_failed", {"error": type(e).__name__})
+        return
+    if res["business_secrets"] or res["totp"] or res["failed"]:
+        svc.audit("system", "secretbox_rotated", res)
+
+
 def create_app(service: CollectService | None = None, *, owner_token: str | None = None,
                webhook_secret: str | None = None,
                limiter: RateLimiter | None = None) -> FastAPI:
@@ -293,6 +309,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return resp
 
     users = Users(svc.db, svc.clock)
+    _rotate_secrets_on_boot(svc)   # מבקר 295🟠: מפתח ראשי חדש ⇒ כל טוקני SecretBox עוברים אליו לפני הוצאת הישן
     require_login = os.environ.get("REQUIRE_USER_LOGIN") == "1"
     if built_from_env and getattr(svc.s, "real_data_allowed", False) and not require_login:
         # critic סבב 17 (פתוח מסבב 7): נתוני חייבים אמיתיים (שער 4) עם הטוקן המשותף פתוח = גישה

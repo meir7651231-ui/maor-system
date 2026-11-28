@@ -15,8 +15,6 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-import pytest
-
 from app import totp
 from app.main import create_app
 from app.secretbox import generate_key
@@ -39,7 +37,6 @@ def test_login_works_while_both_keys_present_control(svc, clock, monkeypatch):
     assert Users(svc.db, svc.clock).login("owner@s.example", PW, totp.code_at(reg["totp_secret"], clock().timestamp()))
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 295🟠: אין סיבוב לסודות SecretBox — הוצאת מפתח שדלף נועלת את בעל העסק")
 def test_login_survives_dropping_old_key_after_rotation(svc, clock, monkeypatch):
     reg, k2 = _owner_with_k1(svc, monkeypatch)
     create_app(svc, owner_token=OWNER_TOKEN)   # עלייה עם המפתח החדש ראשון (הזדמנות לסיבוב)
@@ -48,3 +45,42 @@ def test_login_survives_dropping_old_key_after_rotation(svc, clock, monkeypatch)
     clock.now += timedelta(seconds=31)
     assert Users(svc.db, svc.clock).login("owner@s.example", PW,
                                           totp.code_at(reg["totp_secret"], clock().timestamp()))
+
+
+def _box(spec):
+    from app.secretbox import SecretBox
+    return SecretBox.from_spec(spec)
+
+
+def test_business_secret_survives_dropping_old_key(svc, monkeypatch):
+    """גבי מנוע 295: סוד-שדה (כולל סוד-המסירה של אורביט) עובר למפתח החדש ונקרא אחרי הוצאת הישן."""
+    from app.business_secrets import BusinessSecrets
+    from app.secret_rotation import rotate_secretbox_tokens
+    k1, k2 = generate_key(), generate_key()
+    BusinessSecrets(svc.db, _box(f"k1:{k1}")).put(1, "gi_api_secret", "s3cr3t", at="t")
+    res = rotate_secretbox_tokens(svc.db, _box(f"k2:{k2},k1:{k1}"), at="t2")
+    assert res == {"business_secrets": 1, "totp": 0, "failed": 0}
+    assert BusinessSecrets(svc.db, _box(f"k2:{k2}")).get(1, "gi_api_secret").reveal() == "s3cr3t"
+    # אידמפוטנטי — הרצה שנייה לא נוגעת
+    assert rotate_secretbox_tokens(svc.db, _box(f"k2:{k2},k1:{k1}"))["business_secrets"] == 0
+
+
+def test_undecryptable_token_left_untouched(svc):
+    """טוקן במפתח שלא קיים — לא נמחק, לא עוצר את השאר, נספר ב-failed."""
+    from app.business_secrets import BusinessSecrets
+    from app.secret_rotation import rotate_secretbox_tokens
+    k0, k1, k2 = generate_key(), generate_key(), generate_key()
+    BusinessSecrets(svc.db, _box(f"k0:{k0}")).put(1, "sms_token", "lost", at="t")
+    BusinessSecrets(svc.db, _box(f"k1:{k1}")).put(1, "gi_api_secret", "ok", at="t")
+    before = svc.db.one("SELECT ciphertext FROM business_secrets WHERE field='sms_token'")["ciphertext"]
+    res = rotate_secretbox_tokens(svc.db, _box(f"k2:{k2},k1:{k1}"))
+    assert res == {"business_secrets": 1, "totp": 0, "failed": 1}
+    assert svc.db.one("SELECT ciphertext FROM business_secrets WHERE field='sms_token'")["ciphertext"] == before
+
+
+def test_boot_rotation_is_audited(svc, monkeypatch):
+    _owner_with_k1(svc, monkeypatch)
+    create_app(svc, owner_token=OWNER_TOKEN)
+    import json
+    rows = [json.loads(r["detail"]) for r in svc.db.q("SELECT detail FROM audit WHERE action='secretbox_rotated'")]
+    assert rows and rows[0]["totp"] == 1
