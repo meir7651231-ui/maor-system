@@ -24,7 +24,8 @@ from app.users import Users
 from tests.conftest import OWNER_TOKEN
 
 PW = "correct-horse-battery-9"
-PH = re.compile(r"0?5\d[- ]?\d{7}|9725\d{8}|\+972")
+# סבב 295: גבולות מילה — מזהי הודעה אקראיים (dryrun.<hex>) הכילו לפעמים רצף ספרות שנראה כמו נייד ⇒ בדיקה לא יציבה
+PH = re.compile(r"(?<![\w.])(?:0?5\d[- ]?\d{7}|9725\d{8})(?![\w])|\+972")
 EM = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
 
 
