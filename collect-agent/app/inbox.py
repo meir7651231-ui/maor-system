@@ -1191,11 +1191,11 @@ class ConversationInbox:
         now_total = self._open_total(cust["id"])
         if money and dr["total_agorot"] is not None and now_total != dr["total_agorot"]:
             # אימות סכום לפני כל שליחה: היתרה השתנתה (תשלום/עדכון) ⇒ הנוסח לא נשלח
-            self._drop_approved(draft_id, cust, "system:amount_changed",
-                                "היתרה של הלקוח השתנתה מאז שהתשובה נוסחה (תשלום או עדכון), ולכן הסכום בה כבר "
-                                "לא נכון. אם צריך, תכינו תשובה חדשה")
-            self.svc.audit("system", "draft_blocked_amount_changed",
-                           {"draft": draft_id, "was": dr["total_agorot"], "now": now_total})
+            if self._drop_approved(draft_id, cust, "system:amount_changed",
+                                   "היתרה של הלקוח השתנתה מאז שהתשובה נוסחה (תשלום או עדכון), ולכן הסכום בה "
+                                   "כבר לא נכון. אם צריך, תכינו תשובה חדשה"):
+                self.svc.audit("system", "draft_blocked_amount_changed",
+                               {"draft": draft_id, "was": dr["total_agorot"], "now": now_total})
             return False
         msg = self._message(cust, dr)
         if msg is None:
@@ -1209,7 +1209,7 @@ class ConversationInbox:
             mid = self.svc.sender.send(msg)
         except Exception as e:  # noqa: BLE001 — מבקר סבב 3: IntegrationError (ארוך מדי) קרס ונעל את הלקוח
             self._drop_approved(draft_id, cust, "system:send_error", f"שגיאת שליחה: {str(e)[:160]}",
-                                intent="send_error", body=f"הטיוטה לא נשלחה: {str(e)[:160]}")
+                                intent="send_error", body=f"הטיוטה לא נשלחה: {str(e)[:160]}", expect="sending")
             self.svc.audit("system", "draft_send_error", {"draft": draft_id, "error": str(e)[:200]})
             return False
         self.svc._log_out(cust["id"], msg, mid, now)
@@ -1232,15 +1232,24 @@ class ConversationInbox:
         return True
 
     def _drop_approved(self, draft_id: int, cust, decided_by: str, reason: str, *,
-                       intent: str = "draft_not_sent", body: str | None = None) -> None:
+                       intent: str = "draft_not_sent", body: str | None = None,
+                       expect: str = "approved") -> bool:
         """critic סבב 61: טיוטה **שבעל העסק אישר** לא יוצאת בגלל החלטת מערכת ⇒ נדחית **ובעל העסק מקבל הודעה**.
-        היה: amount_changed / no_address / חסימה בשער נדחו בשקט, ובעל העסק בטוח שהלקוח קיבל תשובה."""
-        self.db.x("UPDATE drafts SET status='rejected', decided_by=? WHERE id=?", (decided_by, draft_id))
+        היה: amount_changed / no_address / חסימה בשער נדחו בשקט, ובעל העסק בטוח שהלקוח קיבל תשובה.
+        מנהל 464 (check-then-update): הדחייה מותנית במצב שהבדיקה ראתה (`expect`: approved לפני התפיסה, sending
+        אחרי). היה UPDATE בלי תנאי ⇒ ריצה מקבילה ששלחה את הטיוטה בינתיים (sent_dry_run), דחייה ידנית של בעל
+        העסק, או send_unknown מ-_recover_stuck_drafts נדרסו ל-rejected/system — ובעל העסק קיבל «התשובה לא
+        נשלחה» על תשובה שיצאה. 0 שורות ⇒ מישהו אחר כבר הכריע: לא נוגעים ולא מודיעים. מחזיר האם נדחתה."""
+        if self.db.update("UPDATE drafts SET status='rejected', decided_by=? WHERE id=? AND status=?",
+                          (decided_by, draft_id, expect)) != 1:
+            self.svc.audit("system", "draft_drop_skipped", {"draft": draft_id, "why": decided_by})
+            return False
         who = cust["name"] if cust and cust["name"] else "הלקוח"
         text = body or f"התשובה שאישרתם ל{who} לא נשלחה: {reason}."
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at) "
                   "VALUES(?,'system','owner',?,?,1,?)",
                   (cust["id"] if cust else None, text, intent, _iso(self.svc.clock())))
+        return True
 
     @staticmethod
     def _addr(cust, channel: str) -> str | None:
