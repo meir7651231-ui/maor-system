@@ -298,10 +298,14 @@ class ConversationInbox:
         ids = [x["id"] for x in info.get("linked_customers", [])]
         if customer_id is not None and customer_id not in ids:
             raise ValueError("הלקוח לא מקושר לכתובת הזו")
-        cust = self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)) if customer_id is not None else None
+        gone_he = "הלקוח הזה כבר לא קיים במערכת — בחרו לקוח אחר או «אף אחד מהם»"
+        # מנהל 461: «לא קיים» = נמחק **או הותמם** (ר-10 לא מוחק שורה — purged_at). היה `cust is None` בלבד ⇒ שיוך
+        # ללקוח מותמם רשם מחדש את גוף ההודעה (PII) תחת הלקוח המותמם ויצר טיוטה לכתובת NULL.
+        live_sql = "SELECT * FROM customers WHERE id=? AND purged_at IS NULL"
+        cust = self.db.one(live_sql, (customer_id,)) if customer_id is not None else None
         if customer_id is not None and cust is None:
             # critic סבב 150: נמחק בינתיים (purge) — היה TypeError/500 אחרי שהכרטיס כבר נסגר וההשהיות שוחררו
-            raise ValueError("הלקוח הזה כבר לא קיים במערכת — בחרו לקוח אחר או «אף אחד מהם»")
+            raise ValueError(gone_he)
         # מבקר 276ב🟡: תפיסה אטומית. היה `WHERE id=?` אחרי בדיקת needs_owner ⇒ עובדת a ⇒ דויד ‖ עובדת b ⇒ שרה:
         # שני השיוכים הצליחו, «שילמתי» נרשם לשני הלקוחות (שניהם מושהים) ושתי טיוטות לאותו טלפון.
         marker = (self.db.one("SELECT MAX(id) AS m FROM messages") or {"m": 0})["m"] or 0
@@ -312,6 +316,12 @@ class ConversationInbox:
         with self.db.batch():
             if not self.db.update("UPDATE messages SET needs_owner=0 WHERE id=? AND needs_owner=1", (card_id,)):
                 raise ValueError(self._already_handled_he(card_id))
+            if customer_id is not None:
+                # מנהל 461 (check-then-update): התממה/מחיקה בין הבדיקה למעלה לתפיסה ⇒ בודקים שוב בתוך הטרנזקציה;
+                # הזריקה מגלגלת אחורה גם את התפיסה ⇒ הכרטיס נשאר ב«דורש טיפול» וההשהיות לא זזות.
+                cust = self.db.one(live_sql, (customer_id,))
+                if cust is None:
+                    raise ValueError(gone_he)
             released = [cid for cid in ids
                         if self.db.update("UPDATE customers SET paused_reason=NULL WHERE id=? AND paused_reason=?",
                                           (cid, m["intent"]))]
