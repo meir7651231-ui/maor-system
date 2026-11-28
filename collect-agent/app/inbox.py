@@ -757,10 +757,12 @@ class ConversationInbox:
                          "intent='plan_request'", (cid,))
         if not rows:
             return
-        ids = [r["id"] for r in rows]
-        for did in ids:
-            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:customer_replied' WHERE id=?",
-                      (did,))
+        # מנהל 474: מותנה במצב שה-SELECT ראה — flush מקביל שכבר תפס (sending) / שלח לא נדרס ל-superseded
+        ids = [r["id"] for r in rows if self.db.update(
+            "UPDATE drafts SET status='superseded', decided_by='system:customer_replied' WHERE id=? "
+            "AND status='approved'", (r["id"],)) == 1]
+        if not ids:
+            return
         self.svc.audit("system", "queued_plan_offer_dropped", {"customer": cid, "drafts": ids, "intent": intent})
 
     def _paid_claim_moved_note(self, cid: int, d: Decision) -> Decision:
@@ -886,15 +888,16 @@ class ConversationInbox:
         ישירה (360) ולכרטיס כתובת משותפת (361). לא נעצרות: אישור הסרה / «מספר שגוי» / תשובות דחופות קודמות."""
         rows = self.db.q("SELECT id, intent FROM drafts WHERE customer_id=? AND status='approved' AND "
                          "escalate!='urgent' AND intent NOT IN ('opt_out','wrong_person')", (cid,))
-        for r in rows:
-            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:protective_reply' WHERE id=?",
-                      (r["id"],))
-        if rows:
-            detail = {"customer": cid, "drafts": [r["id"] for r in rows], "intent": intent, "pause": pause}
+        # מנהל 474: מותנה ב-approved — טיוטה שנתפסה בינתיים לשליחה (sending) / יצאה לא מסומנת «נעצרה»
+        ids = [r["id"] for r in rows if self.db.update(
+            "UPDATE drafts SET status='superseded', decided_by='system:protective_reply' WHERE id=? "
+            "AND status='approved'", (r["id"],)) == 1]
+        if ids:
+            detail = {"customer": cid, "drafts": ids, "intent": intent, "pause": pause}
             if shared_card is not None:
                 detail["shared_card"] = shared_card
             self.svc.audit("system", "approved_drafts_stopped_protective", detail)
-        return [r["id"] for r in rows]
+        return ids
 
     def _draft(self, cust, channel: str, d: Decision, plan_id: int | None) -> int:
         # טיוטה חדשה מחליפה טיוטות קודמות שעוד לא אושרו (למשל הצעת פריסה ישנה) — חוץ מדחופות

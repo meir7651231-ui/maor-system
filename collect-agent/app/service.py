@@ -4660,12 +4660,13 @@ class CollectService:
         # העסק ראה ואישר) ⇒ הטיוטה הישנה מוחלפת (superseded) וטיוטה חדשה בנוסח הסופי ממתינה לאישור — גם אם הישנה
         # כבר אושרה וממתינה לחלון השליחה.
         pending = [d for d in self.db.q(
-            "SELECT id, channel, owner_actions FROM drafts WHERE customer_id=? AND status IN "
+            "SELECT id, channel, owner_actions, status FROM drafts WHERE customer_id=? AND status IN "
             "('pending_approval','approved') ORDER BY id DESC", (cid,))
             if any(str(a).startswith("בדוק ואשר:") for a in json.loads(d["owner_actions"] or "[]"))]
-        for d in pending:
-            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:promise_decision' WHERE id=?",
-                      (d["id"],))
+        # מנהל 474: מותנה במצב שה-SELECT ראה — טיוטה שנתפסה בינתיים לשליחה לא נדרסת ל-superseded
+        pending = [d for d in pending if self.db.update(
+            "UPDATE drafts SET status='superseded', decided_by='system:promise_decision' WHERE id=? AND status=?",
+            (d["id"], d["status"])) == 1]
         last = self.db.one("SELECT channel FROM drafts WHERE customer_id=? AND intent='promise' "
                            "ORDER BY id DESC LIMIT 1", (cid,))
         channel = pending[0]["channel"] if pending else last["channel"] if last else (
@@ -4808,20 +4809,24 @@ class CollectService:
         «מספר שגוי» לא נעצרים (כמו בהסרה)."""
         if not self._table_exists("drafts"):
             return 0
-        rows = self.db.q("SELECT id FROM drafts WHERE customer_id=? AND status IN ('pending_approval','approved') "
-                         "AND intent NOT IN ('opt_out','wrong_person')", (cid,))
-        for d in rows:
-            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:owner_hold' WHERE id=?",
-                      (d["id"],))
-        return len(rows)
+        rows = self.db.q("SELECT id, status FROM drafts WHERE customer_id=? AND status IN "
+                         "('pending_approval','approved') AND intent NOT IN ('opt_out','wrong_person')", (cid,))
+        # מנהל 474: מותנה במצב שה-SELECT ראה (sending/נשלחה בינתיים ⇒ לא נספרת כ«נעצרה»)
+        return sum(1 for d in rows if self.db.update(
+            "UPDATE drafts SET status='superseded', decided_by='system:owner_hold' WHERE id=? AND status=?",
+            (d["id"], d["status"])) == 1)
 
     def _stop_drafts(self, rows) -> None:
         """critic סבב 60: עוצר את הטיוטות **ומודיע לבעל העסק**. בסבבים 58–59 הטיוטה נעלמה בשקט מהתור, גם כשבעל
         העסק כבר אישר אותה ⇒ הוא חשב שהלקוח קיבל את קישור התשלום. הודעה אחת לכל לקוח (כמה טיוטות ⇒ ספירה)."""
         by: dict[int, list] = {}
         for d in rows:
-            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:opted_out' WHERE id=?",
-                      (d["id"],))
+            # מנהל 474: מותנה במצב שה-SELECT ראה. טיוטה שנתפסה בינתיים לשליחה (sending) כבר בדרך — היא לא
+            # «נעצרה», ובעל העסק לא מקבל «לא נשלחה» על הודעה שיצאה. ההסרה עצמה חלה על כל שליחה מכאן והלאה.
+            if self.db.update("UPDATE drafts SET status='superseded', decided_by='system:opted_out' WHERE id=? "
+                              "AND status=?", (d["id"], d["status"])) != 1:
+                self.audit("system", "draft_stop_skipped", {"draft": d["id"], "why": "opted_out"})
+                continue
             by.setdefault(d["customer_id"], []).append(d)
         for cid, ds in by.items():
             c = self.db.one("SELECT name FROM customers WHERE id=?", (cid,))
