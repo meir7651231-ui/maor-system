@@ -3414,10 +3414,16 @@ class CollectService:
                     self.db.x("UPDATE reminders SET status='cancelled', block_reason=? "
                               "WHERE id=?", (why, r["id"]))
                     continue
+                was_unknown = self.db.one("SELECT 1 FROM reminders WHERE id=? AND status='send_unknown'",
+                                          (r["id"],)) is not None
                 self.db.x("UPDATE reminders SET status='sent_dry_run', sent_at=?, message_id=?, "
                           "payload=?, body=? WHERE id=?",
                           (_iso(now), ",".join(ids), redact_tokens(r["payload"]),
                            redact_tokens(r["body"]), r["id"]))
+                if was_unknown:
+                    # מנהל 469: נתקעה ⇒ _recover_stuck_sends סימן send_unknown + כרטיס «נקטעה» ⇒ ואז הסתיימה
+                    # בהצלחה. הכרטיס יורד (אחרת בעל העסק בודק/שולח ידנית תזכורת שכבר יצאה)
+                    self._resolve_send_unknown_card(f"sendunk:{r['id']}", {"reminder": r["id"]})
                 self.db.x("UPDATE customers SET last_sent_at=? WHERE id=?", (_iso(now), cust["id"]))
                 for k in self._contacts_of(cust):
                     last_by_contact[k] = now
@@ -3427,6 +3433,13 @@ class CollectService:
         return out
 
     CLAIM_STALE = timedelta(minutes=30)
+
+    def _resolve_send_unknown_card(self, card_mid: str, ref: dict) -> None:
+        """מנהל 469: שליחה שסומנה send_unknown («נקטעה, ייתכן שיצאה») חזרה בהצלחה ⇒ כרטיס הבדיקה לבעל העסק
+        מיותר. מוריד אותו (מותנה — רק אם עדיין פתוח) ומתעד; בלי PII."""
+        n = self.db.update("UPDATE messages SET needs_owner=0 WHERE message_id=? AND intent='send_unknown' "
+                           "AND needs_owner=1", (card_mid,))
+        self.audit("system", "send_unknown_resolved", {**ref, "card_closed": n})
 
     def _recover_stuck_plans(self, now: datetime) -> None:
         """critic סבב 76: הסדר שנשאר `approving` (התהליך נהרג באמצע אישור; ה-finally לא רץ) היה תקוע לתמיד:

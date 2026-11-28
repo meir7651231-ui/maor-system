@@ -1215,8 +1215,15 @@ class ConversationInbox:
             self.svc.audit("system", "draft_send_error", {"draft": draft_id, "error": str(e)[:200]})
             return False
         self.svc._log_out(cust["id"], msg, mid, now)
-        self.db.x("UPDATE drafts SET status='sent_dry_run', sent_at=?, message_id=? WHERE id=?",
-                  (_iso(now), mid, draft_id))
+        # מנהל 469: השליחה נתקעה מעל CLAIM_STALE ⇒ _recover_stuck_drafts כבר סימן send_unknown ופתח לבעל העסק
+        # כרטיס «נקטעה, בדקו ביומן היוצאים» — ואז השליחה חזרה בהצלחה. הסימון נשאר בלי תנאי (ההודעה יצאה —
+        # זו האמת), אבל מעבר send_unknown ⇒ sent_dry_run נתפס קודם ומוריד את הכרטיס (אחרת בעל העסק בודק/שולח ידנית).
+        if self.db.update("UPDATE drafts SET status='sent_dry_run', sent_at=?, message_id=? "
+                          "WHERE id=? AND status='send_unknown'", (_iso(now), mid, draft_id)) == 1:
+            self.svc._resolve_send_unknown_card(f"sendunk-draft:{draft_id}", {"draft": draft_id})
+        else:
+            self.db.x("UPDATE drafts SET status='sent_dry_run', sent_at=?, message_id=? WHERE id=?",
+                      (_iso(now), mid, draft_id))
         if dr["plan_id"]:
             # review חור 2: הצעת הפריסה יצאה מתור התשובות ⇒ ההסדר הוכרע. אחרת /plans/approve
             # שלח ללקוח הצעה שנייה (בנוסח ובתאריכים אחרים).
