@@ -444,12 +444,15 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         built = (web_dist / "index.html").is_file()
         return RedirectResponse("/app/" if built else "/ui", status_code=307)
 
+    # מבקר 292ℹ️: הרצה ידנית (לא ה-cron) נרשמת ביומן עם המבצע — מי לחץ «סנכרן/תכנן/שלח עכשיו»
     @app.post("/sync", dependencies=auth)
-    def sync():
+    def sync(request: Request):
+        svc.audit(request.state.actor, "manual_run", {"op": "sync"})
         return guard(svc.sync)
 
     @app.post("/plan", dependencies=auth)
-    def plan():
+    def plan(request: Request):
+        svc.audit(request.state.actor, "manual_run", {"op": "plan"})
         return {"created": svc.plan()}
 
     # מנהל 337: הזזת שעון ההדגמה — כדי ש-e2e בדפדפן יכסה מצבים שתלויים בזמן (הסדר «הוחמץ» אחרי 7 ימי חסד),
@@ -554,7 +557,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return guard(svc.reject, rid, request.state.actor)
 
     @app.post("/dispatch", dependencies=auth)
-    def dispatch():
+    def dispatch(request: Request):
+        svc.audit(request.state.actor, "manual_run", {"op": "dispatch"})   # מבקר 292ℹ️
         sent = svc.dispatch()
         # מנהל 444 (מבקר 271ℹ️): כשלא יצא כלום — למה (הממשק לא יבטיח «ייצא בחלון הבא» כשהשירות עצור)
         return {"dry_run": True, "sent": sent, "held": None if sent else svc.dispatch_hold()}

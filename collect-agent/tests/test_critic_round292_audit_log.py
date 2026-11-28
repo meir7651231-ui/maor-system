@@ -68,3 +68,41 @@ def test_staff_actions_recorded_under_user(svc, clock, monkeypatch):
     got = {a["action"]: a["actor"] for a in svc.db.q("SELECT actor, action FROM audit WHERE id>?", (start,))}
     for act in ("approve", "reject", "invoice_marked_paid", "dsr_opened"):
         assert got.get(act, "").startswith("user:"), (act, got)
+
+
+def _staff_api(svc, clock, monkeypatch):
+    monkeypatch.setenv("COLLECT_MASTER_KEYS", f"k1:{generate_key()}")
+    u = Users(svc.db, svc.clock)
+    u.create("owner@s.example", "בעלים", PW)
+    reg = u.create("s@s.example", "רחל", PW)
+    monkeypatch.setenv("REQUIRE_USER_LOGIN", "1")
+    api = TestClient(create_app(svc, owner_token=OWNER_TOKEN))
+    tok = api.post("/auth/login", json={"email": "s@s.example", "password": PW,
+                                        "code": totp.code_at(reg["totp_secret"], clock().timestamp())}).json()["token"]
+    return api, {"Authorization": f"Bearer {tok}"}
+
+
+def test_staff_opt_out_not_attributed_to_customer(svc, clock, monkeypatch):
+    """גבי מנוע (292ℹ️): הסרה שעובדת ביצעה לא נרשמת «customer opt_out» — המבצע הוא העובדת."""
+    api, h = _staff_api(svc, clock, monkeypatch)
+    svc.sync()
+    start = svc.db.one("SELECT MAX(id) m FROM audit")["m"] or 0
+    assert api.post("/customers/1/opt-out", headers=h).status_code == 200
+    rows = svc.db.q("SELECT actor, action FROM audit WHERE id>? AND action IN ('opt_out','owner_opt_out')", (start,))
+    assert rows and all(r["actor"].startswith("user:") for r in rows), [dict(r) for r in rows]
+
+
+def test_customer_opt_out_still_customer_control(svc):
+    """בקרה: «הסר» של הלקוח עצמו נשאר customer opt_out."""
+    svc.sync()
+    svc.inbound("sms", "050-1234567", "הסר")
+    assert svc.db.one("SELECT actor FROM audit WHERE action='opt_out'")["actor"] == "customer"
+
+
+def test_manual_runs_recorded_with_actor(svc, clock, monkeypatch):
+    """גבי מנוע (292ℹ️): /sync /plan /dispatch ידניים נרשמים עם המבצע."""
+    api, h = _staff_api(svc, clock, monkeypatch)
+    for op in ("sync", "plan", "dispatch"):
+        api.post(f"/{op}", headers=h)
+    ops = {(r["actor"][:5], r["detail"]) for r in svc.db.q("SELECT actor, detail FROM audit WHERE action='manual_run'")}
+    assert {d for a, d in ops if a == "user:"} == {'{"op": "sync"}', '{"op": "plan"}', '{"op": "dispatch"}'}, ops

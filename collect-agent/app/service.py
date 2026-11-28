@@ -4525,7 +4525,7 @@ class CollectService:
         ההסרה (כתובת משותפת, טיוטות ממתינות) — סופי, כמו כל הסרה."""
         if not self.db.one("SELECT 1 FROM customers WHERE id=?", (customer_id,)):
             raise KeyError(customer_id)
-        self._opt_out(customer_id, "owner")
+        self._opt_out(customer_id, "owner", actor)
         if self._table_exists("drafts"):   # הכרטיס שממנו בעל העסק הסיר — נסגר (הוא זה שפעל, אין צורך בהודעה)
             self.db.x("UPDATE drafts SET status='superseded', decided_by=? WHERE customer_id=? AND "
                       "status IN ('needs_owner','pending_approval')", (f"{actor}:opt_out", customer_id))
@@ -4704,7 +4704,11 @@ class CollectService:
                    {"customer": cid, "draft": did, "request": req_audit_id, "replaced": replaced})
         return {"draft": did, "replaced": replaced}
 
-    def _opt_out(self, cid: int, how: str) -> None:
+    # מבקר 292ℹ️: מי ביקש בפועל. היה actor קבוע 'customer' ⇒ הסרה של עובדת/בעלים נרשמה «customer opt_out» — ראיה
+    # מטעה במחלוקת «לא ביקשתי הסרה». ספק (רשימה שחורה של הספק) = system; בעלים/עובדת = המבצע שהועבר.
+    _OPT_OUT_SYSTEM_VIAS = frozenset({"carrier_blacklist"})
+
+    def _opt_out(self, cid: int, how: str, actor: str | None = None) -> None:
         self.db.x("UPDATE customers SET opted_out=1 WHERE id=?", (cid,))
         c = self.db.one("SELECT phone, email FROM customers WHERE id=?", (cid,))
         # ממצא 2.5: הסרה לפי כתובת, לא רק לפי רשומת לקוח (טלפון משותף / לקוח כפול)
@@ -4717,7 +4721,8 @@ class CollectService:
         # ההסרה (טיוטה חדשה, שנוצרת מכאן והלאה). הרצון האחרון שלו הוא ההסרה ⇒ טיוטות קודמות שממתינות נעצרות.
         # אישור ההסרה עצמו (opt_out / wrong_person) לא נעצר.
         self._stop_pending_drafts(cid)
-        self.audit("customer", "opt_out", {"customer": cid, "via": how})
+        self.audit(actor or ("system" if how in self._OPT_OUT_SYSTEM_VIAS else "customer"), "opt_out",
+                   {"customer": cid, "via": how})
         # review חור 1 (הכרעת המבקר לפי הכללים, שמרני): לקוח אחר על אותו נייד/מייל הוא כמעט תמיד
         # אותו אדם או משק בית ⇒ «הסר» עוצר גם את שאר הערוצים שלו (היה: מייל לכתובת שלו נשלח).
         phone, email = normalize_il_phone(c["phone"]), (c["email"] or "").strip().lower()
