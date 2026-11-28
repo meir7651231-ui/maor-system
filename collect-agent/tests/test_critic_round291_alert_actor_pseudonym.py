@@ -13,7 +13,6 @@ app/main.py → notify_owner_sensitive.
 """
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app import totp
@@ -48,7 +47,6 @@ def test_alert_sent_with_change_control(svc, clock, monkeypatch):
     assert "pay/other" in mail and "pay/other" in card
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 291🟡: התראת אבטחה מציגה «על ידי user:2» במקום מי")
 def test_alert_names_who_changed(svc, clock, monkeypatch):
     mail, card = _rachel_changes_payment_link(svc, clock, monkeypatch)
     assert "רחל" in mail and "רחל" in card

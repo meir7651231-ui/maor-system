@@ -1161,7 +1161,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         if done:
             svc.audit(request.state.actor, "orbit_unlinked", {"org": link["org"] if link else ""})
             # critic סבב 73: ניתוק יכול לעצור את השירות (68–69) ⇒ בעל העסק יודע מי ניתק
-            svc.notify_owner_sensitive(f"הקישור לאורביט נותק על ידי {request.state.actor} (ארגון: "
+            svc.notify_owner_sensitive(f"הקישור לאורביט נותק על ידי {svc.alert_actor_he(request.state.actor)} (ארגון: "
                                        f"{link['org'] if link else '—'}). החיוב והזכאות כבר לא מתעדכנים. "
                                        "אם לא אתם ניתקתם — בדקו מיד.", request.state.actor)
         return {"unlinked": done}
@@ -1255,10 +1255,11 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(422, str(e)) from e
         if r["from"] != r["to"]:
             actor = request.state.actor
+            who = svc.alert_actor_he(actor)   # מנהל 470: שם, לא user:N
             # ה-audit (פסאודונים) נרשם ב-Users.set_role; השם רק בהודעה לבעל העסק, שנמחקת עם העסק
             label = {"owner": "בעל העסק", "staff": "עובד"}
             svc.notify_owner_sensitive(
-                f"תפקיד שונה על ידי {actor}: {r['name']} — «{label[r['from']]}» ⇒ «{label[r['to']]}». "
+                f"תפקיד שונה על ידי {who}: {r['name']} — «{label[r['from']]}» ⇒ «{label[r['to']]}». "
                 "בעל עסק יכול לחדש שליחה אחרי שחזור ולנהל את הצוות. אם לא אתם שיניתם — בדקו מיד.", actor)
         return {"users": users.listing(), "me": _me_id(request)}
 
@@ -1273,8 +1274,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(422, str(e)) from e
         if r["was_active"]:
             actor = request.state.actor
+            who = svc.alert_actor_he(actor)
             svc.notify_owner_sensitive(
-                f"עובד הושבת על ידי {actor}: {r['name']} — כל הכניסות הפתוחות שלו נותקו. "
+                f"עובד הושבת על ידי {who}: {r['name']} — כל הכניסות הפתוחות שלו נותקו. "
                 "אם לא אתם השבתתם — בדקו מיד.", actor)
         return {"users": users.listing(), "me": _me_id(request)}
 
@@ -1288,8 +1290,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(404, "אין עובד כזה") from None
         if not r["was_active"]:
             actor = request.state.actor
+            who = svc.alert_actor_he(actor)
             svc.notify_owner_sensitive(
-                f"עובד הופעל מחדש על ידי {actor}: {r['name']} — חזר כ«עובד» ויכול להיכנס שוב עם הסיסמה "
+                f"עובד הופעל מחדש על ידי {who}: {r['name']} — חזר כ«עובד» ויכול להיכנס שוב עם הסיסמה "
                 "והאימות הדו-שלבי שלו. אם לא אתם הפעלתם — בדקו מיד.", actor)
         return {"users": users.listing(), "me": _me_id(request)}
 

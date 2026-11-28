@@ -135,7 +135,8 @@ def test_reply_to_hijack_emails_the_previous_address_not_the_new_one(svc):
     svc.update_settings({"email_reply_to": "x@evil.example", "payment_link": NEW_LINK}, actor="user:7")
     mails = _owner_mails(svc, mark)
     assert [m["to"] for m in mails] == ["owner@biz.example"], mails
-    assert NEW_LINK in mails[0]["body"] and "x@evil.example" in mails[0]["body"] and "user:7" in mails[0]["body"]
+    assert NEW_LINK in mails[0]["body"] and "x@evil.example" in mails[0]["body"] and "עובד/ת" in mails[0]["body"]
+    assert "user:7" not in mails[0]["body"]   # מנהל 470: שם/«עובד/ת», לא פסאודונים
     assert not [r for r in sent_since(svc.sender.sent, mark) if r["to"] == "x@evil.example"]
     assert svc.db.q("SELECT 1 FROM audit WHERE action='settings_changed_email_sent'")
 
@@ -198,7 +199,7 @@ def test_orbit_unlink_by_employee_tells_owner(svc, monkeypatch):
     api = TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
     assert api.post("/orbit/link/unlink").json() == {"unlinked": True}
     notes = [m for m in api.get("/owner/inbox").json() if m["intent"] == "settings_changed"]
-    assert notes and "אורביט" in notes[0]["body"] and "owner" in notes[0]["body"], notes
+    assert notes and "אורביט" in notes[0]["body"] and "בעל העסק" in notes[0]["body"], notes  # מנהל 470
 
 
 def test_purge_records_who_triggered_it(svc):

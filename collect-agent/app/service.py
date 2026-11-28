@@ -580,7 +580,7 @@ class CollectService:
             # הפעלה 199: מי ששינה נשמר ב-message_id ⇒ owner_message_done לא נותן לו לסמן «טופל» בעצמו
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
                       "created_at) VALUES(NULL,'system','owner',?,'settings_changed',1,?,?)",
-                      (f"הגדרות רגישות שונו על ידי {actor}: {lines}. אם לא אתם שיניתם — בדקו מיד.",
+                      (f"הגדרות רגישות שונו על ידי {self.alert_actor_he(actor)}: {lines}. אם לא אתם שיניתם — בדקו מיד.",
                        f"settings_changed:{actor}", _iso(self.clock())))
             self._email_owner_settings_changed(old_s, actor, lines)
 
@@ -594,8 +594,9 @@ class CollectService:
             self.audit("system", "settings_changed_email_skipped",
                        {"reason": "no_owner_address" if not valid_email(to) else "no_email_channel"})
             return
+        who = self.alert_actor_he(actor)   # מנהל 470: שם, לא user:N
         msg = Message("email", to,
-                      f"שלום,\n\nבמערכת גבי של {old_s.business_name} שונו הגדרות רגישות על ידי {actor}:\n{lines}\n\n"
+                      f"שלום,\n\nבמערכת גבי של {old_s.business_name} שונו הגדרות רגישות על ידי {who}:\n{lines}\n\n"
                       "אם לא אתם שיניתם — היכנסו מיד, החזירו את הערכים והחליפו סיסמאות.\n"
                       "ההודעה נשלחה לכתובת התשובות שהייתה מוגדרת לפני השינוי.",
                       subject=f"גבי: שינוי בהגדרות רגישות ({old_s.business_name})")
@@ -4526,6 +4527,15 @@ class CollectService:
         out = restore_guard.release(self.db, actor=actor, note=note, at=_iso(self.clock()))
         self.audit(actor, "restore_hold_released", {"restored_at": out["restored_at"]})
         return out
+
+    def alert_actor_he(self, actor: str | None) -> str:
+        """מנהל 470 (מבקר 291🟡): «על ידי …» בהתראות אבטחה לבעל העסק — שם, לא פסאודונים. user:N ⇒ שם העובד/ת
+        (actor_label_he); הטוקן המשותף «owner» ⇒ «בעל העסק»; כל מבצע אחר (דמו/מערכת) ⇒ כפי שהוא. ה-audit וה-message_id
+        ממשיכים לשמור את הפסאודונים — רק הטקסט שבעל העסק קורא משתנה."""
+        a = actor or ""
+        if a.startswith("user:") or a == "owner":
+            return self.actor_label_he(a)
+        return a
 
     def actor_label_he(self, actor: str | None) -> str:
         """מנהל 454 (מבקר 275/276ℹ️): שם אנושי למבצע פעולה — «user:N» ⇒ שם העובד/ת; אחר ⇒ «בעל העסק»."""
