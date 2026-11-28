@@ -5235,6 +5235,7 @@ class CollectService:
         if bad:
             raise ValueError(f"נוסח ההצעה נחסם במסנן הניסוח: {', '.join(bad)}")
         self._supersede_plan_drafts(plan_id)
+        self._claim_queued_plan_offer(plan_id)   # מנהל 462
         did = self.db.x(
             "INSERT INTO drafts(customer_id,channel,to_addr,body,intent,status,escalate,"
             "owner_summary,owner_actions,plan_id,created_at,decided_at,decided_by,total_agorot) "
@@ -5308,6 +5309,29 @@ class CollectService:
         self.db.x("UPDATE conversations SET state='idle', offered_plan=NULL, updated_at=? WHERE customer_id=?",
                   (_iso(self.clock()), plan["customer_id"]))
         self.audit("system", "plan_offer_cleared", {"plan": plan["id"], "was": conv["state"]})
+
+    def _claim_queued_plan_offer(self, plan_id: int) -> None:
+        """מנהל 462 (check-then-update האחרון: ביטול הסדר ‖ אישור). הצעת פריסה מתור התשובות שבעל העסק אישר והיא
+        מחכה (חלון/סוף ניסיון/שחזור) — ההסדר עדיין 'proposed', ולכן /plans → «אישור» עבר: יצאה ללקוח הצעה מ-/plans,
+        **וגם** הטיוטה שבתור יצאה ב-flush הבא (הלקוח קיבל את ההצעה פעמיים); ואם הטיוטה התיישנה בינתיים,
+        `_withdraw_if_stale` דחה את ההסדר **שכבר יצא** וכתב לבעל העסק «לא נשלחה».
+        עכשיו: לפני שההצעה מ-/plans נוצרת, טיוטה ממתינה לאותו הסדר נתפסת (approved ⇒ superseded, מותנה — אם flush
+        כבר תפס אותה, אין שורה). טיוטה שכבר נשלחת/נשלחה ⇒ 409 ולא נשלחת הצעה שנייה."""
+        try:
+            n = self.db.update("UPDATE drafts SET status='superseded', decided_by='system:plan_approved' "
+                               "WHERE plan_id=? AND status='approved'", (plan_id,))
+            live = self.db.one("SELECT status FROM drafts WHERE plan_id=? AND status IN "
+                               "('sending','sent_dry_run','send_unknown') ORDER BY id DESC LIMIT 1", (plan_id,))
+        except self.db.OperationalError:   # טבלת הטיוטות נוצרת רק עם מנוע השיחה
+            return
+        if n:
+            self.audit("system", "plan_queued_offer_superseded", {"plan": plan_id, "drafts": n})
+        if live:
+            if live["status"] == "sent_dry_run":   # כבר יצאה ⇒ ההסדר אושר (לא חוזר ל«מוצע» ב-finally)
+                self.db.x("UPDATE plans SET status='approved' WHERE id=? AND status='approving'", (plan_id,))
+            self.audit("system", "plan_approve_blocked_inflight", {"plan": plan_id, "draft_status": live["status"]})
+            raise ValueError("הצעת הפריסה הזו כבר יוצאת ללקוח מתור «תשובות ללקוחות» — לא נשלחה הצעה שנייה. "
+                             "אפשר לראות אותה ב«יומן יוצאים».")
 
     def _supersede_plan_drafts(self, plan_id: int, by: str = "system:plan_approved") -> None:
         """אישור הפריסה ב-/plans שולח את ההצעה ללקוח, ולכן טיוטת plan_request המקבילה

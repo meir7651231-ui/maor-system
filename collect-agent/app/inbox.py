@@ -1121,9 +1121,17 @@ class ConversationInbox:
                                          for i in json.loads(row["installments"] or "[]"))
         if not past_due and now - since <= timedelta(hours=STALE_DRAFT_HOURS):
             return False
+        # מנהל 462: ההחלטה מותנית במצב — הטיוטה עדיין 'approved'. היה: UPDATE בלי תנאי על תמונת מצב ישנה ⇒
+        # (א) /plans אישר והצעה יצאה בינתיים ⇒ ההסדר **שיצא** נדחה + «לא נשלחה» לבעל העסק; (ב) בעל העסק דחה
+        # את התשובה בינתיים ⇒ היא חזרה ל«ממתינה לאישור». 0 שורות ⇒ מישהו אחר כבר הכריע: לא שולחים ולא נוגעים.
+        with self.db.batch():
+            return self._withdraw_stale_claimed(dr)
+
+    def _withdraw_stale_claimed(self, dr) -> bool:
         if dr["plan_id"]:
-            self.db.x("UPDATE drafts SET status='rejected', decided_by='system:stale' WHERE id=?",
-                      (dr["id"],))
+            if not self.db.update("UPDATE drafts SET status='rejected', decided_by='system:stale' "
+                                  "WHERE id=? AND status='approved'", (dr["id"],)):
+                return True
             self.db.x("UPDATE plans SET status='rejected' WHERE id=? AND status IN ('proposed','approved')",
                       (dr["plan_id"],))
             # מנהל 446 (מבקר 272ב🟠): ההצעה בוטלה ⇒ השיחה כבר לא «הציעה» אותה. היה: awaiting_plan_reply נשאר ⇒
@@ -1135,11 +1143,11 @@ class ConversationInbox:
                       "created_at) VALUES(?,'system','owner',?,'stale_draft',1,?)",
                       (dr["customer_id"], "הצעת הפריסה שאישרת לא נשלחה: היא חיכתה יותר מ-4 ימים, "
                        "והתאריכים בה כבר לא תקפים. אפשר לשלוח הצעה חדשה.", _iso(self.svc.clock())))
-        else:
-            self.db.x("UPDATE drafts SET status='pending_approval', decided_by=NULL, decided_at=NULL, "
-                      "owner_summary=COALESCE(owner_summary,'') || ? WHERE id=?",
-                      (" ⏳ התשובה חיכתה יותר מ-4 ימים ולא נשלחה — לאשר מחדש אם עדיין רלוונטית.",
-                       dr["id"]))
+        elif not self.db.update("UPDATE drafts SET status='pending_approval', decided_by=NULL, decided_at=NULL, "
+                                "owner_summary=COALESCE(owner_summary,'') || ? WHERE id=? AND status='approved'",
+                                (" ⏳ התשובה חיכתה יותר מ-4 ימים ולא נשלחה — לאשר מחדש אם עדיין רלוונטית.",
+                                 dr["id"])):
+            return True
         self.svc.audit("system", "draft_stale", {"draft": dr["id"], "plan": bool(dr["plan_id"])})
         return True
 
@@ -1210,7 +1218,8 @@ class ConversationInbox:
         if dr["plan_id"]:
             # review חור 2: הצעת הפריסה יצאה מתור התשובות ⇒ ההסדר הוכרע. אחרת /plans/approve
             # שלח ללקוח הצעה שנייה (בנוסח ובתאריכים אחרים).
-            self.db.x("UPDATE plans SET status='approved' WHERE id=? AND status='proposed'",
+            # מנהל 462: גם מ-'approving' — /plans תפס את ההסדר בזמן שהטיוטה הזו כבר נשלחה; הוא יחזיר 409
+            self.db.x("UPDATE plans SET status='approved' WHERE id=? AND status IN ('proposed','approving')",
                       (dr["plan_id"],))
             self.svc._resolve_plan_request_cards(cust["id"])   # מנהל 460 (מבקר 283🟡)
             if dr["intent"] == "plan_offer":
