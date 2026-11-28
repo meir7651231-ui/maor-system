@@ -14,8 +14,6 @@ from __future__ import annotations
 
 import re
 
-import pytest
-
 
 def _urgent_mail_count(svc, text):
     svc.sync()
@@ -29,6 +27,27 @@ def test_dispute_mail_counts_its_card_control(svc):
     assert _urgent_mail_count(svc, "אני לא חייבת את זה, יש טעות") == 1
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 290🟡: מייל דחוף על «הסר» אומר «כרטיסים דחופים: 0»")
+
 def test_optout_mail_counts_its_card(svc):
     assert _urgent_mail_count(svc, "הסר") >= 1
+
+
+# מנהל 468 (תיקון 290🟡): המונה = אותו קריטריון כמו שליחת המייל (escalate=urgent **או** כוונה ב-_URGENT_OWNER_ALERT)
+def test_optout_count_is_one_not_double(svc):
+    assert _urgent_mail_count(svc, "הסר") == 1
+
+
+def test_count_ignores_closed_cards(svc):
+    svc.sync()
+    svc.inbound("sms", "050-1234567", "הסר")
+    svc.db.x("UPDATE drafts SET status='rejected'")
+    assert svc._open_urgent_count() == 0
+
+
+def test_safe_auto_optout_not_counted_after_send(svc):
+    import dataclasses
+    svc.sync()
+    svc.inbox.policy = dataclasses.replace(svc.inbox.policy, approval_mode="safe_auto")
+    svc.inbound("sms", "050-1234567", "הסר")
+    # האישור יצא אוטומטית ⇒ אין כרטיס פתוח שנשאר
+    assert svc._open_urgent_count() == 0

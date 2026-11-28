@@ -695,9 +695,14 @@ class CollectService:
         return self.email_owner_urgent("pending")
 
     def _open_urgent_count(self) -> int:
+        """מבקר 290🟡: אותו קריטריון כמו המייל עצמו (inbox: escalate=urgent **או** כוונה ב-_URGENT_OWNER_ALERT)
+        וכמו _flush_urgent_owner_email — אחרת «הסר» (טיוטת אישור escalate='none') שלח «כרטיסים דחופים: 0»."""
+        from app.inbox import _URGENT_OWNER_ALERT
+        kinds = json.dumps(sorted(_URGENT_OWNER_ALERT))   # SQL קבוע (test_no_dynamic_sql) — רשימה כ-JSON
         try:
-            return self.db.one("SELECT COUNT(*) n FROM drafts WHERE escalate='urgent' AND "
-                               "status IN ('pending_approval','needs_owner')")["n"]
+            return self.db.one("SELECT COUNT(*) n FROM drafts WHERE status IN ('pending_approval','needs_owner') "
+                               "AND (escalate='urgent' OR intent IN (SELECT value FROM json_each(?)))",
+                               (kinds,))["n"]
         except sqlite3.OperationalError:
             return 0
 
