@@ -7,8 +7,9 @@ bearer-tokens — קוד קצר של 7 תווים ניתן לניחוש בלי �
 """
 from __future__ import annotations
 
+import ipaddress
 import time
-from collections import defaultdict, deque
+from collections import OrderedDict, deque
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
@@ -33,6 +34,20 @@ DEFAULT_RULES: dict[str, Rule] = {
 }
 
 
+def ip_key(ip: str) -> str:
+    """מבקר 294: מפתח ההגבלה לכתובת. IPv6 ⇒ רשת /64 (לקוח אחד מקבל /64 שלם — 2⁶⁴ כתובות; בלי קיבוץ, סיבוב כתובות
+    עוקף את ההגבלה פר-כתובת). IPv4-mapped ⇒ ה-IPv4. לא-כתובת (unknown / שם מארח בבדיקות) ⇒ כפי שהוא."""
+    try:
+        addr = ipaddress.ip_address(ip.strip().split("%", 1)[0])
+    except ValueError:
+        return ip
+    if isinstance(addr, ipaddress.IPv6Address):
+        if addr.ipv4_mapped is not None:
+            return str(addr.ipv4_mapped)
+        return str(ipaddress.IPv6Network((addr, 64), strict=False))
+    return str(addr)
+
+
 def group_for(path: str) -> str | None:
     if path in ("/connect/orbit", "/api/connect/orbit"):
         return "orbit_connect"
@@ -47,8 +62,11 @@ def group_for(path: str) -> str | None:
 class RateLimiter:
     rules: dict[str, Rule] = field(default_factory=lambda: dict(DEFAULT_RULES))
     clock: Callable[[], float] = time.monotonic
-    max_keys: int = 50_000  # הגנת זיכרון: מעבר לזה מנקים חלונות ישנים
-    _hits: dict[tuple[str, str], deque] = field(default_factory=lambda: defaultdict(deque))
+    max_keys: int = 50_000  # הגנת זיכרון: תקרה קשיחה למספר המפתחות
+    # מבקר 294: gc מנקה עד סימן-מים נמוך (90%) ⇒ רץ פעם בכ-10% מפתחות חדשים, לא בכל בקשה (סריקה מלאה בתוך
+    # ה-middleware האסינכרוני חסמה את לולאת האירועים). מה שלא פג ונשאר מעל הסימן ⇒ פינוי LRU (הנגישים הכי מזמן).
+    low_water: float = 0.9
+    _hits: OrderedDict[tuple[str, str], deque] = field(default_factory=OrderedDict)
 
     def _prune(self, q: deque, now: float, window: float) -> None:
         while q and now - q[0] >= window:
@@ -60,7 +78,14 @@ class RateLimiter:
         if rule is None:
             return None
         now = self.clock()
-        q = self._hits[(group, key)]
+        k = (group, key)
+        q = self._hits.get(k)
+        if q is None:
+            q = deque()
+            if record:
+                self._hits[k] = q
+        else:
+            self._hits.move_to_end(k)  # LRU: נגיש עכשיו
         self._prune(q, now, rule.window_s)
         if len(q) >= rule.limit:
             return max(0.0, rule.window_s - (now - q[0]))
@@ -91,3 +116,6 @@ class RateLimiter:
                 self._prune(q, now, rule.window_s)
             if not q:
                 del self._hits[k]
+        target = int(self.max_keys * self.low_water)
+        while len(self._hits) > target:
+            self._hits.popitem(last=False)  # LRU — הישן ביותר בגישה

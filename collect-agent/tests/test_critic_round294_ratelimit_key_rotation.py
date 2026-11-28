@@ -15,8 +15,6 @@
 """
 from __future__ import annotations
 
-import pytest
-
 from app.ratelimit import RateLimiter
 
 
@@ -34,7 +32,6 @@ def test_under_cap_no_gc_control():
     assert calls["n"] == 0
 
 
-@pytest.mark.xfail(strict=True, reason="מבקר 294🟡: מעבר ל-max_keys כל בקשה מריצה gc מלא, והמפתחות לא נחסמים")
 def test_over_cap_gc_not_on_every_request_and_bounded():
     rl = RateLimiter(max_keys=1000)
     calls = {"n": 0}

@@ -25,7 +25,7 @@ from .config import SafetyError, Settings, load_settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient
 from .integrations.base import jstr
-from .ratelimit import RateLimiter, group_for
+from .ratelimit import RateLimiter, group_for, ip_key
 from .service import SYNC_PAGE_CAP_MSG, CollectService, OwnerOnly, RealDataBlocked, is_page_cap
 from .templates import SLOGAN, TAGLINE
 from .users import Users
@@ -248,7 +248,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.middleware("http")
     async def rate_limit(request: Request, call_next):
-        ip = client_ip(request)
+        ip = ip_key(client_ip(request))  # מבקר 294: IPv6 ⇒ /64
         group = group_for(request.url.path)
         if group == "webhook" and _webhook_key_ok(request):
             group = "webhook_auth"  # מבקר 293א: הספק המאומת לא חולק דלי עם ניסיונות ניחוש
